@@ -1,0 +1,8 @@
+#!/bin/tcsh
+#PBS -N spTest
+#PBS -l nodes=1:rhel6:compute
+#PBS -l walltime=05:45:00
+#PBS -j oe
+
+cd $PBS_O_WORKDIR
+mvp2run python-mpi ./run_scripts.py ./gimms_ndvi_hpc.sh
