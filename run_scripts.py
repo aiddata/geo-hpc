@@ -15,10 +15,10 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 
-year = 2001
-day = 249
+year = '2002'
+days = ['001','009','017','025','033','041','049','057']
 
-cmd = runscript+" "+str(year)+" "+str(day)
+cmd = runscript+" "+year+" "+days[rank]
 sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 
 print sts
