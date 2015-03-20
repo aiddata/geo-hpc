@@ -68,19 +68,19 @@ if [[ -f "$pre_tmp" || ! -f "$pre_act" ]]; then
 
 fi
 
-# # process mosaic
-# post_tmp="$out_dir"/tmp_"$outname"
-# post_act="$out_dir"/"$outname"
-# if [[ -f "$post_tmp" || ! -f "$post_act" ]]; then
+# process mosaic
+post_tmp="$out_dir"/tmp_"$outname"
+post_act="$out_dir"/"$outname"
+if [[ -f "$post_tmp" || ! -f "$post_act" ]]; then
 	
-# 	\rm -f "$post_tmp"
-# 	\rm -f "$post_act"
+	\rm -f "$post_tmp"
+	\rm -f "$post_act"
 
-# 	gdal_calc.py -A "$pre_act" --outfile="$post_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
+	gdal_calc.py -A "$pre_act" --outfile="$post_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
-# 	mv "$post_tmp" "$post_act"
+	mv "$post_tmp" "$post_act"
 
-# fi
+fi
 
 
 
