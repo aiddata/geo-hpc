@@ -13,7 +13,7 @@ rank = comm.Get_rank()
 
 
 # get years
-path_base = "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
+path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 # years = [x[x.rindex('/')+1:] for x,y,z in os.walk(base) if x[x.rindex("/")+1:] != self]
 
 
