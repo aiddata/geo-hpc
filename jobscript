@@ -1,8 +1,8 @@
 #!/bin/tcsh
 #PBS -N spTest
-#PBS -l nodes=12:xeon:ppn=8
-#PBS -l walltime=12:00:00
+#PBS -l nodes=1:xeon:ppn=8
+#PBS -l walltime=130:00:00
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
-mvp2run -c 48 -m cyclic python-mpi ./run_scripts.py ./gimms_ndvi_hpc.sh
+mvp2run -c 2 -m cyclic python-mpi ./run_scripts.py ./gimms_ndvi_hpc.sh

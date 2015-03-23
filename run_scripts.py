@@ -5,11 +5,6 @@ import os
 
 runscript = sys.argv[1]
 
-# restrict year range
-# years = {
-# 	"start":2000,
-# 	"end":2003
-# }
 
 comm = MPI.COMM_WORLD
 
@@ -24,7 +19,7 @@ path_base = "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMO
 
 # for year in years:
 
-year = '2005'
+year = '2010'
 
 
 # get days for year

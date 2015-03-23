@@ -10,8 +10,8 @@ year=$1
 day=$2
 
 # input and output directories
-in_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"$year/$day
-out_dir="/sciclone/data20/aiddata/REU/processed/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"$year/$day
+in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"$year/$day
+out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"$year/$day
 
 # make and go to input unzip directory
 mkdir -p "$in_dir"/unzip
