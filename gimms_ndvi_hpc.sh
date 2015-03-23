@@ -9,9 +9,13 @@
 year=$1
 day=$2
 
+# update to use user's /local/scr directory on node
+myuser="sgoodman"
+
 # input and output directories
-in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"$year/$day
-out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"$year/$day
+in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
+tmp_dir="/local/scr/"${myuser}"/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
+out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 
 # make and go to input unzip directory
 mkdir -p "$in_dir"/unzip
@@ -38,6 +42,7 @@ cd unzip
 # 	gdal_calc.py -A $calc_in --outfile=$calc_out --calc="A*0.004" --calc="A*(A>=0)+(-9999)*(A<0)" --calc="A*(A<=250)+(-9999)*(A>250)" --NoDataValue=-9999
 # done
 
+mkdir -p "$tmp_dir"
 mkdir -p "$out_dir"
 
 # get a file name for the output mosiac
@@ -55,7 +60,7 @@ outname=$( find . -type f -iregex ".*[.]tif" | sed -n "1p" | sed "s:x[0-9]\+y[0-
 # skips if tmp does not exist and actual does (assumed process completed succesfully)
 
 # build mosaic
-pre_tmp="$out_dir"/tmp_raw_"$outname"
+pre_tmp="$tmp_dir"/tmp_raw_"$outname"
 pre_act="$out_dir"/raw_"$outname"
 if [[ -f "$pre_tmp" || ! -f "$pre_act" ]]; then
 	
@@ -64,21 +69,26 @@ if [[ -f "$pre_tmp" || ! -f "$pre_act" ]]; then
 
 	gdal_merge.py -of GTiff -init 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$pre_tmp"
 
-	mv "$pre_tmp" "$pre_act"
+	# copy from tmp_dir to out_dir
+	cp "$pre_tmp" "$pre_act"
 
 fi
 
 # process mosaic
-post_tmp="$out_dir"/tmp_"$outname"
+post_tmp="$tmp_dir"/tmp_"$outname"
 post_act="$out_dir"/"$outname"
 if [[ -f "$post_tmp" || ! -f "$post_act" ]]; then
 	
 	\rm -f "$post_tmp"
 	\rm -f "$post_act"
 
-	gdal_calc.py -A "$pre_act" --outfile="$post_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
+	gdal_calc.py -A "$pre_tmp" --outfile="$post_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
+	# move from tmp_dir to out_dir
 	mv "$post_tmp" "$post_act"
+
+	# clean up tmp_dir
+	\rm -f "$pre_tmp"
 
 fi
 
