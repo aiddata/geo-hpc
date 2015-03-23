@@ -24,8 +24,10 @@ year = '2010'
 
 # get days for year
 path_year = path_base + year
+
 days =[ name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name)) and name != year ]
 
+# use limited days for testing 
 # days = ['001','009','017','025','033','041','049','057']
 
 
