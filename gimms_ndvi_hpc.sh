@@ -9,7 +9,12 @@
 year=$1
 day=$2
 
-export GDAL_CACHEMAX=12287
+force=1
+
+# export GDAL_CACHEMAX=8191
+# export GDAL_CACHEMAX=10921
+# export GDAL_CACHEMAX=12287
+export GDAL_CACHEMAX=16383
 
 
 # update to use user's /local/scr directory on node
@@ -29,39 +34,31 @@ mkdir -p "$out_dir"
 cd "$in_dir"
 
 # gunzip each gzipped file to "unzip" directory if not already gunzipped
-for a in *.gz; do 
+# process individual frames
+for a in *.gz; do
 	z="$in_dir"/unzip/`echo $a | sed s/.gz//`
 	if [[ ! -f  $z ]]; then
 		gunzip -c $a > $z
 	fi
-done
 
-cd unzip
-
-
-# METHOD: tif mosaic from original tifs -> calc on mosaic tif -> output tif
-# add tmp files and checks to see if process was interrupted (tmp exists, actual does not)
-# skips if tmp does not exist and actual does (assumed process completed succesfully)
-
-# process individual frames
-for a in *.tif; do
-
-	prep_tmp="$tmp_dir"/"$a"
+	prep_tmp="$tmp_dir"/`echo $a | sed s/.gz//`
 	\rm -f "$prep_tmp"
-	gdal_calc.py -A "$a" --outfile="$prep_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
+	gdal_calc.py -A "$z" --outfile="$prep_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
 done
 
 
 # get a file name for the output mosiac
-# just use the name of the first tif you find in the dir, except without xNNyNN tile name
+# just use the name of the first tif you find in the unzip dir, except without xNNyNN tile name
+cd unzip
 outname=$( find . -type f -iregex ".*[.]tif" | sed -n "1p" | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g" )
 
-cd "$tmp_dir"
+
 # build mosaic
+cd "$tmp_dir"
 mosaic_tmp="$tmp_dir"/tmp_"$outname"
 mosaic_act="$out_dir"/"$outname"
-if [[ -f "$mosaic_tmp" || ! -f "$mosaic_act" ]]; then
+if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	
 	\rm -f "$mosaic_tmp"
 	\rm -f "$mosaic_act"
@@ -75,8 +72,6 @@ if [[ -f "$mosaic_tmp" || ! -f "$mosaic_act" ]]; then
 	\rm -f "$tmp_dir"/*
 
 fi
-
-
 
 
 
