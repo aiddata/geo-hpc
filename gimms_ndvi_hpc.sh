@@ -43,13 +43,11 @@ cd "$in_dir"
 # remove gunzipped and preprocessed frame if they exist
 # then process individual frames - gunzip tif and run gdal_calc
 for a in *.gz; do
+	
 	z="$tmp_dir"/unzip/`echo $a | sed s/.gz//`
-	# \rm -f "$z"
-
 	gunzip -c $a > $z
 
 	prep_tmp="$tmp_dir"/prep/`echo $a | sed s/.gz//`
-	# \rm -f "$prep_tmp"
 	gdal_calc.py -A "$z" --outfile="$prep_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
 done
@@ -69,7 +67,6 @@ mosaic_act="$out_dir"/"$outname"
 if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	
 	# remove tmp and output mosaic if they exist
-	# \rm -f "$mosaic_tmp"
 	\rm -f "$mosaic_act"
 
 	gdal_merge.py -of GTiff -init 255 -n 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
