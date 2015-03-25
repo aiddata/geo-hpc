@@ -27,7 +27,7 @@ qlist = []
 # years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] not in ignore]
 
 # use limited years for testing 
-years = ['2008']
+years = ['2009']
 
 
 for year in years:
@@ -40,12 +40,15 @@ for year in years:
 	# days = ['001','009']
 	# days = ['001','009','017','025','033','041']
 	# days = ['001','009','017','025','033','041','049','057']
-	# days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121']
+	days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121']
 
 	# days = ['001','009','017','025']
 	# days = ['033','041','049','057','065','073']
 	# days = ['081','089','097','105','113','121','129','137']
-	days = ['145','153','161','169','177','185','193','201','209','217','225','233','241','249','257','265']
+	# days = ['145','153','161','169','177','185','193','201','209','217','225','233','241','249','257','265']
+
+	# days = ['305','313','321','329','337','345','353','361']
+
 
 	qlist += [[year,day] for day in days]
 
@@ -53,53 +56,53 @@ for year in years:
 # qlist distribution algorithm #1 - chunks
 # each processor is given a continous block of qlist items to process
 
-if len(qlist) > size:
+# if len(qlist) > size:
 
-	jobs = len(qlist) # num of jobs to run
-	even = jobs // size # min jobs each processor will run
-	left = jobs % size # num of jobs to be split between some size
+# 	jobs = len(qlist) # num of jobs to run
+# 	even = jobs // size # min jobs each processor will run
+# 	left = jobs % size # num of jobs to be split between some size
 
-	# for each node assign jobs
+# 	# for each node assign jobs
 
-	if rank < left:
-		r = range( rank*even+rank, (rank+1)*even+rank+1 )
-	else:
-		r = range( rank*even+left, (rank+1)*even+left )
+# 	if rank < left:
+# 		r = range( rank*even+rank, (rank+1)*even+rank+1 )
+# 	else:
+# 		r = range( rank*even+left, (rank+1)*even+left )
 
 
-	for i in r:
+# 	for i in r:
 
-		# print "("+str(rank)+") " + qlist[i] + "\n"
+# 		# print "("+str(rank)+") " + qlist[i] + "\n"
 
-		cmd = runscript+" "+qlist[i][0]+" "+qlist[i][1]
-		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+# 		cmd = runscript+" "+qlist[i][0]+" "+qlist[i][1]
+# 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 
-		print sts
+# 		print sts
 
-elif len(qlist) > rank:
+# elif len(qlist) > rank:
 
-	# print "("+str(rank)+") " + qlist[rank] + "\n"
+# 	# print "("+str(rank)+") " + qlist[rank] + "\n"
 
-	cmd = runscript+" "+qlist[rank][0]+" "+qlist[rank][1]
-	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+# 	cmd = runscript+" "+qlist[rank][0]+" "+qlist[rank][1]
+# 	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 
-	print sts
+# 	print sts
 
 
 
 # qlist distribution algorithm #1 - cyclic
 # qlist items are distributed to processors in a cyclical manner
 
-# c = rank
-# while c < len(days):
+c = rank
+while c < len(qlist):
 
-# 	# print "("+str(rank)+") " + qlist[c] + "\n"
+	# print "("+str(rank)+") " + qlist[c] + "\n"
 
-# 	cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]
-# 	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+	cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]
+	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 
-# 	print sts
-# 	c += size
+	print sts
+	c += size
 
 
 comm.Barrier()

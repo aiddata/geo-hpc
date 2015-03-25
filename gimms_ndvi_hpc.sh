@@ -19,7 +19,8 @@ force=1
 # export GDAL_CACHEMAX=8191
 # export GDAL_CACHEMAX=10921
 # export GDAL_CACHEMAX=12287
-export GDAL_CACHEMAX=16383
+# export GDAL_CACHEMAX=16383
+export GDAL_CACHEMAX=22527
 
 # update to use user's /local/scr directory on node
 myuser="sgoodman"
@@ -29,9 +30,13 @@ in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/
 tmp_dir="/local/scr/"${myuser}"/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 
+# clean up tmp directory if it exists
+\rm -f -r "$tmp_dir"/*
+
 # make input and tmp directories
 mkdir -p "$in_dir"
-mkdir -p "$tmp_dir"/{unzip, prep}
+mkdir -p "$tmp_dir"/unzip
+mkdir -p "$tmp_dir"/prep
 
 cd "$in_dir"
 
@@ -39,14 +44,12 @@ cd "$in_dir"
 # then process individual frames - gunzip tif and run gdal_calc
 for a in *.gz; do
 	z="$tmp_dir"/unzip/`echo $a | sed s/.gz//`
-	\rm -f "$z"
+	# \rm -f "$z"
 
-	# if [[ ! -f  $z ]]; then
-		gunzip -c $a > $z
-	# fi
+	gunzip -c $a > $z
 
 	prep_tmp="$tmp_dir"/prep/`echo $a | sed s/.gz//`
-	\rm -f "$prep_tmp"
+	# \rm -f "$prep_tmp"
 	gdal_calc.py -A "$z" --outfile="$prep_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
 done
@@ -66,7 +69,7 @@ mosaic_act="$out_dir"/"$outname"
 if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	
 	# remove tmp and output mosaic if they exist
-	\rm -f "$mosaic_tmp"
+	# \rm -f "$mosaic_tmp"
 	\rm -f "$mosaic_act"
 
 	gdal_merge.py -of GTiff -init 255 -n 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
@@ -74,10 +77,10 @@ if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	# move from tmp_dir to out_dir
 	mv "$mosaic_tmp" "$mosaic_act"
 
-	# clean up tmp_dir
-	\rm -f -r "$tmp_dir"/*
-
 fi
+
+# clean up tmp_dir
+\rm -f -r "$tmp_dir"/*
 
 
 echo "$year"_"$day"
