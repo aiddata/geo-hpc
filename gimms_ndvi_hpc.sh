@@ -6,6 +6,11 @@
 # called by python mpi4py script
 # inputs: 1) year, 2) day
 
+# internal variables:
+# force 		- [bool] whether to force overwriting of existing mosaics
+# GDAL_CACHEMAX - [int] environmental variable used to set the amount of memory GDAL is allowed to use
+# myuser 		- [str] HPC account username used for writing to /local/scr on node
+
 year=$1
 day=$2
 
@@ -16,7 +21,6 @@ force=1
 # export GDAL_CACHEMAX=12287
 export GDAL_CACHEMAX=16383
 
-
 # update to use user's /local/scr directory on node
 myuser="sgoodman"
 
@@ -25,41 +29,43 @@ in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/
 tmp_dir="/local/scr/"${myuser}"/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 
-# make directories
-mkdir -p "$in_dir"/unzip
-mkdir -p "$tmp_dir"
-mkdir -p "$out_dir"
-
+# make input and tmp directories
+mkdir -p "$in_dir"
+mkdir -p "$tmp_dir"/{unzip, prep}
 
 cd "$in_dir"
 
-# gunzip each gzipped file to "unzip" directory if not already gunzipped
-# process individual frames
+# remove gunzipped and preprocessed frame if they exist
+# then process individual frames - gunzip tif and run gdal_calc
 for a in *.gz; do
-	z="$in_dir"/unzip/`echo $a | sed s/.gz//`
-	if [[ ! -f  $z ]]; then
-		gunzip -c $a > $z
-	fi
+	z="$tmp_dir"/unzip/`echo $a | sed s/.gz//`
+	\rm -f "$z"
 
-	prep_tmp="$tmp_dir"/`echo $a | sed s/.gz//`
+	# if [[ ! -f  $z ]]; then
+		gunzip -c $a > $z
+	# fi
+
+	prep_tmp="$tmp_dir"/prep/`echo $a | sed s/.gz//`
 	\rm -f "$prep_tmp"
 	gdal_calc.py -A "$z" --outfile="$prep_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
 done
 
+# make output directory
+mkdir -p "$out_dir"
 
 # get a file name for the output mosiac
 # just use the name of the first tif you find in the unzip dir, except without xNNyNN tile name
-cd unzip
+cd "$tmp_dir"/prep
 outname=$( find . -type f -iregex ".*[.]tif" | sed -n "1p" | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g" )
 
 
 # build mosaic
-cd "$tmp_dir"
 mosaic_tmp="$tmp_dir"/tmp_"$outname"
 mosaic_act="$out_dir"/"$outname"
 if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	
+	# remove tmp and output mosaic if they exist
 	\rm -f "$mosaic_tmp"
 	\rm -f "$mosaic_act"
 
@@ -69,7 +75,7 @@ if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	mv "$mosaic_tmp" "$mosaic_act"
 
 	# clean up tmp_dir
-	\rm -f "$tmp_dir"/*
+	\rm -f -r "$tmp_dir"/*
 
 fi
 

@@ -11,36 +11,51 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
+# base path where year/day directories are located
+path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
+
+# list of years to ignore
+ignore = []
+# ignores self
+ignore.append(path_base[path_base.rindex('/')+1:])
+
+# list of all [year, day] combos
+qlist = []
 
 # get years
-path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
-# years = [x[x.rindex('/')+1:] for x,y,z in os.walk(base) if x[x.rindex("/")+1:] != self]
+# years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] != path_base[path_base.rindex('/')+1:] and x[x.rindex("/")+1:] not in ignore]
+# years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] not in ignore]
+
+# use limited years for testing 
+years = ['2008']
 
 
-# for year in years:
+for year in years:
 
-year = '2008'
+	# get days for year
+	path_year = path_base + year
+	# days =[ name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name)) and name != year ]
+
+	# use limited days for testing 
+	# days = ['001','009']
+	# days = ['001','009','017','025','033','041']
+	# days = ['001','009','017','025','033','041','049','057']
+	# days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121']
+
+	# days = ['001','009','017','025']
+	# days = ['033','041','049','057','065','073']
+	# days = ['081','089','097','105','113','121','129','137']
+	days = ['145','153','161','169','177','185','193','201','209','217','225','233','241','249','257','265']
+
+	qlist += [[year,day] for day in days]
 
 
-# get days for year
-path_year = path_base + year
+# qlist distribution algorithm #1 - chunks
+# each processor is given a continous block of qlist items to process
 
-# days =[ name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name)) and name != year ]
+if len(qlist) > size:
 
-# use limited days for testing 
-# days = ['001','009']
-# days = ['001','009','017','025']
-# days = ['033','041','049','057','065','073']
-# days = ['001','009','017','025','033','041']
-# days = ['001','009','017','025','033','041','049','057']
-# days = ['081','089','097','105','113','121','129','137']
-# days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121']
-days = ['145','153','161','169','177','185','193','201','209','217','225','233','241','249','257','265']
-
-
-if len(days) > size:
-
-	jobs = len(days) # num of jobs to run
+	jobs = len(qlist) # num of jobs to run
 	even = jobs // size # min jobs each processor will run
 	left = jobs % size # num of jobs to be split between some size
 
@@ -54,22 +69,37 @@ if len(days) > size:
 
 	for i in r:
 
-		# print "("+str(rank)+") " + days[i] + "\n"
+		# print "("+str(rank)+") " + qlist[i] + "\n"
 
-		day = days[i]
-		cmd = runscript+" "+year+" "+days[i]
+		cmd = runscript+" "+qlist[i][0]+" "+qlist[i][1]
 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 
 		print sts
 
-elif len(days) > rank:
+elif len(qlist) > rank:
 
-	# print "("+str(rank)+") " + days[rank] + "\n"
+	# print "("+str(rank)+") " + qlist[rank] + "\n"
 
-	cmd = runscript+" "+year+" "+days[rank]
+	cmd = runscript+" "+qlist[rank][0]+" "+qlist[rank][1]
 	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 
 	print sts
+
+
+
+# qlist distribution algorithm #1 - cyclic
+# qlist items are distributed to processors in a cyclical manner
+
+# c = rank
+# while c < len(days):
+
+# 	# print "("+str(rank)+") " + qlist[c] + "\n"
+
+# 	cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]
+# 	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+
+# 	print sts
+# 	c += size
 
 
 comm.Barrier()
