@@ -14,7 +14,7 @@
 year=$1
 day=$2
 
-force=1
+force=0
 
 # export GDAL_CACHEMAX=8191
 # export GDAL_CACHEMAX=10921
@@ -38,22 +38,24 @@ mkdir -p "$in_dir"
 mkdir -p "$tmp_dir"/unzip
 mkdir -p "$tmp_dir"/prep
 
+# move gzipped files to tmp dir
 cd "$in_dir"
+mv *.gz "$tmp_dir"
 
-# remove gunzipped and preprocessed frame if they exist
-# then process individual frames - gunzip tif and run gdal_calc
+# gunzip and process individual frames
+cd "$tmp_dir"
 for a in *.gz; do
-	
+
+	# unzip
 	z="$tmp_dir"/unzip/`echo $a | sed s/.gz//`
 	gunzip -c $a > $z
 
+	# process frame
 	prep_tmp="$tmp_dir"/prep/`echo $a | sed s/.gz//`
 	gdal_calc.py -A "$z" --outfile="$prep_tmp" --calc="A*(A<=250)+(255)*(A>250)" --NoDataValue=255
 
 done
 
-# make output directory
-mkdir -p "$out_dir"
 
 # get a file name for the output mosiac
 # just use the name of the first tif you find in the unzip dir, except without xNNyNN tile name
@@ -69,9 +71,12 @@ if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
 	# remove tmp and output mosaic if they exist
 	\rm -f "$mosaic_act"
 
-	gdal_merge.py -of GTiff -init 255 -n 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
+	# merge processed frames into compressed geotiff mosaic
+	# nodata value of 255
+	gdal_merge.py -of GTiff -init 255 -n 255 -a_nodata 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
 
-	# move from tmp_dir to out_dir
+	# make output directory and move from tmp_dir to out_dir
+	mkdir -p "$out_dir"
 	mv "$mosaic_tmp" "$mosaic_act"
 
 fi
@@ -79,5 +84,5 @@ fi
 # clean up tmp_dir
 \rm -f -r "$tmp_dir"/*
 
-
+# echo year_day that was processed
 echo "$year"_"$day"
