@@ -8,6 +8,6 @@ Scripts for creating a job on the Sciclone cluster to run extracts on mosaic out
 
 ***
 
-##R_full  
+##R_old   
 Contains Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
 
