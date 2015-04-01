@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# mosaic daily GIMMS NDVI from MODIS Terra
-# prereqs: GDAL (currently using 1.9.0 - plans to upgrade to 1.11.2)
+# mosaic 8 day period GIMMS NDVI from MODIS Terra
+# prereqs: GDAL (current version - 1.11.2)
 
 # called by python mpi4py script
 # inputs: 1) year, 2) day
