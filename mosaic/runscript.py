@@ -19,14 +19,14 @@ path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD
 # list of years to ignore
 ignore = []
 # ignores self
-ignore.append(path_base[path_base.rindex('/')+1:])
+# ignore.append(path_base[path_base.rindex('/')+1:])
 
 # list of all [year, day] combos
 qlist = []
 
 # get years
 # years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] != path_base[path_base.rindex('/')+1:] and x[x.rindex("/")+1:] not in ignore]
-years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] not in ignore]
+years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
 
 # use limited years for testing 
 # years = ['2009']
@@ -37,7 +37,7 @@ for year in years:
 
 	# get days for year
 	path_year = path_base + year
-	days =[ name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name)) and name != year ]
+	days = [name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name))]
 
 	# use limited days for testing 
 	# days = ['001','009']
