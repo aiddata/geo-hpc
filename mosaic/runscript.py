@@ -12,6 +12,8 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 # base path where year/day directories are located
+# data downloaded using wget (same wget call can be used to download new data)
+# wget -r -c -N ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/
 path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 
 # list of years to ignore
@@ -24,23 +26,24 @@ qlist = []
 
 # get years
 # years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] != path_base[path_base.rindex('/')+1:] and x[x.rindex("/")+1:] not in ignore]
-# years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] not in ignore]
+years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] not in ignore]
 
 # use limited years for testing 
 # years = ['2009']
-years = ['2010']
+# years = ['2010']
 
 
 for year in years:
 
 	# get days for year
 	path_year = path_base + year
-	# days =[ name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name)) and name != year ]
+	days =[ name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name)) and name != year ]
 
 	# use limited days for testing 
 	# days = ['001','009']
 	# days = ['001','009','017','025','033','041']
-	days = ['001','009','017','025','033','041','049','057']
+	# days = ['001','009','017','025','033','041','049','057']
+	# days = ['065','073','081','089','097','105','113','121']
 	# days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121']
 
 	# days = ['001','009','017','025']

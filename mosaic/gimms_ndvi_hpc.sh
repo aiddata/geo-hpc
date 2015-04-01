@@ -14,7 +14,7 @@
 year=$1
 day=$2
 
-force=0
+force=1
 
 # export GDAL_CACHEMAX=8191
 # export GDAL_CACHEMAX=10921
@@ -40,7 +40,7 @@ mkdir -p "$tmp_dir"/prep
 
 # move gzipped files to tmp dir
 cd "$in_dir"
-mv *.gz "$tmp_dir"
+cp *.gz "$tmp_dir"
 
 # gunzip and process individual frames
 cd "$tmp_dir"
