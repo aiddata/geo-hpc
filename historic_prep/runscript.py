@@ -35,10 +35,14 @@ qlist = [[name[14:18], name[18:20], name] for name in os.listdir(path_base) if n
 c = rank
 while c < len(qlist):
 
-	cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "qlist[c][2]
-	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+	try:
+		cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "qlist[c][2]
+		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+		print sts
 
-	print sts
+	except sp.CalledProcessError as sts_err:                                                                                                   
+	    print "subprocess error code", sts_err.returncode, sts_err.output
+
 	c += size
 
 

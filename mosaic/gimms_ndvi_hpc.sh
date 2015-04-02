@@ -37,7 +37,7 @@ cd "$in_dir"
 outname=$( find . -type f -iregex ".*[.]gz" | sed -n "1p" | sed s/.gz// | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g" )
 
 # check if data exists based on whether a non empty outname was created
-if [[ $outname -eq "" ]]; then
+if [[ $outname = "" ]]; then
 	echo "$year"_"$day" has no data
 	exit 1
 fi
