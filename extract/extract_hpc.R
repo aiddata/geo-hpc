@@ -2,48 +2,41 @@
 
 library("raster")
 
-library("rgdal")
-# library("maptools")
+# library("rgdal")
+library("maptools")
+
+
+readIn <- commandArgs(trailingOnly = TRUE)
+
+year <- readIn[1]
+day <- readIn[2]
+name <- readIn[3]
+
 
 timer <- proc.time()
 
-myVector <- readOGR('/home/userx/Desktop/extests/shps', 'terra_indigenaPolygon')
-# myVector <- readShapePoly('/home/userx/Desktop/extests/shps/terra_indigenaPolygon.shp')
 
-myRaster <- raster('/home/userx/Desktop/extests/rasterx.tif') 
+base <- "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI"
 
 
-# myExtract <- extract(myRaster, myVector, weights=TRUE, small=TRUE)
 
-# weighted mean
-# v <- extract(r, polys, weights=TRUE, fun=mean)
-# equivalent to:
-# v <- extract(myRaster, myVector, weights=TRUE)
-# sapply(v, function(x) if (!is.null(x)) {sum(apply(x, 1, prod)) / sum(x[,2])} else NA)
+# myVector <- readOGR('/path/to/shps', 'terra_indigenaPolygon')
+myVector <- readShapePoly('~/kfw/extract/shps/terra_indigenaPolygon.shp')
 
-# myExtract <- extract(myRaster, myVector, fun=mean, df=TRUE, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
 
-# myExtract <- extract(myRaster, myVector, weights=TRUE, normalizeWeights=FALSE, small=TRUE)
-# sapply(myExtract, function(x) if (!is.null(x)) {sum(apply(x, 1, prod)) / sum(x[[,2]])} else NA)
+myRaster <- raster(paste(base, year, day, name, sep="/")) 
 
-# myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, na.rm=TRUE)
+
 # myExtract <- extract(disaggregate(myRaster, fact=c(4,4)), myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE)
-
-
 myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
 
-myOutput <- myExtract@data
-write.table(myOutput, '/home/userx/Desktop/extests/output.csv', quote=T, row.names=F, sep=",")
 
-# out_shp <- "/home/userx/Desktop/extests/output.shp"
-# writePolyShape(myExtract, out_shp)
+# myOutput <- myExtract@data
+# write.table(myOutput, '/home/userx/Desktop/extests/output.csv', quote=T, row.names=F, sep=",")
+
+out_shp <- paste("~/kfw/extract/output/extract_",year,"_",day,".shp", sep="")
+writePolyShape(myExtract, out_shp)
+
 
 timer <- proc.time() - timer
 print(timer)
-
-
-# sp small + weights
-# "Guaimbé",".","Concluído","Regularizada","Terra Indígena","S",NA,"716.9316 Ha","Ativo","Principal","14.84100 Ha",NA,181.320383513884
-
-# sp + weights
-# "Guaimbé",".","Concluído","Regularizada","Terra Indígena","S",NA,"716.9316 Ha","Ativo","Principal","14.84100 Ha",NA,181.320383513884
