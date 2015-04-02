@@ -87,13 +87,14 @@ gdal_merge.py -of GTiff -init 255 -n 255 -a_nodata 255 -co COMPRESS=LZW -co TILE
 
 
 function copy_output {
-	if [[ ! -f "$mosaic_act" && $out_attempt -lt 2 ]]; then
+
+	if [[ (! -f "$mosaic_act" || $( diff "$mosaic_tmp" "$mosaic_act" ) != "") && $out_attempt -lt 3 ]]; then
 
 		cp "$mosaic_tmp" "$mosaic_act"
 		((out_attempt+=1))
 		copy_output
 
-	elif [[ ! -f "$mosaic_act" && $out_attempt -ge 2 ]]; then
+	elif [[ (! -f "$mosaic_act" || $( diff "$mosaic_tmp" "$mosaic_act" ) != "") && $out_attempt -ge 3 ]]; then
 
 		echo "$year"_"$day" failed to copy to output directory
 		exit 2

@@ -56,7 +56,7 @@ for year in years:
 	# days = ['129','137','145','153','161','169','177','185','193','201','209','217','225','233','241','249','257','265','273','281','289','297','305','313']
 	# days = ['321','329','337','345','353','361']
 
-	days = ['161','169','177','185','193']
+	days = ['169','177']
 
 	# days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121','129','137','145','153','161','169','177','185','193','201','209','217','225','233','241','249']
 
@@ -106,10 +106,14 @@ for year in years:
 c = rank
 while c < len(qlist):
 
-	cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]
-	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+	try:
+		cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]
+		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+		print sts
 
-	print sts
+	except sp.CalledProcessError as sts_err:                                                                                                   
+	    print "subprocess error code", sts_err.returncode, sts_err.output
+
 	c += size
 
 
