@@ -34,17 +34,22 @@ cd "$in_dir"
 
 # get a file name for the output mosiac
 # uses format of all files for that year / day period except without "xNNyNN" in the tile name
-outname=$( find . -type f -iregex ".*[.]gz" | sed -n "1p" | sed s/.gz// | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g")
+outname=$( find . -type f -iregex ".*[.]gz" | sed -n "1p" | sed s/.gz// | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g" )
+
+# check if data exists based on whether a non empty outname was created
+if [[ $outname -eq "" ]]; then
+	echo "$year"_"$day" has no data
+	exit 1
+fi
+
 
 mosaic_tmp="$tmp_dir"/tmp_"$outname"
 mosaic_act="$out_dir"/"$outname"
 
 
 if [[ -f "$mosaic_act" && $force -eq 0 ]]; then
-
 	echo "$year"_"$day" exists
 	exit 0
-
 fi
 
 
@@ -79,14 +84,46 @@ done
 cd "$tmp_dir"/prep
 gdal_merge.py -of GTiff -init 255 -n 255 -a_nodata 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
 
+
+
+function copy_output {
+	if [[ ! -f "$mosaic_act" && $out_attempt -lt 2 ]]; then
+
+		cp "$mosaic_tmp" "$mosaic_act"
+		((out_attempt+=1))
+		copy_output
+
+	elif [[ ! -f "$mosaic_act" && $out_attempt -ge 2 ]]; then
+
+		echo "$year"_"$day" failed to copy to output directory
+		exit 2
+
+	else
+
+		# clean up tmp_dir
+		\rm -f -r "$tmp_dir"
+
+		# echo year_day that was processed
+		echo "$year"_"$day" completed
+		exit 0
+
+	fi
+}
+
 # make output directory and move from tmp_dir to out_dir
 mkdir -p "$out_dir"
-mv "$mosaic_tmp" "$mosaic_act"
+out_attempt=0
+copy_output
 
 
-# clean up tmp_dir
-\rm -f -r "$tmp_dir"
 
-# echo year_day that was processed
-echo "$year"_"$day" completed
-exit 0
+# # make output directory and move from tmp_dir to out_dir
+# mkdir -p "$out_dir"
+# mv "$mosaic_tmp" "$mosaic_act"
+
+# # clean up tmp_dir
+# \rm -f -r "$tmp_dir"
+
+# # echo year_day that was processed
+# echo "$year"_"$day" completed
+# exit 0
