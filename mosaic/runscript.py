@@ -17,20 +17,20 @@ rank = comm.Get_rank()
 path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 
 # list of years to ignore
-ignore = []
+ignore = ['2000','2001','2002','2003','2004','2005','2006']
 # ignores self
 # ignore.append(path_base[path_base.rindex('/')+1:])
 
 # list of all [year, day] combos
 qlist = []
 
+qlist += [['2001','169'],['2005','257']]
+
 # get years
-# years = [x[x.rindex('/')+1:] for x,y,z in os.walk(path_base) if x[x.rindex("/")+1:] != path_base[path_base.rindex('/')+1:] and x[x.rindex("/")+1:] not in ignore]
-years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
+# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
 
 # use limited years for testing 
-# years = ['2009']
-# years = ['2010']
+years = ['2006']
 
 
 for year in years:

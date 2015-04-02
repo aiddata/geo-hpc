@@ -30,23 +30,40 @@ in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/
 tmp_dir="/local/scr/"${myuser}"/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 
-# clean up tmp directory if it exists
-\rm -f -r "$tmp_dir"/*
+cd "$in_dir"
 
-# make input and tmp directories
-mkdir -p "$in_dir"
+# get a file name for the output mosiac
+# uses format of all files for that year / day period except without "xNNyNN" in the tile name
+outname=$( find . -type f -iregex ".*[.]gz" | sed -n "1p" | sed s/.gz// | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g")
+
+mosaic_tmp="$tmp_dir"/tmp_"$outname"
+mosaic_act="$out_dir"/"$outname"
+
+
+if [[ -f "$mosaic_act" && $force -eq 0 ]]; then
+
+	echo "$year"_"$day" exists
+	exit 0
+
+fi
+
+
+# clean up tmp and out directories if they exists
+\rm -f -r "$tmp_dir"
+\rm -f -r "$out_dir"
+
+# make tmp directories
 mkdir -p "$tmp_dir"/unzip
 mkdir -p "$tmp_dir"/prep
 
-# move gzipped files to tmp dir
-cd "$in_dir"
-cp *.gz "$tmp_dir"
 
-# gunzip and process individual frames
+# move gzipped files to tmp dir then gunzip and process individual frames
+cp *.gz "$tmp_dir"
 cd "$tmp_dir"
+
 for a in *.gz; do
 
-	# unzip
+	# gunzip
 	z="$tmp_dir"/unzip/`echo $a | sed s/.gz//`
 	gunzip -c $a > $z
 
@@ -57,32 +74,19 @@ for a in *.gz; do
 done
 
 
-# get a file name for the output mosiac
-# just use the name of the first tif you find in the unzip dir, except without xNNyNN tile name
+# merge processed frames into compressed geotiff mosaic
+# nodata value of 255
 cd "$tmp_dir"/prep
-outname=$( find . -type f -iregex ".*[.]tif" | sed -n "1p" | sed "s:x[0-9]\+y[0-9]\+[.]::g" | sed "s:^[.]/::g;s:^:mosaic.:g" )
+gdal_merge.py -of GTiff -init 255 -n 255 -a_nodata 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
 
+# make output directory and move from tmp_dir to out_dir
+mkdir -p "$out_dir"
+mv "$mosaic_tmp" "$mosaic_act"
 
-# build mosaic
-mosaic_tmp="$tmp_dir"/tmp_"$outname"
-mosaic_act="$out_dir"/"$outname"
-if [[ $force -eq 1 || ! -f "$mosaic_act" ]]; then
-	
-	# remove tmp and output mosaic if they exist
-	\rm -f "$mosaic_act"
-
-	# merge processed frames into compressed geotiff mosaic
-	# nodata value of 255
-	gdal_merge.py -of GTiff -init 255 -n 255 -a_nodata 255 -co COMPRESS=LZW -co TILED=YES -co BIGTIFF=YES *.tif -o "$mosaic_tmp"
-
-	# make output directory and move from tmp_dir to out_dir
-	mkdir -p "$out_dir"
-	mv "$mosaic_tmp" "$mosaic_act"
-
-fi
 
 # clean up tmp_dir
-\rm -f -r "$tmp_dir"/*
+\rm -f -r "$tmp_dir"
 
 # echo year_day that was processed
-echo "$year"_"$day"
+echo "$year"_"$day" completed
+exit 0
