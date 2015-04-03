@@ -39,15 +39,17 @@ for year in years:
 
 	# use limited days for testing 
 	# days = ['001','009']
+	days = ['001','009','017','025']
+
 	# days = ['001','009','017','025','033','041']
-	days = ['001','009','017','025','033','041','049','057']
+	# days = ['001','009','017','025','033','041','049','057']
 	# days = ['065','073','081','089','097','105','113','121']
 	# days = ['001','009','017','025','033','041','049','057','065','073','081','089','097','105','113','121']
 
 
-	for day in days
+	for day in days:
 
-		path_dat = path_year + "/" + day
+		path_day = path_year + "/" + day
 
 		flist = [name for name in os.listdir(path_day) if not os.path.isdir(os.path.join(path_day, name)) and name.endswith('.tif')]
 
