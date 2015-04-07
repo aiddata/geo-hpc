@@ -6,6 +6,9 @@ Scripts for creating a job on the Sciclone cluster which preprocesses/mosaics da
 ##extract
 Scripts for creating a job on the Sciclone cluster to run extracts on mosaic outputs
 
+##historic_prep
+Scripts for creating a job on the Sciclone cluster to process historic GIMMS NDVI data (1981-2003)
+
 ***
 
 ##R_old   

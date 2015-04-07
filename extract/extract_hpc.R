@@ -2,7 +2,7 @@
 
 library("raster")
 
-# library("rgdal")
+library("rgdal")
 library("maptools")
 
 
@@ -31,8 +31,8 @@ myRaster <- raster(paste(base, year, day, name, sep="/"))
 myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
 
 
-# myOutput <- myExtract@data
-# write.table(myOutput, '/home/userx/Desktop/extests/output.csv', quote=T, row.names=F, sep=",")
+myOutput <- myExtract@data
+write.table(myOutput, paste("~/kfw/extract/output/extract_",year,"_",day,".csv", sep=""), quote=T, row.names=F, sep=",")
 
 out_shp <- paste("~/kfw/extract/output/extract_",year,"_",day,".shp", sep="")
 writePolyShape(myExtract, out_shp)
