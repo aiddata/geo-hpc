@@ -16,7 +16,8 @@ name <- readIn[3]
 timer <- proc.time()
 
 
-base <- "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI"
+in_base <- "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI"
+out_base <- paste("~/kfw/extract/output/",year,"/",day, sep="")
 
 
 
@@ -24,19 +25,23 @@ base <- "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q
 myVector <- readShapePoly('~/kfw/extract/shps/terra_indigenaPolygon.shp')
 
 
-myRaster <- raster(paste(base, year, day, name, sep="/")) 
+myRaster <- raster(paste(in_base, year, day, name, sep="/")) 
 
 
 # myExtract <- extract(disaggregate(myRaster, fact=c(4,4)), myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE)
 myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
 
 
-myOutput <- myExtract@data
-write.table(myOutput, paste("~/kfw/extract/output/extract_",year,"_",day,".csv", sep=""), quote=T, row.names=F, sep=",")
+dir.create(out_base, recursive=TRUE)
 
-out_shp <- paste("~/kfw/extract/output/extract_",year,"_",day,".shp", sep="")
+myOutput <- myExtract@data
+write.table(myOutput, paste(out_base,"/extract_",year,"_",day,".csv", sep=""), quote=T, row.names=F, sep=",")
+
+out_shp <- paste(out_base,"/extract_",year,"_",day,".shp", sep="")
 writePolyShape(myExtract, out_shp)
 
 
 timer <- proc.time() - timer
-print(timer)
+# print(timer)
+
+print(paste("extract_hpc.R:",year,day,"completed in",timer[3],'seconds. ' sep=" "))

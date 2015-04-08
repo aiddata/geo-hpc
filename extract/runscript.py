@@ -28,7 +28,7 @@ qlist = []
 years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
 
 # use limited years for testing 
-years = ['2001']
+years = ['2002']
 
 
 for year in years:
@@ -39,7 +39,7 @@ for year in years:
 
 	# use limited days for testing 
 	# days = ['001','009']
-	days = ['001','009','017','025']
+	# days = ['001','009','017','025']
 
 	# days = ['001','009','017','025','033','041']
 	# days = ['001','009','017','025','033','041','049','057']
@@ -71,3 +71,5 @@ while c < len(qlist):
 
 
 comm.Barrier()
+
+sys.exit("runscript.py complete")
