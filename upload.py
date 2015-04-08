@@ -11,6 +11,9 @@ from osgeo import gdal,ogr,osr
 in_name = sys.argv[1]
 in_short = sys.argv[2]
 in_type = sys.argv[3]
+
+# always use absolute paths
+# ***going to add check to make sure path is in REU/data folder***
 in_path = sys.argv[4]
 
 # start and end must be in YYYYMMDD format
@@ -191,12 +194,14 @@ if not user_prompt("Continue with this bounding box?"):
 # connect to mongodb
 client = pymongo.MongoClient()
 db = client.daf
-collection = db.data
+c_data = db.data
 
 # loc is 2dsphere spatial index
 # > db.data.createIndex( { loc : "2dsphere" } )
 # path is unique index
 # > db.data.createIndex( { path : 1 }, { unique: 1 } )
+# name is unique index
+# > db.data.createIndex( { name : 1 }, { unique: 1 } )
 
 # build dictionary for insert
 data = {
@@ -222,19 +227,39 @@ data = {
 
 # insert 
 try:
-	collection.insert(data)
+	c_data.insert(data)
 except pymongo.errors.DuplicateKeyError, e:
-    sys.exit("Terminating script - Dataset for file exists.\n")
-
-    # print e
+    print e
+    sys.exit("Terminating script - Dataset with same name or path exists.\n")
 
 
 # check insert and notify user
-v = collection.find({"path":in_path})
+vp = c_data.find({"path": in_path})
+vn = c_data.find({"name": in_name})
 
-if v.count() < 1:
-    print "Error - no items with path found in database."
-elif v.count() > 1:
-	print "Error - multiple items with path found in database."
+if vp.count() < 1 or vn.count() < 1:
+    sys.exit( "Error - No items with name or path found in database.")
+elif vp.count() > 1 or vn.count() > 1:
+	sys.exit( "Error - Multiple items with name or path found in database.")
 else:
-	print "Success - item successfully inserted into databse." 
+	print "Success - Item successfully inserted into databse."
+
+
+# update/create boundary tracker(s)
+
+# if dataset is boundary
+# create new boundary tracker collection
+# each each non-boundary dataset item to new boundary collection with "unprocessed" flag
+if in_type == "boundary":
+	dsets =  c_data.find({"type": {"$ne": "boundary"}})
+	c_bnd = db[in_name]
+	c_bnd.create_index([("name")], unique=True)
+	for dset in dsets:
+		c_bnd.insert(dset)
+
+# if dataset is not boundary
+# add dataset to each boundary collection with "unprocessed" flag
+else:
+	bnds = c_data.find({"type": "boundary"})
+	# for bnd in bnds:
+		# c_bnd = db.
