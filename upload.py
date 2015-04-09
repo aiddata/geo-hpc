@@ -142,9 +142,7 @@ def ReprojectCoords(coords,src_srs,tgt_srs):
 
 
 if in_format == 'raster':
-	raster = in_path
-	# raster=r'somerasterfile.tif'
-	ds=gdal.Open(raster)
+	ds=gdal.Open(in_path)
 
 	gt=ds.GetGeoTransform()
 	cols = ds.RasterXSize
@@ -161,25 +159,58 @@ if in_format == 'raster':
 
 	# geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
 
-	xsize = geo_ext[2][0] - geo_ext[1][0]
-	ysize = geo_ext[0][1] - geo_ext[1][1]
-	tsize = abs(xsize * ysize)
-
-	in_scale = "regional"
-	if tsize >= 32400:
-		in_scale = "global"
-		# prompt to continue
-		if not user_prompt("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
-		    sys.exit("Terminating script - User request.\n")
-
-
 
 elif in_format == 'vector':
-    sys.exit("Terminating script - No vectors yet.\n")
+	ds = ogr.Open(in_path)
+	lyr_name = in_path[in_path.rindex('/')+1:in_path.rindex('.')]
+	lyr = ds.GetLayerByName(lyr_name)
+	env = []
+
+
+	def check_env(new):
+		if len(new) == len(env) and len(new) == 4:
+			if new[0] < env[0]:
+				env[0] = new[0]
+			if new[1] > env[1]:
+				env[1] = new[1]
+			if new[2] < env[2]:
+				env[2] = new[2]
+			if new[3] > env[3]:
+				env[3] = new[3]
+
+		elif len(env) == 0 and len(new) == 4:
+			for x in new:
+				env.append(x)
+
+		else:
+			sys.exit("Terminating script - Invalid polygon envelope.\n")
+
+
+	for feat in lyr:
+		temp_env = feat.GetGeometryRef().GetEnvelope()
+		check_env(temp_env)
+		# print temp_env
+
+	# env = [xmin, xmax, ymin, ymax]
+	geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
+	# print "final env:",env
+	# print "bbox:",geo_ext
 
 else:
     sys.exit("Terminating script - File format error.\n")
 
+
+# check bbox size
+xsize = geo_ext[2][0] - geo_ext[1][0]
+ysize = geo_ext[0][1] - geo_ext[1][1]
+tsize = abs(xsize * ysize)
+
+in_scale = "regional"
+if tsize >= 32400:
+	in_scale = "global"
+	# prompt to continue
+	if not user_prompt("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
+	    sys.exit("Terminating script - User request.\n")
 
 
 # display datset info to user
@@ -253,7 +284,7 @@ else:
 if in_type == "boundary":
 	dsets =  c_data.find({"type": {"$ne": "boundary"}})
 	c_bnd = db[in_name]
-	c_bnd.create_index([("name")], unique=True)
+	c_bnd.create_index("name", unique=True)
 	for dset in dsets:
 		c_bnd.insert(dset)
 
