@@ -3,6 +3,7 @@
 import sys
 import os
 import re
+import copy
 from datetime import datetime
 import pymongo
 from osgeo import gdal,ogr,osr
@@ -17,6 +18,8 @@ in_type = sys.argv[3]
 in_path = sys.argv[4]
 
 # start and end must be in YYYYMMDD format
+# for data without day use YYYYMM01
+# for data without month use YYYY0101
 in_start = sys.argv[5]
 in_end = sys.argv[6]
 
@@ -38,19 +41,25 @@ def user_prompt(question):
 
 # validate inputs
 
+# lists of acceptable dataset types, vector formats and raster formats
 types = ['raster','polydata','document','point','multipoint','boundary']
 vectors = ['geojson', 'shp']
 rasters = ['tif', 'asc']
 
+# make sure list has alphanumeric chars init
+# ***may need to restrict this to only alphanumeric***
 if re.sub('[^0-9a-zA-Z]+', '', in_name) == "" :
 	sys.exit("Terminating script - You must include a valid 'name' input.\n")
 
+# check acceptable types
 if not in_type in types :
 	sys.exit("Terminating script - Invalid 'type' input.\n")
 
+# check file specified by input path exists
 if not os.path.isfile(in_path):
 	sys.exit("Terminating script - Input 'path' does not exit.\n")
 
+# check file extensions and input format
 file_ext = in_path[in_path.rindex(".")+1:]
 
 if file_ext in vectors:
@@ -60,7 +69,7 @@ elif file_ext in rasters:
 else:
 	sys.exit("Terminating script - Invalid data format.")
 
-
+# validate date range
 if len(str(in_start)) == 8 and len(str(in_end)) == 8:
 
 	try:
@@ -234,7 +243,7 @@ c_data = db.data
 # name is unique index
 # > db.data.createIndex( { name : 1 }, { unique: 1 } )
 
-# build dictionary for insert
+# build dictionary for mongodb insert
 data = {
 	"loc": { 
 			"type": "Polygon", 
@@ -269,28 +278,34 @@ vp = c_data.find({"path": in_path})
 vn = c_data.find({"name": in_name})
 
 if vp.count() < 1 or vn.count() < 1:
-    sys.exit( "Error - No items with name or path found in database.")
+    sys.exit( "Error - No items with name or path found in database.\n")
 elif vp.count() > 1 or vn.count() > 1:
-	sys.exit( "Error - Multiple items with name or path found in database.")
+	sys.exit( "Error - Multiple items with name or path found in database.\n")
 else:
-	print "Success - Item successfully inserted into databse."
+	print "Success - Item successfully inserted into database.\n"
 
 
 # update/create boundary tracker(s)
+# *** add error handling for all inserts (above and below)***
 
-# if dataset is boundary
-# create new boundary tracker collection
-# each each non-boundary dataset item to new boundary collection with "unprocessed" flag
 if in_type == "boundary":
+	# if dataset is boundary
+	# create new boundary tracker collection
+	# each each non-boundary dataset item to new boundary collection with "unprocessed" flag
 	dsets =  c_data.find({"type": {"$ne": "boundary"}})
 	c_bnd = db[in_name]
 	c_bnd.create_index("name", unique=True)
 	for dset in dsets:
+		dset['status'] = -1
 		c_bnd.insert(dset)
 
-# if dataset is not boundary
-# add dataset to each boundary collection with "unprocessed" flag
 else:
-	bnds = c_data.find({"type": "boundary"})
-	# for bnd in bnds:
-		# c_bnd = db.
+	# if dataset is not boundary
+	# add dataset to each boundary collection with "unprocessed" flag
+	bnds = c_data.find({"type": "boundary"},{"name": 1})
+	dset = copy.deepcopy(data)
+	dset['status'] = -1
+	for bnd in bnds:
+		c_bnd = db[bnd['name']]
+		c_bnd.insert(dset)
+
