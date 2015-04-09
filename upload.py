@@ -178,6 +178,8 @@ elif in_format == 'vector':
 
 	def check_env(new):
 		if len(new) == len(env) and len(new) == 4:
+			# update envelope if polygon extends beyond bounds
+
 			if new[0] < env[0]:
 				env[0] = new[0]
 			if new[1] > env[1]:
@@ -188,6 +190,7 @@ elif in_format == 'vector':
 				env[3] = new[3]
 
 		elif len(env) == 0 and len(new) == 4:
+			# initialize envelope
 			for x in new:
 				env.append(x)
 
@@ -286,7 +289,8 @@ else:
 
 
 # update/create boundary tracker(s)
-# *** add error handling for all inserts (above and below)***
+# *** add error handling for all inserts (above and below) ***
+# *** remove previous inserts if later insert fails, etc. ***
 
 if in_type == "boundary":
 	# if dataset is boundary
@@ -308,4 +312,3 @@ else:
 	for bnd in bnds:
 		c_bnd = db[bnd['name']]
 		c_bnd.insert(dset)
-
