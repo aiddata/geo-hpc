@@ -4,6 +4,9 @@ import sys
 import os
 import pymongo
 from osgeo import gdal,ogr,osr
+import shapefile
+from shapely.geometry import Point, shape, box
+from shapely.ops import cascaded_union
 import rasterstats as rs 
 
 # user inputs
@@ -50,27 +53,30 @@ for bnd in bnds:
 	# for each unprocessed dataset in boundary tracker matched in first stage search (second stage search)
 	# search boundary actual vs dataset actual
 	for match in matches:
-		# print match['name']
+		print match['name']
 
 		# boundary path and type
 		bnd_path = bnd['path']
-		bnd_type = bnd['type'] 
+		bnd_type = bnd['type']
 
 		# dataset path and type
 		dset_path = match['path']
 		dset_type = match['type'] 
 
+		result = False
 		if match['format'] == "raster":
 
-			if bnd_type == "polygon" and dset_type == "raster":
+			if bnd_type == "boundary" and dset_type == "raster":
 				# python raster stats extract
-				# 
-				result = True
+				bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_path).shapes()])
+				extract = rs.zonal_stats(bnd_geo, dset_path, stats="min max")
+
+				if extract[0]['min'] != extract[0]['max']:
+					result = True
 
 			else:
 				print "Error - Dataset type not yet supported (skipping dataset).\n"
 				continue
-
 
 			# check results and update tracker
 			if result == True:
@@ -80,10 +86,15 @@ for bnd in bnds:
 
 		elif match['format'] == "vector":
 
-			if bnd_type == "polygon" and dset_type == "polygon":
+			if bnd_type == "boundary" and dset_type == "polydata":
 				# shapely intersect
-				# 
-				result = True
+				bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_path).shapes()])
+ 				dset_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(dset_path).shapes()])
+				
+ 				intersect = bnd_geo.intersects(dset_geo)
+
+				if intersect == True:
+					result = True
 
 			else:
 				print "Error - Dataset type not yet supported (skipping dataset).\n"
