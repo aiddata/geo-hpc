@@ -15,6 +15,8 @@ Scripts for creating a job on the Sciclone cluster to run extracts on processed 
 ##merge
 Scripts for creating a job on the Sciclone cluster to merge extract outputs for both contemporary and historic data (change variable in runscripts.py to choose data type)
 
+##utility
+Various scripts for managing output data.
 
 ***
 
