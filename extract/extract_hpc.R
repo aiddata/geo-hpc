@@ -1,8 +1,8 @@
 # gimms ndvi processed mosaic extract
 
-library("raster")
 
 library("rgdal")
+library("raster")
 library("maptools")
 
 
@@ -17,12 +17,12 @@ timer <- proc.time()
 
 
 in_base <- "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI"
-out_base <- paste("~/kfw/extract/output/",year,"/",day, sep="")
+out_base <- paste("/sciclone/data20/aiddata/REU/work/kfw/extract/output/",year,"/",day, sep="")
 
 
 
 # myVector <- readOGR('/path/to/shps', 'terra_indigenaPolygon')
-myVector <- readShapePoly('~/kfw/extract/shps/terra_indigenaPolygon.shp')
+myVector <- readShapePoly('/sciclone/data20/aiddata/REU/work/kfw/shps/terra_indigenaPolygon.shp')
 
 
 myRaster <- raster(paste(in_base, year, day, name, sep="/")) 
@@ -44,4 +44,4 @@ writePolyShape(myExtract, out_shp)
 timer <- proc.time() - timer
 # print(timer)
 
-print(paste("extract_hpc.R:",year,day,"completed in",timer[3],'seconds. ' sep=" "))
+print(paste("extract_hpc.R:",year,day,"completed in",timer[3],'seconds. ', sep=" "))

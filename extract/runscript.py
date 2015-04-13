@@ -11,9 +11,7 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-# base path where year/day directories are located
-# data downloaded using wget (same wget call can be used to download new data)
-# wget -r -c -N ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/
+# base path where year/day directories for processed data are located
 path_base = "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 
 # list of years to ignore
@@ -28,7 +26,7 @@ qlist = []
 years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
 
 # use limited years for testing 
-years = ['2002']
+# years = ['2002','2003','2004']
 
 
 for year in years:
@@ -65,11 +63,9 @@ while c < len(qlist):
 		print sts
 
 	except sp.CalledProcessError as sts_err:                                                                                                   
-	    print "subprocess error code", sts_err.returncode, sts_err.output
+	    print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
 	c += size
 
 
 comm.Barrier()
-
-sys.exit("runscript.py complete")
