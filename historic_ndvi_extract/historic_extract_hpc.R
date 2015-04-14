@@ -17,7 +17,7 @@ timer <- proc.time()
 
 
 in_base <- "/sciclone/data20/aiddata/REU/data/historic_gimms_ndvi"
-out_base <- paste("/sciclone/data20/aiddata/REU/work/kfw/historic_extract/output/",year,"/",day, sep="")
+out_base <- paste("/sciclone/data20/aiddata/REU/work/kfw/extracts/historic_ndvi/output/",year,"/",day, sep="")
 
 
 

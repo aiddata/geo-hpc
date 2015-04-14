@@ -17,7 +17,7 @@ if (extract_type == "historic") {
 	ndvi <- "gimms_ndvi"
 }
 
-base <- paste("/sciclone/data20/aiddata/REU/work/kfw/",mod,"extract",sep="")
+base <- paste("/sciclone/data20/aiddata/REU/work/kfw/extracts/",mod,"ndvi",sep="")
 out <- paste(mod,"extract_merge.csv",sep="")
 
 

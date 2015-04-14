@@ -10,7 +10,7 @@ range <- c(2002:2014)
 if (type == "historic") {
 	table_out <- "~/Desktop/historic_extract_year_max.csv"
 	path <- "~/Desktop/historic_extract_merge.csv"
-	range <- c(1981:2001)
+	range <- c(1982:2001)
 }
 
 
