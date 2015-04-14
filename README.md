@@ -21,3 +21,5 @@ Various scripts for managing output data.
 ##ndvi_original  
 Contains original Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
 
+##gpw_extract
+Rscript for running local extract on GPWv3 data
