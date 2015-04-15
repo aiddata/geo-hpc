@@ -3,7 +3,7 @@
 
 library("maptools")
 
-timer0 <- proc.time()
+timer <- proc.time()
 
 readIn <- commandArgs(trailingOnly = TRUE)
 
@@ -73,9 +73,6 @@ for (y in 1:length(years)) {
 	}
 }
 
-timer1 <- proc.time() 
-print(timer1-timer0)
-
 
 # db_out <- "~/Desktop/merge_db_out.csv"
 # write.table(db, db_out, quote=F, row.names=F, sep=",")
@@ -83,5 +80,5 @@ print(timer1-timer0)
 table_out <- paste(base,"/",out,sep="")
 write.table(df, table_out, quote=F, row.names=F, sep=",")
 
-timer2 <- proc.time() 
-print(timer2-timer1)
+timer <- proc.time() - timer 
+print(timer)
