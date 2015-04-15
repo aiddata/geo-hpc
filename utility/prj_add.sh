@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# copy prj file into path for each shapefile and rename to match shapefile
+
 base=/home/userx/Desktop/output/
 for y in "$base"/*; do 
 	year=`echo $y | sed 's/.*\///'`

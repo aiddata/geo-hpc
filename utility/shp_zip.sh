@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# prep shapefiles for loading into cartodb
+
+# copy shapefiles into new directory and zip directory
+
 base=/home/userx/Desktop/output/
 for y in "$base"/*; do 
 	year=`echo $y | sed 's/.*\///'`

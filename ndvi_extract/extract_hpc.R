@@ -17,12 +17,12 @@ timer <- proc.time()
 
 
 in_base <- "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI"
-out_base <- paste("/sciclone/data20/aiddata/REU/work/kfw/extracts/ndvi/output/",year,"/",day, sep="")
+out_base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/ndvi/output/",year,"/",day, sep="")
 
 
 
 # myVector <- readOGR('/path/to/shps', 'terra_indigenaPolygon')
-myVector <- readShapePoly('/sciclone/data20/aiddata/REU/work/kfw/shps/terra_indigenaPolygon.shp')
+myVector <- readShapePoly('/sciclone/data20/aiddata/REU/projects/kfw/shps/terra_indigenaPolygon.shp')
 
 
 myRaster <- raster(paste(in_base, year, day, name, sep="/")) 

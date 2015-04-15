@@ -3,13 +3,13 @@
 type <- "contemporary"
 # type <- "historic"
 
-table_out <- "~/Desktop/extract_year_max.csv"
-path <- "~/Desktop/extract_merge.csv"
+path <- "~/Desktop/ndvi_extract_merge.csv"
+table_out <- "~/Desktop/ndvi_extract_year_max.csv"
 range <- c(2002:2014)
 
 if (type == "historic") {
-	table_out <- "~/Desktop/historic_extract_year_max.csv"
-	path <- "~/Desktop/historic_extract_merge.csv"
+	path <- "~/Desktop/historic_ndvi_extract_merge.csv"
+	table_out <- "~/Desktop/historic_ndvi_extract_year_max.csv"
 	range <- c(1982:2001)
 }
 
@@ -46,7 +46,7 @@ for (y in range) {
 		# }
 	}
 	# print(m)
-	df[[year]] <- m
+	df[[paste("\"",year,"\"",sep="")]] <- m
 
 
 }
