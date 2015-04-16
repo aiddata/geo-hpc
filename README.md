@@ -30,8 +30,5 @@ Various scripts for managing output data. (These are not scripts for Sciclone jo
 - _atap_grid.sh_ :  generate rasters from origin atap data
 - _other scripts_ : see script comments for details
 
-##gpw_extract
-Rscript for running local extract on GPWv3 data
-
 ##ndvi_original  
 Contains original Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
