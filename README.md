@@ -22,7 +22,7 @@ Scripts for creating a job on the Sciclone cluster to run extracts on atap (air 
 Scripts for creating a job on the Sciclone cluster to merge extract outputs for atap datasets (change variable in runscripts.py to choose air temp or precip)
 
 ##utility
-Various scripts for managing output data. (These are not scripts for Sciclone jobs)
+Various scripts for managing output data, local tasks or anything not requiring a full Sciclone job.
 - _ndvi_max.R_ : gets yearly maximum from merged ndvi extract outputs
 - _gpw_extract.R_ : Rscript for running local extract on GPWv3 data
 - _gpw_extract_merge.R_ : merge gpw extract
