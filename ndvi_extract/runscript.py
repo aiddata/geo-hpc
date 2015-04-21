@@ -15,7 +15,7 @@ rank = comm.Get_rank()
 path_base = "/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 
 # list of years to ignore
-ignore = []
+ignore = ['2006','2007','2008','2009']
 
 
 # list of all [year, day] combos
@@ -24,7 +24,7 @@ qlist = []
 
 # get years
 years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
-
+years.sort()
 # use limited years for testing 
 # years = ['2002','2003','2004']
 
@@ -34,7 +34,7 @@ for year in years:
 	# get days for year
 	path_year = path_base + year
 	days = [name for name in os.listdir(path_year) if os.path.isdir(os.path.join(path_year, name))]
-
+	days.sort()
 	# use limited days for testing 
 	# days = ['001','009']
 	# days = ['001','009','017','025']
@@ -56,6 +56,7 @@ for year in years:
 
 c = rank
 while c < len(qlist):
+	# print "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]
 
 	try:
 		cmd = "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]
