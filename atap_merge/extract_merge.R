@@ -16,7 +16,7 @@ if (extract_type == "terrestrial_precipitation") {
 }
 
 base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/",extract_type,sep="")
-out <- paste(mod,"_extract_merge.csv",sep="")
+out <- "extract_merge.csv"
 
 
 years <- list.files(paste(base,"/output",sep=""))

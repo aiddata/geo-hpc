@@ -1,17 +1,38 @@
 # get max ndvi value for each year period
 
-type <- "contemporary"
-# type <- "historic"
 
-path <- "~/Desktop/ndvi_extract_merge.csv"
-table_out <- "~/Desktop/ndvi_extract_year_max.csv"
-range <- c(2002:2014)
+# local format (old)
 
-if (type == "historic") {
-	path <- "~/Desktop/historic_ndvi_extract_merge.csv"
-	table_out <- "~/Desktop/historic_ndvi_extract_year_max.csv"
-	range <- c(1982:2001)
-}
+# path <- "~/Desktop/ndvi_extract_merge.csv"
+# table_out <- "~/Desktop/ndvi_extract_year_max.csv"
+# range <- c(2002:2014)
+
+# path <- "~/Desktop/historic_ndvi_extract_merge.csv"
+# table_out <- "~/Desktop/historic_ndvi_extract_year_max.csv"
+# range <- c(1982:2001)
+
+
+# sciclone format
+
+# no validation or error checking yet
+# be sure to enter valid name and range
+
+readIn <- commandArgs(trailingOnly = TRUE)
+
+extract <- readIn[1]
+year_start <- readIn[2]
+year_end <- readIn[3]
+
+# extract <- "ndvi_buffer"
+# year_start <- 2002
+# year_end <- 2014
+
+
+base <- "/sciclone/data20/aiddata/REU/projects/kfw/extracts"
+path <- paste(base,"/",extract,"/extract_merge.csv",sep="")
+table_out <- paste(base,"/",extract,"/merge_year_max.csv",sep="")
+range <- c(year_start:year_end)
+
 
 # get actual field names
 h <- read.csv(path, nrow=1, head=FALSE)

@@ -9,16 +9,29 @@ readIn <- commandArgs(trailingOnly = TRUE)
 
 extract_type <- readIn[1]
 
-ndvi <- "mosaic_GMO"
+# ======================
+
+# buffer <- ""
+buffer <- "_buffer"
+
+# ======================
 
 mod <- ""
+ndvi <- "mosaic_GMO"
+modx <- paste("extract",buffer,"_",sep="")
+
 if (extract_type == "historic") {
 	mod <- "historic_"
 	ndvi <- "gimms_ndvi"
+
+	modx <- "historic_extract_"
+	if (buffer == "_buffer") {
+		modx <- "historic_buffer_extract_"
+	}
 }
 
-base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/",mod,"ndvi",sep="")
-out <- paste(mod,"extract_merge.csv",sep="")
+base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/",mod,"ndvi",buffer,sep="")
+out <- paste("extract_merge.csv",sep="")
 
 
 years <- list.files(paste(base,"/output",sep=""))
@@ -37,7 +50,7 @@ for (y in 1:length(years)) {
 
 		day<- days[d]
 
-		path <- paste(base,"/output/",year,"/",day,"/",mod,"extract_",year,"_",day,".shp",sep="")
+		path <- paste(base,"/output/",year,"/",day,"/",modx,year,"_",day,".shp",sep="")
 
 		# read extract shp 
 		v <- readShapePoly(path)

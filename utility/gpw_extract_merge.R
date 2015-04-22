@@ -7,7 +7,7 @@ timer <- proc.time()
 
 
 base <- "~/Desktop/gpw"
-out <- "gpw_extract_merge.csv"
+out <- "extract_merge.csv"
 
 
 years <- list.files(paste(base,"/output",sep=""))
