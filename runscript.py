@@ -16,41 +16,49 @@ import shapefile
 
 Ts = time.time()
 
-
+# python /path/to/runscript.py nepal NPL 0.1
 arg = sys.argv
 
-country = sys.argv[1]
-abbr = sys.argv[2]
+try:
+	country = sys.argv[1]
+	abbr = sys.argv[2]
+	pixel_size = float(sys.argv[3]) # 0.025
 
+except:
+	sys.exit("invalid inputs")
 
-pixel_size = 0.1
+# examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
 
-pr = float(10)
-prc = 1
+if (1/pixel_size) != int(1/pixel_size):
+	sys.exit("invalid pixel size: "+str(pixel_size))
+
+# pixel size inverse
+psi = 1/pixel_size
+
+# -----------------------------------------------
 
 # nodata value for output raster
 nodata = -9999
 
 # subset / filter
 subset = "ALL"
+# sector_codes = arg[5]
+# type(sector_codes)
 
 #number of iterations
 iterations = 1
+i_control = range(1, (int(iterations) + 1))
 
 aid_field = "total_commitments"
 
-base = "/home/usery/mcr"
+# -----------------------------------------------
 
+base = "/home/usery/mcr"
 
 amp_path = base+"/"+country+"/data/projects.tsv"
 loc_path = base+"/"+country+"/data/locations.tsv"
 
-
-# sector_codes = arg[5]
-# type(sector_codes)
-
-i_control = range(1, (int(iterations) + 1))
-
+# -----------------------------------------------
 
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
@@ -79,7 +87,6 @@ make_dir(dir_intermediate)
 make_dir(dir_final)
 
 
-
 # create point grid for country
 
 # get adm0 bounding box
@@ -88,39 +95,46 @@ adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 adm0 = shape(adm_shps[0][0])
 
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = adm0.bounds
+print (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy)
 
 import math
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*psi)/psi, math.floor(adm0_miny*psi)/psi, math.ceil(adm0_maxx*psi)/psi, math.ceil(adm0_maxy*psi)/psi)
 print (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy)
 
+cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
+rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
 
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*pr)/pr, math.floor(adm0_miny*pr)/pr, math.ceil(adm0_maxx*pr)/pr, math.ceil(adm0_maxy*pr)/pr)
-print (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy)
-
-cols = np.arange(adm0_minx, adm0_maxx+(1.5/pr), 1/pr)
-rows = np.arange(adm0_miny, adm0_maxy+(1.5/pr), 1/pr)
-r_rows = reversed(rows)
-
-# print cols
-# print rows
+print cols
+print rows
 
 
 # create grid based on output resolution (pixel size) 
 op = {}
 
+idx = 0
 for r in rows:
 	op[str(r)] = {}
 	for c in cols:
-		# initialize grid with 0
-		op[str(r)][str(c)] = 0.0
+		# build grid reference object
+		op[str(r)][str(c)] = idx
+		idx += 1
+
+# initialize grid with 0
+npa = np.zeros((int(idx+1),), dtype=np.int)
 
 
 # initialize asc file output
 asc = ""
 asc += "NCOLS " + str(len(cols)) + "\n"
 asc += "NROWS " + str(len(rows)) + "\n"
-asc += "XLLCORNER " + str(adm0_minx) + "\n"
-asc += "YLLCORNER " + str(adm0_miny) + "\n"
-asc += "CELLSIZE " + str(1/pr) + "\n"
+
+# asc += "XLLCORNER " + str(adm0_minx-pixel_size*0.5) + "\n"
+# asc += "YLLCORNER " + str(adm0_miny-pixel_size*0.5) + "\n"
+
+asc += "XLLCENTER " + str(adm0_minx) + "\n"
+asc += "YLLCENTER " + str(adm0_miny) + "\n"
+
+asc += "CELLSIZE " + str(pixel_size) + "\n"
 asc += "NODATA_VALUE " + str(nodata) + "\n"
 
 
@@ -353,7 +367,7 @@ print "iter "+str(1)+": get rnd pts complete"
 
 
 # round rnd_pts to match point grid
-i_mx = i_mx.merge(i_mx.rnd_pt.apply(lambda s: pd.Series({'rnd_x':round(s.x,prc), 'rnd_y':round(s.y,prc)})), left_index=True, right_index=True)
+i_mx = i_mx.merge(i_mx.rnd_pt.apply(lambda s: pd.Series({'rnd_x':(round(s.x * psi) / psi), 'rnd_y':(round(s.y * psi) / psi)})), left_index=True, right_index=True)
 
 
 
@@ -362,20 +376,23 @@ for i in i_mx.iterrows():
 	nx = str(i[1].rnd_x)
 	ny = str(i[1].rnd_y)
 	# print nx, ny, op[nx][ny]
-	op[ny][nx] += i[1].random_dollars_pp
+	npa[op[ny][nx]] += int(i[1].random_dollars_pp)
 
 print "iter "+str(1)+": add random_dollars_pp to op complete"
 
 
 # add data to asc file output
-for r in r_rows:
-	for c in cols:
-		asc += str(op[str(r)][str(c)]) 
-		asc += " "
-	asc += "\n"
+# for r in rows:
+# 	for c in cols:
+# 		asc += str(op[str(r)][str(c)]) 
+# 		asc += " "
+# 	asc += "\n"
+npa = np.char.mod('%f', npa)
+asc += ' '.join(npa)
+
 
 # write asc file
-fout = open('/home/usery/mcr/'+country+'_output_01.asc', 'w')
+fout = open('/home/usery/mcr/'+country+'_output_'+str(pixel_size)+'_cc03.asc', 'w')
 fout.write(asc)
 
 print "iter "+str(1)+": update and write asc complete"
