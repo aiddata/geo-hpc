@@ -6,17 +6,15 @@
 # ====================================================================================================
 
 
-import pandas as pd
-import numpy as np
 import os
 import sys
 import errno
 from copy import deepcopy
-
-# from datetime import datetime
 import time
-
 import random
+
+import numpy as np
+import pandas as pd
 from shapely.geometry import Polygon, Point, shape, box
 import shapefile
 
