@@ -6,6 +6,8 @@
 # ====================================================================================================
 
 
+from mpi4py import MPI
+
 import os
 import sys
 import errno
@@ -46,6 +48,12 @@ if (1/pixel_size) != int(1/pixel_size):
 psi = 1/pixel_size
 
 
+
+comm = MPI.COMM_WORLD
+
+size = comm.Get_size()
+rank = comm.Get_rank()
+
 # -----------------------------------------------
 
 # nodata value for output raster
@@ -57,7 +65,7 @@ subset = "all"
 # type(sector_codes)
 
 # iterations range
-i_control = range(1, (int(iterations) + 1))
+i_control = range(int(iterations))
 
 aid_field = "total_commitments"
 
@@ -170,8 +178,8 @@ print (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy)
 cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
 rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
 
-print cols
-print rows
+# print cols
+# print rows
 
 # create grid based on output resolution (pixel size) 
 op = {}
@@ -204,16 +212,16 @@ asc += "NODATA_VALUE " + str(nodata) + "\n"
 # master init
 
 # if rank == 0:
-print "starting iterations ("+str(len(i_control))+" to be run)"
-total_aid = []
-total_count = []
+print "starting iterations ("+str(iterations)+" to be run)"
+total_aid = [] # [0] * iterations
+total_count = [] # [0] * iterations
 
 
 
 # ====================================================================================================
 # mpi stuff
 
-# comm.Barrier()
+comm.Barrier()
 
 # distribute iterations to processes
 for itx in i_control:
@@ -454,16 +462,17 @@ for itx in i_control:
 	total_count.append(npa_count)
 
 
-
 # ====================================================================================================
 # end individual processes stuff
 
+
 # wait for all processes to finish
-# comm.Barrier()
+comm.Barrier()
 
 
 # ====================================================================================================
 # calculate array statistics
+
 
 # if rank == 0 ...
 
@@ -504,155 +513,6 @@ asc_mean_count_str = asc + mean_count_str
 
 fout_mean_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_cx"+str(itx)+"_mean_count.asc", "w")
 fout_mean_count.write(asc_mean_count_str)
-
-
-# ====================================================================================================
-
-
-# import os, sys, glob, fnmatch
-# import numpy as np
-# from osgeo import gdal
-
-# gdal.AllRegister()
-
-# arg = sys.argv
-
-# #---------------------------------------
-# inputfolder = arg[1]
-# outputfolder = arg[2]
-# count_wildcard = 'count*.tif'
-# sum_wildcard = 'sum*.tif'
-# #---------------------------------------
-
-# if not os.path.exists(outputfolder):
-#     os.makedirs(outputfolder)
-
-# projectdir_count = os.path.join(inputfolder, count_wildcard)
-# projectdir_sum = os.path.join(inputfolder, sum_wildcard)
-
-# filecontents_count = glob.glob(projectdir_count)
-# filecontents_sum = glob.glob(projectdir_sum)
-
-# #---------------------------------------
-# layers_count = []
-# x = 0
-# for raster in filecontents_count:
-#     x += 1
-#     ds = gdal.Open(raster)
-#     ds_array = ds.GetRasterBand(1).ReadAsArray()
-#     layers_count.append(ds_array)
-#     (rowtest, columntest) = np.shape(ds_array)
-#     if x > 1:
-#         if (rowtest, columntest) != (rowtestlast, columntestlast):
-#             print 'count iteration ' + str(x) + ' was shaped as (' + str(rowtest) + ',' + str(columntest) + ')'
-#     rowtestlast, columntestlast = rowtest, columntest
-# del rowtest, columntest
-
-# stack_count = np.dstack(layers_count)
-
-# std_count = np.std(stack_count, axis=2)
-# mean_count = np.mean(stack_count, axis=2)
-
-# #---------------------------------------
-
-# (row, column) = np.shape(mean_count)
-
-# filename= outputfolder + '/std_count.tif'
-# currentraster= gdal.GetDriverByName('GTiff').Create(filename, column, row, 1, gdal.GDT_Float64)
-# currentraster.GetRasterBand(1).WriteArray(std_count)
-# currentraster = None
-# del currentraster, filename
-
-# filename= outputfolder + '/mean_count.tif'
-# currentraster= gdal.GetDriverByName('GTiff').Create(filename, column, row, 1, gdal.GDT_Float64)
-# currentraster.GetRasterBand(1).WriteArray(mean_count)
-# currentraster = None
-# del currentraster, filename
-
-# #---------------------------------------
-# layers_sum = []
-# x = 0
-# for raster in filecontents_sum:
-#     x += 1
-#     ds = gdal.Open(raster)
-#     ds_array = ds.GetRasterBand(1).ReadAsArray()
-#     layers_sum.append(ds_array)
-#     (rowtest, columntest) = np.shape(ds_array)
-#     if x > 1:
-#         if (rowtest, columntest) != (rowtestlast, columntestlast):
-#             print 'sum iteration ' + str(x) + ' was shaped as (' + str(rowtest) + ',' + str(columntest) + ')'
-#     rowtestlast, columntestlast = rowtest, columntest
-
-# stack_sum = np.dstack(layers_sum)
-
-# std_sum = np.std(stack_sum, axis=2)
-# mean_sum = np.mean(stack_sum, axis=2)
-
-# #---------------------------------------
-
-# (row, column) = np.shape(mean_sum)
-
-# filename= outputfolder + '/std_sum.tif'
-# currentraster= gdal.GetDriverByName('GTiff').Create(filename, column, row, 1, gdal.GDT_Float64)
-# currentraster.GetRasterBand(1).WriteArray(std_sum)
-# currentraster = None
-# del currentraster, filename
-
-# filename= outputfolder + '/mean_sum.tif'
-# currentraster= gdal.GetDriverByName('GTiff').Create(filename, column, row, 1, gdal.GDT_Float64)
-# currentraster.GetRasterBand(1).WriteArray(mean_sum)
-# currentraster = None
-# del currentraster, filename
-
-
-# ======================================================================================================
-
-
-# # get new corner points
-# XMIN=$(echo "select st_xmin(a.geom)-0.5 from adm0 as a" | psql $db | sed '3q;d')
-# XMAX=$(echo "select st_xmax(a.geom)+0.5 from adm0 as a" | psql $db | sed '3q;d')
-# YMIN=$(echo "select st_ymin(a.geom)-0.5 from adm0 as a" | psql $db | sed '3q;d')
-# YMAX=$(echo "select st_ymax(a.geom)+0.5 from adm0 as a" | psql $db | sed '3q;d')
-
-# echo $XMIN, $XMAX, $YMIN, $YMAX
-
-# # generate projection file
-# # sudo apt-get install geotiff-bin
-# listgeo -tfw $dir_intermediate'/count_1.tif'
-
-# # copy projection file for each output file
-# cp $dir_intermediate'/count_1.tfw' $dir_final'/mean_count.tfw'
-# cp $dir_intermediate'/count_1.tfw' $dir_final'/std_count.tfw'
-# cp $dir_intermediate'/count_1.tfw' $dir_final'/mean_sum.tfw'
-# cp $dir_intermediate'/count_1.tfw' $dir_final'/std_sum.tfw'
-
-# # reproject each output
-# gdal_edit.py -a_srs EPSG:4326 $dir_final'/mean_count.tif'
-# gdal_edit.py -a_srs EPSG:4326 $dir_final'/std_count.tif'
-# gdal_edit.py -a_srs EPSG:4326 $dir_final'/mean_sum.tif'
-# gdal_edit.py -a_srs EPSG:4326 $dir_final'/std_sum.tif'
-
-# echo "upper left is "$XMIN" , "$YMAX
-# echo "lower left is "$XMAX" , "$YMIN
-
-# # clip final outputs to remove corner points
-# # coordinates are backwards (ymin and ymax) because of something strange in the raster gen process that flips the ymin/ymax values
-# gdal_translate -projwin $XMIN $YMIN $XMAX $YMAX $dir_final'/mean_count.tif' $dir_final'/'$country'_'$subset'_mean_count.tif'
-# gdal_translate -projwin $XMIN $YMIN $XMAX $YMAX $dir_final'/std_count.tif' $dir_final'/'$country'_'$subset'_std_count.tif'
-# gdal_translate -projwin $XMIN $YMIN $XMAX $YMAX $dir_final'/mean_sum.tif' $dir_final'/'$country'_'$subset'_mean_sum.tif'
-# gdal_translate -projwin $XMIN $YMIN $XMAX $YMAX $dir_final'/std_sum.tif' $dir_final'/'$country'_'$subset'_std_sum.tif'
-
-# # clean up
-# rm $dir_final'/mean_count.tif'
-# rm $dir_final'/std_count.tif'
-# rm $dir_final'/mean_sum.tif'
-# rm $dir_final'/std_sum.tif'
-
-# echo '>>georeferencing complete'
-# echo
-
-# # clean up
-# rm -rf $dir_intermediate
 
 
 # ======================================================================================================
