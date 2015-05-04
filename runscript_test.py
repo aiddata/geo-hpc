@@ -64,6 +64,8 @@ if rank == 0:
 	num_workers = size - 1
 	closed_workers = 0
 	print("Master starting with %d workers" % num_workers)
+
+	# distribute work
 	while closed_workers < num_workers:
 		data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
 		source = status.Get_source()
@@ -87,10 +89,17 @@ if rank == 0:
 			print("Worker %d exited." % source)
 			closed_workers += 1
 
+
+	# calc results
 	print("Master calcing")
 	stack_aid = np.vstack(total_aid)
 	mean_aid = np.mean(stack_aid, axis=0)
 	print(mean_aid)
+
+	stack_count = np.vstack(total_count)
+	mean_count = np.mean(stack_count, axis=0)
+	print(mean_count)
+
 
 	# write asc files
 	# std_aid_str = ' '.join(np.char.mod('%f', std_aid))
@@ -110,9 +119,13 @@ else:
 		tag = status.Get_tag()
 
 		if tag == tags.START:
+
 			# Do the work here
-			b1 = np.array([500,600,700,800,900])
-			b2 = np.array([1,2,3,4,5])
+			b1 = np.array([rank*100,rank*200,rank*300,rank*400,rank*500])
+			print(b1)
+			b2 = np.array([rank*1,rank*2,rank*3,rank*4,rank*5])
+
+			# send results back to master
 			result = np.array([b1,b2])
 			comm.send(result, dest=0, tag=tags.DONE)
 
