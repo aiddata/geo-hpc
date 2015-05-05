@@ -5,4 +5,4 @@
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py nepal NPL 0.1 1
+mvp2run -m cyclic python-mpi ./runscript.py nepal NPL 0.1 5

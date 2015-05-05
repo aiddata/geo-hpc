@@ -5,6 +5,7 @@
 
 # ====================================================================================================
 
+
 from __future__ import print_function
 
 from mpi4py import MPI
@@ -15,6 +16,7 @@ import errno
 from copy import deepcopy
 import time
 import random
+
 import numpy as np
 
 
@@ -43,23 +45,32 @@ status = MPI.Status()
 
 # comm.Barrier()
 
+
 # structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
+
 
 def enum(*sequential, **named):
     # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
+
 # Define MPI message tags
 tags = enum('READY', 'DONE', 'EXIT', 'START')
+
 
 if rank == 0:
 	# Master process executes code below
 
+	# ==================
+	# MASTER START STUFF
+
 	print("starting iterations (%d) to be run)" % iterations)
 	total_aid = [] # [0] * iterations
 	total_count = [] # [0] * iterations
-
+	
+	# ==================
+	
 	task_index = 0
 	num_workers = size - 1
 	closed_workers = 0
@@ -81,14 +92,22 @@ if rank == 0:
 				comm.send(None, dest=source, tag=tags.EXIT)
 
 		elif tag == tags.DONE:
+
+			# ==================
+			# MASTER MID STUFF
+			
 			total_aid.append(data[0])
 			total_count.append(data[1])
 			print("Got data from worker %d" % source)
+
+			# ==================
 
 		elif tag == tags.EXIT:
 			print("Worker %d exited." % source)
 			closed_workers += 1
 
+	# ==================
+	# MASTER END STUFF
 
 	# calc results
 	print("Master calcing")
@@ -100,14 +119,10 @@ if rank == 0:
 	mean_count = np.mean(stack_count, axis=0)
 	print(mean_count)
 
-
-	# write asc files
-	# std_aid_str = ' '.join(np.char.mod('%f', std_aid))
-	# print(std_aid_str)
-	# fout_std_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_cx"+str(itx)+"_std_aid.asc", "w")
-	# fout_std_aid.write(asc_std_aid_str)
-
 	print("Master finishing")
+
+	# ==================
+
 
 else:
 	# Worker processes execute code below
@@ -120,7 +135,9 @@ else:
 
 		if tag == tags.START:
 
-			# Do the work here
+			# ==================
+			# WORKER STUFF
+
 			b1 = np.array([rank*100,rank*200,rank*300,rank*400,rank*500])
 			print(b1)
 			b2 = np.array([rank*1,rank*2,rank*3,rank*4,rank*5])
@@ -128,6 +145,8 @@ else:
 			# send results back to master
 			result = np.array([b1,b2])
 			comm.send(result, dest=0, tag=tags.DONE)
+
+			# ==================
 
 		elif tag == tags.EXIT:
 			break
