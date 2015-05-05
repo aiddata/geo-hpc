@@ -96,8 +96,9 @@ lookup = {
 }
 
 
-# --------------------------------------------------
-# load project data
+# ====================================================================================================
+# functions
+
 
 # check csv delim and return if valid type
 def getCSV(path):
@@ -109,7 +110,9 @@ def getCSV(path):
 		sys.exit('getCSV - file extension not recognized.\n')
 
 
-def getData(path, merge_id, field_id):
+# get project and location data in path directory
+# requires a field name to merge on and list of required fields
+def getData(path, merge_id, field_ids):
 
 	amp_path = path+"/projects.tsv"
 	loc_path = path+"/locations.tsv"
@@ -123,7 +126,7 @@ def getData(path, merge_id, field_id):
 
 
 	if not merge_id in amp or not merge_id in loc:
-		sys.exit("getData - required merge_id field not found in amp or loc files")
+		sys.exit("getData - merge field not found in amp or loc files")
 
 	amp[merge_id] = amp[merge_id].astype(str)
 	loc[merge_id] = loc[merge_id].astype(str)
@@ -131,20 +134,139 @@ def getData(path, merge_id, field_id):
 	# create projectdata by merging amp and location files by project_id
 	tmp_merged = loc.merge(amp, on=merge_id)
 
-	if not field_id in tmp_merged or not "longitude" in tmp_merged or not "latitude" in tmp_merged:
-		sys.exit("getData - required code field not found")
+	if not "longitude" in tmp_merged or not "latitude" in tmp_merged:
+		sys.exit("getData - latitude and longitude fields not found")
+
+	for field_id in field_ids:
+		if not field_id in tmp_merged:
+			sys.exit("getData - required code field not found")
 
 	return tmp_merged
 
 
-merged = getData(base+"/countries/"+country+"/data", "project_id", code_field)
+# --------------------------------------------------
+
+
+# defin tags enum
+def enum(*sequential, **named):
+    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
+	enums = dict(zip(sequential, range(len(sequential))), **named)
+	return type('Enum', (), enums)
+
+
+# gets geometry type based on lookup table
+def geomType(code):
+	if str(code) in lookup:
+		tmp_type = lookup[str(code)]["type"]
+		return tmp_type
+
+	else:
+		print("code not recognized")
+		return "None"
+
+
+# finds shape in set of polygons which arbitrary polygon is within
+# returns 0 if item is not within any of the shapes
+def getPolyWithin(item, polys):
+	c = 0
+	for shp in polys:
+		tmp_shp = shape(shp)
+		if item.within(tmp_shp):
+			return tmp_shp
+
+	return c
+
+
+# checks if arbitrary polygon is within country (adm0) polygon
+# depends on adm0
+def inCountry(shp):
+	return shp.within(adm0)
+
+
+# build geometry for point based on code
+# depends on lookup and adm0
+def getGeom(code, lon, lat):
+	tmp_pnt = Point(lon, lat)
+	
+	if not inCountry(tmp_pnt):
+		print("point not in country")
+		return 0
+
+	elif lookup[code]["type"] == "point":
+		return tmp_pnt
+
+	elif lookup[code]["type"] == "buffer":
+		try:
+			tmp_int = int(lookup[code]["data"])
+			tmp_buffer = tmp_pnt.buffer(tmp_int)
+
+			if inCountry(tmp_buffer):
+				return tmp_buffer
+			else:
+				return tmp_buffer.intersection(adm0)
+
+		except:
+			print("buffer value could not be converted to int")
+			return 0
+
+	elif lookup[code]["type"] == "adm":
+		try:
+			tmp_int = int(lookup[code]["data"])
+			return getPolyWithin(tmp_pnt, adm_shps[tmp_int])
+
+		except:
+			print("adm value could not be converted to int")
+			return 0
+
+	else:
+		print("code type not recognized")
+		return 0
+
+# returns geometry for point
+def geomVal(agg_type, code, lon, lat):
+	if agg_type in agg_types:
+
+		tmp_geom = getGeom(str(code), lon, lat)
+
+		if tmp_geom != 0:
+			return tmp_geom
+
+		return "None"
+
+	else:
+		print("agg_type not recognized")
+		return "None"
 
 
 # --------------------------------------------------
-# filters
 
-# apply filters to project data
-# 
+
+# random point gen function
+def get_random_point_in_polygon(poly):
+
+	INVALID_X = -9999
+	INVALID_Y = -9999
+
+	(minx, miny, maxx, maxy) = poly.bounds
+	p = Point(INVALID_X, INVALID_Y)
+	px = 0
+	while not poly.contains(p):
+		p_x = random.uniform(minx, maxx)
+		p_y = random.uniform(miny, maxy)
+		p = Point(p_x, p_y)
+	return p
+
+
+# generate random point geom or use actual point
+def addPt(agg_type, agg_geom):
+	if agg_type == "point":
+		return agg_geom
+	else:
+		tmp_rnd = get_random_point_in_polygon(agg_geom)
+		return tmp_rnd
+
+
+# ====================================================================================================
 
 
 # --------------------------------------------------
@@ -166,41 +288,102 @@ adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 
 adm0 = shape(adm_shps[0][0])
 
+# country bounding box
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = adm0.bounds
 # print( (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) )
 
+# bounding box rounded to pixel size (always increases bounding box size, never decreases)
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*psi)/psi, math.floor(adm0_miny*psi)/psi, math.ceil(adm0_maxx*psi)/psi, math.ceil(adm0_maxy*psi)/psi)
 # print( (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) )
 
+# generate arrays of new grid x and y values
 cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
 rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
 
 # print cols
 # print rows
 
-# create grid based on output resolution (pixel size) 
-op = {}
-
+# init grid reference object 
+gref = {}
 idx = 0
 for r in rows:
-	op[str(r)] = {}
+	gref[str(r)] = {}
 	for c in cols:
 		# build grid reference object
-		op[str(r)][str(c)] = idx
+		gref[str(r)][str(c)] = idx
 		idx += 1
 
 
+# ====================================================================================================
+# data prep
+
+
 # --------------------------------------------------
-# defin tags enum
+# load project data
 
-def enum(*sequential, **named):
-    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
-	enums = dict(zip(sequential, range(len(sequential))), **named)
-	return type('Enum', (), enums)
+merged = getData(base+"/countries/"+country+"/data", "project_id", (code_field, "project_location_id"))
 
 
-# Define MPI message tags
-tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
+# --------------------------------------------------
+# filters
+
+# apply filters to project data
+# 
+
+# --------------------------------------------------
+# generate random dollars
+
+# create dataframe for use in iterations
+column_list = ['iter', 'id', 'ran_dollars']
+dollar_table = pd.DataFrame(columns=column_list)
+
+# create copy of merged project data
+i_m = deepcopy(merged)
+
+# add new column of random numbers (0-1)
+i_m['ran_num'] = (pd.Series(np.random.random(len(i_m)))).values
+
+# group merged table by project ID for the sum of each project ID's random numbers
+grouped_random_series = i_m.groupby('project_id')['ran_num'].sum()
+
+
+# get location count for each project
+i_m['ones'] = (pd.Series(np.ones(len(i_m)))).values
+grouped_location_count = i_m.groupby('project_id')['ones'].sum()
+
+# create new empty dataframe
+df_group_random = pd.DataFrame()
+
+# add grouped random 'Series' to the newly created 'Dataframe' under a new grouped_random column
+df_group_random['grouped_random'] = grouped_random_series
+# add location count series to dataframe
+df_group_random['location_count'] = grouped_location_count
+
+# add the series index, composed of project IDs, as a new column called project_ID
+df_group_random['project_id'] = df_group_random.index
+
+
+# now that we have project_ID in both the original merged 'Dataframe' and the new 'Dataframe' they can be merged
+i_m = i_m.merge(df_group_random, on='project_id')
+
+# calculate the random dollar ammount per point for each entry
+i_m['random_dollars_pp'] = (i_m.ran_num / i_m.grouped_random) * i_m[aid_field]
+
+# aid field value split evenly across all project locations based on location count
+i_m[aid_field+'_split'] = (i_m[aid_field] / i_m.location_count)
+
+
+# --------------------------------------------------
+# assign geometries
+
+# add geom columns
+i_m["agg_type"] = ["None"] * len(i_m)
+i_m["agg_geom"] = ["None"] * len(i_m)
+
+i_m.agg_type = i_m.apply(lambda x: geomType(x[code_field]), axis=1)
+i_m.agg_geom = i_m.apply(lambda x: geomVal(x.agg_type, x[code_field], x.longitude, x.latitude), axis=1)
+
+i_mx = i_m.loc[i_m.agg_geom != "None"].copy(deep=True)
 
 
 # ====================================================================================================
@@ -242,13 +425,231 @@ if rank == 0:
 	make_dir(dir_working)
 
 
-# make sure workers do not proceed until master inits
+# ====================================================================================================
+# ====================================================================================================
+
 comm.Barrier()
+
+# ====================================================================================================
+# ====================================================================================================
+# mpi prep
+
 
 # terminate if master init fails
 # 
 
+# Define MPI message tags
+tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 
+
+# ====================================================================================================
+# generate mean surface raster
+
+
+if rank == 0:
+
+	# ==================================================
+	# MASTER START STUFF
+
+
+	all_mean_surf = []
+	loc_ids = i_mx['project_location_id']
+
+	# ==================================================
+	
+	task_index = 0
+	num_workers = size - 1
+	closed_workers = 0
+	err_status = 0
+	print("Mean Surf Master starting with %d workers" % num_workers)
+
+	# distribute work
+	while closed_workers < num_workers:
+		data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+		source = status.Get_source()
+		tag = status.Get_tag()
+
+		if tag == tags.READY:
+			# Worker is ready, so send it a task
+			if task_index < len(loc_ids):
+				comm.send(loc_ids[task_index], dest=source, tag=tags.START)
+				print("Sending task %d to worker %d" % (task_index, source))
+				task_index += 1
+			else:
+				comm.send(None, dest=source, tag=tags.EXIT)
+
+		elif tag == tags.DONE:
+
+			# ==================================================
+			# MASTER MID STUFF
+			
+
+			all_mean_surf.append(data)
+			print("Got data from worker %d" % source)
+
+
+			# ==================================================
+
+		elif tag == tags.EXIT:
+			print("Worker %d exited." % source)
+			closed_workers += 1
+
+		elif tag == tags.ERROR:
+			print("Error reported by worker %d ." % source)
+			# broadcast error to all workers
+			# 
+			# make sure they all get message and terminate
+			# 
+			err_status = 1
+			break
+
+	# ==================================================
+	# MASTER END STUFF
+
+
+	if err_status == 0:
+		# calc results
+		print("Mean Surf Master calcing")
+
+		stack_mean_surf = np.vstack(all_mean_surf)
+		sum_mean_surf = np.sum(stack_mean_surf, axis=0)
+
+
+		# write asc file
+
+		sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
+		asc_sum_mean_surf_str = asc + sum_mean_surf_str
+
+		fout_sum_mean_surf = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_sum_mean_surf.asc", "w")
+		fout_sum_mean_surf.write(asc_sum_mean_surf_str)
+
+
+		print("Mean Surf Master finishing")
+
+		Tloc = int(time.time() - Ts)
+
+		print('\t\tMean Surf  Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
+		print('\n')
+
+	else:
+		print("Mean Surf Master terminating due to worker error.")
+
+
+	# ==================================================
+
+
+else:
+	# Worker processes execute code below
+	name = MPI.Get_processor_name()
+	print("I am a worker with rank %d on %s." % (rank, name))
+	while True:
+		comm.send(None, dest=0, tag=tags.READY)
+		task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+		tag = status.Get_tag()
+
+		if tag == tags.START:
+
+			# ==================================================
+			# WORKER STUFF
+
+			mean_surf = np.zeros((int(idx+1),), dtype=np.int)
+
+			# poly grid pixel size and poly grid pixel size inverse
+			# poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
+			pg_pixel_size = pixel_size * 0.1
+			pg_psi = 1/pg_pixel_size
+
+			pg_data = i_mx[i_mx['project_location_id'] == task]
+			pg_type = pg_data.agg_type
+
+			if pg_type != "point" and pg_type in agg_types:
+
+				# for each row generate grid based on bounding box of geometry
+
+				pg_geom = pg_data.agg_geom	
+
+				(pg_minx, pg_miny, pg_maxx, pg_maxy) = pg_geom.bounds
+				# print( (pg_minx, pg_miny, pg_maxx, pg_maxy) )
+
+				(pg_minx, pg_miny, pg_maxx, pg_maxy) = (math.floor(pg_minx*pg_psi)/pg_psi, math.floor(pg_miny*pg_psi)/pg_psi, math.ceil(pg_maxx*pg_psi)/pg_psi, math.ceil(pg_maxy*pg_psi)/pg_psi)
+				# print( (pg_minx, pg_miny, pg_maxx, pg_maxy) )
+
+				pg_cols = np.arange(pg_minx, pg_maxx+pg_pixel_size*0.5, pg_pixel_size)
+				pg_rows = np.arange(pg_maxy, pg_miny-pg_pixel_size*0.5, -1*pg_pixel_size)
+
+				# evenly split the aid for that row (i_mx[aid_field+'_split'] field) among new grid points
+
+				# full poly grid reference object and count
+				pg_gref = {}
+				pg_idx = 0
+
+				# poly grid points within actual geom and count
+				# pg_in = {}
+				pg_count = 0
+				
+				for r in pg_rows:
+					pg_gref[str(r)] = {}
+					for c in pg_cols:
+						# build grid reference object
+						# pg_gref[str(r)][str(c)] = pg_idx
+						pg_idx += 1
+
+						# check if point is within geom
+						pg_point = Point(r,c)
+						if pg_point.within(pg_geom):
+							pg_gref[str(r)][str(c)] = pg_idx
+							pg_count += 1
+						else:
+							pg_gref[str(r)][str(c)] = "None"
+
+
+				# npa_poly = np.zeros((int(pg_idx+1),), dtype=np.int)
+
+				# init grid reference object
+				# pg_gref = {}
+				for r in pg_rows:
+					# pg_gref[str(r)] = {}
+					for c in pg_cols:
+						# build grid reference object
+
+						if pg_gref[str(r)][str(c)] != "None":
+							# round new grid points to old grid points and update old grid
+							gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
+							mean_surf[gref_id] += pg_data[aid_field+'_split']/ pg_count
+
+			elif pg_type == "point":
+				# round new grid points to old grid points and update old grid
+				gref_id = gref[str(round(pg_data.latitude * psi) / psi)][str(round(pg_data.longitude * psi) / psi)]
+				mean_surf[gref_id] += pg_data[aid_field+'_split']
+
+
+			# --------------------------------------------------
+			# send np arrays back to master
+
+			comm.send(mean_surf, dest=0, tag=tags.DONE)
+
+
+			# ==================================================
+
+		elif tag == tags.EXIT:
+			comm.send(None, dest=0, tag=tags.EXIT)
+			break
+
+		elif tag == tags.ERROR:
+			print("Error message from master. Shutting down." % source)
+			# confirm error message received
+			# 
+			# terminate process
+			# 
+			break
+
+
+# ====================================================================================================
+# ====================================================================================================
+
+comm.Barrier()
+
+# ====================================================================================================
 # ====================================================================================================
 # mpi stuff
 # structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
@@ -259,11 +660,13 @@ if rank == 0:
 	# ==================================================
 	# MASTER START STUFF
 
-	print("starting iterations - %d to be run)" % iterations)
+
+	print("starting iterations - %d to be run" % iterations)
 
 	total_aid = [] # [0] * iterations
 	total_count = [] # [0] * iterations
 	
+
 	# ==================================================
 	
 	task_index = 0
@@ -292,9 +695,11 @@ if rank == 0:
 			# ==================================================
 			# MASTER MID STUFF
 			
+
 			total_aid.append(data[0])
 			total_count.append(data[1])
 			print("Got data from worker %d" % source)
+
 
 			# ==================================================
 
@@ -313,6 +718,7 @@ if rank == 0:
 
 	# ==================================================
 	# MASTER END STUFF
+
 
 	if err_status == 0:
 		# calc results
@@ -389,173 +795,13 @@ else:
 			# WORKER STUFF
 
 
-			# print("iter %d: starting" % itx)
-
 			# initialize mean and count grids with zeros
 			npa_aid = np.zeros((int(idx+1),), dtype=np.int)
 			npa_count = np.zeros((int(idx+1),), dtype=np.int)
 
-			# --------------------------------------------------
-			# generate random dollars
-
-			# create dataframe for use in iterations
-			column_list = ['iter', 'id', 'ran_dollars']
-			dollar_table = pd.DataFrame(columns=column_list)
-
-			# create copy of merged project data
-			i_m = deepcopy(merged)
-
-			#add new column of random numbers (0-1)
-			i_m['ran_num'] = (pd.Series(np.random.random(len(i_m)))).values
-
-			#group merged table by project ID for the sum of each project ID's random numbers
-			grouped_random_series = i_m.groupby('project_id')['ran_num'].sum()
-
-
-			#create new empty dataframe
-			df_group_random = pd.DataFrame()
-
-			#add grouped random 'Series' to the newly created 'Dataframe' under a new grouped_random column
-			df_group_random['grouped_random'] = grouped_random_series
-
-			#add the series index, composed of project IDs, as a new column called project_ID
-			df_group_random['project_id'] = df_group_random.index
-
-
-			#now that we have project_ID in both the original merged 'Dataframe' and the new 'Dataframe' they can be merged
-			i_m = i_m.merge(df_group_random, on='project_id')
-
-			#calculate the random dollar ammount per point for each entry
-			i_m['random_dollars_pp'] = (i_m.ran_num / i_m.grouped_random) * i_m[aid_field]
-
-
-			# print("iter %d: random dollar calc complete" % itx)
-
-
-			# --------------------------------------------------
-			# assign geometries
-
-
-			def geomType(code):
-				if str(code) in lookup:
-					tmp_type = lookup[str(code)]["type"]
-					return tmp_type
-
-				else:
-					print("code not recognized")
-					return "None"
-
-
-			def getPolyWithin(item, polys):
-				c = 0
-				for shp in polys:
-					tmp_shp = shape(shp)
-					if item.within(tmp_shp):
-						return tmp_shp
-
-				return c
-
-
-			# depends on adm0
-			def inCountry(shp):
-				return shp.within(adm0)
-
-
-			# depends on lookup and adm0
-			def getGeom(code, lon, lat):
-				tmp_pnt = Point(lon, lat)
-				
-				if not inCountry(tmp_pnt):
-					print("point not in country")
-					return 0
-
-				elif lookup[code]["type"] == "point":
-					return tmp_pnt
-
-				elif lookup[code]["type"] == "buffer":
-					try:
-						tmp_int = int(lookup[code]["data"])
-						tmp_buffer = tmp_pnt.buffer(tmp_int)
-
-						if inCountry(tmp_buffer):
-							return tmp_buffer
-						else:
-							return tmp_buffer.intersection(adm0)
-
-					except:
-						print("buffer value could not be converted to int")
-						return 0
-
-				elif lookup[code]["type"] == "adm":
-					try:
-						tmp_int = int(lookup[code]["data"])
-						return getPolyWithin(tmp_pnt, adm_shps[tmp_int])
-
-					except:
-						print("adm value could not be converted to int")
-						return 0
-
-				else:
-					print("code type not recognized")
-					return 0
-
-
-			def geomVal(agg_type, code, lon, lat):
-				if agg_type in agg_types:
-
-					tmp_geom = getGeom(str(code), lon, lat)
-
-					if tmp_geom != 0:
-						return tmp_geom
-
-					return "None"
-
-				else:
-					print("agg_type not recognized")
-					return "None"
-
-
-
-			# add geom columns
-			i_m["agg_type"] = ["None"] * len(i_m)
-			i_m["agg_geom"] = ["None"] * len(i_m)
-
-			i_m.agg_type = i_m.apply(lambda x: geomType(x[code_field]), axis=1)
-			i_m.agg_geom = i_m.apply(lambda x: geomVal(x.agg_type, x[code_field], x.longitude, x.latitude), axis=1)
-
-			i_mx = i_m.loc[i_m.agg_geom != "None"].copy(deep=True)
-
-			# print("iter %d: get geom complete" % itx)
-
 
 			# --------------------------------------------------
 			# assign random points
-
-
-			# add point gen function
-			def get_random_point_in_polygon(poly):
-
-				INVALID_X = -9999
-				INVALID_Y = -9999
-
-				(minx, miny, maxx, maxy) = poly.bounds
-				p = Point(INVALID_X, INVALID_Y)
-				px = 0
-				while not poly.contains(p):
-					p_x = random.uniform(minx, maxx)
-					p_y = random.uniform(miny, maxy)
-					p = Point(p_x, p_y)
-				return p
-
-
-			# generate random point geom or use actual point
-			def addPt(agg_type, agg_geom):
-				if agg_type == "point":
-					return agg_geom
-				else:
-					tmp_rnd = get_random_point_in_polygon(agg_geom)
-					return tmp_rnd
-
 
 			# add random points column to table
 			i_mx["rnd_pt"] = [0] * len(i_mx)
@@ -564,29 +810,26 @@ else:
 			# round rnd_pts to match point grid
 			i_mx = i_mx.merge(i_mx.rnd_pt.apply(lambda s: pd.Series({'rnd_x':(round(s.x * psi) / psi), 'rnd_y':(round(s.y * psi) / psi)})), left_index=True, right_index=True)
 
-			# print("iter %d: rnd pts complete" % itx)
-
 
 			# --------------------------------------------------
 			# add results to output arrays
-
 
 			# add commitment value for each rnd pt to grid value
 			for i in i_mx.iterrows():
 				nx = str(i[1].rnd_x)
 				ny = str(i[1].rnd_y)
-				# print nx, ny, op[nx][ny]
+				# print nx, ny, gref[nx][ny]
 				if int(i[1].random_dollars_pp) > 0:
-					npa_aid[op[ny][nx]] += int(i[1].random_dollars_pp)
-					npa_count[op[ny][nx]] += int(1)
+					npa_aid[gref[ny][nx]] += int(i[1].random_dollars_pp)
+					npa_count[gref[ny][nx]] += int(1)
 
-			# print("iter %d: mean and count array fill complete" % itx)
 
 			# --------------------------------------------------
 			# send np arrays back to master
 
 			npa_result = np.array([npa_aid,npa_count])
 			comm.send(npa_result, dest=0, tag=tags.DONE)
+
 
 			# ==================================================
 
