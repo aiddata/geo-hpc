@@ -24,13 +24,19 @@ import shapefile
 
 
 # ====================================================================================================
-# init
+# general init
 
+
+# mpi info
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 status = MPI.Status()
 
+# absolute path to script directory
+base = os.path.dirname(os.path.abspath(__file__))
+
+# start time
 Ts = time.time()
 
 # python /path/to/runscript.py nepal NPL 0.1 10
@@ -58,6 +64,7 @@ psi = 1/pixel_size
 
 
 # --------------------------------------------------
+# vars to be added as inputs
 
 # nodata value for output raster
 nodata = -9999
@@ -69,7 +76,9 @@ subset = "all"
 
 aid_field = "total_commitments"
 
+
 # --------------------------------------------------
+# static vars that may be added as some type of input
 
 code_field = "precision_code"
 
@@ -86,15 +95,9 @@ lookup = {
 	"8": {"type":"adm","data":"0"}
 }
 
-# --------------------------------------------------
-# make sure all files exist
-
-# absolute path to script directory
-base = os.path.dirname(os.path.abspath(__file__))
 
 # --------------------------------------------------
 # load project data
-
 
 # check csv delim and return if valid type
 def getCSV(path):
@@ -111,6 +114,8 @@ def getData(path, merge_id, field_id):
 	amp_path = path+"/projects.tsv"
 	loc_path = path+"/locations.tsv"
 
+	# make sure files exist
+	# 
 
 	# read input csv files into memory
 	amp = getCSV(amp_path)
@@ -134,10 +139,13 @@ def getData(path, merge_id, field_id):
 
 merged = getData(base+"/countries/"+country+"/data", "project_id", code_field)
 
+
 # --------------------------------------------------
+# filters
 
 # apply filters to project data
 # 
+
 
 # --------------------------------------------------
 # load shapefiles
@@ -150,9 +158,8 @@ adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM1/"+abbr+"_adm1.shp"
 adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM2/"+abbr+"_adm2.shp")
 
 
-# ====================================================================================================
+# --------------------------------------------------
 # create point grid for country
-
 
 # get adm0 bounding box
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
@@ -183,10 +190,8 @@ for r in rows:
 		idx += 1
 
 
-# ====================================================================================================
-# mpi stuff
-# structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
-
+# --------------------------------------------------
+# defin tags enum
 
 def enum(*sequential, **named):
     # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
@@ -195,18 +200,18 @@ def enum(*sequential, **named):
 
 
 # Define MPI message tags
-tags = enum('READY', 'DONE', 'EXIT', 'START')
+tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
+
+
+# ====================================================================================================
+# master init
 
 
 if rank == 0:
-	# Master process executes code below
 
-	# ==================================================
-	# MASTER START STUFF
-
-	print("starting iterations - %d to be run)" % iterations)
-
+	# --------------------------------------------------
 	# initialize asc file output
+
 	asc = ""
 	asc += "NCOLS " + str(len(cols)) + "\n"
 	asc += "NROWS " + str(len(rows)) + "\n"
@@ -220,10 +225,8 @@ if rank == 0:
 	asc += "CELLSIZE " + str(pixel_size) + "\n"
 	asc += "NODATA_VALUE " + str(nodata) + "\n"
 
-
 	# --------------------------------------------------
 	# build output directories
-
 
 	# creates directories 
 	def make_dir(path):
@@ -239,8 +242,24 @@ if rank == 0:
 	make_dir(dir_working)
 
 
-	# --------------------------------------------------
-	# master init
+# make sure workers do not proceed until master inits
+comm.Barrier()
+
+# terminate if master init fails
+# 
+
+
+# ====================================================================================================
+# mpi stuff
+# structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
+
+
+if rank == 0:
+
+	# ==================================================
+	# MASTER START STUFF
+
+	print("starting iterations - %d to be run)" % iterations)
 
 	total_aid = [] # [0] * iterations
 	total_count = [] # [0] * iterations
@@ -250,6 +269,7 @@ if rank == 0:
 	task_index = 0
 	num_workers = size - 1
 	closed_workers = 0
+	err_status = 0
 	print("Master starting with %d workers" % num_workers)
 
 	# distribute work
@@ -282,60 +302,74 @@ if rank == 0:
 			print("Worker %d exited." % source)
 			closed_workers += 1
 
+		elif tag == tags.ERROR:
+			print("Error reported by worker %d ." % source)
+			# broadcast error to all workers
+			# 
+			# make sure they all get message and terminate
+			# 
+			err_status = 1
+			break
+
 	# ==================================================
 	# MASTER END STUFF
 
-	# calc results
-	print("Master calcing")
+	if err_status == 0:
+		# calc results
+		print("Master calcing")
 
-	stack_aid = np.vstack(total_aid)
-	std_aid = np.std(stack_aid, axis=0)
-	mean_aid = np.mean(stack_aid, axis=0)
+		stack_aid = np.vstack(total_aid)
+		std_aid = np.std(stack_aid, axis=0)
+		mean_aid = np.mean(stack_aid, axis=0)
 
-	stack_count = np.vstack(total_count)
-	std_count = np.std(stack_count, axis=0)
-	mean_count = np.mean(stack_count, axis=0)
-
-
-	# write asc files
-
-	std_aid_str = ' '.join(np.char.mod('%f', std_aid))
-	asc_std_aid_str = asc + std_aid_str
-
-	fout_std_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_std_aid.asc", "w")
-	fout_std_aid.write(asc_std_aid_str)
+		stack_count = np.vstack(total_count)
+		std_count = np.std(stack_count, axis=0)
+		mean_count = np.mean(stack_count, axis=0)
 
 
-	mean_aid_str = ' '.join(np.char.mod('%f', mean_aid))
-	asc_mean_aid_str = asc + mean_aid_str
+		# write asc files
 
-	fout_mean_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_mean_aid.asc", "w")
-	fout_mean_aid.write(asc_mean_aid_str)
+		std_aid_str = ' '.join(np.char.mod('%f', std_aid))
+		asc_std_aid_str = asc + std_aid_str
 
-
-	std_count_str = ' '.join(np.char.mod('%f', std_count))
-	asc_std_count_str = asc + std_count_str
-
-	fout_std_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_std_count.asc", "w")
-	fout_std_count.write(asc_std_count_str)
+		fout_std_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_std_aid.asc", "w")
+		fout_std_aid.write(asc_std_aid_str)
 
 
-	mean_count_str = ' '.join(np.char.mod('%f', mean_count))
-	asc_mean_count_str = asc + mean_count_str
+		mean_aid_str = ' '.join(np.char.mod('%f', mean_aid))
+		asc_mean_aid_str = asc + mean_aid_str
 
-	fout_mean_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_mean_count.asc", "w")
-	fout_mean_count.write(asc_mean_count_str)
+		fout_mean_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_mean_aid.asc", "w")
+		fout_mean_aid.write(asc_mean_aid_str)
 
 
-	print("Master finishing")
+		std_count_str = ' '.join(np.char.mod('%f', std_count))
+		asc_std_count_str = asc + std_count_str
 
-	Tloc = int(time.time() - Ts)
-	# T_iter_avg = Tloc/iterations
+		fout_std_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_std_count.asc", "w")
+		fout_std_count.write(asc_std_count_str)
 
-	print('\n\tRun Results:')
-	# print '\t\tAverage Iteration Time: ' + str(T_iter_avg//60) +'m '+ str(int(T_iter_avg%60)) +'s'
-	print('\t\tTotal Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
-	print('\n')
+
+		mean_count_str = ' '.join(np.char.mod('%f', mean_count))
+		asc_mean_count_str = asc + mean_count_str
+
+		fout_mean_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_mean_count.asc", "w")
+		fout_mean_count.write(asc_mean_count_str)
+
+
+		print("Master finishing")
+
+		Tloc = int(time.time() - Ts)
+		# T_iter_avg = Tloc/iterations
+
+		print('\n\tRun Results:')
+		# print '\t\tAverage Iteration Time: ' + str(T_iter_avg//60) +'m '+ str(int(T_iter_avg%60)) +'s'
+		print('\t\tTotal Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
+		print('\n')
+
+	else:
+		print("Master terminating due to worker error.")
+
 
 	# ==================================================
 
@@ -557,7 +591,14 @@ else:
 			# ==================================================
 
 		elif tag == tags.EXIT:
+			comm.send(None, dest=0, tag=tags.EXIT)
 			break
 
-	comm.send(None, dest=0, tag=tags.EXIT)
+		elif tag == tags.ERROR:
+			print("Error message from master. Shutting down." % source)
+			# confirm error message received
+			# 
+			# terminate process
+			# 
+			break
 
