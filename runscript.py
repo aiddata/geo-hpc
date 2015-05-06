@@ -385,6 +385,9 @@ i_m.agg_geom = i_m.apply(lambda x: geomVal(x.agg_type, x[code_field], x.longitud
 
 i_mx = i_m.loc[i_m.agg_geom != "None"].copy(deep=True)
 
+i_mx['index'] = i_mx['project_location_id']
+i_mx = i_mx.set_index('index')
+
 
 # ====================================================================================================
 # master init
@@ -559,7 +562,13 @@ else:
 			pg_pixel_size = pixel_size * 0.1
 			pg_psi = 1/pg_pixel_size
 
-			pg_data = i_mx[i_mx['project_location_id'] == task]
+			# !!!
+			# not reading data from fields correctly. see below
+			# cannot get geometry, have to call item() to get string... figure this out
+			# !!!
+
+			pg_data = i_mx.loc[task]
+			# print("task: "+str(task)+" and type: "+str(pg_data.agg_type))
 			pg_type = pg_data.agg_type
 
 			if pg_type != "point" and pg_type in agg_types:
@@ -648,6 +657,8 @@ else:
 # ====================================================================================================
 
 comm.Barrier()
+
+sys.exit("only doing mean surf")
 
 # ====================================================================================================
 # ====================================================================================================
