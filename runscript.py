@@ -395,6 +395,19 @@ i_mx = i_mx.set_index('index')
 
 if rank == 0:
 
+	results_str = "Monte Carlo Rasterization Output File\t "
+
+	results_str += "\nstart time\t" + str(Ts)
+	results_str += "\ncountry\t" + str(country)
+	results_str += "\nabbr\t" + str(abbr)
+	results_str += "\npixel_size\t" + str(pixel_size)
+	results_str += "\niterations\t" + str(iterations)
+	results_str += "\nnodata\t" + str(nodata)
+	results_str += "\nsubset\t" + str(subset)
+	results_str += "\naid_field\t" + str(aid_field)
+	results_str += "\ncode_field\t" + str(code_field)
+	results_str += "\ncountry bounds\t" + str((adm0_minx, adm0_miny, adm0_maxx, adm0_maxy))
+
 	# --------------------------------------------------
 	# initialize asc file output
 
@@ -444,6 +457,9 @@ comm.Barrier()
 # Define MPI message tags
 tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 
+# init for later
+sum_mean_surf = 0
+
 
 # ====================================================================================================
 # generate mean surface raster
@@ -475,6 +491,15 @@ if rank == 0:
 		if tag == tags.READY:
 			# Worker is ready, so send it a task
 			if task_index < len(loc_ids):
+
+				# 
+				# !!! 
+				# 	if task if for a point (not point with small buffer, etc.)
+				#  	then let master do work
+				# 	run tests to see if this actually improve runtimes
+				# !!!
+				# 
+
 				comm.send(loc_ids[task_index], dest=source, tag=tags.START)
 				print("Sending task %d to worker %d" % (task_index, source))
 				task_index += 1
@@ -529,7 +554,10 @@ if rank == 0:
 
 		print("Mean Surf Master finishing")
 
-		Tloc = int(time.time() - Ts)
+		T_surf = time.time()
+		Tloc = int(T_surf - Ts)
+
+		results_str += "\nMean Surf Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
 
 		print('\t\tMean Surf  Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
 		print('\n')
@@ -562,10 +590,6 @@ else:
 			pg_pixel_size = pixel_size * 0.1
 			pg_psi = 1/pg_pixel_size
 
-			# !!!
-			# not reading data from fields correctly. see below
-			# cannot get geometry, have to call item() to get string... figure this out
-			# !!!
 
 			pg_data = i_mx.loc[task]
 			# print("task: "+str(task)+" and type: "+str(pg_data.agg_type))
@@ -658,7 +682,7 @@ else:
 
 comm.Barrier()
 
-sys.exit("only doing mean surf")
+# sys.exit("only doing mean surf")
 
 # ====================================================================================================
 # ====================================================================================================
@@ -774,15 +798,39 @@ if rank == 0:
 		fout_mean_count.write(asc_mean_count_str)
 
 
+		if type(sum_mean_surf) != type(0):
+			error_surf = np.absolute(np.subtract(sum_mean_surf, mean_aid))
+
+			error_surf_str = ' '.join(np.char.mod('%f', error_surf))
+			asc_error_surf_str = asc + error_surf_str
+
+			fout_error_surf = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_error_surf.asc", "w")
+			fout_error_surf.write(asc_error_surf_str)
+
+			error_value = np.mean(error_surf)
+
+			results_str += "\nerror value\t" + str(error_value)
+
+
+
 		print("Master finishing")
+
+		T_iter = int(time.time() - T_surf)
 
 		Tloc = int(time.time() - Ts)
 		# T_iter_avg = Tloc/iterations
 
+		results_str += "\nIterations Runtime\t" + str(T_iter//60) +'m '+ str(int(T_iter%60)) +'s'
+		results_str += "\nTotal Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
+
 		print('\n\tRun Results:')
 		# print '\t\tAverage Iteration Time: ' + str(T_iter_avg//60) +'m '+ str(int(T_iter_avg%60)) +'s'
+		print('\t\tIterations Runtime: ' + str(T_iter//60) +'m '+ str(int(T_iter%60)) +'s')
 		print('\t\tTotal Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
 		print('\n')
+
+		fout_results = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_results.txt", "w")
+		fout_results.write(results_str)
 
 	else:
 		print("Master terminating due to worker error.")
@@ -816,6 +864,13 @@ else:
 
 			# add random points column to table
 			i_mx["rnd_pt"] = [0] * len(i_mx)
+
+
+			# drop rnd_x and rnd_y if they exist
+			if "rnd_x" in i_mx.columns or "rnd_y" in i_mx.columns:
+				i_mx.drop(['rnd_x','rnd_y'], inplace=True, axis=1)
+
+
 			i_mx.rnd_pt = i_mx.apply(lambda x: addPt(x.agg_type, x.agg_geom), axis=1)
 
 			# round rnd_pts to match point grid
@@ -827,12 +882,15 @@ else:
 
 			# add commitment value for each rnd pt to grid value
 			for i in i_mx.iterrows():
-				nx = str(i[1].rnd_x)
-				ny = str(i[1].rnd_y)
-				# print nx, ny, gref[nx][ny]
-				if int(i[1].random_dollars_pp) > 0:
-					npa_aid[gref[ny][nx]] += int(i[1].random_dollars_pp)
-					npa_count[gref[ny][nx]] += int(1)
+				try:
+					nx = str(i[1].rnd_x)
+					ny = str(i[1].rnd_y)
+					# print nx, ny, gref[nx][ny]
+					if int(i[1].random_dollars_pp) > 0:
+						npa_aid[gref[ny][nx]] += int(i[1].random_dollars_pp)
+						npa_count[gref[ny][nx]] += int(1)
+				except:
+					print("Error on worker %d with tasks %s." % (rank, task))
 
 
 			# --------------------------------------------------
