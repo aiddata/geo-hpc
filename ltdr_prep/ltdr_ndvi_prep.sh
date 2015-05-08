@@ -1,10 +1,17 @@
 #!/bin/bash
 
+# converts hdf file to geotiff and reprojects from EPSG:4008 to EPSG:4326
+
+# example gdal_translate
+# gdal_translate -a_srs EPSG:4326 -co COMPRESS=LZW -co BIGTIFF=IF_NEEDED -of GTiff 
+# 			HDF4_EOS:EOS_GRID:"/source/path/AVH13C1.A2005330.N16.004.2014115195505.hdf":Grid:NDVI 
+# 			/path/to/output.tif
 
 sensor=$1
-year=$2
-day=$3
-filename=$4
+filename=$2
+year=$3
+day=$4
+
 
 force=1
 
@@ -12,41 +19,15 @@ force=1
 # update to use user's /local/scr directory on node
 myuser="sgoodman"
 
-# input and output directories
-in_dir="/sciclone/data20/aiddata/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4/"${year}/${day}
-tmp_dir="/local/scr/"${myuser}"/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/"${year}/${day}
-out_dir="/sciclone/data20/aiddata/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/"${year}/${day}
+# input, tmp, output files
+in_file="/sciclone/data20/aiddata/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.hdf
+tmp_file="/local/scr/"${myuser}"/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.tif
+out_file="/sciclone/data20/aiddata/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.tif
 
 
+gdal_translate -a_srs EPSG:4326 -co COMPRESS=LZW -co BIGTIFF=IF_NEEDED -of GTiff HDF4_EOS:EOS_GRID:"$in_file":Grid:NDVI "$tmp_file"
 
+cp "$tmp_file" "$out_file"
 
-for s in "$base"/*;do 
-	sensor_major=`echo $s | sed 's/.*\///'`
-
-	for y in "$s"/*;do 
-		year=`echo $y | sed 's/.*\///'`
-
-		for f in "$y"/*;do 
-			file=`echo "$f" | sed 's/.*\///'`
-
-			product=
-			year=
-			day=
-			sensor_minor=
-
-			if [[ "$product" == "AVH13C1" ]];then 
-
-				#
-				
-			fi
-
-		done
-
-	done
-
-done
-
-
-
-
+\rm -f "$tmp_file"
 

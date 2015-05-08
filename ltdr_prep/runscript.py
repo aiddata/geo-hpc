@@ -1,6 +1,5 @@
 # for use with NDVI product from LTDR raw dataset (AVH13C1)
 
-# converts hdf file to geotiff and reprojects from EPSG:4008 to EPSG:4326
 
 # example LTDR product file names
 
@@ -21,11 +20,6 @@
 # 5 	extension 			hdf
 
 # ndvi product code is AVH13C1
-
-# example gdal_translate
-# gdal_translate -a_srs EPSG:4326 -co COMPRESS=LZW -co BIGTIFF=IF_NEEDED -of GTiff 
-# 			HDF4_EOS:EOS_GRID:"/source/path/AVH13C1.A2005330.N16.004.2014115195505.hdf":Grid:NDVI 
-# 			/path/to/output.tif
 
 
 from mpi4py import MPI
@@ -56,6 +50,7 @@ ref = {}
 
 # get sensors
 sensors = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name))]
+sensors.sort()
 
 # use limited sensors for testing 
 # sensors = ['2001']
@@ -64,9 +59,9 @@ sensors = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(
 for sensor in sensors:
 
 	# get years for sensors
-	path_sensor = path_base + sensor
+	path_sensor = path_base +"/"+ sensor
 	years = [name for name in os.listdir(path_sensor) if os.path.isdir(os.path.join(path_sensor, name))]
-
+	years.sort()
 
 	for year in years:
 
@@ -75,23 +70,23 @@ for sensor in sensors:
 
 
 		# get days for year
-		path_year = path_sensor + year
+		path_year = path_sensor +"/"+ year
 		filenames = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith(".hdf") and name.split(".")[0] == "AVH13C1"]
-
+		filenames.sort()
 
 		for filename in filenames:
 
+			filename = filename[:-4]
 			day = filename.split(".")[1][5:]
 
-			if not day in ref[year]:
-				ref[year][day] = [sensor, filename]
-			elif int(sensor[1:]) > int(ref[year][day][0][1:]):
+			if not day in ref[year] or int(sensor[1:]) > int(ref[year][day][0][1:]):
+				print "\n" + str(year) +" "+ str(day) +" "+ str(sensor) +" "+ str(filename)
 				ref[year][day] = [sensor, filename]
 
 
 
 # list final [sensor, year, day] combos from reference object
-qlist = [[ref[year][day][0], year, day, ref[year][day][1]] for day in ref[year] for year in ref]
+qlist = [ref[year][day] + [year, day] for day in ref[year] for year in ref if year in ref and day in ref[year]]
 
 
 c = rank
