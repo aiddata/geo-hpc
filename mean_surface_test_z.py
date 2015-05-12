@@ -7,7 +7,7 @@
 
 from __future__ import print_function
 
-from mpi4py import MPI
+# from mpi4py import MPI
 
 import os
 import sys
@@ -28,10 +28,10 @@ import shapefile
 
 
 # mpi info
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-status = MPI.Status()
+# comm = MPI.COMM_WORLD
+# size = comm.Get_size()
+rank = 0
+# status = MPI.Status()
 
 # absolute path to script directory
 base = os.path.dirname(os.path.abspath(__file__))
@@ -258,7 +258,7 @@ def getGeom(code, lon, lat):
 # returns geometry for point
 def geomVal(agg_type, code, lon, lat):
 	if agg_type in agg_types:
-		
+
 		code = str(int(code))
 		tmp_geom = getGeom(code, lon, lat)
 
@@ -380,6 +380,11 @@ dollar_table = pd.DataFrame(columns=column_list)
 
 # create copy of merged project data
 i_m = deepcopy(merged)
+# i_m = i_m.loc[i_m.is_geocoded == 0]
+# i_m.is_geocoded.fillna(0, inplace=True)
+# print(i_m.loc[i_m.is_geocoded == 0])
+# i_m.to_csv("/home/userz/Desktop/testp.tsv", sep='\t')
+# sys.exit("!")
 
 # add new column of random numbers (0-1)
 i_m['ran_num'] = (pd.Series(np.random.random(len(i_m)))).values
@@ -425,6 +430,12 @@ i_m["agg_geom"] = ["None"] * len(i_m)
 i_m.agg_type = i_m.apply(lambda x: geomType(x[is_geocoded], x[code_field]), axis=1)
 i_m.agg_geom = i_m.apply(lambda x: geomVal(x.agg_type, x[code_field], x.longitude, x.latitude), axis=1)
 
+
+# print(i_m.loc[i_m.is_geocoded == 0])
+# i_m.to_csv("/home/userz/Desktop/testp.tsv", sep='\t')
+# sys.exit("!")
+
+
 i_mx = i_m.loc[i_m.agg_geom != "None"].copy(deep=True)
 
 
@@ -433,6 +444,9 @@ i_mx['unique'] = range(0, len(i_mx))
 i_mx['index'] = range(0, len(i_mx))
 i_mx = i_mx.set_index('index')
 
+
+
+# sys.exit("!")
 
 # ====================================================================================================
 # master init
@@ -504,7 +518,7 @@ if rank == 0:
 # ====================================================================================================
 # ====================================================================================================
 
-comm.Barrier()
+# comm.Barrier()
 # sys.exit("! - init only")
 
 # ====================================================================================================
@@ -521,454 +535,149 @@ tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 # init for later
 sum_mean_surf = 0
 
-
 # ====================================================================================================
 # generate mean surface raster
 
 
-if rank == 0:
+print("STARTING SURF...")
 
-	# ==================================================
-	# MASTER START STUFF
 
+all_mean_surf = []
+unique_ids = i_mx['unique']
 
-	all_mean_surf = []
-	unique_ids = i_mx['unique']
+# track_np = 0
 
-	# ==================================================
-	
-	task_index = 0
-	num_workers = size - 1
-	closed_workers = 0
-	err_status = 0
-	print("Mean Surf Master starting with %d workers" % num_workers)
+for task in unique_ids:
 
-	# distribute work
-	while closed_workers < num_workers:
-		data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-		source = status.Get_source()
-		tag = status.Get_tag()
+	# print("NEW TASK")
 
-		if tag == tags.READY:
-			# Worker is ready, so send it a task
-			if task_index < len(unique_ids):
+	mean_surf = np.zeros((int(idx+1),), dtype=np.int)
 
-				# 
-				# !!! 
-				# 	if task if for a point (not point with small buffer, etc.)
-				#  	then let master do work
-				# 	run tests to see if this actually improve runtimes
-				# !!!
-				# 
+	# poly grid pixel size and poly grid pixel size inverse
+	# poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
+	pg_pixel_size = pixel_size * 0.1
+	pg_psi = 1/pg_pixel_size
 
-				comm.send(unique_ids[task_index], dest=source, tag=tags.START)
-				print("Sending task %d to worker %d" % (task_index, source))
-				task_index += 1
-			else:
-				comm.send(None, dest=source, tag=tags.EXIT)
 
-		elif tag == tags.DONE:
+	pg_data = i_mx.loc[task]
+	# print("task: "+str(task)+" and type: "+str(pg_data.agg_type))
+	pg_type = pg_data.agg_type
 
-			# ==================================================
-			# MASTER MID STUFF
-			
 
-			all_mean_surf.append(data)
-			print("Got data from worker %d" % source)
+	if pg_type == "adm" or pg_type == "buffer": #(pg_type != "point" and pg_type in agg_types) or pg_type == "country" and track_np < 2:
+		
+		# track_np += 1
+		# if track_np > 2:
+			# sys.exit()
 
+		# print(pg_type)
 
-			# ==================================================
+		# for each row generate grid based on bounding box of geometry
 
-		elif tag == tags.EXIT:
-			print("Worker %d exited." % source)
-			closed_workers += 1
+		pg_geom = pg_data.agg_geom	
 
-		elif tag == tags.ERROR:
-			print("Error reported by worker %d ." % source)
-			# broadcast error to all workers
-			# 
-			# make sure they all get message and terminate
-			# 
-			err_status = 1
-			break
+		(pg_minx, pg_miny, pg_maxx, pg_maxy) = pg_geom.bounds
+		# print( (pg_minx, pg_miny, pg_maxx, pg_maxy) )
 
-	# ==================================================
-	# MASTER END STUFF
+		(pg_minx, pg_miny, pg_maxx, pg_maxy) = (math.floor(pg_minx*pg_psi)/pg_psi, math.floor(pg_miny*pg_psi)/pg_psi, math.ceil(pg_maxx*pg_psi)/pg_psi, math.ceil(pg_maxy*pg_psi)/pg_psi)
+		# print( (pg_minx, pg_miny, pg_maxx, pg_maxy) )
 
+		pg_cols = np.arange(pg_minx, pg_maxx+pg_pixel_size*0.5, pg_pixel_size)
+		pg_rows = np.arange(pg_maxy, pg_miny-pg_pixel_size*0.5, -1*pg_pixel_size)
 
-	if err_status == 0:
-		# calc results
-		print("Mean Surf Master calcing")
+		# print(pg_cols)
+		# print(pg_rows)
+		# evenly split the aid for that row (i_mx['split_dollars_pp'] field) among new grid points
 
-		stack_mean_surf = np.vstack(all_mean_surf)
-		sum_mean_surf = np.sum(stack_mean_surf, axis=0)
+		# full poly grid reference object and count
+		pg_gref = {}
+		pg_idx = 0
 
+		# poly grid points within actual geom and count
+		# pg_in = {}
+		pg_count = 0
+		
+		for r in pg_rows:
+			pg_gref[str(r)] = {}
+			for c in pg_cols:
+				# build grid reference object
+				# pg_gref[str(r)][str(c)] = pg_idx
+				pg_idx += 1
 
-		# write asc file
+				# check if point is within geom
+				pg_point = Point(c,r)
 
-		sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
-		asc_sum_mean_surf_str = asc + sum_mean_surf_str
+				pg_within = pg_point.within(pg_geom)
+				# print(pg_within)
 
-		fout_sum_mean_surf = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_sum_mean_surf.asc", "w")
-		fout_sum_mean_surf.write(asc_sum_mean_surf_str)
+				# print(" ~~~~~~~~~~~~~~ "+str(pg_point) +" "+ str(pg_within))
 
+				# track_np += 1
+				# if track_np > 70:
+				# 	sys.exit()
 
-		print("Mean Surf Master finishing")
 
-		T_surf = time.time()
-		Tloc = int(T_surf - T_init)
+				if pg_within:
+					pg_gref[str(r)][str(c)] = pg_idx
+					pg_count += 1
+				else:
+					pg_gref[str(r)][str(c)] = "None"
 
-		results_str += "\nMean Surf Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
+				# print(pg_gref[str(r)][str(c)])
 
-		print('\t\tMean Surf  Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
-		print('\n')
+		# npa_poly = np.zeros((int(pg_idx+1),), dtype=np.int)
 
-	else:
-		print("Mean Surf Master terminating due to worker error.")
+		# init grid reference object
+		# pg_gref = {}
+		for r in pg_rows:
+			# pg_gref[str(r)] = {}
+			for c in pg_cols:
+				# build grid reference object
 
+				if pg_gref[str(r)][str(c)] != "None":
+					# round new grid points to old grid points and update old grid
+					gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
+					mean_surf[gref_id] += pg_data['split_dollars_pp'] / pg_count
+					# print( pg_data['split_dollars_pp'] / pg_count)
+					# print("\n\n\t\t~~~~~~~~~~~~~~ "+str(gref_id)+" "+str(mean_surf[gref_id])+" "+str(pg_data['split_dollars_pp'] / pg_count) +"\n\n")
 
-	# ==================================================
+		# print(mean_surf)
 
+	elif pg_type == "point":
 
-else:
-	# Worker processes execute code below
-	name = MPI.Get_processor_name()
-	print("I am a worker with rank %d on %s." % (rank, name))
-	while True:
-		comm.send(None, dest=0, tag=tags.READY)
-		task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-		tag = status.Get_tag()
+		# round new grid points to old grid points and update old grid
+		gref_id = gref[str(round(pg_data.latitude * psi) / psi)][str(round(pg_data.longitude * psi) / psi)]
+		mean_surf[gref_id] += pg_data['split_dollars_pp']
 
-		if tag == tags.START:
 
-			# ==================================================
-			# WORKER STUFF
+	all_mean_surf.append(mean_surf)
 
-			mean_surf = np.zeros((int(idx+1),), dtype=np.int)
 
-			# poly grid pixel size and poly grid pixel size inverse
-			# poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
-			pg_pixel_size = pixel_size * 0.1
-			pg_psi = 1/pg_pixel_size
 
 
-			pg_data = i_mx.loc[task]
-			pg_type = pg_data.agg_type
+# calc results
+print("Mean Surf Master calcing")
 
+stack_mean_surf = np.vstack(all_mean_surf)
+sum_mean_surf = np.sum(stack_mean_surf, axis=0)
 
-			if (pg_type != "point" and pg_type in agg_types) or pg_type == "country":
-				
-				# for each row generate grid based on bounding box of geometry
 
-				pg_geom = pg_data.agg_geom	
+# write asc file
 
-				(pg_minx, pg_miny, pg_maxx, pg_maxy) = pg_geom.bounds
-				# print( (pg_minx, pg_miny, pg_maxx, pg_maxy) )
+sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
+asc_sum_mean_surf_str = asc + sum_mean_surf_str
 
-				(pg_minx, pg_miny, pg_maxx, pg_maxy) = (math.floor(pg_minx*pg_psi)/pg_psi, math.floor(pg_miny*pg_psi)/pg_psi, math.ceil(pg_maxx*pg_psi)/pg_psi, math.ceil(pg_maxy*pg_psi)/pg_psi)
-				# print( (pg_minx, pg_miny, pg_maxx, pg_maxy) )
+fout_sum_mean_surf = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_sum_mean_surf.asc", "w")
+fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
-				pg_cols = np.arange(pg_minx, pg_maxx+pg_pixel_size*0.5, pg_pixel_size)
-				pg_rows = np.arange(pg_maxy, pg_miny-pg_pixel_size*0.5, -1*pg_pixel_size)
 
-				# evenly split the aid for that row (i_mx['split_dollars_pp'] field) among new grid points
 
-				# full poly grid reference object and count
-				pg_gref = {}
-				pg_idx = 0
+print("Mean Surf Master finishing")
 
-				# poly grid points within actual geom and count
-				# pg_in = {}
-				pg_count = 0
-				
-				for r in pg_rows:
-					pg_gref[str(r)] = {}
+T_surf = time.time()
+Tloc = int(T_surf - Ts)
 
-					for c in pg_cols:
-						pg_idx += 1
+results_str += "\nMean Surf Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
 
-						# check if point is within geom
-						pg_point = Point(c,r)
-						pg_within = pg_point.within(pg_geom)
-
-						if pg_within:
-							pg_gref[str(r)][str(c)] = pg_idx
-							pg_count += 1
-						else:
-							pg_gref[str(r)][str(c)] = "None"
-
-
-				# init grid reference object
-				for r in pg_rows:
-					for c in pg_cols:
-						if pg_gref[str(r)][str(c)] != "None":
-							# round new grid points to old grid points and update old grid
-							gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
-							mean_surf[gref_id] += pg_data['split_dollars_pp'] / pg_count
-
-
-			elif pg_type == "point":
-
-				# round new grid points to old grid points and update old grid
-				gref_id = gref[str(round(pg_data.latitude * psi) / psi)][str(round(pg_data.longitude * psi) / psi)]
-				mean_surf[gref_id] += pg_data['split_dollars_pp']
-
-
-			# --------------------------------------------------
-			# send np arrays back to master
-
-			comm.send(mean_surf, dest=0, tag=tags.DONE)
-
-
-			# ==================================================
-
-		elif tag == tags.EXIT:
-			comm.send(None, dest=0, tag=tags.EXIT)
-			break
-
-		elif tag == tags.ERROR:
-			print("Error message from master. Shutting down." % source)
-			# confirm error message received
-			# 
-			# terminate process
-			# 
-			break
-
-
-# ====================================================================================================
-# ====================================================================================================
-
-comm.Barrier()
-# sys.exit("! - mean surf only")
-
-# ====================================================================================================
-# ====================================================================================================
-# mpi stuff
-# structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
-
-
-if rank == 0:
-
-	# ==================================================
-	# MASTER START STUFF
-
-
-	print("starting iterations - %d to be run" % iterations)
-
-	total_aid = [] # [0] * iterations
-	total_count = [] # [0] * iterations
-	
-
-	# ==================================================
-	
-	task_index = 0
-	num_workers = size - 1
-	closed_workers = 0
-	err_status = 0
-	print("Master starting with %d workers" % num_workers)
-
-	# distribute work
-	while closed_workers < num_workers:
-		data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-		source = status.Get_source()
-		tag = status.Get_tag()
-
-		if tag == tags.READY:
-			# Worker is ready, so send it a task
-			if task_index < len(i_control):
-				comm.send(i_control[task_index], dest=source, tag=tags.START)
-				print("Sending task %d to worker %d" % (task_index, source))
-				task_index += 1
-			else:
-				comm.send(None, dest=source, tag=tags.EXIT)
-
-		elif tag == tags.DONE:
-
-			# ==================================================
-			# MASTER MID STUFF
-			
-
-			total_aid.append(data[0])
-			total_count.append(data[1])
-			print("Got data from worker %d" % source)
-
-
-			# ==================================================
-
-		elif tag == tags.EXIT:
-			print("Worker %d exited." % source)
-			closed_workers += 1
-
-		elif tag == tags.ERROR:
-			print("Error reported by worker %d ." % source)
-			# broadcast error to all workers
-			# 
-			# make sure they all get message and terminate
-			# 
-			err_status = 1
-			break
-
-	# ==================================================
-	# MASTER END STUFF
-
-
-	if err_status == 0:
-		# calc results
-		print("Master calcing")
-
-		stack_aid = np.vstack(total_aid)
-		std_aid = np.std(stack_aid, axis=0)
-		mean_aid = np.mean(stack_aid, axis=0)
-
-		stack_count = np.vstack(total_count)
-		std_count = np.std(stack_count, axis=0)
-		mean_count = np.mean(stack_count, axis=0)
-
-
-		# write asc files
-
-		std_aid_str = ' '.join(np.char.mod('%f', std_aid))
-		asc_std_aid_str = asc + std_aid_str
-
-		fout_std_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_std_aid.asc", "w")
-		fout_std_aid.write(asc_std_aid_str)
-
-
-		mean_aid_str = ' '.join(np.char.mod('%f', mean_aid))
-		asc_mean_aid_str = asc + mean_aid_str
-
-		fout_mean_aid = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_mean_aid.asc", "w")
-		fout_mean_aid.write(asc_mean_aid_str)
-
-
-		std_count_str = ' '.join(np.char.mod('%f', std_count))
-		asc_std_count_str = asc + std_count_str
-
-		fout_std_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_std_count.asc", "w")
-		fout_std_count.write(asc_std_count_str)
-
-
-		mean_count_str = ' '.join(np.char.mod('%f', mean_count))
-		asc_mean_count_str = asc + mean_count_str
-
-		fout_mean_count = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_mean_count.asc", "w")
-		fout_mean_count.write(asc_mean_count_str)
-
-		error_log = 0
-		if type(sum_mean_surf) != type(0):
-			error_surf = np.absolute(np.subtract(sum_mean_surf, mean_aid))
-
-			error_surf_str = ' '.join(np.char.mod('%f', error_surf))
-			asc_error_surf_str = asc + error_surf_str
-
-			fout_error_surf = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_error_surf.asc", "w")
-			fout_error_surf.write(asc_error_surf_str)
-
-			error_log = np.mean(error_surf)
-
-			results_str += "\nerror value\t" + str(error_log)
-
-
-		print("Master finishing")
-
-		T_iter = int(time.time() - T_surf)
-		Tloc = int(time.time() - Ts)
-
-		results_str += "\nIterations Runtime\t" + str(T_iter//60) +'m '+ str(int(T_iter%60)) +'s'
-		results_str += "\nTotal Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
-
-		print('\n\tRun Results:')
-		print('\t\tError Value for ' + str(iterations) + ' iterations: ' + str(error_log))
-		print('\t\tIterations Runtime: ' + str(T_iter//60) +'m '+ str(int(T_iter%60)) +'s')
-		print('\t\tTotal Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
-		print('\n\n')
-
-		fout_results = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_results.tsv", "w")
-		fout_results.write(results_str)
-
-
-		# write to main log
-		fout_log = open(base+"/outputs/"+"log.tsv", "a")
-		fout_log.write(str(Ts)+"\t"+country+"\t"+abbr+"\t"+str(pixel_size)+"\t"+str(iterations)+"\t"+str(error_log)+"\t"+str(only_geocoded)+"\n")
-
-
-
-	else:
-		print("Master terminating due to worker error.")
-
-
-	# ==================================================
-
-
-else:
-	# Worker processes execute code below
-	name = MPI.Get_processor_name()
-	print("I am a worker with rank %d on %s." % (rank, name))
-	while True:
-		comm.send(None, dest=0, tag=tags.READY)
-		task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-		tag = status.Get_tag()
-
-		if tag == tags.START:
-
-			# ==================================================
-			# WORKER STUFF
-
-
-			# initialize mean and count grids with zeros
-			npa_aid = np.zeros((int(idx+1),), dtype=np.int)
-			npa_count = np.zeros((int(idx+1),), dtype=np.int)
-
-
-			# --------------------------------------------------
-			# assign random points
-
-			# add random points column to table
-			i_mx["rnd_pt"] = [0] * len(i_mx)
-			i_mx.rnd_pt = i_mx.apply(lambda x: addPt(x.agg_type, x.agg_geom), axis=1)
-
-			# drop rnd_x and rnd_y if they exist
-			if "rnd_x" in i_mx.columns or "rnd_y" in i_mx.columns:
-				i_mx.drop(['rnd_x','rnd_y'], inplace=True, axis=1)
-
-			# round rnd_pts to match point grid
-			i_mx = i_mx.merge(i_mx.rnd_pt.apply(lambda s: pd.Series({'rnd_x':(round(s.x * psi) / psi), 'rnd_y':(round(s.y * psi) / psi)})), left_index=True, right_index=True)
-
-
-			# --------------------------------------------------
-			# add results to output arrays
-
-			# add commitment value for each rnd pt to grid value
-			for i in i_mx.iterrows():
-				try:
-					nx = str(i[1].rnd_x)
-					ny = str(i[1].rnd_y)
-					# print nx, ny, gref[nx][ny]
-					if int(i[1].random_dollars_pp) > 0:
-						npa_aid[gref[ny][nx]] += int(i[1].random_dollars_pp)
-						npa_count[gref[ny][nx]] += int(1)
-				except:
-					print("Error on worker %d with tasks %s." % (rank, task))
-
-
-			# --------------------------------------------------
-			# send np arrays back to master
-
-			npa_result = np.array([npa_aid,npa_count])
-			comm.send(npa_result, dest=0, tag=tags.DONE)
-
-
-			# ==================================================
-
-		elif tag == tags.EXIT:
-			comm.send(None, dest=0, tag=tags.EXIT)
-			break
-
-		elif tag == tags.ERROR:
-			print("Error message from master. Shutting down." % source)
-			# confirm error message received
-			# 
-			# terminate process
-			# 
-			break
-
+print('\t\tMean Surf  Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
+print('\n')
