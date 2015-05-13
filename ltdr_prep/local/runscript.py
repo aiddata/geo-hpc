@@ -22,24 +22,19 @@
 # ndvi product code is AVH13C1
 
 
-from mpi4py import MPI
 import subprocess as sp
 import sys
 import os
 
 
-runscript = sys.argv[1]
+runscript = "/home/userz/kfw/ltdr_prep/local/ltdr_ndvi_prep.sh"
 
 
-comm = MPI.COMM_WORLD
-
-size = comm.Get_size()
-rank = comm.Get_rank()
 
 # base path where data is located
 # data downloaded using wget (same wget call can be used to download new data)
 # wget -r -c -N --retr-symlinks=yes ftp://ltdr.nascom.nasa.gov/allData/Ver4/
-path_base = "/sciclone/data20/aiddata/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4"
+path_base = "/home/userz/globus-data/raw/ltdr.nascom.nasa.gov/allData/Ver4"
 
 
 # reference object used to eliminate duplicate year / day combos
@@ -48,8 +43,10 @@ ref = {}
 
 # list of all [year, day] combos
 
+sensor_accept = ["N09"]
+
 # get sensors
-sensors = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name))]
+sensors = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in sensor_accept]
 sensors.sort()
 
 # use limited sensors for testing 
@@ -92,12 +89,12 @@ qlist = []
 for year in ref:
 	for day in ref[year]:
  		qlist.append(ref[year][day] + [year, day]) 
+ 		# print qlist
 
-c = rank
-while c < len(qlist):
+for c in range(len(qlist)):
 
 	try:
-		cmd = runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]+" "+qlist[c][3]
+		cmd = "bash "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]+" "+qlist[c][3]
 		# print cmd
 
 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
@@ -105,50 +102,4 @@ while c < len(qlist):
 
 	except sp.CalledProcessError as sts_err:                                                                                                   
 	    print "subprocess error code", sts_err.returncode, sts_err.output
-
-	c += size
-
-
-comm.Barrier()
-
-
-# qlist distribution algorithm #1 - chunks
-# each processor is given a continous block of qlist items to process
-
-# if len(qlist) > size:
-
-# 	jobs = len(qlist) # num of jobs to run
-# 	even = jobs // size # min jobs each processor will run
-# 	left = jobs % size # num of jobs to be split between some size
-
-# 	# for each node assign jobs
-
-# 	if rank < left:
-# 		r = range( rank*even+rank, (rank+1)*even+rank+1 )
-# 	else:
-# 		r = range( rank*even+left, (rank+1)*even+left )
-
-
-# 	for i in r:
-
-# 		# print "("+str(rank)+") " + qlist[i] + "\n"
-
-# 		cmd = runscript+" "+qlist[i][0]+" "+qlist[i][1]
-# 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-
-# 		print sts
-
-# elif len(qlist) > rank:
-
-# 	# print "("+str(rank)+") " + qlist[rank] + "\n"
-
-# 	cmd = runscript+" "+qlist[rank][0]+" "+qlist[rank][1]
-# 	sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-
-# 	print sts
-
-
-
-# qlist distribution algorithm #1 - cyclic
-# qlist items are distributed to processors in a cyclical manner
 

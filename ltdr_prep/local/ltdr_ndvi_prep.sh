@@ -13,23 +13,16 @@ year=$3
 day=$4
 
 
-force=1
-
-
-# update to use user's /local/scr directory on node
-myuser="sgoodman"
-
 # input, tmp, output files
-in_file="/sciclone/data20/aiddata/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.hdf
-tmp_file="/local/scr/"${myuser}"/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.tif
-out_file="/sciclone/data20/aiddata/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.tif
+in_file="/home/userz/globus-data/raw/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.hdf
+out_file="/home/userz/globus-data/data/ltdr.nascom.nasa.gov/allData/Ver4/"${sensor}/${year}/${filename}.tif
+
+# echo $(dirname "$out_file")
+mkdir -p $(dirname "$out_file")
+
+gdal_translate -a_srs EPSG:4326 -co COMPRESS=LZW -co BIGTIFF=IF_NEEDED -of GTiff HDF4_EOS:EOS_GRID:"$in_file":Grid:NDVI "$out_file"
 
 
-gdal_translate -a_srs EPSG:4326 -co COMPRESS=LZW -co BIGTIFF=IF_NEEDED -of GTiff HDF4_EOS:EOS_GRID:\""$in_file"\":Grid:NDVI "$tmp_file"
-
-cp "$tmp_file" "$out_file"
-
-\rm -f "$tmp_file"
 
 
 # gdal_translate -a_srs EPSG:4326 -co COMPRESS=LZW -co BIGTIFF=IF_NEEDED -of GTiff HDF4_EOS:EOS_GRID:"/sciclone/data20/aiddata/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4/N07/1982/AVH13C1.A1982089.N07.004.2013223195333.hdf":Grid:NDVI output_hdf_test.tif
