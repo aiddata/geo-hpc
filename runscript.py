@@ -2,6 +2,27 @@
 # runscript.py
 # 
 
+# runtime estimation formula (in minutes)
+# 
+#	init_time + mean_surface_time + ( avg_iteration_time * ( iterations / processes ) ) / 60
+# 
+# where:
+# 	init_time =  2 (minutes)
+# 	mean_surface_time = 12 (minutes)
+# 	avg_iteration_time = 24 (seconds)
+# 	iterations = number of iterations being run
+# 	processes = (number of nodes * cores per node) - 1
+# 
+# example:
+#	for a 1000 iteration job running on 4 c11 nodes which have 8 cores each
+# 
+#	runtime = 2 + 12 + ( 24 ( 1000 / 31 ) ) / 60 
+#	runtime = 26.9 minutes
+# 
+#   actual recorded runtime for same conditions = 26.2 minutes
+# 
+#	small difference is due to rounding up the estimated 
+#	init_time and mean_surface_time which adds 30-45 seconds
 
 # ====================================================================================================
 
@@ -889,7 +910,7 @@ if rank == 0:
 
 		# write to main log
 		fout_log = open(base+"/outputs/"+"log.tsv", "a")
-		fout_log.write(str(Ts)+"\t"+country+"\t"+abbr+"\t"+str(pixel_size)+"\t"+str(iterations)+"\t"+str(error_log)+"\t"+str(only_geocoded)+"\n")
+		fout_log.write(str(int(Ts))+"\t"+country+"\t"+abbr+"\t"+str(pixel_size)+"\t"+str(iterations)+"\t"+str(error_log)+"\t"+str(only_geocoded)+"\t"+str(size)+"\t"+str(Tloc)+"\n")
 
 
 

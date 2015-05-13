@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N ad:sg-mcr
-#PBS -l nodes=3:c11:ppn=8
+#PBS -l nodes=4:c11:ppn=8
 #PBS -l walltime=01:00:00
 #PBS -j oe
 
