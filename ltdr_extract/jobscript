@@ -1,0 +1,8 @@
+#!/bin/tcsh
+#PBS -N ad:sg-ltdr_ex
+#PBS -l nodes=4:c11:ppn=8
+#PBS -l walltime=12:00:00
+#PBS -j oe
+
+cd $PBS_O_WORKDIR
+mvp2run -m cyclic python-mpi ./runscript.py ./extract_hpc.R

@@ -43,7 +43,7 @@ ref = {}
 
 # list of all [year, day] combos
 
-sensor_accept = ["N09"]
+sensor_accept = ["N18"]
 
 # get sensors
 sensors = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in sensor_accept]
