@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# file loc is /path/to/.../mcr/chainscript.sh
+
+# name of this chain
+chain=
+j_init=path/to/stuff
+
+"#!/bin/tcsh"
+"#PBS -N ad:sg-mcr"
+"#PBS -l nodes=4:c11:ppn=8"
+"#PBS -l walltime=01:00:00"
+"#PBS -j oe"
+
+"cd $PBS_O_WORKDIR"
+"mvp2run -m cyclic python-mpi ./runscript.py nepal NPL 0.5 100"
+
+
+# mkdir for new job params
+
+# build new jobscript for initial iteration
+
+# run initial iteration
+j1=`qsub jobscript`
+
+# get and log initial iteration results
+
+# create jobscripts for base iterations
+# run base iterations
+
+# for each
+j2=`qsub -W depend=afterok:$j1 jobscript`
+# get and log results for each base iteration
+
+
+# check if threshold is met
+
+# yes? finish
+# no? continue
+
+# check historical data
+
+# determine if sufficient data exists to predict
+
+# yes? run predicted iterations (continue with default increments if predicted does not 
+# meet threshold and repredict after each run)
+
+# no? run predetermined default increments until threhold is met
+
+
+
+
+
+

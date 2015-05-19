@@ -54,11 +54,12 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 status = MPI.Status()
 
+# start time
+Ts = time.time()
+
 # absolute path to script directory
 base = os.path.dirname(os.path.abspath(__file__))
 
-# start time
-Ts = time.time()
 
 # python /path/to/runscript.py nepal NPL 0.1 10
 arg = sys.argv
@@ -66,56 +67,74 @@ arg = sys.argv
 try:
 	country = sys.argv[1]
 	abbr = sys.argv[2]
-	pixel_size = float(sys.argv[3]) # 0.025
-	iterations = int(sys.argv[4]) # 2
-
-	# iterations range
-	i_control = range(int(iterations))
+	pixel_size = float(sys.argv[3])
+	iterations = int(sys.argv[4])
 
 except:
 	sys.exit("invalid inputs")
 
+# check for valid pixel size
 # examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
-
 if (1/pixel_size) != int(1/pixel_size):
 	sys.exit("invalid pixel size: "+str(pixel_size))
 
 # pixel size inverse
 psi = 1/pixel_size
 
+# iterations range
+i_control = range(int(iterations))
+
+
+# --------------------------------------------------
+# filter options
+
+
+# filter_type = "all"
+filter_type = "specfic"
+
+filters = {
+	"ad_sector_names": {
+		"Agriculture": 0
+	}
+}
+
 
 # --------------------------------------------------
 # vars to be added as inputs
+# not used by mcr function
 
 # nodata value for output raster
 nodata = -9999
 
-# subset / filter
-subset = "all"
-# sector_codes = arg[5]
-# type(sector_codes)
-
+# field name for aid values
 aid_field = "total_commitments"
+
+# boolean field identifying if project is geocoded
+is_geocoded = "is_geocoded"
+
+# when True, only use geocoded data
+only_geocoded = False
 
 
 # --------------------------------------------------
 # static vars that may be added as some type of input
-
-# only use geocoded data
-only_geocoded = False
-
-# is geocoded field
-is_geocoded = "is_geocoded"
+# used by mcr functions
 
 # type definition for non geocoded projects
-# either allocated at country level or ignored
+# either allocated at country level ("country") or ignored ("None")
 not_geocoded = "country"
 
+if only_geocoded:
+	not_geocoded = "None"
 
+
+# fields name associated with values in lookup dict
 code_field = "precision_code"
 
+# aggregation types used in lookup dict
 agg_types = ["point", "buffer", "adm"]
 
+# code field values
 lookup = {
 	"1": {"type":"point","data":0},
 	"2": {"type":"buffer","data":1},
@@ -144,7 +163,7 @@ def getCSV(path):
 
 # get project and location data in path directory
 # requires a field name to merge on and list of required fields
-def getData(path, merge_id, field_ids):
+def getData(path, merge_id, field_ids, only_geo):
 
 	amp_path = path+"/projects.tsv"
 	loc_path = path+"/locations.tsv"
@@ -164,9 +183,8 @@ def getData(path, merge_id, field_ids):
 	loc[merge_id] = loc[merge_id].astype(str)
 
 	# create projectdata by merging amp and location files by project_id
-	if only_geocoded:
+	if only_geo:
 		tmp_merged = amp.merge(loc, on=merge_id)
-		not_geocoded = "None"
 	else:
 		tmp_merged = amp.merge(loc, on=merge_id, how="left")
 
@@ -191,6 +209,7 @@ def enum(*sequential, **named):
 
 
 # gets geometry type based on lookup table
+# depends on lookup and not_geocoded
 def geomType(is_geo, code):
 
 	try:
@@ -277,6 +296,7 @@ def getGeom(code, lon, lat):
 
 
 # returns geometry for point
+# depends on agg_types and adm0
 def geomVal(agg_type, code, lon, lat):
 	if agg_type in agg_types:
 		
@@ -338,14 +358,15 @@ adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM0/"+abbr+"_adm0.shp"
 adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM1/"+abbr+"_adm1.shp")
 adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM2/"+abbr+"_adm2.shp")
 
-
-# --------------------------------------------------
-# create point grid for country
-
 # get adm0 bounding box
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 
+# define country shape
 adm0 = shape(adm_shps[0][0])
+
+
+# --------------------------------------------------
+# create point grid for country
 
 # country bounding box
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = adm0.bounds
@@ -376,21 +397,18 @@ for r in rows:
 		idx += 1
 
 
-# ====================================================================================================
-# data prep
-
-
 # --------------------------------------------------
 # load project data
 
-merged = getData(base+"/countries/"+country+"/data", "project_id", (code_field, "project_location_id"))
+merged = getData(base+"/countries/"+country+"/data", "project_id", (code_field, "project_location_id"), only_geocoded)
 
 
 # --------------------------------------------------
 # filters
 
 # apply filters to project data
-# 
+# filtered = merged.loc[merged.ad_sector_names == "Agriculture"]
+
 
 # --------------------------------------------------
 # generate random dollars
@@ -401,6 +419,7 @@ dollar_table = pd.DataFrame(columns=column_list)
 
 # create copy of merged project data
 i_m = deepcopy(merged)
+# i_m = deepcopy(filtered)
 
 # add new column of random numbers (0-1)
 i_m['ran_num'] = (pd.Series(np.random.random(len(i_m)))).values
@@ -461,6 +480,9 @@ i_mx = i_mx.set_index('index')
 
 if rank == 0:
 
+	# --------------------------------------------------
+	# initialize results file output
+
 	results_str = "Monte Carlo Rasterization Output File\t "
 
 	results_str += "\nstart time\t" + str(Ts)
@@ -469,7 +491,6 @@ if rank == 0:
 	results_str += "\npixel_size\t" + str(pixel_size)
 	results_str += "\niterations\t" + str(iterations)
 	results_str += "\nnodata\t" + str(nodata)
-	results_str += "\nsubset\t" + str(subset)
 	results_str += "\naid_field\t" + str(aid_field)
 	results_str += "\ncode_field\t" + str(code_field)
 	results_str += "\ncountry bounds\t" + str((adm0_minx, adm0_miny, adm0_maxx, adm0_maxy))
@@ -477,6 +498,9 @@ if rank == 0:
 	results_str += "\nrows\t" + str(len(rows))
 	results_str += "\ncolumns\t" + str(len(cols))
 	results_str += "\nlocations\t" + str(len(i_mx))
+
+	# results_str += "\nfilters\t" + str(filters)
+
 
 	# --------------------------------------------------
 	# initialize asc file output
@@ -506,7 +530,7 @@ if rank == 0:
 				raise
 
 	dir_country = base+"/outputs/"+country
-	dir_working = dir_country+"/"+country+"_"+subset+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
+	dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
 
 	make_dir(dir_working)
 
