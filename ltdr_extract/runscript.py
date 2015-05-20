@@ -6,6 +6,8 @@ import os
 
 
 runscript = sys.argv[1]
+year = str(sys.argv[2])
+
 
 comm = MPI.COMM_WORLD
 
@@ -18,32 +20,39 @@ rank = comm.Get_rank()
 path_base = "/sciclone/data20/aiddata/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/ndvi"
 
 # list of years to ignore
-ignore = []
+# ignore = []
 
 # list of all [year, day] combos
 qlist = []
 
 # get years
-years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
+# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in ignore]
 
 # use limited years for testing 
 # years = ['2002']
 
 
-for year in years:
+# for year in years:
 
 	# get days for year
-	path_year = path_base + year
-	days = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith('.tif')]
+	# path_year = path_base +"/"+ year
+	# days = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith('.tif')]
 			
-	qlist += [[year, name.split(".")[1][5:], name[:-4]] for name in days]
+	# qlist += [[year, name.split(".")[1][5:], name[:-4]] for name in days]
+
+path_year = path_base +"/"+ year
+days = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith('.tif')]
+		
+qlist += [[year, name.split(".")[1][5:], name[:-4]] for name in days]
 
 
 c = rank
 while c < len(qlist):
 
 	try:
-		cmd = "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]
+		cmd = "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]
+		# print cmd
+		
 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 		print sts
 

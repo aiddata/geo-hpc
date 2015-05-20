@@ -17,7 +17,7 @@ fname <- paste(name, ".tif", sep="")
 timer <- proc.time()
 
 
-in_base <- paste("/sciclone/data20/aiddata/REU/data/ltdr.nascom.nasa.gov/allData/ndvi/",year, sep="")
+in_base <- paste("/sciclone/data20/aiddata/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/ndvi/",year, sep="")
 out_base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/ltdr_ndvi/output/",year,"/",day, sep="")
 
 
