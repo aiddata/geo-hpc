@@ -69,7 +69,9 @@ try:
 	abbr = sys.argv[2]
 	pixel_size = float(sys.argv[3])
 	iterations = int(sys.argv[4])
-
+	# sector = sys.argv[5]
+	# Ts = int(sys.argv[6])
+	
 except:
 	sys.exit("invalid inputs")
 

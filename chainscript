@@ -1,19 +1,71 @@
 #!/bin/bash
 
-# file loc is /path/to/.../mcr/chainscript.sh
+# file loc is /path/to/.../mcr/chainscript
 
-# name of this chain
-chain=
-j_init=path/to/stuff
 
-"#!/bin/tcsh"
-"#PBS -N ad:sg-mcr"
-"#PBS -l nodes=4:c11:ppn=8"
-"#PBS -l walltime=01:00:00"
-"#PBS -j oe"
+country=$1
+abbr=$2
+pixel_size=$3
 
-"cd $PBS_O_WORKDIR"
-"mvp2run -m cyclic python-mpi ./runscript.py nepal NPL 0.5 100"
+sector=$4
+
+nodes=$5
+ppn=$6
+
+
+T="$(date +%s)"
+
+base=`pwd`/"$( dirname "${BASH_SOURCE[0]}" )"
+cd $base
+
+
+# base chains path
+chains=$base/chains
+
+# this chain
+chain_name="$country"_"$abbr"_"$pixel_size"_"$sector"_"$T"
+chain_path="$chains"/"$chain_name"
+
+mkdir -p "$chain_path"
+
+# copy runscript to 
+cp runscript.py "$chain_path"
+
+iterations=10
+
+# runtime forula and components in minutes
+t_data_prep=2
+t_mean_surf=12
+t_iteration=$(( 25 / 60 ))
+cores=$(( $nodes * $ppn - 1))
+runtime=$((  $t_data_prep + $t_mean_surf + $t_iteration * ($iterations / $cores) )) 
+adj_run=$(( $runtime + $runtime / 10 ))
+
+hours=$(( $adj_run / 60 ))
+minutes=$(( $adj_run - $hours * 60 ))
+
+if [[ $hours < 10 ]]; then
+	hours=0"$hours"
+fi
+
+if [[ $minutes < 10 ]]; then
+	minutes=0"$minutes"
+fi
+
+# initial job
+job_10="$chain_path"/jobscript_10
+
+cat > $job_10 <<EOF
+#!/bin/tcsh
+#PBS -N ad:sg-mcr
+#PBS -l nodes=${nodes}:xeon:compute:ppn=${ppn}
+#PBS -l walltime=${hours}:${minutes}:00
+#PBS -j oe
+
+cd $PBS_O_WORKDIR
+mvp2run -m cyclic python-mpi ./runscript.py ${country} ${abbr} ${pixel_size} ${iterations} ${sector} ${T}
+
+EOF
 
 
 # mkdir for new job params
@@ -21,7 +73,7 @@ j_init=path/to/stuff
 # build new jobscript for initial iteration
 
 # run initial iteration
-j1=`qsub jobscript`
+# j1=`qsub jobscript`
 
 # get and log initial iteration results
 
@@ -29,7 +81,7 @@ j1=`qsub jobscript`
 # run base iterations
 
 # for each
-j2=`qsub -W depend=afterok:$j1 jobscript`
+# j2=`qsub -W depend=afterok:$j1 jobscript`
 # get and log results for each base iteration
 
 
@@ -45,10 +97,6 @@ j2=`qsub -W depend=afterok:$j1 jobscript`
 # yes? run predicted iterations (continue with default increments if predicted does not 
 # meet threshold and repredict after each run)
 
-# no? run predetermined default increments until threhold is met
-
-
-
-
+# no? run predetermined default increments until threshold is met
 
 
