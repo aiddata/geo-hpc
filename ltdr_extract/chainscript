@@ -1,14 +1,15 @@
 #!/bin/bash
 
-mkdir -p chain
+mkdir -p "jobs"
+cd "jobs"
 
-for year in $(seq 1983 1985); do
+for year in $(seq 2003 2014); do
 
-	job="$job"
+	job=jobscript_"$year"
 
-	cat jobscript_base > "jobs"/jobscript_"$year"
+	cat ../jobscript_base > "$job"
 
-	mpi_str="mvp2run -m cyclic python-mpi ./runscript.py ./extract_hpc.R"
+	mpi_str="mvp2run -m cyclic python-mpi ../runscript.py ../extract_hpc.R"
 
 	echo "$mpi_str" "$year" >> "$job"
 

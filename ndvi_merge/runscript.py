@@ -5,7 +5,8 @@ import os
 
 runscript = sys.argv[1]
 
-extract_type = "contemporary"
+extract_type = "ltdr"
+# extract_type = "contemporary"
 # extract_type = "historic"
 
 comm = MPI.COMM_WORLD

@@ -4,4 +4,4 @@
 #PBS -l walltime=02:30:00
 #PBS -j oe
 
-cd $PBS_O_WORKDIR/..
+cd $PBS_O_WORKDIR

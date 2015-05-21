@@ -11,8 +11,8 @@ extract_type <- readIn[1]
 
 # ======================
 
-# buffer <- ""
-buffer <- "_buffer"
+buffer <- ""
+# buffer <- "_buffer"
 
 # ======================
 
@@ -28,6 +28,11 @@ if (extract_type == "historic") {
 	if (buffer == "_buffer") {
 		modx <- "historic_buffer_extract_"
 	}
+}
+
+if (extract_type == "ltdr") {
+	mod <- "ltdr_"
+	ndvi <- "ndvi"
 }
 
 base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/",mod,"ndvi",buffer,sep="")
@@ -56,7 +61,9 @@ for (y in 1:length(years)) {
 		v <- readShapePoly(path)
 
 		# extract data
-		if (extract_type == "historic") {
+		if (extract_type == "ltdr") {
+ 			ex <- v@data[[ndvi]] / 10000
+		else if (extract_type == "historic") {
  			ex <- v@data[[ndvi]]
  		} else {
  			ex <- v@data[[ndvi]] / 250
