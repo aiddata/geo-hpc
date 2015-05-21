@@ -2,35 +2,135 @@
 
 # file loc is /path/to/.../mcr/chainscript
 
+# manages running mcr jobs for a single set or subset of data
 
+# --------------------------------------------------
+
+# input arguments
 country=$1
 abbr=$2
 pixel_size=$3
 
-sector=$4
+filters=$4
 
 nodes=$5
 ppn=$6
 
+# eg: 1.1
+data_version=$7
 
+# eg: b001
+run_version=$8
+
+
+# 
+# !!! WARNING !!!
+#
+
+# folders within mcr/countries/<country>/data/ 
+# must follow the naming convention of:
+# 	<country>_<data_version>
+# where country and data_version are the input arguments
+# to this script
+
+# runscript files must following the naming 
+# convention of: 	
+# 	runscript_<run_version>.py
+
+# 
+# !!! WARNING !!!
+# 
+
+while getopts "hc:a:s:n:p:d:r:f" opt; do
+	case "${opt}" in
+	    h)   
+	    	showhelp="TRUE"     
+            echo " "
+            echo "  options:"
+            echo "	-h 			show help"
+            echo "	-c [country] 		country name. lowercase with underscores for spaces [required]"
+            echo "	-a [abbr] 		country abbreviation used by GADM (eg: NPL) [required]"
+            echo "	-s [pixel_size] 	valid pixel size (eg: 0.5, 0.25, 0.2, 0.1) [required]"
+            echo "	-n [nodes] 		number of nodes to use [required]"
+            echo "	-p [ppn] 		processors per node to use [required]"
+            echo "	-d [data_version] 	version of data (eg: 1.1) [required]"
+            echo "	-r [run_version] 	version of runscripts (eg: b001) [required]"
+            echo "	-f [filters]		filters to define subset of data [optional]"         
+            echo " "
+			;;
+
+	    c) country=${OPTARG} ;;
+	    a) abbr=${OPTARG} ;;
+	    s) pixel_size=${OPTARG} ;;
+	    n) nodes=${OPTARG} ;;
+	    p) ppn=${OPTARG} ;;
+	    d) data_version=${OPTARG} ;;
+	    r) run_version=${OPTARG} ;;
+		f) filters=${OPTARG} ;;
+
+
+	    *) echo "  Unexpected option ${opt}"; exit ;;
+  	esac
+done
+
+if [[ $showhelp == "TRUE" ]]; then
+	exit 0
+fi
+
+if [[ -z $country || -z $abbr || -z $pixel_size || -z $nodes || -z $ppn || -z $data_version || -z $run_version ]]; then
+	echo -e "\tRequired input missing. Use -h to see a list of required input."
+	exit 0
+fi
+
+if [[ -z $filters ]]; then
+	filters=0
+fi
+
+# --------------------------------------------------
+
+# check that files exist for input data_version and run_version
+# 
+
+# check valid filters syntax
+# 
+
+# chain start
 T="$(date +%s)"
 
+
+# random number 
+R=$RANDOM
+
+if [[ $R -lt 10 ]]; then
+	R=0000"$R"
+elif [[ $R -lt 100 ]]; then
+	R=000"$R"
+elif [[ $R -lt 1000 ]]; then
+	R=00"$R"
+elif [[ $R -lt 10000 ]]; then
+	R=0"$R"
+fi
+
+
+# absolute path to directory
 base=`pwd`/"$( dirname "${BASH_SOURCE[0]}" )"
 cd $base
 
 
-# base chains path
+# create new folder for this chain
 chains=$base/chains
-
-# this chain
-chain_name="$country"_"$abbr"_"$pixel_size"_"$sector"_"$T"
-chain_path="$chains"/"$chain_name"
-
+chain_name="$country"_"$pixel_size"_"$R"_"$T"
+chain_path="$chains"/"$country"/"$chain_name"
 mkdir -p "$chain_path"
 
-# copy runscript to 
-cp runscript.py "$chain_path"
+# add chain details to log
+echo -e ${R}_${T}'\t'${country}'\t'${pixel_size}'\t'${data_version}'\t'${run_version}'\t'sector:${filters} >> "$chains"/log.tsv
 
+# copy current version of runscript to chain path
+cp runscript.py "$chain_path"
+cd $chain_path
+
+# starting number of iterations
 iterations=10
 
 # runtime forula and components in minutes
@@ -52,8 +152,8 @@ if [[ $minutes < 10 ]]; then
 	minutes=0"$minutes"
 fi
 
-# initial job
-job_10="$chain_path"/jobscript_10
+# build new jobscript for initial iteration
+job_10=jobscript_10
 
 cat > $job_10 <<EOF
 #!/bin/tcsh
@@ -63,19 +163,17 @@ cat > $job_10 <<EOF
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ${country} ${abbr} ${pixel_size} ${iterations} ${sector} ${T}
+mvp2run -m cyclic python-mpi ./runscript_${run_version}.py ${country} ${abbr} ${pixel_size} ${iterations} ${sector} ${T} ${R} 1 ${data_version} ${run_version}
 
 EOF
 
-
-# mkdir for new job params
-
-# build new jobscript for initial iteration
-
 # run initial iteration
-# j1=`qsub jobscript`
+j10=`qsub $job_10`
+
 
 # get and log initial iteration results
+
+
 
 # create jobscripts for base iterations
 # run base iterations

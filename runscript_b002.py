@@ -58,7 +58,7 @@ status = MPI.Status()
 Ts = time.time()
 
 # absolute path to script directory
-base = os.path.dirname(os.path.abspath(__file__))
+dir_base = os.path.dirname(os.path.abspath(__file__))
 
 
 # python /path/to/runscript.py nepal NPL 0.1 10
@@ -71,7 +71,19 @@ try:
 	iterations = int(sys.argv[4])
 	# sector = sys.argv[5]
 	# Ts = int(sys.argv[6])
-	
+	# Rid = int(sys.argv[7])
+	# run_mean_surf = int(sys.argv[8])
+	run_mean_surf = 1
+
+	# if run_mean_surf == 2:
+		# path_mean_surf = sys.argv[9]
+
+
+	# data_version = sys.argv[10]
+	# run_version = sys.argv[11]
+	data_version = 1.1
+	run_version = "b002"
+
 except:
 	sys.exit("invalid inputs")
 
@@ -356,9 +368,9 @@ def addPt(agg_type, agg_geom):
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
-adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM0/"+abbr+"_adm0.shp")
-adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM1/"+abbr+"_adm1.shp")
-adm_paths.append(base+"/countries/"+country+"/shapefiles/ADM2/"+abbr+"_adm2.shp")
+adm_paths.append(dir_base+"/countries/"+country+"/shapefiles/ADM0/"+abbr+"_adm0.shp")
+adm_paths.append(dir_base+"/countries/"+country+"/shapefiles/ADM1/"+abbr+"_adm1.shp")
+adm_paths.append(dir_base+"/countries/"+country+"/shapefiles/ADM2/"+abbr+"_adm2.shp")
 
 # get adm0 bounding box
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
@@ -402,7 +414,9 @@ for r in rows:
 # --------------------------------------------------
 # load project data
 
-merged = getData(base+"/countries/"+country+"/data", "project_id", (code_field, "project_location_id"), only_geocoded)
+dir_data = dir_base+"/countries/"+country+"/data/"+country+"_"+str(data_version)+"/data"
+
+merged = getData(dir_data, "project_id", (code_field, "project_location_id"), only_geocoded)
 
 
 # --------------------------------------------------
@@ -531,8 +545,16 @@ if rank == 0:
 			if exception.errno != errno.EEXIST:
 				raise
 
-	dir_country = base+"/outputs/"+country
+
+	dir_country = dir_base+"/outputs/"+country
 	dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
+
+
+	# dir_country = dir_base+"/chains/"+country
+	# dir_chain = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(Rid)+"_"+str(Ts)
+	# dir_outputs = dir_chain+"/outputs"
+	# dir_working = dir_outputs+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)
+
 
 	make_dir(dir_working)
 
@@ -572,8 +594,7 @@ sum_mean_surf = 0
 # ====================================================================================================
 # generate mean surface raster
 
-
-if rank == 0:
+if run_mean_surf == 1 and rank == 0:
 
 	# ==================================================
 	# MASTER START STUFF
@@ -650,6 +671,8 @@ if rank == 0:
 		stack_mean_surf = np.vstack(all_mean_surf)
 		sum_mean_surf = np.sum(stack_mean_surf, axis=0)
 
+		save_mean_surf = dir_outputs+"/"+country+"_output_"+str(pixel_size)+"_sum_mean_surf.npy"
+		np.save(save_mean_surf, sum_mean_surf)
 
 		# write asc file
 
@@ -677,7 +700,7 @@ if rank == 0:
 	# ==================================================
 
 
-else:
+elif run_mean_surf == 1:
 	# Worker processes execute code below
 	name = MPI.Get_processor_name()
 	print("I am a worker with rank %d on %s." % (rank, name))
@@ -781,6 +804,13 @@ else:
 			# 
 			break
 
+elif run_mean_surf == 0 and rank == 0::
+	load_mean_surf = dir_outputs+"/"+country+"_output_"+str(pixel_size)+"_sum_mean_surf.npy"
+	sum_mean_surf =	np.load(load_mean_surf)
+
+elif run_mean_surf == 2 and rank == 0::
+	path_mean_surf = dir_base+"/"+path_mean_surf
+	sum_mean_surf =	np.load(path_mean_surf)
 
 # ====================================================================================================
 # ====================================================================================================
@@ -935,7 +965,7 @@ if rank == 0:
 
 
 		# write to main log
-		fout_log = open(base+"/outputs/"+"log.tsv", "a")
+		fout_log = open(dir_base+"/outputs/"+"log.tsv", "a")
 		fout_log.write(str(int(Ts))+"\t"+country+"\t"+abbr+"\t"+str(pixel_size)+"\t"+str(iterations)+"\t"+str(error_log)+"\t"+str(only_geocoded)+"\t"+str(size)+"\t"+str(Tloc)+"\n")
 
 
