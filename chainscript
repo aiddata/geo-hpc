@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # file loc is /path/to/.../mcr/chainscript
-
+# 
 # manages running mcr jobs for a single set or subset of data
 
 # --------------------------------------------------
 
 # input arguments
+# 
+# example:
+# 			bash mcr/chainscript -c nepal -a NPL -s 0.5 -n 3 -p 8 -d 1.1 -r b002
+
 country=$1
 abbr=$2
 pixel_size=$3
@@ -41,6 +45,13 @@ run_version=$8
 # !!! WARNING !!!
 # 
 
+
+# starting number of iterations and runtime variables
+iterations=10
+t_data_prep=2
+t_mean_surf=12
+t_iteration=25
+
 while getopts "hc:a:s:n:p:d:r:f" opt; do
 	case "${opt}" in
 	    h)   
@@ -57,6 +68,8 @@ while getopts "hc:a:s:n:p:d:r:f" opt; do
             echo "	-r [run_version] 	version of runscripts (eg: b001) [required]"
             echo "	-f [filters]		filters to define subset of data [optional]"         
             echo " "
+
+           	exit 0
 			;;
 
 	    c) country=${OPTARG} ;;
@@ -69,16 +82,13 @@ while getopts "hc:a:s:n:p:d:r:f" opt; do
 		f) filters=${OPTARG} ;;
 
 
-	    *) echo "  Unexpected option ${opt}"; exit ;;
+	    *) echo "	Unexpected option ${opt}"; exit ;;
   	esac
 done
 
-if [[ $showhelp == "TRUE" ]]; then
-	exit 0
-fi
 
 if [[ -z $country || -z $abbr || -z $pixel_size || -z $nodes || -z $ppn || -z $data_version || -z $run_version ]]; then
-	echo -e "\tRequired input missing. Use -h to see a list of required input."
+	echo -e "\tRequired input(s) missing. Use -h to see a list of required inputs."
 	exit 0
 fi
 
@@ -127,39 +137,25 @@ mkdir -p "$chain_path"
 echo -e ${R}_${T}'\t'${country}'\t'${pixel_size}'\t'${data_version}'\t'${run_version}'\t'sector:${filters} >> "$chains"/log.tsv
 
 # copy current version of runscript to chain path
-cp runscript.py "$chain_path"
+cp runscript_${run_version}.py "$chain_path"
 cd $chain_path
 
 # starting number of iterations
 iterations=10
 
-# runtime forula and components in minutes
-t_data_prep=2
-t_mean_surf=12
-t_iteration=$(( 25 / 60 ))
-cores=$(( $nodes * $ppn - 1))
-runtime=$((  $t_data_prep + $t_mean_surf + $t_iteration * ($iterations / $cores) )) 
-adj_run=$(( $runtime + $runtime / 10 ))
+# calculate runtime for initial iterations job
+runtime=`python ${base}/runcalc.py ${t_data_prep} ${t_mean_surf} ${t_iteration} ${nodes} ${ppn} ${iterations}`
 
-hours=$(( $adj_run / 60 ))
-minutes=$(( $adj_run - $hours * 60 ))
+# validate runtime
+# 
 
-if [[ $hours < 10 ]]; then
-	hours=0"$hours"
-fi
+# build new jobscript for initial iterations job
 
-if [[ $minutes < 10 ]]; then
-	minutes=0"$minutes"
-fi
-
-# build new jobscript for initial iteration
-job_10=jobscript_10
-
-cat > $job_10 <<EOF
+cat > jobscript_10 <<EOF
 #!/bin/tcsh
 #PBS -N ad:sg-mcr
 #PBS -l nodes=${nodes}:xeon:compute:ppn=${ppn}
-#PBS -l walltime=${hours}:${minutes}:00
+#PBS -l walltime=${runtime}
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
@@ -167,8 +163,8 @@ mvp2run -m cyclic python-mpi ./runscript_${run_version}.py ${country} ${abbr} ${
 
 EOF
 
-# run initial iteration
-j10=`qsub $job_10`
+# run initial iterations job
+qsub_alpha=`qsub jobscript_10`
 
 
 # get and log initial iteration results
