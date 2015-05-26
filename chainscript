@@ -11,20 +11,20 @@
 # example:
 # 			bash mcr/chainscript -c nepal -a NPL -s 0.5 -n 3 -p 8 -d 1.1 -r b002
 
-country=$1
-abbr=$2
-pixel_size=$3
+# country=$1
+# abbr=$2
+# pixel_size=$3
 
-filters=$4
+# filters=$4
 
-nodes=$5
-ppn=$6
+# nodes=$5
+# ppn=$6
 
-# eg: 1.1
-data_version=$7
+# # eg: 1.1
+# data_version=$7
 
-# eg: b001
-run_version=$8
+# # eg: b001
+# run_version=$8
 
 
 # 
@@ -40,6 +40,8 @@ run_version=$8
 # runscript files must following the naming 
 # convention of: 	
 # 	runscript_<run_version>.py
+# where run_version changes indicate any changes to the 
+# script which impact the data generated
 
 # 
 # !!! WARNING !!!
@@ -129,29 +131,26 @@ cd $base
 
 # create new folder for this chain
 chains=$base/chains
-chain_name="$country"_"$pixel_size"_"$R"_"$T"
+chain_name="$country"_"$pixel_size"_"$T"_"$R"
 chain_path="$chains"/"$country"/"$chain_name"
 mkdir -p "$chain_path"
 
 # add chain details to log
-echo -e ${R}_${T}'\t'${country}'\t'${pixel_size}'\t'${data_version}'\t'${run_version}'\t'sector:${filters} >> "$chains"/log.tsv
+# echo $abbr
+echo -e ${T}_${R}'\t'${country}'\t'${pixel_size}'\t'${data_version}'\t'${run_version}'\t'${filters} >> "$chains"/chain_log.tsv
 
 # copy current version of runscript to chain path
 cp runscript_${run_version}.py "$chain_path"
 cd $chain_path
 
-# starting number of iterations
-iterations=10
-
-# calculate runtime for initial iterations job
-runtime=`python ${base}/runcalc.py ${t_data_prep} ${t_mean_surf} ${t_iteration} ${nodes} ${ppn} ${iterations}`
 
 # validate runtime
-# 
+# if [[ $runtime == "error" ]]; then
 
 # build new jobscript for initial iterations job
 
-cat > jobscript_10 <<EOF
+build_jobscript() {
+cat > ${jobscript_name} <<EOF
 #!/bin/tcsh
 #PBS -N ad:sg-mcr
 #PBS -l nodes=${nodes}:xeon:compute:ppn=${ppn}
@@ -159,38 +158,71 @@ cat > jobscript_10 <<EOF
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript_${run_version}.py ${country} ${abbr} ${pixel_size} ${iterations} ${sector} ${T} ${R} 1 ${data_version} ${run_version}
+mvp2run -m cyclic python-mpi ./runscript_${run_version}.py ${country} ${abbr} ${pixel_size} ${iterations} ${filters} ${T} ${R} 1 ${data_version} ${run_version}
+
+EOF
+}
+
+# starting number of iterations
+iterations=10
+# calculate runtime for initial iterations job
+runtime=`python ${base}/runcalc.py ${t_data_prep} ${t_mean_surf} ${t_iteration} ${nodes} ${ppn} ${iterations}`
+# name jobscript file
+jobscript_name=jobscript_10
+# build jobscript file
+build_jobscript
+
+iterations=100
+runtime=`python ${base}/runcalc.py ${t_data_prep} ${t_mean_surf} ${t_iteration} ${nodes} ${ppn} ${iterations}`
+jobscript_name=jobscript_100
+build_jobscript
+
+iterations=1000
+runtime=`python ${base}/runcalc.py ${t_data_prep} ${t_mean_surf} ${t_iteration} ${nodes} ${ppn} ${iterations}`
+jobscript_name=jobscript_1000
+build_jobscript
+
+
+# add value check script call to end of last of the initial iteration jobs
+cat >> jobscript_1000 <<EOF
+
+bash chain_check.sh ${country} ${abbr} ${pixel_size} ${iterations} ${filters} ${T} ${R} 1 ${data_version} ${run_version} ${t_data_prep} ${t_mean_surf} ${t_iteration} ${nodes} ${ppn} ${iterations}
 
 EOF
 
-# run initial iterations job
+# run initial iterations jobs
 qsub_alpha=`qsub jobscript_10`
+qsub_beta=`qsub -W depend=afterok:$qsub_alpha jobscript_100`
+qsub_gamma=`qsub -W depend=afterok:$qsub_beta jobscript_1000`
 
 
-# get and log initial iteration results
+
+# --------------------------------------------------
+# chain_check.sh
 
 
-
-# create jobscripts for base iterations
-# run base iterations
-
-# for each
-# j2=`qsub -W depend=afterok:$j1 jobscript`
-# get and log results for each base iteration
-
+# get  log results for each base iteration
+# 
 
 # check if threshold is met
+#
 
-# yes? finish
-# no? continue
+# yes? 
+	# finish
 
-# check historical data
+# no?
+	# update old/new jobs
+	# qsub_alpha=$qsub_omega
 
-# determine if sufficient data exists to predict
+	# check historical data
 
-# yes? run predicted iterations (continue with default increments if predicted does not 
-# meet threshold and repredict after each run)
+	# determine if sufficient data exists to predict
 
-# no? run predetermined default increments until threshold is met
+	# yes? 
+		# run predicted iterations (continue with default increments if predicted does not 
+		# meet threshold and repredict after each run)
+
+	# no? 
+		# run predetermined default increments until threshold is met
 
 

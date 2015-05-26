@@ -54,12 +54,8 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 status = MPI.Status()
 
-# start time
-Ts = time.time()
-
 # absolute path to script directory
 dir_base = os.path.dirname(os.path.abspath(__file__))
-
 
 # python /path/to/runscript.py nepal NPL 0.1 10
 arg = sys.argv
@@ -69,9 +65,14 @@ try:
 	abbr = sys.argv[2]
 	pixel_size = float(sys.argv[3])
 	iterations = int(sys.argv[4])
+	
 	# sector = sys.argv[5]
+	
 	# Ts = int(sys.argv[6])
 	# Rid = int(sys.argv[7])
+	Ts = int(time.time())
+	Rid = "12345"
+
 	# run_mean_surf = int(sys.argv[8])
 	run_mean_surf = 1
 
@@ -84,8 +85,13 @@ try:
 	data_version = 1.1
 	run_version = "b002"
 
+	# log_mean_surf = int(sys.argv[12])
+	log_mean_surf = 0
+
+
 except:
 	sys.exit("invalid inputs")
+
 
 # check for valid pixel size
 # examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
@@ -546,14 +552,14 @@ if rank == 0:
 				raise
 
 
-	dir_country = dir_base+"/outputs/"+country
-	dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
+	# dir_country = dir_base+"/outputs/"+country
+	# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
 
 
-	# dir_country = dir_base+"/chains/"+country
-	# dir_chain = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(Rid)+"_"+str(Ts)
-	# dir_outputs = dir_chain+"/outputs"
-	# dir_working = dir_outputs+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)
+	dir_country = dir_base+"/chains/"+country
+	dir_chain = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(Ts)+"_"+str(Rid)
+	dir_outputs = dir_chain+"/outputs"
+	dir_working = dir_outputs+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)
 
 
 	make_dir(dir_working)
@@ -671,7 +677,7 @@ if run_mean_surf == 1 and rank == 0:
 		stack_mean_surf = np.vstack(all_mean_surf)
 		sum_mean_surf = np.sum(stack_mean_surf, axis=0)
 
-		save_mean_surf = dir_outputs+"/"+country+"_output_"+str(pixel_size)+"_sum_mean_surf.npy"
+		save_mean_surf = dir_outputs+"/output_"+country+"_"+str(pixel_size)+"_surf.npy"
 		np.save(save_mean_surf, sum_mean_surf)
 
 		# write asc file
@@ -679,7 +685,7 @@ if run_mean_surf == 1 and rank == 0:
 		sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
 		asc_sum_mean_surf_str = asc + sum_mean_surf_str
 
-		fout_sum_mean_surf = open(dir_working+"/"+country+"_output_"+str(pixel_size)+"_"+str(iterations)+"_sum_mean_surf.asc", "w")
+		fout_sum_mean_surf = open(dir_outputs+"/output_"+country+"_"+str(pixel_size)+"_surf.asc", "w")
 		fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
 
@@ -804,13 +810,23 @@ elif run_mean_surf == 1:
 			# 
 			break
 
-elif run_mean_surf == 0 and rank == 0::
-	load_mean_surf = dir_outputs+"/"+country+"_output_"+str(pixel_size)+"_sum_mean_surf.npy"
+elif run_mean_surf == 0 and rank == 0:
+	load_mean_surf = dir_outputs+"/output_"+country+"_"+str(pixel_size)+"_surf.npy"
 	sum_mean_surf =	np.load(load_mean_surf)
 
-elif run_mean_surf == 2 and rank == 0::
-	path_mean_surf = dir_base+"/"+path_mean_surf
-	sum_mean_surf =	np.load(path_mean_surf)
+elif run_mean_surf == 2 and rank == 0:
+	load_mean_surf = dir_base+"/surf_log/"+country+"_"+str(pixel_size)+"_"+str(run_version)+"_"+str(data_version)+"_surf.npy"
+	sum_mean_surf =	np.load(load_mean_surf)
+
+elif run_mean_surf == 3 and rank == 0:
+	load_mean_surf = dir_base+"/"+path_mean_surf
+	sum_mean_surf =	np.load(load_mean_surf)
+
+
+if log_mean_surf == 1 and rank == 0:
+	save_mean_surf = dir_base+"/surf_log/"+country+"_"+str(pixel_size)+"_"+str(run_version)+"_"+str(data_version)+"_surf.npy"
+	np.save(save_mean_surf, sum_mean_surf)
+
 
 # ====================================================================================================
 # ====================================================================================================
@@ -965,7 +981,7 @@ if rank == 0:
 
 
 		# write to main log
-		fout_log = open(dir_base+"/outputs/"+"log.tsv", "a")
+		fout_log = open(dir_base+"/outputs/"+"run_log.tsv", "a")
 		fout_log.write(str(int(Ts))+"\t"+country+"\t"+abbr+"\t"+str(pixel_size)+"\t"+str(iterations)+"\t"+str(error_log)+"\t"+str(only_geocoded)+"\t"+str(size)+"\t"+str(Tloc)+"\n")
 
 
@@ -1048,4 +1064,11 @@ else:
 			# terminate process
 			# 
 			break
+
+
+# ====================================================================================================
+# ====================================================================================================
+# if next run is not a core run...
+# check run results to determine if threshold is met
+
 

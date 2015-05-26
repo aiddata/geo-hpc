@@ -26,6 +26,7 @@ ppn = int(sys.argv[5])
 # number of iterations
 iterations = int(sys.argv[6])
 
+# --------------------------------------------------
 
 cores = nodes * ppn - 1
 
