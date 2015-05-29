@@ -80,7 +80,7 @@ except:
 iterations = 100
 
 # iteration intervals at which to check error val
-iter_interval = [10, 100, 1000, 5000, 10000, 50000, 100000]
+iter_interval = [10, 50, 100, 1000, 5000, 10000, 50000, 100000]
 iter_step = 0
 
 # difference from true mean (decimal percentage)
@@ -628,7 +628,7 @@ if run_mean_surf == 1 and rank == 0:
                 #
 
                 comm.send(unique_ids[task_index], dest=source, tag=tags.START)
-                print("Sending task %d to worker %d" % (task_index, source))
+                print("Sending surf task %d to worker %d" % (task_index, source))
                 task_index += 1
             else:
                 comm.send(None, dest=source, tag=tags.EXIT)
@@ -640,17 +640,17 @@ if run_mean_surf == 1 and rank == 0:
 
 
             all_mean_surf.append(data)
-            print("Got data from worker %d" % source)
+            print("Got surf data from worker %d" % source)
 
 
             # ==================================================
 
         elif tag == tags.EXIT:
-            print("Worker %d exited." % source)
+            print("Surf orker %d exited." % source)
             closed_workers += 1
 
         elif tag == tags.ERROR:
-            print("Error reported by worker %d ." % source)
+            print("Error reported by surf worker %d ." % source)
             # broadcast error to all workers
             #
             # make sure they all get message and terminate
@@ -788,7 +788,7 @@ elif run_mean_surf == 1:
             break
 
         elif tag == tags.ERROR:
-            print("Error message from master. Shutting down." % source)
+            print("Error message from surf master. Shutting down." % source)
             # confirm error message received
             #
             # terminate process
@@ -844,20 +844,18 @@ if rank == 0:
     # ==================================================
     # MASTER START STUFF
 
-
-    print("starting iterations - %d to be run" % iterations)
-
-    total_aid = [] # [0] * iterations
-    total_count = [] # [0] * iterations
-
-
-    # ==================================================
+    total_aid = []
+    total_count = []
 
     task_index = 0
     num_workers = size - 1
     closed_workers = 0
     err_status = 0
-    print("Master starting with %d workers" % num_workers)
+
+    print("Iter master starting with %d workers - %d iterations to be run" % (num_workers, iterations))
+
+    # ==================================================
+
 
     # distribute work
     while closed_workers < num_workers:
@@ -866,11 +864,42 @@ if rank == 0:
         tag = status.Get_tag()
 
         if tag == tags.READY:
-            # Worker is ready, so send it a task
+
+
+            # check error value at intervals
+            this_intval = len(total_aid)
+
+            if this_intval in iter_interval:
+
+                # check error percent value
+                this_stack_aid = np.vstack(total_aid[0:this_intval])
+                this_mean_aid = np.mean(this_stack_aid, axis=0)
+
+                this_sum_aid = np.sum(this_mean_aid)
+
+                this_error_surf = np.absolute(np.subtract(sum_mean_surf, this_mean_aid))
+
+                this_error_log_sum = np.sum(np.absolute(this_error_surf))
+                this_error_log_percent =  this_error_log_sum / this_sum_aid
+
+                # determine if threshold is met
+                if this_error_log_percent < iter_thresh:
+                    # end if threshold is met
+                    print("Iter thresh met at %d iterations" % this_inval)
+                    break
+
+                else:
+                    # keep going if threshold not met
+                    print("Iter thresh not met at %d iterations" % this_inval)
+
+
+
+
             if task_index < len(i_control):
                 comm.send(i_control[task_index], dest=source, tag=tags.START)
-                print("Sending task %d to worker %d" % (task_index, source))
+                print("Sending iter task %d to worker %d" % (task_index, source))
                 task_index += 1
+
             else:
                 comm.send(None, dest=source, tag=tags.EXIT)
 
@@ -879,20 +908,18 @@ if rank == 0:
             # ==================================================
             # MASTER MID STUFF
 
-
             total_aid.append(data[0])
             total_count.append(data[1])
-            print("Got data from worker %d" % source)
-
+            print("Got iter data from worker %d" % source)
 
             # ==================================================
 
         elif tag == tags.EXIT:
-            print("Worker %d exited." % source)
+            print("Iter worker %d exited." % source)
             closed_workers += 1
 
         elif tag == tags.ERROR:
-            print("Error reported by worker %d ." % source)
+            print("Error reported by iter worker %d ." % source)
             # broadcast error to all workers
             #
             # make sure they all get message and terminate
@@ -903,10 +930,9 @@ if rank == 0:
     # ==================================================
     # MASTER END STUFF
 
-
     if err_status == 0:
         # calc results
-        print("Master calcing")
+        print("Iter master calcing")
 
         stack_aid = np.vstack(total_aid)
         std_aid = np.std(stack_aid, axis=0)
@@ -968,7 +994,7 @@ if rank == 0:
         fout_mean_count.write(asc_mean_count_str)
 
 
-        print("Master finishing")
+        print("Iter master finishing")
 
         T_iter = int(time.time() - T_surf)
         Tloc = int(time.time() - Ts)
@@ -992,8 +1018,7 @@ if rank == 0:
 
 
     else:
-        print("Master terminating due to worker error.")
-
+        print("Iter master terminating due to worker error.")
 
     # ==================================================
 
@@ -1001,7 +1026,7 @@ if rank == 0:
 else:
     # Worker processes execute code below
     name = MPI.Get_processor_name()
-    print("Iteration worker rank %d on %s." % (rank, name))
+    print("Iter worker rank %d on %s." % (rank, name))
     while True:
         comm.send(None, dest=0, tag=tags.READY)
         task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
@@ -1075,7 +1100,7 @@ else:
                         npa_aid[gref[ny][nx]] += int(i[1].random_dollars_pp)
                         npa_count[gref[ny][nx]] += int(1)
                 except:
-                    print("Error on worker %d with tasks %s." % (rank, task))
+                    print("Error on iter worker %d with tasks %s." % (rank, task))
 
 
             # --------------------------------------------------
@@ -1092,7 +1117,7 @@ else:
             break
 
         elif tag == tags.ERROR:
-            print("Error message from master. Shutting down." % source)
+            print("Error message from iter master. Shutting down." % source)
             # confirm error message received
             #
             # terminate process
