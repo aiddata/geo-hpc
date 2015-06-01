@@ -4,6 +4,8 @@
 
 
 # ====================================================================================================
+# ====================================================================================================
+
 
 from __future__ import print_function
 
@@ -24,6 +26,7 @@ import shapefile
 
 
 # ====================================================================================================
+# ====================================================================================================
 # general init
 
 
@@ -39,6 +42,10 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 # python /path/to/runscript.py nepal NPL 0.1 10
 arg = sys.argv
 
+# mcr options
+# output as json which will be loaded into a mongo database
+mops = {}
+
 try:
     country = sys.argv[1]
     abbr = sys.argv[2]
@@ -52,11 +59,11 @@ try:
     # Ts = int(sys.argv[6])
     # Rid = int(sys.argv[7])
     Ts = int(time.time())
-    Rid = str(Ts) +"_"+ "34567"
+    Rid = str(Ts) +"_"+ "45678"
 
     # run_mean_surf = int(sys.argv[8])
     # run_mean_surf = 3
-    # path_mean_surf = "chains/nepal/nepal_0.5_1432844232_12347/outputs/output_nepal_0.5_surf.npy"
+    # path_mean_surf = "data/nepal/nepal_0.5_1432844232_12347/outputs/output_nepal_0.5_surf.npy"
 
     # if run_mean_surf == 3:
         # path_mean_surf = sys.argv[9]
@@ -66,6 +73,9 @@ try:
     # run_version = sys.argv[11]
     data_version = 1.1
     run_version = "b005"
+
+    # force_mean_surf = int(sys.argv[x])
+    force_mean_surf = 0
 
     # log_mean_surf = int(sys.argv[12])
     # log_mean_surf = 0
@@ -77,7 +87,6 @@ except:
 
 # maximum number of iterations to run
 iter_max = 1000
-# iterations = 100
 
 # iterations range
 i_control = range(int(iter_max))
@@ -85,14 +94,17 @@ i_control = range(int(iter_max))
 # iteration intervals at which to check error val
 iter_interval = [10, 50, 100, 250, 500, 750, 1000, 5000, 10000, 50000, 100000]
 
-# alternative to intervals, fixed steps in iterations at which to check error
-iter_step = 0
+# alternative to manual intervals
+# generates intervals based on fixed steps
+# iter_min = 10
+# iter_step = 0
+# iter_interval = range(10, iter_max+1, iter_step)
 
 # difference from true mean (decimal percentage)
 iter_thresh = 0.05
 
 # minimum improvement over previous iteration interval required to continue (decimal percentage)
-iter_improvement = 0.01
+iter_improvement = 0.001
 
 
 # check for valid pixel size
@@ -102,6 +114,18 @@ if (1/pixel_size) != int(1/pixel_size):
 
 # pixel size inverse
 psi = 1/pixel_size
+
+
+# --------------------------------------------------
+# file paths
+
+# dir_country = dir_base+"/outputs/"+country
+# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
+
+dir_country = dir_base+"/data/"+country
+dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_version+"_"+str(pixel_size)
+dir_outputs = dir_chain+"/outputs"
+dir_working = dir_outputs+"/"+str(Rid)
 
 
 # --------------------------------------------------
@@ -117,10 +141,16 @@ filters = {
     }
 }
 
+# !!!
+# include in json file:
+#   filters object in output
+#   hash of filters json string
+# !!!
+
 
 # --------------------------------------------------
-# vars to be added as inputs
-# not used by mcr function
+# vars to potentially be added as inputs
+# not used by functions
 
 # nodata value for output raster
 nodata = -9999
@@ -136,8 +166,8 @@ only_geocoded = False
 
 
 # --------------------------------------------------
-# static vars that may be added as some type of input
-# used by mcr functions
+# vars that may be added as some type of input
+# used by functions
 
 # type definition for non geocoded projects
 # either allocated at country level ("country") or ignored ("None")
@@ -167,7 +197,24 @@ lookup = {
 
 
 # ====================================================================================================
+# ====================================================================================================
 # functions
+
+
+def add_json(field, data):
+    mops[field] = data
+
+
+# creates directories
+def make_dir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
+# --------------------------------------------------
 
 
 # check csv delim and return if valid type
@@ -365,6 +412,7 @@ def addPt(agg_type, agg_geom):
 
 
 # ====================================================================================================
+# ====================================================================================================
 
 
 # --------------------------------------------------
@@ -471,6 +519,7 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 
 filtered = deepcopy(merged)
 
+
 # --------------------------------------------------
 # assign geometries
 
@@ -490,6 +539,7 @@ i_m['index'] = range(0, len(i_m))
 i_m = i_m.set_index('index')
 
 
+# ====================================================================================================
 # ====================================================================================================
 # master init
 
@@ -534,27 +584,9 @@ if rank == 0:
     asc += "CELLSIZE " + str(pixel_size) + "\n"
     asc += "NODATA_VALUE " + str(nodata) + "\n"
 
+
     # --------------------------------------------------
     # build output directories
-
-    # creates directories
-    def make_dir(path):
-        try:
-            os.makedirs(path)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
-
-
-    # dir_country = dir_base+"/outputs/"+country
-    # dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
-
-
-    dir_country = dir_base+"/chains/"+country
-    dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_version+"_"+str(pixel_size)
-    dir_outputs = dir_chain+"/outputs"
-    dir_working = dir_outputs+"/"+str(Rid)
-
 
     make_dir(dir_working)
 
@@ -562,12 +594,11 @@ if rank == 0:
     # --------------------------------------------------
     # record init runtime
 
-    T_init = time.time()
-    Tloc = int(T_init - Ts)
+    time_init = time.time()
+    T_init = int(time_init - Ts)
 
-    results_str += "\nInit Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
-    print('\tInit Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
-
+    results_str += "\nInit Runtime\t" + str(T_init//60) +'m '+ str(int(T_init%60)) +'s'
+    print('\tInit Runtime: ' + str(T_init//60) +'m '+ str(int(T_init%60)) +'s')
 
 
 # ====================================================================================================
@@ -587,28 +618,29 @@ comm.Barrier()
 # Define MPI message tags
 tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 
+
 # init for later
 sum_mean_surf = 0
 
 # check if mean surf exists
 load_mean_surf = dir_outputs+"/mean_surf.npy"
 run_mean_surf = 1
-if os.path.isfile(load_mean_surf) :
+if os.path.isfile(load_mean_surf) and not force_mean_surf:
     run_mean_surf = 0
 
 
 # ====================================================================================================
+# ====================================================================================================
 # generate mean surface raster
 
 
-if run_mean_surf == 0 and rank == 0:
+if rank == 0 and run_mean_surf == 0:
     sum_mean_surf = np.load(load_mean_surf)
 
-elif run_mean_surf == 1 and rank == 0:
+elif rank == 0 and run_mean_surf == 1:
 
     # ==================================================
     # MASTER START STUFF
-
 
     all_mean_surf = []
     unique_ids = i_m['unique']
@@ -619,7 +651,7 @@ elif run_mean_surf == 1 and rank == 0:
     num_workers = size - 1
     closed_workers = 0
     err_status = 0
-    print("Mean Surf Master starting with %d workers" % num_workers)
+    print("Surf Master - starting with %d workers" % num_workers)
 
     # distribute work
     while closed_workers < num_workers:
@@ -628,11 +660,12 @@ elif run_mean_surf == 1 and rank == 0:
         tag = status.Get_tag()
 
         if tag == tags.READY:
-            # Worker is ready, so send it a task
+
             if task_index < len(unique_ids):
 
                 #
                 # !!!
+                #   to do:
                 #   if task if for a point (not point with small buffer, etc.)
                 #   then let master do work
                 #   run tests to see if this actually improves runtimes
@@ -640,8 +673,9 @@ elif run_mean_surf == 1 and rank == 0:
                 #
 
                 comm.send(unique_ids[task_index], dest=source, tag=tags.START)
-                print("Sending surf task %d to worker %d" % (task_index, source))
+                print("Surf Master - sending task %d to worker %d" % (task_index, source))
                 task_index += 1
+
             else:
                 comm.send(None, dest=source, tag=tags.EXIT)
 
@@ -650,55 +684,44 @@ elif run_mean_surf == 1 and rank == 0:
             # ==================================================
             # MASTER MID STUFF
 
-
             all_mean_surf.append(data)
-            print("Got surf data from worker %d" % source)
-
+            print("Surf Master - got surf data from worker %d" % source)
 
             # ==================================================
 
         elif tag == tags.EXIT:
-            print("Surf orker %d exited." % source)
+            print("Surf Master - worker %d exited." % source)
             closed_workers += 1
 
         elif tag == tags.ERROR:
-            print("Error reported by surf worker %d ." % source)
+            print("Surf Master - error reported by surf worker %d ." % source)
             # broadcast error to all workers
-            #
-            # make sure they all get message and terminate
-            #
+            for i in range(1, size):
+                comm.send(None, dest=i, tag=tags.ERROR)
+
             err_status = 1
             break
 
     # ==================================================
     # MASTER END STUFF
 
-
     if err_status == 0:
         # calc results
-        print("Mean Surf Master calcing")
+        print("Surf Master - processing results")
 
         stack_mean_surf = np.vstack(all_mean_surf)
         sum_mean_surf = np.sum(stack_mean_surf, axis=0)
-
         save_mean_surf = dir_outputs+"/mean_surf.npy"
         np.save(save_mean_surf, sum_mean_surf)
 
         # write asc file
-
         sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
         asc_sum_mean_surf_str = asc + sum_mean_surf_str
-
         fout_sum_mean_surf = open(dir_outputs+"/mean_surf.asc", "w")
         fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
-
-        print("Mean Surf Master finishing")
-
-
     else:
-        print("Mean Surf Master terminating due to worker error.")
-
+        print("Surf Master - terminating due to worker error.")
 
     # ==================================================
 
@@ -706,7 +729,7 @@ elif run_mean_surf == 1 and rank == 0:
 elif run_mean_surf == 1:
     # Worker processes execute code below
     name = MPI.Get_processor_name()
-    print("Surf worker rank %d on %s." % (rank, name))
+    print("Surf Worker - rank %d on %s." % (rank, name))
     while True:
         comm.send(None, dest=0, tag=tags.READY)
         task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
@@ -723,7 +746,6 @@ elif run_mean_surf == 1:
             # poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
             pg_pixel_size = pixel_size * 0.1
             pg_psi = 1/pg_pixel_size
-
 
             pg_data = i_m.loc[task]
             pg_type = pg_data.agg_type
@@ -792,7 +814,6 @@ elif run_mean_surf == 1:
 
             comm.send(mean_surf, dest=0, tag=tags.DONE)
 
-
             # ==================================================
 
         elif tag == tags.EXIT:
@@ -800,11 +821,9 @@ elif run_mean_surf == 1:
             break
 
         elif tag == tags.ERROR:
-            print("Error message from surf master. Shutting down." % source)
-            # confirm error message received
-            #
-            # terminate process
-            #
+            print("Surf Worker - error message from Surf Master. Shutting down." % source)
+            # confirm error message received and exit
+            comm.send(None, dest=0, tag=tags.EXIT)
             break
 
 
@@ -824,14 +843,21 @@ elif run_mean_surf == 1:
 
 if rank == 0:
 
-    T_surf = time.time()
-    Tloc = int(T_surf - T_init)
+    # validate sum_mean_surf
+    # exit if validation fails
+    if type(sum_mean_surf) == type(0):
+        sys.exit("! - mean surf validation failed")
 
-    results_str += "\nMean Surf Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
-    results_str += "\nMean Surf Command\t" + str(run_mean_surf)
+    # --------------------------------------------------
 
-    print('\t\tMean Surf Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
-    print('\t\tMean Surf Command: ' + str(run_mean_surf))
+    time_surf = time.time()
+    T_surf = int(time_surf - time_init)
+
+    results_str += "\nSurf Runtime\t" + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s'
+    results_str += "\nSurf Command\t" + str(run_mean_surf)
+
+    print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
+    print('\tSurf Command: ' + str(run_mean_surf))
 
     print('\n')
 
@@ -860,8 +886,9 @@ if rank == 0:
     num_workers = size - 1
     closed_workers = 0
     err_status = 0
+    last_error_log_percent = 1.0
 
-    print("Iter master starting with %d workers" % (num_workers))
+    print("Iter Master - starting with %d workers" % (num_workers))
 
     # ==================================================
 
@@ -873,7 +900,6 @@ if rank == 0:
         tag = status.Get_tag()
 
         if tag == tags.READY:
-
 
             # check error value at intervals
             this_interval = len(total_aid)
@@ -894,7 +920,17 @@ if rank == 0:
                 # determine if threshold is met
                 if this_error_log_percent < iter_thresh:
                     # end if threshold is met
-                    print("Iter thresh met at %d iterations" % this_interval)
+                    print("Iter Master - thresh met at %d iterations" % this_interval)
+                    iterations = this_interval
+
+                    for i in range(1, size):
+                        comm.send(None, dest=i, tag=tags.EXIT)
+
+                    break
+
+                elif (last_error_log_percent - this_error_log_percent) < iter_improvement:
+                    # end if minimal improvement threshold is met
+                    print("Iter Master - minimal improvement thresh met at %d iterations" % this_interval)
                     iterations = this_interval
 
                     for i in range(1, size):
@@ -904,12 +940,12 @@ if rank == 0:
 
                 else:
                     # keep going if threshold not met
-                    print("Iter thresh not met at %d iterations" % this_interval)
+                    print("Iter Master - thresh not met at %d iterations" % this_interval)
 
 
             if task_index < len(i_control):
                 comm.send(i_control[task_index], dest=source, tag=tags.START)
-                print("Sending iter task %d to worker %d" % (task_index, source))
+                print("Iter Master - sending task %d to worker %d" % (task_index, source))
                 task_index += 1
 
             else:
@@ -923,20 +959,20 @@ if rank == 0:
 
             total_aid.append(data[0])
             total_count.append(data[1])
-            print("Got iter data from worker %d" % source)
+            print("Iter Master - got data from worker %d" % source)
 
             # ==================================================
 
         elif tag == tags.EXIT:
-            print("Iter worker %d exited." % source)
+            print("Iter Master - worker %d exited." % source)
             closed_workers += 1
 
         elif tag == tags.ERROR:
-            print("Error reported by iter worker %d ." % source)
+            print("Iter Master - error reported by worker %d ." % source)
             # broadcast error to all workers
-            #
-            # make sure they all get message and terminate
-            #
+            for i in range(1, size):
+                comm.send(None, dest=i, tag=tags.ERROR)
+
             err_status = 1
             break
 
@@ -945,7 +981,7 @@ if rank == 0:
 
     if err_status == 0:
         # calc results
-        print("Iter master processing results")
+        print("Iter Master - processing results")
 
         stack_aid = np.vstack(total_aid)
         std_aid = np.std(stack_aid, axis=0)
@@ -959,22 +995,22 @@ if rank == 0:
 
 
         # error_log = 0
-        if type(sum_mean_surf) != type(0):
-            error_surf = np.absolute(np.subtract(sum_mean_surf, mean_aid))
 
-            error_surf_str = ' '.join(np.char.mod('%f', error_surf))
-            asc_error_surf_str = asc + error_surf_str
+        error_surf = np.absolute(np.subtract(sum_mean_surf, mean_aid))
 
-            fout_error_surf = open(dir_working+"/error_surf.asc", "w")
-            fout_error_surf.write(asc_error_surf_str)
+        error_surf_str = ' '.join(np.char.mod('%f', error_surf))
+        asc_error_surf_str = asc + error_surf_str
 
-            error_log_mean = np.mean(np.absolute(error_surf))
-            error_log_sum = np.sum(np.absolute(error_surf))
-            error_log_percent =  error_log_sum / sum_aid
+        fout_error_surf = open(dir_working+"/error_surf.asc", "w")
+        fout_error_surf.write(asc_error_surf_str)
 
-            results_str += "\nerror mean\t" + str(error_log_mean)
-            results_str += "\nerror sum\t" + str(error_log_sum)
-            results_str += "\nerror percent\t" + str(error_log_percent)
+        error_log_mean = np.mean(np.absolute(error_surf))
+        error_log_sum = np.sum(np.absolute(error_surf))
+        error_log_percent =  error_log_sum / sum_aid
+
+        results_str += "\nerror mean\t" + str(error_log_mean)
+        results_str += "\nerror sum\t" + str(error_log_sum)
+        results_str += "\nerror percent\t" + str(error_log_percent)
 
 
         # write core asc output files
@@ -1001,34 +1037,35 @@ if rank == 0:
 
 
         # calc section runtime and total runtime
-        T_iter = int(time.time() - T_surf)
-        Tloc = int(time.time() - Ts)
+        time_end = time.time()
+        T_iter = int(time_end - time_surf)
+        T_total = int(time_end - Ts)
 
         # print final results
         print('\n\tRun Results:')
         print('\t\tError Value for ' + str(iterations) + ' iterations: ' + str(error_log_percent))
         print('\t\tIterations Runtime: ' + str(T_iter//60) +'m '+ str(int(T_iter%60)) +'s')
-        print('\t\tTotal Runtime: ' + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s')
+        print('\t\tTotal Runtime: ' + str(T_total//60) +'m '+ str(int(T_total%60)) +'s')
         print('\n\n')
 
         # write to results.tsv
         results_str += "\nIterations Runtime\t" + str(T_iter//60) +'m '+ str(int(T_iter%60)) +'s'
-        results_str += "\nTotal Runtime\t" + str(Tloc//60) +'m '+ str(int(Tloc%60)) +'s'
+        results_str += "\nTotal Runtime\t" + str(T_total//60) +'m '+ str(int(T_total%60)) +'s'
 
         fout_results = open(dir_working+"/results.tsv", "w")
         fout_results.write(results_str)
 
 
         # write to main log
-        fout_log = open(dir_base+"/outputs/"+"run_log.tsv", "a")
-        # log : id, start, country, abbr, pixel_size, max_iterations, actual_iterations, percent_error, geocoded_only, processes, runtime
-        fout_array = [Rid, Ts, country, abbr, pixel_size, iter_max, iterations, error_log_percent, only_geocoded, size, Tloc]
+        fout_log = open(dir_base+"/data/"+"run_log.tsv", "a")
+        # log : id, start, country, abbr, data_version, run_version, pixel_size, max_iterations, actual_iterations, percent_error, geocoded_only, processes, new_surf, init_runtime, surf_runtime, iter_runtime, total_runtime
+        fout_array = [Rid, Ts, country, abbr, data_version, run_version, pixel_size, iter_max, iterations, error_log_percent, only_geocoded, size, run_mean_surf, T_init, T_surf, T_iter, T_total]
         fout_str = "\t".join(str(x) for x in fout_array)
         fout_log.write(fout_str + "\n")
 
 
     else:
-        print("Iter master terminating due to worker error.")
+        print("Iter Master - terminating due to worker error.")
 
 
     # ==================================================
@@ -1037,7 +1074,7 @@ if rank == 0:
 else:
     # Worker processes execute code below
     name = MPI.Get_processor_name()
-    print("Iter worker rank %d on %s." % (rank, name))
+    print("Iter Worker - rank %d on %s." % (rank, name))
     while True:
         comm.send(None, dest=0, tag=tags.READY)
         task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
@@ -1053,7 +1090,6 @@ else:
             # generate random dollars
 
             i_mx = deepcopy(i_m)
-
 
             # add new column of random numbers (0-1)
             i_mx['ran_num'] = (pd.Series(np.random.random(len(i_mx)))).values
@@ -1110,8 +1146,9 @@ else:
                     if int(i[1].random_dollars_pp) > 0:
                         npa_aid[gref[ny][nx]] += int(i[1].random_dollars_pp)
                         npa_count[gref[ny][nx]] += int(1)
+
                 except:
-                    print("Error on iter worker %d with tasks %s." % (rank, task))
+                    print("Iter Worker - error on worker %d with tasks %s." % (rank, task))
 
 
             # --------------------------------------------------
@@ -1128,11 +1165,9 @@ else:
             break
 
         elif tag == tags.ERROR:
-            print("Error message from iter master. Shutting down." % source)
-            # confirm error message received
-            #
-            # terminate process
-            #
+            print("Iter Worker - error message from Iter Master. Shutting down." % source)
+            # confirm error message received and exit
+            comm.send(None, dest=0, tag=tags.EXIT)
             break
 
 
