@@ -42,10 +42,6 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 # python /path/to/runscript.py nepal NPL 0.1 10
 arg = sys.argv
 
-# mcr options
-# output as json which will be loaded into a mongo database
-mops = {}
-
 try:
     country = sys.argv[1]
     abbr = sys.argv[2]
@@ -199,10 +195,6 @@ lookup = {
 # ====================================================================================================
 # ====================================================================================================
 # functions
-
-
-def add_json(field, data):
-    mops[field] = data
 
 
 # creates directories
@@ -1171,3 +1163,61 @@ else:
             break
 
 
+# ====================================================================================================
+# ====================================================================================================
+
+
+if rank == 0:
+
+    import json
+
+    # mcr options
+    # output as json which will be loaded into a mongo database
+    mops = {}
+
+    def add_json(field, data):
+        mops[field] = data
+
+
+    add_json("size",size)
+    add_json("country",country)
+    add_json("abbr",abbr)
+    add_json("pixel_size",pixel_size)
+
+    add_json("Ts",Ts)
+    add_json("Rid",Rid)
+    add_json("data_version",data_version)
+    add_json("run_version",run_version)
+    add_json("force_mean_surf",force_mean_surf)
+    add_json("iter_max",iter_max)
+    add_json("iter_thresh",iter_thresh)
+    add_json("iter_improvement",iter_improvement)
+    add_json("dir_working",dir_working)
+    add_json("filter_type",filter_type)
+    add_json("filters",filters)
+    # add_json("filters_hash**",)
+    add_json("nodata",nodata)
+    add_json("aid_field",aid_field)
+    add_json("is_geocoded",is_geocoded)
+    add_json("only_geocoded",only_geocoded)
+    add_json("code_field",code_field)
+    add_json("adm0_minx",adm0_minx)
+    add_json("adm0_miny",adm0_miny)
+    add_json("adm0_maxx",adm0_maxx)
+    add_json("adm0_maxy",adm0_maxy)
+    add_json("rows",len(rows))
+    add_json("cols",len(cols))
+    add_json("locations",len(i_m))
+    add_json("T_init",T_init)
+    add_json("run_mean_surf",run_mean_surf)
+    # add_json("path of surf file used**",)
+    add_json("T_surf",T_surf)
+    add_json("iterations",iterations)
+    add_json("error_log_mean",error_log_mean)
+    add_json("error_log_sum",error_log_sum)
+    add_json("error_log_percent",error_log_percent)
+    add_json("T_iter",T_iter)
+    add_json("T_total",T_total)
+
+    json_handle = open(dir_base+'/builder_data.json', 'w')
+    json.dump(mops, json_handle, sort_keys = True, indent = 4, ensure_ascii=False)
