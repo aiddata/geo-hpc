@@ -19,6 +19,9 @@ import time
 import random
 import math
 
+import json
+import hashlib
+
 import numpy as np
 import pandas as pd
 from shapely.geometry import Polygon, Point, shape, box
@@ -39,6 +42,26 @@ status = MPI.Status()
 # absolute path to script directory
 dir_base = os.path.dirname(os.path.abspath(__file__))
 
+
+# ====================================================================================================
+# ====================================================================================================
+# inputs and variables
+
+
+run_stage = "beta"
+run_version = "005"
+run_id = run_stage[0:1] + run_version
+
+Ts = int(time.time())
+random_id = '{0:05d}'.format(int(random.random() * 10**5))
+Rid = str(Ts) +"_"+ random_id
+
+Rid = str(Ts) +"_"+ "56789"
+
+
+# --------------------------------------------------
+# input arguments
+
 # python /path/to/runscript.py nepal NPL 0.1 10
 arg = sys.argv
 
@@ -47,15 +70,14 @@ try:
     abbr = sys.argv[2]
     pixel_size = float(sys.argv[3])
 
-    # maximum number of iterations to run
-    # iterations = int(sys.argv[4])
+    # data_version = sys.argv[10]
+    data_version = 1.1
 
     # raw_filter = sys.argv[5]
 
-    # Ts = int(sys.argv[6])
-    # Rid = int(sys.argv[7])
-    Ts = int(time.time())
-    Rid = str(Ts) +"_"+ "45678"
+    # force_mean_surf = int(sys.argv[x])
+    force_mean_surf = 0
+
 
     # run_mean_surf = int(sys.argv[8])
     # run_mean_surf = 3
@@ -64,15 +86,6 @@ try:
     # if run_mean_surf == 3:
         # path_mean_surf = sys.argv[9]
 
-
-    # data_version = sys.argv[10]
-    # run_version = sys.argv[11]
-    data_version = 1.1
-    run_version = "b005"
-
-    # force_mean_surf = int(sys.argv[x])
-    force_mean_surf = 0
-
     # log_mean_surf = int(sys.argv[12])
     # log_mean_surf = 0
 
@@ -80,6 +93,9 @@ try:
 except:
     sys.exit("invalid inputs")
 
+
+# --------------------------------------------------
+# iteration and pixel size options
 
 # maximum number of iterations to run
 iter_max = 1000
@@ -113,35 +129,16 @@ psi = 1/pixel_size
 
 
 # --------------------------------------------------
-# file paths
-
-# dir_country = dir_base+"/outputs/"+country
-# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
-
-dir_country = dir_base+"/data/"+country
-dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_version+"_"+str(pixel_size)
-dir_outputs = dir_chain+"/outputs"
-dir_working = dir_outputs+"/"+str(Rid)
-
-
-# --------------------------------------------------
 # filter options
 
-
 # filter_type = "all"
-filter_type = "specfic"
+filters_type = "specfic"
 
 filters = {
     "ad_sector_names": {
         "Agriculture": 0
     }
 }
-
-# !!!
-# include in json file:
-#   filters object in output
-#   hash of filters json string
-# !!!
 
 
 # --------------------------------------------------
@@ -165,7 +162,7 @@ only_geocoded = False
 # vars that may be added as some type of input
 # used by functions
 
-# type definition for non geocoded projects
+# agg_type definition for non geocoded projects
 # either allocated at country level ("country") or ignored ("None")
 not_geocoded = "country"
 
@@ -191,10 +188,29 @@ lookup = {
     "8": {"type":"adm","data":"0"}
 }
 
+# --------------------------------------------------
+# file paths
+
+# dir_country = dir_base+"/outputs/"+country
+# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
+
+dir_country = dir_base+"/data/"+country
+dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_id+"_"+str(pixel_size)
+dir_outputs = dir_chain+"/outputs"
+dir_working = dir_outputs+"/"+str(Rid)
+
 
 # ====================================================================================================
 # ====================================================================================================
 # functions
+
+
+def json_hash(hash_obj):
+    hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False)
+    hash_builder = hashlib.md5()
+    hash_builder.update(hash_json)
+    hash_md5 = hash_builder.hexdigest()
+    return hash_md5
 
 
 # creates directories
@@ -232,7 +248,6 @@ def getData(path, merge_id, field_ids, only_geo):
     # read input csv files into memory
     amp = getCSV(amp_path)
     loc = getCSV(loc_path)
-
 
     if not merge_id in amp or not merge_id in loc:
         sys.exit("getData - merge field not found in amp or loc files")
@@ -496,6 +511,16 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 
 # --------------------------------------------------
 # filters
+
+
+# filters_json = json.dumps(filters, sort_keys = True, ensure_ascii=False)
+# filters_md5 = hashlib.md5()
+# filters_md5.update(filters_json)
+# filters_hash = filters_md5.hexdigest()
+
+# generate filters hash
+filters_hash = json_hash(filters)
+
 
 # apply filters to project data
 # filtered = merged.loc[merged.ad_sector_names == "Agriculture"]
@@ -820,7 +845,7 @@ elif run_mean_surf == 1:
 
 
 # elif run_mean_surf == 2 and rank == 0:
-#     load_mean_surf = dir_base+"/surf_log/"+country+"_"+str(data_version)+"_"+str(run_version)+"_"+str(pixel_size)+".npy"
+#     load_mean_surf = dir_base+"/surf_log/"+country+"_"+str(data_version)+"_"+str(run_id)+"_"+str(pixel_size)+".npy"
 #     sum_mean_surf = np.load(load_mean_surf)
 
 # elif run_mean_surf == 3 and rank == 0:
@@ -829,7 +854,7 @@ elif run_mean_surf == 1:
 
 
 # if log_mean_surf == 1 and rank == 0:
-#     save_mean_surf = dir_base+"/surf_log/"+country+"_"+str(data_version)+"_"+str(run_version)+"_"+str(pixel_size)+".npy"
+#     save_mean_surf = dir_base+"/surf_log/"+country+"_"+str(data_version)+"_"+str(run_id)+"_"+str(pixel_size)+".npy"
 #     np.save(save_mean_surf, sum_mean_surf)
 
 
@@ -1050,8 +1075,8 @@ if rank == 0:
 
         # write to main log
         fout_log = open(dir_base+"/data/"+"run_log.tsv", "a")
-        # log : id, start, country, abbr, data_version, run_version, pixel_size, max_iterations, actual_iterations, percent_error, geocoded_only, processes, new_surf, init_runtime, surf_runtime, iter_runtime, total_runtime
-        fout_array = [Rid, Ts, country, abbr, data_version, run_version, pixel_size, iter_max, iterations, error_log_percent, only_geocoded, size, run_mean_surf, T_init, T_surf, T_iter, T_total]
+        # log : id, start, country, abbr, data_version, run_id, pixel_size, max_iterations, actual_iterations, percent_error, geocoded_only, processes, new_surf, init_runtime, surf_runtime, iter_runtime, total_runtime
+        fout_array = [Rid, Ts, country, abbr, data_version, run_id, pixel_size, iter_max, iterations, error_log_percent, only_geocoded, size, run_mean_surf, T_init, T_surf, T_iter, T_total]
         fout_str = "\t".join(str(x) for x in fout_array)
         fout_log.write(fout_str + "\n")
 
@@ -1169,8 +1194,6 @@ else:
 
 if rank == 0:
 
-    import json
-
     # mcr options
     # output as json which will be loaded into a mongo database
     mops = {}
@@ -1183,11 +1206,13 @@ if rank == 0:
     add_json("country",country)
     add_json("abbr",abbr)
     add_json("pixel_size",pixel_size)
-
     add_json("Ts",Ts)
     add_json("Rid",Rid)
     add_json("data_version",data_version)
+    add_json("run_stage",run_stage)
     add_json("run_version",run_version)
+    add_json("run_id",run_id)
+
     add_json("force_mean_surf",force_mean_surf)
     add_json("iter_max",iter_max)
     add_json("iter_thresh",iter_thresh)
@@ -1195,7 +1220,7 @@ if rank == 0:
     add_json("dir_working",dir_working)
     add_json("filter_type",filter_type)
     add_json("filters",filters)
-    # add_json("filters_hash**",)
+    add_json("filters_hash",filters_hash)
     add_json("nodata",nodata)
     add_json("aid_field",aid_field)
     add_json("is_geocoded",is_geocoded)
@@ -1210,7 +1235,7 @@ if rank == 0:
     add_json("locations",len(i_m))
     add_json("T_init",T_init)
     add_json("run_mean_surf",run_mean_surf)
-    # add_json("path of surf file used**",)
+    # add_json("path of surf file used",)
     add_json("T_surf",T_surf)
     add_json("iterations",iterations)
     add_json("error_log_mean",error_log_mean)
@@ -1219,5 +1244,6 @@ if rank == 0:
     add_json("T_iter",T_iter)
     add_json("T_total",T_total)
 
-    json_handle = open(dir_base+'/builder_data.json', 'w')
+    json_out = dir_base+'/json/mongo/ready/'+str(Rid)+'.json'
+    json_handle = open(json_out, 'w')
     json.dump(mops, json_handle, sort_keys = True, indent = 4, ensure_ascii=False)
