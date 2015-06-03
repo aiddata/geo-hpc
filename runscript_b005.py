@@ -49,8 +49,9 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 
 
 run_stage = "beta"
-run_version = "005"
-run_id = run_stage[0:1] + run_version
+run_version_str = "005"
+run_version = int(run_version_str)
+run_id = run_stage[0:1] + run_version_str
 
 Ts = int(time.time())
 random_id = '{0:05d}'.format(int(random.random() * 10**5))
@@ -1210,6 +1211,7 @@ if rank == 0:
     add_json("Rid",Rid)
     add_json("data_version",data_version)
     add_json("run_stage",run_stage)
+    add_json("run_version_str",run_version_str)
     add_json("run_version",run_version)
     add_json("run_id",run_id)
 
@@ -1218,7 +1220,7 @@ if rank == 0:
     add_json("iter_thresh",iter_thresh)
     add_json("iter_improvement",iter_improvement)
     add_json("dir_working",dir_working)
-    add_json("filter_type",filter_type)
+    add_json("filters_type",filters_type)
     add_json("filters",filters)
     add_json("filters_hash",filters_hash)
     add_json("nodata",nodata)
