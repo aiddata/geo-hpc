@@ -1,34 +1,58 @@
-size
+
+JOBSCRIPT INPUTS
+-------------------------
+nodes
+ppn
+node_spec
+walltime*
+run_id (or info to buil run_id - ie: run_stage, run_version)
+
+*(manual walltime or possibly results from script which estimates walltime based on cetain runscript jobscript/runscript inputs)
+
+
+RUNSCRIPT INPUTS
+-------------------------
+
 country
 abbr
 pixel_size
-Ts
-Rid
 data_version
-run_version
+
 force_mean_surf
 iter_max
 iter_thresh
 iter_improvement
-dir_working
-filter_type
+
+filters_type
 filters
-filters_hash**
 nodata
 aid_field
 is_geocoded
 only_geocoded
 code_field
+
+
+RUNSCRIPT OUTPUTS
+-------------------------
+
+size
+Ts
+Rid
+run_stage
+run_version_str
+run_version
+run_id
+filters_hash
+dir_working
 adm0_minx
 adm0_miny
 adm0_maxx
 adm0_maxy
-len(rows)
-len(cols)
-len(i_m)
+rows
+cols
+locations
 T_init
 run_mean_surf
-path of surf file used**
 T_surf
 iterations
 error_log_mean
@@ -38,10 +62,10 @@ T_iter
 T_total
 
 
+RUNSCRIPT JSON OUTPUT
+-------------------------
 
-
-
-
+runscript inputs and outputs combined
 
 
 

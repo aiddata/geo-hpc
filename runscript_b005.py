@@ -55,9 +55,9 @@ run_id = run_stage[0:1] + run_version_str
 
 Ts = int(time.time())
 random_id = '{0:05d}'.format(int(random.random() * 10**5))
-Rid = str(Ts) +"_"+ random_id
+Rid = "mcr_" + str(Ts) +"_"+ random_id
 
-Rid = str(Ts) +"_"+ "56789"
+Rid = "mcr_" + str(Ts) +"_"+ "56789"
 
 
 # --------------------------------------------------
