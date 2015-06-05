@@ -1002,14 +1002,16 @@ if rank == 0:
         print("Iter Master - processing results")
 
         stack_aid = np.vstack(total_aid)
-        std_aid = np.std(stack_aid, axis=0)
         mean_aid = np.mean(stack_aid, axis=0)
+        std_aid = np.std(stack_aid, axis=0)
+        var_aid = np.var(stack_aid, axis=0)
 
         sum_aid = np.sum(mean_aid)
 
         stack_count = np.vstack(total_count)
-        std_count = np.std(stack_count, axis=0)
         mean_count = np.mean(stack_count, axis=0)
+        std_count = np.std(stack_count, axis=0)
+        var_aid = np.var(stack_aid, axis=0)
 
 
         # error_log = 0
@@ -1033,25 +1035,36 @@ if rank == 0:
 
         # write core asc output files
 
+        mean_aid_str = ' '.join(np.char.mod('%f', mean_aid))
+        asc_mean_aid_str = asc + mean_aid_str
+        fout_mean_aid = open(dir_working+"/mean_aid.asc", "w")
+        fout_mean_aid.write(asc_mean_aid_str)
+
         std_aid_str = ' '.join(np.char.mod('%f', std_aid))
         asc_std_aid_str = asc + std_aid_str
         fout_std_aid = open(dir_working+"/std_aid.asc", "w")
         fout_std_aid.write(asc_std_aid_str)
 
-        mean_aid_str = ' '.join(np.char.mod('%f', mean_aid))
-        asc_mean_aid_str = asc + mean_aid_str
-        fout_mean_aid = open(dir_working+"/mean_aid.asc", "w")
-        fout_mean_aid.write(asc_mean_aid_str)
+        var_aid_str = ' '.join(np.char.mod('%f', var_aid))
+        asc_var_aid_str = asc + var_aid_str
+        fout_var_aid = open(dir_working+"/var_aid.asc", "w")
+        fout_var_aid.write(asc_var_aid_str)
+
+
+        mean_count_str = ' '.join(np.char.mod('%f', mean_count))
+        asc_mean_count_str = asc + mean_count_str
+        fout_mean_count = open(dir_working+"/mean_count.asc", "w")
+        fout_mean_count.write(asc_mean_count_str)
 
         std_count_str = ' '.join(np.char.mod('%f', std_count))
         asc_std_count_str = asc + std_count_str
         fout_std_count = open(dir_working+"/std_count.asc", "w")
         fout_std_count.write(asc_std_count_str)
 
-        mean_count_str = ' '.join(np.char.mod('%f', mean_count))
-        asc_mean_count_str = asc + mean_count_str
-        fout_mean_count = open(dir_working+"/mean_count.asc", "w")
-        fout_mean_count.write(asc_mean_count_str)
+        var_count_str = ' '.join(np.char.mod('%f', var_count))
+        asc_var_count_str = asc + var_count_str
+        fout_var_count = open(dir_working+"/var_count.asc", "w")
+        fout_var_count.write(asc_var_count_str)
 
 
         # calc section runtime and total runtime
