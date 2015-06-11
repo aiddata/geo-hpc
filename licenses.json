@@ -1,0 +1,38 @@
+{
+    "odc-pddl": {
+        "url": "http://opendatacommons.org/licenses/by/", 
+        "version": "1.0", 
+        "name": "Open Data Commons Attribution", 
+        "id": "odc-pddl"
+    },
+    "cc": {
+        "url": "https://creativecommons.org/licenses/by/3.0/", 
+        "version": "3.0", 
+        "name": "Creative Commons Attribution", 
+        "id": "cc"
+    },
+    "gpl-v3": {
+        "url": "http://www.gnu.org/licenses/gpl-3.0.txt", 
+        "version": "3.0", 
+        "name": "GNU General Public License Version 3", 
+        "id": "gpl-v3"
+    },
+    "gpl-v2": {
+        "url": "http://www.gnu.org/licenses/gpl-2.0.txt", 
+        "version": "2.0", 
+        "name": "GNU General Public License Version 2", 
+        "id": "gpl-v2"
+    },
+    "apache": {
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.html", 
+        "version": "2.0", 
+        "name": "Apache License", 
+        "id": "apache"
+    },
+    "mit": {
+        "url": "http://opensource.org/licenses/MIT", 
+        "version": "1.0", 
+        "name": "The MIT License", 
+        "id": "mit"
+    }
+}

@@ -20,6 +20,7 @@ in_path = sys.argv[4]
 # start and end must be in YYYYMMDD format
 # for data without day use YYYYMM01
 # for data without month use YYYY0101
+# annual/monthly/daily data should use same start and end date
 in_start = sys.argv[5]
 in_end = sys.argv[6]
 
@@ -266,6 +267,7 @@ data = {
 	"path": in_path,
 	"start": int(in_start),
 	"end": int(in_end)
+    # ADD PATH TO FILES DATAPACKAGE
 }
 
 # insert 

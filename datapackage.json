@@ -1,0 +1,76 @@
+{
+    "datapackage_script": "log_ltdr.py", 
+    "datapackage_version": "0.1", 
+    "maintainers": [
+        {
+            "web": "http://aiddata.org", 
+            "name": "AidData REU", 
+            "email": "info@aiddata.org"
+        }
+    ], 
+    "publishers": [
+        {
+            "web": "http://aiddata.org", 
+            "name": "AidData", 
+            "email": "info@aiddata.org"
+        }
+    ], 
+
+
+    "date_added": "06/01/15",
+    "date_updated": "06/09/15",
+    "resources": [
+        {
+            "name": "x", 
+            "path": "relative/1990/01/x.tif", 
+            "bytes": 191210
+        }, 
+        {
+            "name": "y", 
+            "path": "relative/1990/02/y.tif", 
+            "bytes": 2787354
+        }, 
+        {
+            "name": "z", 
+            "path": "relative/1991/05/z.tif", 
+            "bytes": 2787354
+        }
+    ], 
+    "file_ext": "file extension or generic/standard name for file type (eg: tif)", 
+    "temporal": [
+        {
+            "start": 1997, 
+            "end": 2014, 
+            "name": "Year Coverage"
+        }
+    ], 
+
+
+    "base": "relative path to /sciclone/aiddata10 or aiddata10 mount (eg: REU/path/to/package/dir)",
+    "name": "ltdr_ndvi", 
+    "title": "LTDR NDVI Data", 
+    "version": "Ver4", 
+    "licenses": [
+        {
+            "url": "http://opendatacommons.org/licenses/by/", 
+            "version": "1.0", 
+            "name": "Open Data Commons Attribution", 
+            "id": "odc-pddl"
+        }
+    ], 
+    "citation":"",
+    "sources": [
+        {
+            "web": "ltdr.nasa.gov", 
+            "name": "LTDR"
+        }
+    ], 
+    "source_link": "ltdr.nasa.gov",
+
+    "short": "a short description of the dataset",
+    "variable_description": "ndvi values ranging from 0 to 1 where 1 indicates more vegatation",
+
+    "type": "data type (using acceptable DAF database types)",
+    "extract_types": ["mean", "max"],
+    "factor": 0.0001
+}

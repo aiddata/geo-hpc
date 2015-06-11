@@ -1,0 +1,8 @@
+data guidelines for the data aggregation framework
+--------------------------------------------------
+
+- /sciclone/aiddata10/REU/raw always contains data that has not been altered since being collected from source
+
+- the file structure of processed data in /sciclone/aiddata10/REU/data should mirror the structure of the raw version of data whenever possible
+
+- processed data must be logged before it can be used in any application (creates datapackage.json and inserts into database)
