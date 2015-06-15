@@ -1,7 +1,10 @@
 import os
 import json
+import re
 from collections import OrderedDict
 from log_prompt import prompts
+
+p = prompts()
 
 # validation functions, fields, etc.
 class validate():
@@ -68,8 +71,9 @@ class validate():
     # check if name is unique and valid
     def name(self, val):
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
-
-        if not user_prompt_use_input(value=val):
+        val = val.lower()
+        
+        if not p.user_prompt_use_input(value=val):
           return False
         
         # check mongodb
@@ -87,6 +91,10 @@ class validate():
     # each extract type in extract_types
     def license_types(self, val):
         vals = [x.strip(' ') for x in val.split(",")]
+
+        if len(vals) == 1 and vals[0] == "":
+            return True, []
+
         valid = False not in [x in self.types["licenses"] for x in vals]
         return valid, vals
 

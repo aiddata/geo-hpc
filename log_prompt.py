@@ -1,12 +1,7 @@
 import sys
-import re
 
 # functions for generating user prompts
 class prompts():
-
-    def quit(self, reason):
-        sys.exit("Terminating script - "+str(reason)+"\n")
-
 
     # prompt to continue function
     def user_prompt_bool(self, question):
@@ -25,7 +20,7 @@ class prompts():
     def user_prompt_use_input(self, conditional=None, statement=0, value=None):
         if not statement:
             if value == None:
-               self.quit("Error - No statement or value given to user_prompt_use_input.")
+               quit("Error - No statement or value given to user_prompt_use_input.")
 
             statement = "Use the following? : \"" + str(value) + "\""
 
@@ -36,7 +31,7 @@ class prompts():
             redo = self.user_prompt_bool("Use a new input [y] or exit [n]?")
 
             if not redo:
-               self.quit("No input given at open prompt.")
+               quit("No input given at open prompt.")
 
             return False
 
@@ -70,7 +65,7 @@ class prompts():
                     redo_answer = self.user_prompt_bool("Invalid input" + error + "\nUse a new answer [y] or exit [n]?")
 
                     if not redo_answer:
-                       self.quit("No answer given at open prompt.")
+                       quit("No answer given at open prompt.")
 
                 else:
                     return answer

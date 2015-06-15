@@ -7,11 +7,14 @@ import copy
 from datetime import datetime,date
 from collections import OrderedDict
 import json
+import glob
+
 import pymongo
 from osgeo import gdal,ogr,osr
 
 from log_validate import validate
 from log_prompt import prompts
+from log_resources import resource_utils
 
 # --------------------------------------------------
 
@@ -38,10 +41,13 @@ if len(sys.argv) > 1 and sys.argv[1] == "auto":
         path = sys.argv[2]
 
         if os.path.isfile(path):
-            v.data = json.load(open(path), object_pairs_hook=OrderedDict)
+            v.data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
 
 
     except:
+        # move mcr output to error folder
+        # 
+
         sys.stdout.write("Bad inputs.\n")
 
 
@@ -54,10 +60,17 @@ if generator == "manual":
 # --------------------------------------------------
 # functions
 
+def quit(self, reason):
+    sys.exit("Terminating script - "+str(reason)+"\n")
+
+
+def write_data_package():
+    json.dump(data_package, open(data_package["base"] + "/datapackage.json", 'w'), indent=4)
+
 
 def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
 
-    dp = 0 if type(dp) != type(OrderedDict) else dp
+    dp = 0 if type(dp) != type(OrderedDict()) else dp
 
     init = 0 if init != 1 else init
     update = 0 if update != 1 else update
@@ -67,6 +80,7 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
     # init - rebuild from scratch
     # update - update core fields and make sure all current fields exist
     # clean - run update but also remove any outdated fields
+
 
     if not dp or init:
         init = 1
@@ -99,12 +113,14 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
             }
         ]
 
+        # make sure all current datapackage fields exist
         # iterate over keys in fields list
         for k in v.fields:
             # if current key does not exist: add empty
             if k not in dp.keys():
-                dp[k] = v.fields[k]
+                dp[k] = v.fields[k]["default"]
 
+        # clean fields in an existing datapackages
         if clean:
             # iterate over keys in dp
             for k in dp.keys():
@@ -113,34 +129,6 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
                     del dp[k]
 
     return dp
-
-
-# --------------------------------------------------
-# prompts
-
-
-# base path
-# get base path
-if interface:
-    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir, v.error["is_dir"])
-
-# check datapackage.json exists at path 
-if os.path.isfile(v.data["base"]+"/datapackage.json"):
-    # true: update protocol
-    clean_data_package = p.user_prompt_bool("Remove outdated fields (if they exist) from existing datapackage?")
-
-    data_package = json.load(open(v.data["base"]+"/datapackage.json"), object_pairs_hook=OrderedDict)
-    data_package = init_datapackage(dp=data_package, update=1, clean=clean_data_package)
-    update_data_package = True
-
-    quit("Datapackage already exists.")
-
-else:
-    # false: creation protocol
-    data_package = init_datapackage()
-    data_package["base"] = v.data["base"]
-    update_data_package = False
-
 
 
 def generic_input(input_type, update, var_str, in_1, in_2, in_3):
@@ -162,6 +150,10 @@ def generic_input(input_type, update, var_str, in_1, in_2, in_3):
         # elif update and not user_update:
             # validate anyway - in case validation function changed
             # force to enter new input if needed
+            # 
+
+            # data_package[var_str] = v.data[var_str]
+
 
     else:
         if input_type == "open" and in_2:
@@ -175,12 +167,41 @@ def generic_input(input_type, update, var_str, in_1, in_2, in_3):
                 answer = v.data[var_str]
 
             if not valid:
-                p.quit("Bad automated input")
+                quit("Bad automated input")
 
             data_package[var_str] = answer
 
         else:
             data_package[var_str] = v.data[var_str]
+
+
+# --------------------------------------------------
+# prompts
+
+
+# base path
+# get base path
+if interface:
+    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir, v.error["is_dir"])
+
+# check datapackage.json exists at path 
+if os.path.isfile(v.data["base"]+"/datapackage.json"):
+    # true: update protocol
+    clean_data_package = p.user_prompt_bool("Remove outdated fields (if they exist) from existing datapackage?")
+
+    data_package = json.load(open(v.data["base"]+"/datapackage.json", 'r'), object_pairs_hook=OrderedDict)
+    data_package = init_datapackage(dp=data_package, update=1, clean=clean_data_package)
+    update_data_package = True
+
+    # quit("Datapackage already exists.")
+
+else:
+    # false: creation protocol
+    data_package = init_datapackage()
+    data_package["base"] = v.data["base"]
+    update_data_package = False
+
+# print data_package
 
 
 # --------------------
@@ -267,18 +288,19 @@ for f in flist:
 # dependent inputs
 
 # file format (raster or vector)
-if v.data["type"] == "raster":
-    v.data["file_format"] = v.data["type"]
+if data_package["type"] == "raster":
+    data_package["file_format"] = data_package["type"]
 else:
-    v.data["file_format"] = "vector"
+    data_package["file_format"] = "vector"
 
-v.update_file_format(v.data["file_format"])
+
+v.update_file_format(data_package["file_format"])
 
 # file extension (validation depends on file format)
-generic_input("open", update_data_package, "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][v.data["file_format"]])+ ")", v.file_extension, v.error["file_extension"])
+generic_input("open", update_data_package, "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension, v.error["file_extension"])
 
 # raster info
-if v.data["type"] == "raster":
+if data_package["type"] == "raster":
     # extract_types (multiple)
     generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, v.error["extract_types"])
 
@@ -299,112 +321,95 @@ if interface and p.user_prompt_bool("Would you like to review your inputs?"):
 
 
 
-
 print data_package
 
-quit("!!!")
-
 
 # --------------------------------------------------
+# find all files with file_extension in path
 
 
-# get bounding box
-# http://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
-
-def GetExtent(gt,cols,rows):
-    ''' Return list of corner coordinates from a geotransform
-
-        @type gt:   C{tuple/list}
-        @param gt: geotransform
-        @type cols:   C{int}
-        @param cols: number of columns in the dataset
-        @type rows:   C{int}
-        @param rows: number of rows in the dataset
-        @rtype:    C{[float,...,float]}
-        @return:   coordinates of each corner
-    '''
-    ext=[]
-    xarr=[0,cols]
-    yarr=[0,rows]
-
-    for px in xarr:
-        for py in yarr:
-            x=gt[0]+(px*gt[1])+(py*gt[2])
-            y=gt[3]+(px*gt[4])+(py*gt[5])
-            ext.append([x,y])
-            # print x,y
-        yarr.reverse()
-    return ext
+# option to rerun file checks for manual script
+if update_data_package not p.user_prompt_bool("Run resource checks?"):
+    write_data_package()
+    quit("User request.")
 
 
-def ReprojectCoords(coords,src_srs,tgt_srs):
-    ''' Reproject a list of x,y coordinates.
+ru = resource_utils()
 
-        @type geom:     C{tuple/list}
-        @param geom:    List of [[x,y],...[x,y]] coordinates
-        @type src_srs:  C{osr.SpatialReference}
-        @param src_srs: OSR SpatialReference object
-        @type tgt_srs:  C{osr.SpatialReference}
-        @param tgt_srs: OSR SpatialReference object
-        @rtype:         C{tuple/list}
-        @return:        List of transformed [[x,y],...[x,y]] coordinates
-    '''
-    trans_coords=[]
-    transform = osr.CoordinateTransformation( src_srs, tgt_srs)
-    for x,y in coords:
-        x,y,z = transform.TransformPoint(x,y)
-        trans_coords.append([x,y])
-    return trans_coords
+ru.dp = data_package
 
 
-def check_env(new, old):
-    if len(new) == len(old) and len(new) == 4:
-        # update envelope if polygon extends beyond bounds
+for root, dirs, files in os.walk(data_package["base"]):
+    for file in files:
 
-        if new[0] < old[0]:
-            old[0] = new[0]
-        if new[1] > old[1]:
-            old[1] = new[1]
-        if new[2] < old[2]:
-            old[2] = new[2]
-        if new[3] > old[3]:
-            old[3] = new[3]
+        file = os.path.join(root, file)
 
-    elif len(old) == 0 and len(new) == 4:
-        # initialize envelope
-        for x in new:
-            old.append(x)
+        file_check = ru.run_file_check(file)
 
-    else:
-        sys.exit("Terminating script - Invalid polygon envelope.\n")
+        if file_check == True:
+            ru.file_list.append(file)
 
-    return old
+
+
+for f in file_list:
+
+    if data_package["type"] == "raster":
+
+        # get full geo info from first file
+        if f_count = 0:
+            # 
+
+            f_count += 1
+
+        # get basic geo info from each file
+        # 
+
+        # exit if basic geo does not match
+        if base_geo != new_geo:
+            quit("Geography does not match")
+
+
+
+# temporal
+# get unique time range based on dir path / file names
+
+# spatial
+# get generic spatial data for rasters
+# something else for vectors?
+
+# resources
+# individual resource info
+# name (unique among this dataset's resources - not same name as dataset)
+# path relative to datapackage.json
+# file size
+
+
 
 
 # --------------------------------------------------
 # get bounding box
 
 
-if in_format == 'raster':
+if data_package["type"] == 'raster':
 	ds=gdal.Open(in_path)
 
-	gt=ds.GetGeoTransform()
+	gt = ds.GetGeoTransform()
 	cols = ds.RasterXSize
 	rows = ds.RasterYSize
-	ext=GetExtent(gt,cols,rows)
+	ext = ru.GetExtent(gt,cols,rows)
 
-	src_srs=osr.SpatialReference()
+	src_srs = osr.SpatialReference()
 	src_srs.ImportFromWkt(ds.GetProjection())
 	#tgt_srs=osr.SpatialReference()
 	#tgt_srs.ImportFromEPSG(4326)
 	tgt_srs = src_srs.CloneGeogCS()
 
-	geo_ext=ReprojectCoords(ext,src_srs,tgt_srs)
+	geo_ext = ru.ReprojectCoords(ext,src_srs,tgt_srs)
 
 	# geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
 
 
-elif in_format == 'vector':
+elif data_package["type"] == 'vector':
 	ds = ogr.Open(in_path)
 	lyr_name = in_path[in_path.rindex('/')+1:in_path.rindex('.')]
 	lyr = ds.GetLayerByName(lyr_name)
@@ -413,7 +418,7 @@ elif in_format == 'vector':
 
 	for feat in lyr:
 		temp_env = feat.GetGeometryRef().GetEnvelope()
-		env = check_env(temp_env, env)
+		env = ru.check_envelope(temp_env, env)
 		# print temp_env
 
 	# env = [xmin, xmax, ymin, ymax]
@@ -422,7 +427,7 @@ elif in_format == 'vector':
 	# print "bbox:",geo_ext
 
 else:
-    sys.exit("Terminating script - File format error.\n")
+    quit("File format error.")
 
 
 # check bbox size
@@ -435,7 +440,7 @@ if tsize >= 32400:
 	in_scale = "global"
 	# prompt to continue
 	if not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
-	    sys.exit("Terminating script - User request.\n")
+	    quit("User request.")
 
 
 # display datset info to user
@@ -443,11 +448,11 @@ print "Dataset bounding box: ", geo_ext
 
 # prompt to continue
 if not p.user_prompt_bool("Continue with this bounding box?"):
-    sys.exit("Terminating script - User request.\n")
+    quit("User request.")
 
 
 # --------------------------------------------------
-# update database
+# update database(s)
 
 
 # connect to mongodb
@@ -482,7 +487,9 @@ data = {
 	"path": in_path,
 	"start": int(in_start),
 	"end": int(in_end)
-    # ADD PATH TO FILES DATAPACKAGE
+    # ADD PATH TO FILES DATAPACKAGE (datapackage_path)
+    # 
+    # ADD PARENT DATAPACKAGE NAME - "group" field (datapackage_name)
 }
 
 # insert 
@@ -490,7 +497,7 @@ try:
 	c_data.insert(data)
 except pymongo.errors.DuplicateKeyError, e:
     print e
-    sys.exit("Terminating script - Dataset with same name or path exists.\n")
+    quit("Dataset with same name or path exists.")
 
 
 # check insert and notify user
@@ -498,9 +505,9 @@ vp = c_data.find({"path": in_path})
 vn = c_data.find({"name": in_name})
 
 if vp.count() < 1 or vn.count() < 1:
-    sys.exit( "Error - No items with name or path found in database.\n")
+    quit( "Error - No items with name or path found in database.")
 elif vp.count() > 1 or vn.count() > 1:
-	sys.exit( "Error - Multiple items with name or path found in database.\n")
+	quit( "Error - Multiple items with name or path found in database.")
 else:
 	print "Success - Item successfully inserted into database.\n"
 
