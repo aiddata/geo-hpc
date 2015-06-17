@@ -49,8 +49,8 @@ class resource_utils():
 
         for px in xarr:
             for py in yarr:
-                x=gt[0]+(px*gt[1])+(py*gt[2])
-                y=gt[3]+(px*gt[4])+(py*gt[5])
+                x = gt[0] + (px*gt[1]) + (py*gt[2])
+                y = gt[3] + (px*gt[4]) + (py*gt[5])
                 ext.append([x,y])
                 # print x,y
             yarr.reverse()
@@ -70,14 +70,14 @@ class resource_utils():
             @return:        List of transformed [[x,y],...[x,y]] coordinates
         '''
         trans_coords=[]
-        transform = osr.CoordinateTransformation( src_srs, tgt_srs)
+        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
         for x,y in coords:
             x,y,z = transform.TransformPoint(x,y)
             trans_coords.append([x,y])
         return trans_coords
 
 
-    def check_envelop(self, new, old):
+    def check_envelope(self, new, old):
         if len(new) == len(old) and len(new) == 4:
             # update envelope if polygon extends beyond bounds
 
@@ -99,3 +99,51 @@ class resource_utils():
             quit("Invalid polygon envelope.\n")
 
         return old
+
+    def raster_envelope(self, path):
+        ds=gdal.Open(path)
+
+        gt = ds.GetGeoTransform()
+        cols = ds.RasterXSize
+        rows = ds.RasterYSize
+        ext = self.GetExtent(gt,cols,rows)
+
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(ds.GetProjection())
+        #tgt_srs=osr.SpatialReference()
+        #tgt_srs.ImportFromEPSG(4326)
+        tgt_srs = src_srs.CloneGeogCS()
+
+        geo_ext = self.ReprojectCoords(ext, src_srs, tgt_srs)
+        # geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
+
+        return geo_ext
+
+    def vector_envelope(self, path):
+        ds = ogr.Open(path)
+        lyr_name = in_path[path.rindex('/')+1:path.rindex('.')]
+        lyr = ds.GetLayerByName(lyr_name)
+        env = []
+
+        for feat in lyr:
+            temp_env = feat.GetGeometryRef().GetEnvelope()
+            env = self.check_envelope(temp_env, env)
+            # print temp_env
+
+        # env = [xmin, xmax, ymin, ymax]
+        geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
+        # print "final env:",env
+        # print "bbox:",geo_ext
+
+        return geo_ext
+
+
+    # def vector_list(self, list=[]):
+    #     env = []
+    #     for file in list:
+    #         f_env = vectory_envelope(file)
+    #         env = self.check_envelope(f_env, env)
+            
+    #     geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
+    #     return geo_ext
+

@@ -325,11 +325,11 @@ print data_package
 
 
 # --------------------------------------------------
-# find all files with file_extension in path
+# resource scan and validation
 
 
 # option to rerun file checks for manual script
-if update_data_package not p.user_prompt_bool("Run resource checks?"):
+if update_data_package and interface and not p.user_prompt_bool("Run resource checks?"):
     write_data_package()
     quit("User request.")
 
@@ -338,7 +338,7 @@ ru = resource_utils()
 
 ru.dp = data_package
 
-
+# find all files with file_extension in path
 for root, dirs, files in os.walk(data_package["base"]):
     for file in files:
 
@@ -350,23 +350,63 @@ for root, dirs, files in os.walk(data_package["base"]):
             ru.file_list.append(file)
 
 
+# iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
+f_count = 0
+for f in ru.file_list:
 
-for f in file_list:
+    if data_package["file_format"] == "raster":
 
-    if data_package["type"] == "raster":
+        # get basic geo info from each file
+        geo_ext = ru.raster_envelope(f)
 
         # get full geo info from first file
         if f_count = 0:
-            # 
+            base_geo = geo_ext
+
+            # check bbox size
+            xsize = geo_ext[2][0] - geo_ext[1][0]
+            ysize = geo_ext[0][1] - geo_ext[1][1]
+            tsize = abs(xsize * ysize)
+
+            in_scale = "regional"
+            if tsize >= 32400:
+                in_scale = "global"
+                # prompt to continue
+                if interface and not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
+                    quit("User request.")
+
+
+            # display datset info to user
+            print "Dataset bounding box: ", geo_ext
+
+            # prompt to continue
+            if interface and not p.user_prompt_bool("Continue with this bounding box?"):
+                quit("User request.")
 
             f_count += 1
 
-        # get basic geo info from each file
-        # 
 
         # exit if basic geo does not match
-        if base_geo != new_geo:
+        if base_geo != geo_ext:
             quit("Geography does not match")
+
+
+    # vector datasets should always be just a single file
+    elif data_package["file_format"] == 'vector' and f_count = 0:
+        if data_package["type"] == "boundary":
+            geo_ext = ru.vector_envelope(f)
+
+        else:
+            # run something similar to ru.vector_envelope
+            # instead of polygons in one file we are checking polygons in files in list
+            # create new ru.vector_list function which calls ru.vector_envelope
+            # geo_ext = ru.vector_list(ru.file_list)
+            quit("Only accepting boundary vectors at this time.")
+
+    else:
+        quit("File format error.")
+
+
 
 
 
@@ -376,6 +416,16 @@ for f in file_list:
 # spatial
 # get generic spatial data for rasters
 # something else for vectors?
+# ru.spatial = { 
+#                 "type": "Polygon", 
+#                 "coordinates": [ [
+#                     geo_ext[0],
+#                     geo_ext[1],
+#                     geo_ext[2],
+#                     geo_ext[3],
+#                     geo_ext[0]
+#                 ] ]
+#             }
 
 # resources
 # individual resource info
@@ -383,157 +433,7 @@ for f in file_list:
 # path relative to datapackage.json
 # file size
 
-
-
-
-# --------------------------------------------------
-# get bounding box
-
-
-if data_package["type"] == 'raster':
-	ds=gdal.Open(in_path)
-
-	gt = ds.GetGeoTransform()
-	cols = ds.RasterXSize
-	rows = ds.RasterYSize
-	ext = ru.GetExtent(gt,cols,rows)
-
-	src_srs = osr.SpatialReference()
-	src_srs.ImportFromWkt(ds.GetProjection())
-	#tgt_srs=osr.SpatialReference()
-	#tgt_srs.ImportFromEPSG(4326)
-	tgt_srs = src_srs.CloneGeogCS()
-
-	geo_ext = ru.ReprojectCoords(ext,src_srs,tgt_srs)
-
-	# geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
-
-
-elif data_package["type"] == 'vector':
-	ds = ogr.Open(in_path)
-	lyr_name = in_path[in_path.rindex('/')+1:in_path.rindex('.')]
-	lyr = ds.GetLayerByName(lyr_name)
-	env = []
-
-
-	for feat in lyr:
-		temp_env = feat.GetGeometryRef().GetEnvelope()
-		env = ru.check_envelope(temp_env, env)
-		# print temp_env
-
-	# env = [xmin, xmax, ymin, ymax]
-	geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
-	# print "final env:",env
-	# print "bbox:",geo_ext
-
-else:
-    quit("File format error.")
-
-
-# check bbox size
-xsize = geo_ext[2][0] - geo_ext[1][0]
-ysize = geo_ext[0][1] - geo_ext[1][1]
-tsize = abs(xsize * ysize)
-
-in_scale = "regional"
-if tsize >= 32400:
-	in_scale = "global"
-	# prompt to continue
-	if not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
-	    quit("User request.")
-
-
-# display datset info to user
-print "Dataset bounding box: ", geo_ext
-
-# prompt to continue
-if not p.user_prompt_bool("Continue with this bounding box?"):
-    quit("User request.")
-
-
-# --------------------------------------------------
-# update database(s)
-
-
-# connect to mongodb
-client = pymongo.MongoClient()
-db = client.daf
-c_data = db.data
-
-# loc is 2dsphere spatial index
-# > db.data.createIndex( { loc : "2dsphere" } )
-# path is unique index
-# > db.data.createIndex( { path : 1 }, { unique: 1 } )
-# name is unique index
-# > db.data.createIndex( { name : 1 }, { unique: 1 } )
-
-# build dictionary for mongodb insert
-data = {
-	"loc": { 
-			"type": "Polygon", 
-			"coordinates": [ [
-				geo_ext[0],
-				geo_ext[1],
-				geo_ext[2],
-				geo_ext[3],
-				geo_ext[0]
-			] ]
-		},
-	"name": in_name,
-	"short": in_short,
-	"type": in_type,
-	"scale": in_scale,
-	"format": in_format,
-	"path": in_path,
-	"start": int(in_start),
-	"end": int(in_end)
-    # ADD PATH TO FILES DATAPACKAGE (datapackage_path)
-    # 
-    # ADD PARENT DATAPACKAGE NAME - "group" field (datapackage_name)
-}
-
-# insert 
-try:
-	c_data.insert(data)
-except pymongo.errors.DuplicateKeyError, e:
-    print e
-    quit("Dataset with same name or path exists.")
-
-
-# check insert and notify user
-vp = c_data.find({"path": in_path})
-vn = c_data.find({"name": in_name})
-
-if vp.count() < 1 or vn.count() < 1:
-    quit( "Error - No items with name or path found in database.")
-elif vp.count() > 1 or vn.count() > 1:
-	quit( "Error - Multiple items with name or path found in database.")
-else:
-	print "Success - Item successfully inserted into database.\n"
-
-
-# update/create boundary tracker(s)
-# *** add error handling for all inserts (above and below) ***
-# *** remove previous inserts if later insert fails, etc. ***
-
-if in_type == "boundary":
-	# if dataset is boundary
-	# create new boundary tracker collection
-	# each each non-boundary dataset item to new boundary collection with "unprocessed" flag
-	dsets =  c_data.find({"type": {"$ne": "boundary"}})
-	c_bnd = db[in_name]
-	c_bnd.create_index("name", unique=True)
-	for dset in dsets:
-		dset['status'] = -1
-		c_bnd.insert(dset)
-
-else:
-	# if dataset is not boundary
-	# add dataset to each boundary collection with "unprocessed" flag
-	bnds = c_data.find({"type": "boundary"},{"name": 1})
-	dset = copy.deepcopy(data)
-	dset['status'] = -1
-	for bnd in bnds:
-		c_bnd = db[bnd['name']]
-		c_bnd.insert(dset)
-
+# update mongo
+# 
+# from log_mongo import update_mongo
+# update_db = update_mongo()
