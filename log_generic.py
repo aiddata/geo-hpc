@@ -1,4 +1,9 @@
-# add dataset to geo mongodb
+# add dataset to system 
+#   - validate options
+#   - scan and validate dataset resources
+#   - generate metadata for dataset resources
+#   - create datapackage
+#   - update mongo database
 
 import sys
 import os
@@ -16,7 +21,9 @@ from log_validate import validate
 from log_prompt import prompts
 from log_resources import resource_utils
 
+
 # --------------------------------------------------
+
 
 script = os.path.basename(sys.argv[0])
 version = "0.1"
@@ -28,8 +35,10 @@ v = validate()
 # prompt class instance
 p = prompts()
 
+
 # --------------------------------------------------
 # user inputs
+
 
 if len(sys.argv) > 1 and sys.argv[1] == "auto":
 
@@ -43,13 +52,11 @@ if len(sys.argv) > 1 and sys.argv[1] == "auto":
         if os.path.isfile(path):
             v.data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
 
-
     except:
         # move mcr output to error folder
         # 
 
         sys.stdout.write("Bad inputs.\n")
-
 
 
 interface = False
@@ -59,6 +66,7 @@ if generator == "manual":
 
 # --------------------------------------------------
 # functions
+
 
 def quit(self, reason):
     sys.exit("Terminating script - "+str(reason)+"\n")
@@ -334,8 +342,10 @@ if update_data_package and interface and not p.user_prompt_bool("Run resource ch
     quit("User request.")
 
 
+# resource utils class instance
 ru = resource_utils()
 
+# send current data_package to resource utils
 ru.dp = data_package
 
 # find all files with file_extension in path
@@ -410,30 +420,74 @@ for f in ru.file_list:
 
 
 
-# temporal
-# get unique time range based on dir path / file names
-
 # spatial
 # get generic spatial data for rasters
 # something else for vectors?
-# ru.spatial = { 
-#                 "type": "Polygon", 
-#                 "coordinates": [ [
-#                     geo_ext[0],
-#                     geo_ext[1],
-#                     geo_ext[2],
-#                     geo_ext[3],
-#                     geo_ext[0]
-#                 ] ]
-#             }
+ru.spatial = { 
+                "type": "Polygon", 
+                "coordinates": [ [
+                    geo_ext[0],
+                    geo_ext[1],
+                    geo_ext[2],
+                    geo_ext[3],
+                    geo_ext[0]
+                ] ]
+            }
 
-# resources
-# individual resource info
-# name (unique among this dataset's resources - not same name as dataset)
-# path relative to datapackage.json
-# file size
+
+# --------------------------------------------------
+# temporal data and resource meta information
+
+
+# *** WARNING ***
+# this section used to determine temporal 
+# data and gather information on individual 
+# files is designed custom for each dataset
+
+# name for temporal data format
+ru.temporal["name"] = "Year Range"
+for f in ru.file_list:
+    print f
+
+    # temporal
+    # get unique time range based on dir path / file names
+
+    # start_tmp = 
+    # end_tmp = 
+
+    # if start_tmp < ru.temporal["start"]:
+    #   ru.temporal["start"] = start_tmp
+
+    # elif end_tmp > ru.temporal["end"]:
+    #   ru.temporal["end"] = end_tmp
+
+
+    # resources
+    # individual resource info
+    # resource_tmp = {}
+
+    # name (unique among this dataset's resources - not same name as dataset)
+    # resource_tmp["name"] = 
+
+    # path relative to datapackage.json
+    # resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
+
+    # file size
+    # resource_tmp["bytes"] = os.path.getsize(f)
+
+    # ru.resources.append(resource_tmp)
+
+
+# --------------------------------------------------
+# database update and datapackage output
+
 
 # update mongo
 # 
 # from log_mongo import update_mongo
+# update mongo class instance
 # update_db = update_mongo()
+
+
+# create datapackage
+# 

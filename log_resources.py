@@ -9,7 +9,7 @@ class resource_utils():
 
         self.file_list = []
         
-        self.resources = {}
+        self.resources = []
         
         self.temporal = {
             "start": 0,
@@ -27,7 +27,6 @@ class resource_utils():
         return True
 
 
-
     # get bounding box
     # http://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
 
@@ -43,6 +42,7 @@ class resource_utils():
             @rtype:    C{[float,...,float]}
             @return:   coordinates of each corner
         '''
+
         ext=[]
         xarr=[0,cols]
         yarr=[0,rows]
@@ -53,7 +53,9 @@ class resource_utils():
                 y = gt[3] + (px*gt[4]) + (py*gt[5])
                 ext.append([x,y])
                 # print x,y
+
             yarr.reverse()
+
         return ext
 
 
@@ -69,11 +71,14 @@ class resource_utils():
             @rtype:         C{tuple/list}
             @return:        List of transformed [[x,y],...[x,y]] coordinates
         '''
+
         trans_coords=[]
         transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+
         for x,y in coords:
             x,y,z = transform.TransformPoint(x,y)
             trans_coords.append([x,y])
+
         return trans_coords
 
 
@@ -100,6 +105,7 @@ class resource_utils():
 
         return old
 
+
     def raster_envelope(self, path):
         ds=gdal.Open(path)
 
@@ -118,6 +124,7 @@ class resource_utils():
         # geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
 
         return geo_ext
+
 
     def vector_envelope(self, path):
         ds = ogr.Open(path)
