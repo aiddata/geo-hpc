@@ -18,6 +18,7 @@ class update_mongo():
 
     # build dictionary for mongodb insert
     data = {
+        
         "loc": { 
                 "type": "Polygon", 
                 "coordinates": [ [
@@ -28,17 +29,21 @@ class update_mongo():
                     geo_ext[0]
                 ] ]
             },
-        "name": in_name,
         "short": in_short,
         "type": in_type,
         "scale": in_scale,
         "format": in_format,
-        "path": in_path,
-        "start": int(in_start),
-        "end": int(in_end)
         # ADD PATH TO FILES DATAPACKAGE (datapackage_path)
         # 
         # ADD PARENT DATAPACKAGE NAME - "group" field (datapackage_name)
+
+
+        "name": in_name,
+        "path": in_path,
+        "bytes": "",
+        "start": int(in_start),
+        "end": int(in_end)
+
     }
 
     # insert 

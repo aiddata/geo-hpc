@@ -15,25 +15,31 @@
             "email": "info@aiddata.org"
         }
     ], 
-
-
     "date_added": "06/01/15",
     "date_updated": "06/09/15",
+
+    
     "resources": [
         {
             "name": "x", 
             "path": "relative/1990/01/x.tif", 
-            "bytes": 191210
+            "bytes": 191210,
+            "start": "",
+            "end": ""
         }, 
         {
             "name": "y", 
             "path": "relative/1990/02/y.tif", 
-            "bytes": 2787354
+            "bytes": 2787354,
+            "start": "",
+            "end": ""
         }, 
         {
             "name": "z", 
             "path": "relative/1991/05/z.tif", 
-            "bytes": 2787354
+            "bytes": 2787354,
+            "start": "",
+            "end": ""
         }
     ], 
     "file_ext": "file extension or generic/standard name for file type (eg: tif)", 

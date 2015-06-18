@@ -1,8 +1,26 @@
 data guidelines for the data aggregation framework
 --------------------------------------------------
 
+for external datasets / manual logging:
+
 - /sciclone/aiddata10/REU/raw always contains data that has not been altered since being collected from source
 
 - the file structure of processed data in /sciclone/aiddata10/REU/data should mirror the structure of the raw version of data whenever possible
 
+- temporal information for datasets/files in data folder must be retrievable from the path to files and/or file names
+- files must all include at least 4 digit years
+- acceptable temporal data types include 
+    - year
+    - year, month
+    - year, month, day of month (with additional day range option)
+    - year, day of year (with additional day range option)
+- file names / paths should be consistent for all files in a dataset
+- all files in a raster dataset must have the same bounds and resolution
+
 - processed data must be logged before it can be used in any application (creates datapackage.json and inserts into database)
+
+
+
+for internal datasets / automatic logging:
+
+- 

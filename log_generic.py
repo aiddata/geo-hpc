@@ -9,7 +9,11 @@ import sys
 import os
 import re
 import copy
+
 from datetime import datetime,date
+import calendar
+from dateutil.relativedelta import relativedelta
+
 from collections import OrderedDict
 import json
 import glob
@@ -69,6 +73,16 @@ if generator == "manual":
 
 
 def quit(self, reason):
+
+    # do error log stuff
+    # 
+
+    # output error logs somewhere
+    # 
+
+    # if auto, move job file to error location
+    # 
+
     sys.exit("Terminating script - "+str(reason)+"\n")
 
 
@@ -446,36 +460,124 @@ ru.spatial = {
 
 # name for temporal data format
 ru.temporal["name"] = "Year Range"
+
+
+def validate_date(date_obj):
+    # year is always required
+    if date_obj["year"] == "":
+        return False, "No year found for data."
+
+    # full 4 digit year required
+    elif len(date_obj["year"]) != 4:
+        return False, "Invalid year."
+
+    # months must always use 2 digits 
+    elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
+        return False, "Invalid month."
+
+    # days of month (day when month is given) must always use 2 digits
+    elif date_obj["month"] != "" and date_obj["day"] != "" and len(date_obj["month"]) != 2:
+        return False, "Invalid day of month."
+
+    # days of year (day when month is not given) must always use 3 digits
+    elif date_obj["month"] == "" and date_obj["day"] != "" and len(date_obj["month"]) != 3:
+        return False, "Invalid day of year."
+
+    return True, None
+
+
+
+def run_file_mask(fmask, fname, base=0):
+
+    if base and fname.startswith(base):
+        fname = fname[fname.index(base) + len(base) + 1:]
+
+    output = {
+        "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y']),
+        "month": "".join([x for x,y in zip(fname, fmask) if y == 'M']),
+        "day": "".join([x for x,y in zip(fname, fmask) if y == 'D'])
+    }
+
+    return output
+
+
+# file mask identifying temporal attributes in path/file names
+if interface:
+    file_mask = user_input_open()
+else:
+    file_mask = "YYYY/MM/xxxxxx.xxxxx.DD.xxxxx.xxxxxx.xxx"
+
+
+# validate file_mask
+
+# make sure year/month/day chars are valid
+
+# test file_mask for first file in file_list
+run_file_mask(file_mask, ru.file_list[0], data_package["base"])
+
+
+# day range for each file (eg: MODIS 8 day composites) 
+use_day_range = False
+if interface:
+    use_day_range = user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
+
+
+if use_day_range:
+    day_range = user_prompt_open()
+
+    try:
+        day_range = int(day_range)
+
+    except:
+        print "Invalid file_range string"
+        day_range = 0
+
+
+
 for f in ru.file_list:
     print f
 
-    # temporal
-    # get unique time range based on dir path / file names
-
-    # start_tmp = 
-    # end_tmp = 
-
-    # if start_tmp < ru.temporal["start"]:
-    #   ru.temporal["start"] = start_tmp
-
-    # elif end_tmp > ru.temporal["end"]:
-    #   ru.temporal["end"] = end_tmp
-
-
     # resources
     # individual resource info
-    # resource_tmp = {}
-
-    # name (unique among this dataset's resources - not same name as dataset)
-    # resource_tmp["name"] = 
+    resource_tmp = {}
 
     # path relative to datapackage.json
-    # resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
+    resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
 
     # file size
-    # resource_tmp["bytes"] = os.path.getsize(f)
+    resource_tmp["bytes"] = os.path.getsize(f)
 
-    # ru.resources.append(resource_tmp)
+
+    # temporal
+    # get unique time range based on dir path / file names
+    
+    # get data from mask
+    date_str = run_file_mask(file_mask, resource_tmp["path"])
+
+
+
+    validate_date_str = validate_date(date_str)
+    if not validate_date_str[0]:
+        quit(validate_date_str[1])
+
+
+    if start_tmp < ru.temporal["start"]:
+      ru.temporal["start"] = start_tmp
+
+    elif end_tmp > ru.temporal["end"]:
+      ru.temporal["end"] = end_tmp
+
+
+    # name (unique among this dataset's resources - not same name as dataset)
+    resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] +date_str["day"]
+
+    # file date range
+    resource_tmp["start"] = start_tmp
+    resource_tmp["end"] = end_tmp
+
+
+    # update main list
+    ru.resources.append(resource_tmp)
 
 
 # --------------------------------------------------
