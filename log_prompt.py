@@ -39,12 +39,7 @@ class prompts():
 
 
     # open ended user prompt
-    def user_prompt_open(self, question, check=0, error=0):
-        
-        if error:
-            error = " ("+error+")"
-        else:
-            error = ""
+    def user_prompt_open(self, question, check=0):
 
         while True:
             sys.stdout.write(question + " \n> ")
@@ -55,14 +50,24 @@ class prompts():
             if use_answer and check:
                 check_result = check(raw_answer)
                 
-                if type(check_result) != type(True) and len(check_result) == 2:
-                    valid, answer = check_result
+                valid = check_result[0]
+                error = check_result[2]
+
+                if valid:
+                    answer = check_result[1]
+
                 else:
-                    valid = check_result
                     answer = raw_answer
 
+
+                if error != None:
+                    error = "("+error+")"
+                else:
+                    error = ""
+
+
                 if not valid:
-                    redo_answer = self.user_prompt_bool("Invalid input" + error + "\nUse a new answer [y] or exit [n]?")
+                    redo_answer = self.user_prompt_bool("Invalid input " + error + "\nUse a new answer [y] or exit [n]?")
 
                     if not redo_answer:
                        quit("No answer given at open prompt.")
@@ -74,7 +79,11 @@ class prompts():
                 return raw_answer
 
 
-    def user_prompt_loop(self, struct, question, cont):
+    def user_prompt_loop(self, struct, phrases):
+
+        question = phrases[0]
+        cont = phrases[1]
+
         result = []
 
         c = 0

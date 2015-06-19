@@ -23,5 +23,5 @@
     "factor": {"default": 1},
     "temporal": {"default": []}, 
     "spatial": {"default": ""},
-    "resources": {"default": []},
+    "resources": {"default": []}
 }

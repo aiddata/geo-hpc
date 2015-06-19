@@ -20,6 +20,7 @@ class resource_utils():
         self.spatial = ""
 
 
+    # checks if file has extension type specified for class instance
     def run_file_check(self, f):
         if not f.endswith('.' + self.dp["file_extension"]):
             return False
@@ -29,7 +30,7 @@ class resource_utils():
 
     # get bounding box
     # http://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
-
+    # gets raw extent of raster
     def GetExtent(self, gt, cols, rows):
         ''' Return list of corner coordinates from a geotransform
 
@@ -58,7 +59,7 @@ class resource_utils():
 
         return ext
 
-
+    # reprojects raster
     def ReprojectCoords(self, coords, src_srs, tgt_srs):
         ''' Reproject a list of x,y coordinates.
 
@@ -82,6 +83,9 @@ class resource_utils():
         return trans_coords
 
 
+    # acceptas new and old envelope
+    # updates old envelope is new envelope bounds exceed old envelope bounds
+    # envelope format [xmin, xmax, ymin, ymax]
     def check_envelope(self, new, old):
         if len(new) == len(old) and len(new) == 4:
             # update envelope if polygon extends beyond bounds
@@ -105,7 +109,7 @@ class resource_utils():
 
         return old
 
-
+    # gets bounds of specified raster file
     def raster_envelope(self, path):
         ds=gdal.Open(path)
 
@@ -125,7 +129,8 @@ class resource_utils():
 
         return geo_ext
 
-
+    # gets bounds of specified vector file
+    # iterates over polygons and generates envelope using check_envelope function
     def vector_envelope(self, path):
         ds = ogr.Open(path)
         lyr_name = in_path[path.rindex('/')+1:path.rindex('.')]

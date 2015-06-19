@@ -1,0 +1,23 @@
+{
+    "base": "/home/userz/Desktop/ds", 
+    "name": "test_data_update", 
+    "title": "Test Data", 
+    "version": "1", 
+    "licenses": "", 
+    "citation": "", 
+    "sources": [
+        {
+            "web": "google.com", 
+            "name": "google"
+        }
+    ], 
+    "source_link": "google.com", 
+    "short": "skldjsakljdsa", 
+    "variable_description": "0 to 1239012", 
+    "type": "raster", 
+    "file_format": "raster", 
+    "file_extension": "tif", 
+    "extract_types": "mean,max", 
+    "factor": 1332.2,
+    "file_mask": "YYYY/xxxxxxx.xxxxxDDD.xxx.xxx.xxxxxxxxxxxxx.xxx"
+}

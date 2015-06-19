@@ -10,7 +10,7 @@ import os
 import re
 import copy
 
-import datetime
+from datetime import datetime,date
 import calendar
 from dateutil.relativedelta import relativedelta
 
@@ -24,7 +24,6 @@ from osgeo import gdal,ogr,osr
 from log_validate import validate
 from log_prompt import prompts
 from log_resources import resource_utils
-# from log_mongo import update_mongo
 
 
 # --------------------------------------------------
@@ -42,10 +41,38 @@ p = prompts()
 
 
 # --------------------------------------------------
+# user inputs
+
+
+if len(sys.argv) > 1 and sys.argv[1] == "auto":
+
+    generator = "auto"
+
+
+    try:
+
+        path = sys.argv[2]
+
+        if os.path.isfile(path):
+            v.data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
+
+    except:
+        # move mcr output to error folder
+        # 
+
+        sys.stdout.write("Bad inputs.\n")
+
+
+interface = False
+if generator == "manual":
+    interface = True
+
+
+# --------------------------------------------------
 # functions
 
 
-def quit(reason):
+def quit(self, reason):
 
     # do error log stuff
     # 
@@ -86,10 +113,10 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
 
     if init:
         dp = OrderedDict()
-        dp["date_added"] = str(datetime.date.today())
+        dp["date_added"] = str(date.today())
 
     if update:
-        dp["date_updated"] = str(datetime.date.today())
+        dp["date_updated"] = str(date.today())
         dp["datapackage_script"] = script
         dp["datapackage_version"] = version
         dp["datapackage_generator"] = generator
@@ -126,7 +153,7 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
     return dp
 
 
-def generic_input(input_type, update, var_str, in_1, in_2):
+def generic_input(input_type, update, var_str, in_1, in_2, in_3):
 
     if interface:
         if update:
@@ -135,11 +162,11 @@ def generic_input(input_type, update, var_str, in_1, in_2):
         if not update or update and user_update:
             
             if input_type == "open":
-                v.data[var_str] = p.user_prompt_open(in_1, in_2)
+                v.data[var_str] = p.user_prompt_open(in_1, in_2, in_3)
                 data_package[var_str] = v.data[var_str]
 
             elif input_type == "loop":
-                v.data[var_str] = p.user_prompt_loop(in_1, in_2)
+                v.data[var_str] = p.user_prompt_loop(in_1, in_2, in_3)
                 data_package[var_str] = v.data[var_str]
 
         # elif update and not user_update:
@@ -156,53 +183,18 @@ def generic_input(input_type, update, var_str, in_1, in_2):
             check_result = in_2(v.data[var_str])
             
             if type(check_result) != type(True) and len(check_result) == 2:
-                valid, answer, error = check_result
+                valid, answer = check_result
             else:
                 valid = check_result
                 answer = v.data[var_str]
-                error = None
-
-            if error != None:
-                error = " ("+error+")"
-            else:
-                error = ""
 
             if not valid:
-                quit("Bad automated input " + error)
+                quit("Bad automated input")
 
             data_package[var_str] = answer
 
         else:
             data_package[var_str] = v.data[var_str]
-
-
-# --------------------------------------------------
-# user inputs
-
-
-if len(sys.argv) > 1 and sys.argv[1] == "auto":
-
-    generator = "auto"
-
-
-    try:
-
-        path = sys.argv[2]
-
-        if os.path.isfile(path):
-            v.data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
-
-    except:
-        # move mcr output to error folder
-        # 
-
-        quit("Bad inputs.")
-
-
-interface = False
-if generator == "manual":
-    interface = True
-    v.interface = True
 
 
 # --------------------------------------------------
@@ -212,10 +204,10 @@ if generator == "manual":
 # base path
 # get base path
 if interface:
-    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir)
+    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir, v.error["is_dir"])
 
 # check datapackage.json exists at path 
-if interface and os.path.isfile(v.data["base"]+"/datapackage.json"):
+if os.path.isfile(v.data["base"]+"/datapackage.json"):
     # true: update protocol
     clean_data_package = p.user_prompt_bool("Remove outdated fields (if they exist) from existing datapackage?")
 
@@ -242,66 +234,76 @@ flist = [
         "id": "name",
         "type": "open",
         "in_1": "Dataset name? (must be unique from existing datasets)", 
-        "in_2": v.name
+        "in_2": v.name, 
+        "in_3": v.error["name"]
     },
     {   
         "id": "title",
         "type": "open",
         "in_1": "Dataset title?", 
-        "in_2": 0
+        "in_2": 0, 
+        "in_3": 0
     },
     {   
         "id": "version",
         "type": "open",
         "in_1": "Dataset version?", 
-        "in_2": 0
+        "in_2": 0, 
+        "in_3": 0
     },
     {   
         "id": "sources",
         "type": "loop",
         "in_1": {"name":"","web":""}, 
-        "in_2": ("Enter source ", "Add another source?")
+        "in_2":  "Enter source ", 
+        "in_3": "Add another source?"
     },
     {   
         "id": "source_link",
         "type": "open",
         "in_1": "Generic link for dataset?", 
-        "in_2": 0
+        "in_2": 0, 
+        "in_3": 0
     },
     {   
         "id": "licenses",
         "type": "open",
         "in_1": "Id of license(s) for dataset? (" + ', '.join(v.types["licenses"]) + ") [separate your input with commas]",
-        "in_2": v.license_types
+        "in_2": v.license_types, 
+        "in_3": v.error["license_types"]
     },
     {   
         "id": "citation",
         "type": "open",
         "in_1": "Dataset citation?", 
-        "in_2": 0
+        "in_2": 0, 
+        "in_3": 0
     },
     {   
         "id": "short",
         "type": "open",
         "in_1": "A short description of the dataset?", 
-        "in_2": 0
+        "in_2": 0, 
+        "in_3": 0
     },
     {   
         "id": "variable_description",
         "type": "open",
         "in_1": "Description of the variable used in this dataset (units, range, etc.)?", 
-        "in_2": 0
+        "in_2": 0, 
+        "in_3": 0
     },
     {   
         "id": "type",
         "type": "open",
         "in_1": "Type of data in dataset? (" + ', '.join(v.types["data"])+ ")", 
-        "in_2": v.data_type
+        "in_2": v.data_type, 
+        "in_3": v.error["data_type"]
     }
 ]
 
 for f in flist:
-    generic_input(f["type"], update_data_package, f["id"], f["in_1"], f["in_2"])
+    generic_input(f["type"], update_data_package, f["id"], f["in_1"], f["in_2"], f["in_3"])
 
 
 # --------------------
@@ -317,15 +319,15 @@ else:
 v.update_file_format(data_package["file_format"])
 
 # file extension (validation depends on file format)
-generic_input("open", update_data_package, "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension)
+generic_input("open", update_data_package, "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension, v.error["file_extension"])
 
 # raster info
 if data_package["type"] == "raster":
     # extract_types (multiple)
-    generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types)
+    generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, v.error["extract_types"])
 
     # factor
-    generic_input("open", update_data_package, "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor)
+    generic_input("open", update_data_package, "factor", "Dataset multiplication factor? (if needed, use 1 otherwise)", v.factor, v.error["factor"])
 
 
 # --------------------
@@ -382,7 +384,7 @@ for f in ru.file_list:
         geo_ext = ru.raster_envelope(f)
 
         # get full geo info from first file
-        if f_count == 0:
+        if f_count = 0:
             base_geo = geo_ext
 
             # check bbox size
@@ -414,7 +416,7 @@ for f in ru.file_list:
 
 
     # vector datasets should always be just a single file
-    elif data_package["file_format"] == 'vector' and f_count == 0:
+    elif data_package["file_format"] == 'vector' and f_count = 0:
         if data_package["type"] == "boundary":
             geo_ext = ru.vector_envelope(f)
 
@@ -458,115 +460,15 @@ ru.spatial = {
 
 # name for temporal data format
 ru.temporal["name"] = "Year Range"
-
-
-def run_file_mask(fmask, fname, fbase=0):
-
-    if fbase and fname.startswith(fbase):
-        fname = fname[fname.index(fbase) + len(fbase) + 1:]
-
-    output = {
-        "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y']),
-        "month": "".join([x for x,y in zip(fname, fmask) if y == 'M']),
-        "day": "".join([x for x,y in zip(fname, fmask) if y == 'D'])
-    }
-
-    return output
-
-
-def validate_date(date_obj):
-    # year is always required
-    if date_obj["year"] == "":
-        return False, "No year found for data."
-
-    # full 4 digit year required
-    elif len(date_obj["year"]) != 4:
-        return False, "Invalid year."
-
-    # months must always use 2 digits 
-    elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
-        return False, "Invalid month."
-
-    # days of month (day when month is given) must always use 2 digits
-    elif date_obj["month"] != "" and date_obj["day"] != "" and len(date_obj["day"]) != 2:
-        return False, "Invalid day of month."
-
-    # days of year (day when month is not given) must always use 3 digits
-    elif date_obj["month"] == "" and date_obj["day"] != "" and len(date_obj["day"]) != 3:
-        return False, "Invalid day of year."
-
-    return True, None
-
-
-# validate file_mas
-def validate_file_mask(vmask):
-
-    # test file_mask for first file in file_list
-    test_date_str = run_file_mask(vmask, ru.file_list[0], data_package["base"])
-    valid_date = validate_date(test_date_str) 
-    if valid_date[0] == False:
-        return False, None, valid_date[1]
-
-    return True, vmask, None
-
-
-
-# file mask identifying temporal attributes in path/file names
-generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base)\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
-
-
-
-
-# day range for each file (eg: MODIS 8 day composites) 
-day_range = 0
-use_day_range = False
-if interface:
-    use_day_range = user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
-
-
-if use_day_range:
-    day_range = user_prompt_open()
-
-    try:
-        day_range = int(day_range)
-
-    except:
-        print "Invalid file_range string"
-        day_range = 0
-
-
-def get_date_range(date_obj):
-    # year, day of year (7)
-    if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
-        tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
-        tmp_end = tmp_start + relativedelta(days=day_range)
-
-    # year, month, day (8)
-    if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
-        tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
-        tmp_end = tmp_start + relativedelta(days=day_range)
-
-    # year, month (6)
-    if date_obj["month"] != "" and date_obj["day"] == "":   
-        tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
-        month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
-        tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
-
-    # year (4)
-    if date_obj["month"] == "" and date_obj["day"] == "":   
-        tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
-        tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
-
-    return tmp_start, tmp_end
-
-
-
 for f in ru.file_list:
     print f
 
     # resources
     # individual resource info
     resource_tmp = {}
+
+    # name (unique among this dataset's resources - not same name as dataset)
+    resource_tmp["name"] = 
 
     # path relative to datapackage.json
     resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
@@ -578,36 +480,88 @@ for f in ru.file_list:
     # temporal
     # get unique time range based on dir path / file names
     
-    # get data from mask
-    date_str = run_file_mask(v.data["file_mask"], resource_tmp["path"])
+    # day range for each file (eg: MODIS 8 day composites) 
+    day_range = ""
 
-    validate_date_str = validate_date(date_str)
-    if not validate_date_str[0]:
-        quit(validate_date_str[1])
+    try:
+        day_range = int(day_range)
 
-    range_start, range_end = get_date_range(date_str)
-
-
-    if not ru.temporal["start"] or range_start < ru.temporal["start"]:
-      ru.temporal["start"] = range_start
-
-    elif not ru.temporal["end"] or range_end > ru.temporal["end"]:
-      ru.temporal["end"] = range_end
+    except:
+        print "Invalid file_range string"
+        day_range = 0
 
 
-    # name (unique among this dataset's resources - not same name as dataset)
-    resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] +date_str["day"]
+    file_mask = "yyyy/ddd/111111.YYYYDDD.22222.333333.444"
+
+    date_str = {
+        "year": "".join(x if y == 'Y' for x,y in zip(resource_tmp["path"], file_mask)),
+        "month": "".join(x if y == 'M' for x,y in zip(resource_tmp["path"], file_mask)),
+        "day": "".join(x if y == 'D' for x,y in zip(resource_tmp["path"], file_mask))
+    }
+
+
+    # year is always required
+    if date_str["year"] == "":
+        quit("No year found for data.")
+
+    # full 4 digit year required
+    elif len(date_str["year"]) != 4:
+        quit("Invalid year.")
+
+    # months must always use 2 digits 
+    elif date_str["month"] != "" and len(date_str["month"]) != 2:
+        quit("Invalid month.")
+
+    # days of month (day when month is given) must always use 2 digits
+    elif date_str["month"] != "" and date_str["day"] != "" and len(date_str["month"]) != 2:
+        quit("Invalid day of month.")
+
+    # days of year (day when month is not given) must always use 3 digits
+    elif date_str["month"] == "" and date_str["day"] != "" and len(date_str["month"]) != 3:
+        quit("Invalid day of year.")
+
+
+    # year, day of year (7)
+    if date_str["month"] == "" and len(date_str["day"]) == 3:  
+        start_tmp = datetime.datetime(int(date_str["year"]),1,1) + datetime.timedelta(int(date_str["day"])-1)
+        end_tmp = start_tmp + relativedelta(days=file_range["days"])
+
+    # year, month, day (8)
+    if date_str["month"] != "" and len(date_str["day"]) == 2:   
+        start_tmp = datetime.datetime(int(date_str["year"]), int(date_str["month"]), int(date_str["day"]))
+        end_tmp = start_tmp + relativedelta(years=file_range["years"], months=file_range["months"] ,days=file_range["days"])
+
+    # year, month (6)
+    if date_str["month"] != "" and date_str["day"] "":   
+        start_tmp = datetime.datetime(int(date_str["year"]), int(date_str["month"]), 1)
+        mid_tmp = 
+        month_range = calendar.monthrange(int(date_str["year"]), int(date_str["month"]))[1]
+        end_tmp = datetime.datetime(int(date_str["year"]), int(date_str["month"]), month_range)
+
+    # year (4)
+    if date_str["month"] == "" and date_str["day"] == "":   
+        start_tmp = datetime.datetime(int(date_str["year"]), 1, 1)
+        end_tmp = datetime.datetime(int(date_str["year"]), 12, 31)
+
+
+
+    if start_tmp < ru.temporal["start"]:
+      ru.temporal["start"] = start_tmp
+
+    elif end_tmp > ru.temporal["end"]:
+      ru.temporal["end"] = end_tmp
+
+
+
 
     # file date range
-    resource_tmp["start"] = range_start
-    resource_tmp["end"] = range_end
+    resource_tmp["start"] = start_tmp
+    resource_tmp["end"] = 
 
 
     # update main list
     ru.resources.append(resource_tmp)
 
-
-print ru.resources
 
 # --------------------------------------------------
 # database update and datapackage output
