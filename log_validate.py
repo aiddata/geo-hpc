@@ -163,4 +163,3 @@ class validate():
             return True, str(val), None
         except:
             return False, None, self.error["string"]
-

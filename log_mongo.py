@@ -5,7 +5,6 @@ import pymongo
 # update database(s)
 class update_mongo():
     
-
     # loc is 2dsphere spatial index
     # > db.data.createIndex( { loc : "2dsphere" } )
     # path is unique index
@@ -14,14 +13,12 @@ class update_mongo():
     # > db.data.createIndex( { name : 1 }, { unique: 1 } )
 
 
-
     def init(self):
         # connect to mongodb
         self.client = pymongo.MongoClient()
         self.db = self.client.daf
         self.c_data = self.db.data
         self.c_ckan = self.db.ckan
-
 
 
     def update_core(self, col, data):
@@ -46,11 +43,9 @@ class update_mongo():
             print "Success - Item successfully inserted into database.\n"
 
 
-
     # update/create boundary tracker(s)
     # *** add error handling for all inserts (above and below) ***
     # *** remove previous inserts if later insert fails, etc. ***
-
     def update_trackers(self, type):
 
         if in_type == "boundary":
@@ -73,7 +68,6 @@ class update_mongo():
             for bnd in bnds:
                 c_bnd = db[bnd['name']]
                 c_bnd.insert(dset)
-
 
 
     # update ckan mongodb (contains all existing datapackage.json as documents)

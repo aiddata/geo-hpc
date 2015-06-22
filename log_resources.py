@@ -167,4 +167,3 @@ class resource_utils():
             
     #     geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
     #     return geo_ext
-

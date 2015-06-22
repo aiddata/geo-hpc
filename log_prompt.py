@@ -102,3 +102,4 @@ class prompts():
 
             if not self.user_prompt_bool(str(cont)):
                 return result
+                
