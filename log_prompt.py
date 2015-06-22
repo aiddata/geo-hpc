@@ -1,5 +1,6 @@
 import sys
 
+
 # functions for generating user prompts
 class prompts():
 
@@ -17,6 +18,7 @@ class prompts():
                 sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
 
+    # prompt to use entered/existing input
     def user_prompt_use_input(self, conditional=None, statement=0, value=None):
         if not statement:
             if value == None:
@@ -79,6 +81,9 @@ class prompts():
                 return raw_answer
 
 
+    # open prompt loop over defined structure
+    # phrases is tuple which includes open prompt question 
+    # and question used for continuing loop
     def user_prompt_loop(self, struct, phrases):
 
         question = phrases[0]

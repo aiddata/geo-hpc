@@ -4,7 +4,9 @@ import re
 from collections import OrderedDict
 from log_prompt import prompts
 
+
 p = prompts()
+
 
 # validation functions, fields, etc.
 class validate():
@@ -75,10 +77,15 @@ class validate():
     # check if name is unique and valid
     def name(self, val):
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
+
+        if val == "":
+            return False, None, "??? Error message needed ???"
+
+
         val = val.lower()
         
         if self.interface and not p.user_prompt_use_input(value=val):
-          return False, None, "??? Error message needed ???"
+            return False, None, "??? Error message needed ???"
         
         # check mongodb
         # 
@@ -137,7 +144,7 @@ class validate():
             return False, None, self.error["factor"]
 
 
-    # factor is a float
+    # day_range is string
     def day_range(self, val):
         if val == "":
             val = 1
@@ -149,6 +156,7 @@ class validate():
             return False, None, self.error["day_range"]
 
 
+    # generic string
     def string(self, val):
         try:
             str(val)

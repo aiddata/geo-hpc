@@ -65,6 +65,7 @@ class resource_utils():
 
         return ext
 
+
     # reprojects raster
     def ReprojectCoords(self, coords, src_srs, tgt_srs):
         ''' Reproject a list of x,y coordinates.
@@ -115,6 +116,7 @@ class resource_utils():
 
         return old
 
+
     # gets bounds of specified raster file
     def raster_envelope(self, path):
         ds=gdal.Open(path)
@@ -134,6 +136,7 @@ class resource_utils():
         # geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
 
         return geo_ext
+
 
     # gets bounds of specified vector file
     # iterates over polygons and generates envelope using check_envelope function

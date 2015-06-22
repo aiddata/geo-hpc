@@ -1,5 +1,4 @@
-
-import copy
+from copy import deepcopy
 import pymongo
 
 
@@ -21,49 +20,11 @@ class update_mongo():
         self.client = pymongo.MongoClient()
         self.db = self.client.daf
         self.c_data = self.db.data
-        self.ckan = self.db.ckan
+        self.c_ckan = self.db.ckan
 
 
 
-    # !!!
-    # build dictionary for mongodb insert
-    data = {
-        
-        "loc": { 
-                "type": "Polygon", 
-                "coordinates": [ [
-                    geo_ext[0],
-                    geo_ext[1],
-                    geo_ext[2],
-                    geo_ext[3],
-                    geo_ext[0]
-                ] ]
-            },
-        "short": in_short,
-        "type": in_type,
-        "scale": in_scale,
-        "format": in_format,
-        # ADD PATH TO FILES DATAPACKAGE (datapackage_path)
-        # 
-        # ADD PARENT DATAPACKAGE NAME - "group" field (datapackage_name)
-        # 
-        # script version
-        # 
-        # any other version info or other stuff we might need?
-        # 
-        
-        "name": in_name,
-        "path": in_path,
-        "bytes": "",
-        "start": int(in_start),
-        "end": int(in_end)
-
-    }
-    # !!!
-
-
-
-    def update_main(self, col, data):
+    def update_core(self, col, data):
 
         # insert 
         try:
@@ -107,7 +68,7 @@ class update_mongo():
             # if dataset is not boundary
             # add dataset to each boundary collection with "unprocessed" flag
             bnds = c_data.find({"type": "boundary"},{"name": 1})
-            dset = copy.deepcopy(data)
+            dset = deepcopy(data)
             dset['status'] = -1
             for bnd in bnds:
                 c_bnd = db[bnd['name']]

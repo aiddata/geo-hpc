@@ -152,6 +152,9 @@ def generic_input(input_type, update, var_str, in_1, in_2):
     else:
         if input_type == "open" and in_2:
 
+            if not var_str in v.data:
+                v.data[var_str] = ""
+
             check_result = in_2(v.data[var_str])
             
             if type(check_result) != type(True) and len(check_result) == 3:
@@ -208,10 +211,15 @@ if generator == "manual":
 # prompts
 
 
+
 # base path
 # get base path
 if interface:
     v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir)
+
+elif not "base" in v.data:
+    quit("No datapackage path given.")
+
 
 # check datapackage.json exists at path 
 if interface and os.path.isfile(v.data["base"]+"/datapackage.json"):
@@ -247,7 +255,7 @@ flist = [
         "id": "title",
         "type": "open",
         "in_1": "Dataset title?", 
-        "in_2": 0
+        "in_2": v.string
     },
     {   
         "id": "version",
@@ -265,7 +273,7 @@ flist = [
         "id": "source_link",
         "type": "open",
         "in_1": "Generic link for dataset?", 
-        "in_2": 0
+        "in_2": v.string
     },
     {   
         "id": "licenses",
@@ -277,19 +285,19 @@ flist = [
         "id": "citation",
         "type": "open",
         "in_1": "Dataset citation?", 
-        "in_2": 0
+        "in_2": v.string
     },
     {   
         "id": "short",
         "type": "open",
         "in_1": "A short description of the dataset?", 
-        "in_2": 0
+        "in_2": v.string
     },
     {   
         "id": "variable_description",
         "type": "open",
         "in_1": "Description of the variable used in this dataset (units, range, etc.)?", 
-        "in_2": 0
+        "in_2": v.string
     },
     {   
         "id": "type",
@@ -387,13 +395,14 @@ for f in ru.file_list:
             ysize = geo_ext[0][1] - geo_ext[1][1]
             tsize = abs(xsize * ysize)
 
-            in_scale = "regional"
+            scale = "regional"
             if tsize >= 32400:
-                in_scale = "global"
+                scale = "global"
                 # prompt to continue
                 if interface and not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
                     quit("User request.")
 
+            data_package["scale"] = scale
 
             # display datset info to user
             print "Dataset bounding box: ", geo_ext
@@ -530,7 +539,8 @@ def get_date_range(date_obj, drange=0):
 
 
 # name for temporal data format
-ru.temporal["name"] = "Year Range"
+ru.temporal["name"] = "Date Range"
+ru.temporal["format"] = "%Y%m%d"
 
 # file mask identifying temporal attributes in path/file names
 generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base)\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
@@ -616,8 +626,44 @@ write_data_package()
 
 
 # --------------------------------------------------
-# database update and datapackage output
+# database update(s) and datapackage output
 
+
+# build dictionary for mongodb insert
+mdata = {
+    
+    # resource spatial
+    "loc": ru.spatial,
+
+    # datapackage
+    "short": data_package["short"],
+    "type": data_package["type"],
+    "file_format": data_package["file_format"],
+
+    # exists but need to add
+    "scale": data_package["scale"],
+
+    # path to parent datapackage dir
+    "datapackage_path": data_package["base"],
+    # parent datapackage name (ie: group field)
+    "datapackage_name": data_package["name"],
+
+    # generation info
+    "datapackage_script": data_package["datapackage_script"],
+    "datapackage_version": data_package["datapackage_version"],
+    "datapackage_generator": data_package["datapackage_generator"],
+
+    # any other version info or other stuff we might need?
+    # 
+    
+    # file specific info from resource_tmp
+    "name": resource_tmp["name"],
+    "path": resource_tmp["path"],
+    "bytes": resource_tmp["bytes"],
+    "start": resource_tmp["start"],
+    "end": resource_tmp["end"]
+
+}
 
 # update mongo
 # 
