@@ -21,6 +21,7 @@
     "file_extension": {"default": ""}, 
     "extract_types": {"default": []},
     "factor": {"default": 1},
+    "file_mask": {"default": ""},
     "temporal": {"default": []}, 
     "spatial": {"default": ""},
     "resources": {"default": []}

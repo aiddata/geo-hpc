@@ -7,8 +7,8 @@
 
 import sys
 import os
-import re
-import copy
+# import re
+# import copy
 
 import datetime
 import calendar
@@ -16,10 +16,9 @@ from dateutil.relativedelta import relativedelta
 
 from collections import OrderedDict
 import json
-import glob
 
-import pymongo
-from osgeo import gdal,ogr,osr
+# import pymongo
+# from osgeo import gdal,ogr,osr
 
 from log_validate import validate
 from log_prompt import prompts
@@ -155,7 +154,7 @@ def generic_input(input_type, update, var_str, in_1, in_2):
 
             check_result = in_2(v.data[var_str])
             
-            if type(check_result) != type(True) and len(check_result) == 2:
+            if type(check_result) != type(True) and len(check_result) == 3:
                 valid, answer, error = check_result
             else:
                 valid = check_result
@@ -254,7 +253,7 @@ flist = [
         "id": "version",
         "type": "open",
         "in_1": "Dataset version?", 
-        "in_2": 0
+        "in_2": v.string
     },
     {   
         "id": "sources",
@@ -341,7 +340,7 @@ if interface and p.user_prompt_bool("Would you like to review your inputs?"):
 
 
 
-print data_package
+# print data_package
 
 
 # --------------------------------------------------
@@ -357,8 +356,6 @@ if update_data_package and interface and not p.user_prompt_bool("Run resource ch
 # resource utils class instance
 ru = resource_utils()
 
-# send current data_package to resource utils
-ru.dp = data_package
 
 # find all files with file_extension in path
 for root, dirs, files in os.walk(data_package["base"]):
@@ -366,7 +363,7 @@ for root, dirs, files in os.walk(data_package["base"]):
 
         file = os.path.join(root, file)
 
-        file_check = ru.run_file_check(file)
+        file_check = ru.run_file_check(file, data_package["file_extension"])
 
         if file_check == True:
             ru.file_list.append(file)
@@ -456,9 +453,6 @@ ru.spatial = {
 # data and gather information on individual 
 # files is designed custom for each dataset
 
-# name for temporal data format
-ru.temporal["name"] = "Year Range"
-
 
 def run_file_mask(fmask, fname, fbase=0):
 
@@ -466,9 +460,9 @@ def run_file_mask(fmask, fname, fbase=0):
         fname = fname[fname.index(fbase) + len(fbase) + 1:]
 
     output = {
-        "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y']),
-        "month": "".join([x for x,y in zip(fname, fmask) if y == 'M']),
-        "day": "".join([x for x,y in zip(fname, fmask) if y == 'D'])
+        "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y' and x.isdigit()]),
+        "month": "".join([x for x,y in zip(fname, fmask) if y == 'M' and x.isdigit()]),
+        "day": "".join([x for x,y in zip(fname, fmask) if y == 'D' and x.isdigit()])
     }
 
     return output
@@ -510,41 +504,16 @@ def validate_file_mask(vmask):
     return True, vmask, None
 
 
-
-# file mask identifying temporal attributes in path/file names
-generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base)\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
-
-
-
-
-# day range for each file (eg: MODIS 8 day composites) 
-day_range = 0
-use_day_range = False
-if interface:
-    use_day_range = user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
-
-
-if use_day_range:
-    day_range = user_prompt_open()
-
-    try:
-        day_range = int(day_range)
-
-    except:
-        print "Invalid file_range string"
-        day_range = 0
-
-
-def get_date_range(date_obj):
+def get_date_range(date_obj, drange=0):
     # year, day of year (7)
     if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
         tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
-        tmp_end = tmp_start + relativedelta(days=day_range)
+        tmp_end = tmp_start + relativedelta(days=drange)
 
     # year, month, day (8)
     if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
         tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
-        tmp_end = tmp_start + relativedelta(days=day_range)
+        tmp_end = tmp_start + relativedelta(days=drange)
 
     # year, month (6)
     if date_obj["month"] != "" and date_obj["day"] == "":   
@@ -557,8 +526,23 @@ def get_date_range(date_obj):
         tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
         tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
 
-    return tmp_start, tmp_end
+    return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d'))
 
+
+# name for temporal data format
+ru.temporal["name"] = "Year Range"
+
+# file mask identifying temporal attributes in path/file names
+generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base)\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
+print data_package["file_mask"]
+
+# day range for each file (eg: MODIS 8 day composites) 
+use_day_range = False
+if interface:
+    use_day_range = user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
+
+if use_day_range or "day_range" in v.data:
+    generic_input("open", update_data_package, "day_range", "File day range? (Must be integer)", v.day_range)
 
 
 for f in ru.file_list:
@@ -577,22 +561,21 @@ for f in ru.file_list:
 
     # temporal
     # get unique time range based on dir path / file names
-    
+
     # get data from mask
     date_str = run_file_mask(v.data["file_mask"], resource_tmp["path"])
 
     validate_date_str = validate_date(date_str)
+
     if not validate_date_str[0]:
         quit(validate_date_str[1])
 
-    range_start, range_end = get_date_range(date_str)
 
+    if "day_range" in data_package:
+        range_start, range_end = get_date_range(date_str, data_package["day_range"])
 
-    if not ru.temporal["start"] or range_start < ru.temporal["start"]:
-      ru.temporal["start"] = range_start
-
-    elif not ru.temporal["end"] or range_end > ru.temporal["end"]:
-      ru.temporal["end"] = range_end
+    else: 
+        range_start, range_end = get_date_range(date_str)
 
 
     # name (unique among this dataset's resources - not same name as dataset)
@@ -602,12 +585,35 @@ for f in ru.file_list:
     resource_tmp["start"] = range_start
     resource_tmp["end"] = range_end
 
+    # reorder resource fields
+    resource_order = ["name", "path", "bytes", "start", "end"]
+    resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 
     # update main list
     ru.resources.append(resource_tmp)
 
 
-print ru.resources
+    # update dataset temporal info
+    if not ru.temporal["start"] or range_start < ru.temporal["start"]:
+      ru.temporal["start"] = range_start
+
+    elif not ru.temporal["end"] or range_end > ru.temporal["end"]:
+      ru.temporal["end"] = range_end
+
+
+
+
+data_package["temporal"] = ru.temporal
+data_package["spatial"] = ru.spatial
+data_package["resources"] = ru.resources
+
+
+
+print "\n\n\n"
+print data_package
+write_data_package()
+
+
 
 # --------------------------------------------------
 # database update and datapackage output
@@ -622,3 +628,4 @@ print ru.resources
 
 # create datapackage
 # 
+

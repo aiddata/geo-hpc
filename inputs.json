@@ -2,8 +2,8 @@
     "base": "/home/userz/Desktop/ds", 
     "name": "test_data_update", 
     "title": "Test Data", 
-    "version": "1", 
-    "licenses": "", 
+    "version": 1, 
+    "licenses": "cc,mitx", 
     "citation": "", 
     "sources": [
         {
@@ -18,6 +18,6 @@
     "file_format": "raster", 
     "file_extension": "tif", 
     "extract_types": "mean,max", 
-    "factor": 1332.2,
+    "factor": 132.5,
     "file_mask": "YYYY/xxxxxxx.xxxxxDDD.xxx.xxx.xxxxxxxxxxxxx.xxx"
 }

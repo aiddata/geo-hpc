@@ -20,9 +20,15 @@ class resource_utils():
         self.spatial = ""
 
 
+    def update_dp(self):
+        self.dp["temporal"] = self.temporal
+        self.dp["spatial"] = self.spatial
+        self.dp["resources"] = self.resources
+
+
     # checks if file has extension type specified for class instance
-    def run_file_check(self, f):
-        if not f.endswith('.' + self.dp["file_extension"]):
+    def run_file_check(self, f, ext):
+        if not f.endswith('.' + ext):
             return False
 
         return True

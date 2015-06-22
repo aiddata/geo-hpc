@@ -44,7 +44,9 @@ class validate():
             "data_type": "not in list of valid types",
             "file_extension": "not a valid primary file extension",
             "extract_types": "at least one extract type given not in list of valid extract types",
-            "factor": "could not be converted to float"
+            "factor": "could not be converted to float",
+            "day_range": "could not be converted to int",
+            "string": "could not be converted to string"
         }
 
         # current datapackage fields
@@ -92,12 +94,17 @@ class validate():
 
     # each extract type in extract_types
     def license_types(self, val):
-        vals = [x.strip(' ') for x in val.split(",")]
+        valx = [x.strip(' ') for x in val.split(",")]
 
-        if len(vals) == 1 and vals[0] == "":
+        if len(valx) == 1 and valx[0] == "":
             return True, [], None
 
-        valid = False not in [x in self.types["licenses"] for x in vals]
+        valid = False not in [x in self.types["licenses"] for x in valx]
+
+        vals = None
+        if valid:
+            vals = [self.licenses[x] for x in valx]
+
         return valid, vals, self.error["license_types"]
 
 
@@ -121,10 +128,31 @@ class validate():
     # factor is a float
     def factor(self, val):
         if val == "":
-            val = 1
+            val = 1.0
 
         try:
             float(val)
             return True, float(val), None
         except:
             return False, None, self.error["factor"]
+
+
+    # factor is a float
+    def day_range(self, val):
+        if val == "":
+            val = 1
+
+        try:
+            int(float(val))
+            return True, int(float(val)), None
+        except:
+            return False, None, self.error["day_range"]
+
+
+    def string(self, val):
+        try:
+            str(val)
+            return True, str(val), None
+        except:
+            return False, None, self.error["string"]
+
