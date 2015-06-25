@@ -19,42 +19,51 @@ class update_mongo():
         self.db = self.client.daf
         self.c_data = self.db.data
         self.c_ckan = self.db.ckan
+        self.c_tmp = self.db.tmp
 
 
-    def update_core(self, col, data):
+    def update_core(self, in_data):
 
-        # insert 
         try:
-            c_data.insert(data)
+            # insert 
+            c_data.insert(in_data)
+
         except pymongo.errors.DuplicateKeyError, e:
-            print e
-            quit("Dataset with same name or path exists.")
+            # print e
+            # quit("Dataset with same name or path exists.")
+
+            # update (replace)
+            # 
 
 
         # check insert and notify user
-        vp = c_data.find({"path": in_path})
-        vn = c_data.find({"name": in_name})
+        vp = c_data.find({"path": in_data["path"]})
+        vn = c_data.find({"name": in_data["name"]})
 
         if vp.count() < 1 or vn.count() < 1:
-            quit( "Error - No items with name or path found in database.")
+            # quit( "Error - No items with name or path found in database.")
+            return 1
         elif vp.count() > 1 or vn.count() > 1:
-            quit( "Error - Multiple items with name or path found in database.")
+            # quit( "Error - Multiple items with name or path found in database.")
+            return 2
         else:
-            print "Success - Item successfully inserted into database.\n"
+            # print "Success - Item successfully inserted into database.\n"
+            return 0
 
 
     # update/create boundary tracker(s)
     # *** add error handling for all inserts (above and below) ***
     # *** remove previous inserts if later insert fails, etc. ***
-    def update_trackers(self, type):
+    def update_trackers(self, in_data):
 
         if in_type == "boundary":
             # if dataset is boundary
             # create new boundary tracker collection
-            # each each non-boundary dataset item to new boundary collection with "unprocessed" flag
-            dsets =  c_data.find({"type": {"$ne": "boundary"}})
-            c_bnd = db[in_name]
+            c_bnd = db[in_data["name"]]
             c_bnd.create_index("name", unique=True)
+
+            # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
+            dsets =  c_data.find({"type": {"$ne": "boundary"}})
             for dset in dsets:
                 dset['status'] = -1
                 c_bnd.insert(dset)
@@ -62,9 +71,9 @@ class update_mongo():
         else:
             # if dataset is not boundary
             # add dataset to each boundary collection with "unprocessed" flag
-            bnds = c_data.find({"type": "boundary"},{"name": 1})
-            dset = deepcopy(data)
+            dset = deepcopy(in_data)
             dset['status'] = -1
+            bnds = c_data.find({"type": "boundary"},{"name": 1})
             for bnd in bnds:
                 c_bnd = db[bnd['name']]
                 c_bnd.insert(dset)

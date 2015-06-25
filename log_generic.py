@@ -632,30 +632,34 @@ write_data_package()
 # build dictionary for mongodb insert
 mdata = {
     
-    # resource spatial
-    "loc": ru.spatial,
-
-    # datapackage
-    "short": data_package["short"],
-    "type": data_package["type"],
-    "file_format": data_package["file_format"],
-
-    # exists but need to add
-    "scale": data_package["scale"],
+    # generation info
+    "datapackage_script": data_package["datapackage_script"],
+    "datapackage_version": data_package["datapackage_version"],
+    "datapackage_generator": data_package["datapackage_generator"],
 
     # path to parent datapackage dir
     "datapackage_path": data_package["base"],
     # parent datapackage name (ie: group field)
     "datapackage_name": data_package["name"],
 
-    # generation info
-    "datapackage_script": data_package["datapackage_script"],
-    "datapackage_version": data_package["datapackage_version"],
-    "datapackage_generator": data_package["datapackage_generator"],
 
-    # any other version info or other stuff we might need?
-    # 
-    
+    # datapackage
+    "title": data_package["title"],
+    "version": data_package["version"],
+    "licenses": data_package["licenses"],
+    "citation": data_package["citation"],
+    "sources": data_package["sources"],
+    "source_link": data_package["source_link"],
+    "short": data_package["short"],
+    "variable_description": data_package["variable_description"],
+    "type": data_package["type"],
+    "file_format": data_package["file_format"],
+    "file_extension": data_package["file_extension"],
+    "scale": data_package["scale"],
+
+    # resource spatial
+    "loc": ru.spatial,
+
     # file specific info from resource_tmp
     "name": resource_tmp["name"],
     "path": resource_tmp["path"],
