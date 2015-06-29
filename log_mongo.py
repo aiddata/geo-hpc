@@ -13,7 +13,7 @@ class update_mongo():
     # > db.data.createIndex( { name : 1 }, { unique: 1 } )
 
 
-    def init(self):
+    def __init__(self):
         # connect to mongodb
         self.client = pymongo.MongoClient()
         self.db = self.client.daf

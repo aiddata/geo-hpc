@@ -20,6 +20,16 @@ for external datasets / manual logging:
 - processed data must be logged before it can be used in any application (creates datapackage.json and inserts into database)
 
 
+boundary datasets
+- every boundary file has its own dataset
+- all boundary files must be uploaded individually
+- adm boundary file dataset names must be: <uppercase country ISO3>_adm<adm #> (eg: NPL_adm0)
+- country groups for adm boundary datasets my be the uppercase country ISO3 (eg: NPL)
+- adm boundaries other than adm0 require that an adm0 boundary dataset already exists
+
+- for non adm boundaries (dataset name does not follow adm format), group names must either be the file's own name or match an existing group
+
+
 
 for internal datasets / automatic logging:
 

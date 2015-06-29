@@ -326,6 +326,7 @@ v.update_file_format(data_package["file_format"])
 # file extension (validation depends on file format)
 generic_input("open", update_data_package, "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension)
 
+
 # raster info
 if data_package["type"] == "raster":
     # extract_types (multiple)
@@ -333,6 +334,13 @@ if data_package["type"] == "raster":
 
     # factor
     generic_input("open", update_data_package, "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor)
+
+
+# boundary info
+elif data_package["type"] == "boundary":
+    # boundary group
+    generic_input("open", update_data_package, "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group)
+
 
 
 # --------------------
@@ -416,19 +424,24 @@ for f in ru.file_list:
 
         # exit if basic geo does not match
         if base_geo != geo_ext:
-            quit("Geography does not match")
+            quit("Raster bounding box does not match")
 
 
-    # vector datasets should always be just a single file
-    elif data_package["file_format"] == 'vector' and f_count == 0:
-        if data_package["type"] == "boundary":
+    elif data_package["file_format"] == 'vector':
+
+        # boundary datasets can be multiple files (for administrative zones)
+        if data_package["type"] == "boundary" and f_count == 0:
             geo_ext = ru.vector_envelope(f)
 
+
+
         else:
-            # run something similar to ru.vector_envelope
-            # instead of polygons in one file we are checking polygons in files in list
-            # create new ru.vector_list function which calls ru.vector_envelope
-            # geo_ext = ru.vector_list(ru.file_list)
+            # - run something similar to ru.vector_envelope
+            # - instead of polygons in adm files (or some "other" boundary file(s)) we are 
+            #   checking polygons in files in list
+            # - create new ru.vector_list function which calls ru.vector_envelope
+            # 
+            #  geo_ext = ru.vector_list(ru.file_list)
             quit("Only accepting boundary vectors at this time.")
 
     else:

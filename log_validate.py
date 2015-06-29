@@ -4,6 +4,7 @@ import re
 from collections import OrderedDict
 from log_prompt import prompts
 
+import pymongo
 
 p = prompts()
 
@@ -53,6 +54,11 @@ class validate():
 
         # current datapackage fields
         self.fields = json.load(open(self.dir_base + "/fields.json", 'r'), object_pairs_hook=OrderedDict)
+
+        # mongo stuff
+        self.client = pymongo.MongoClient()
+        self.db = self.client.daf
+        self.c_data = self.db.data
 
 
     # -------------------------
@@ -163,3 +169,50 @@ class validate():
             return True, str(val), None
         except:
             return False, None, self.error["string"]
+
+
+    # boundary group
+    def group(self, val):
+
+        val = str(val)
+
+        name = self.data["name"]
+
+        # group is boundary name if empty
+        if val == "":
+            val = name
+
+        # check if boundary with group exists
+        exists = c_data.find({"type": "boundary", "group": val}).limit(1).count() > 0
+
+    
+        if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does not exist. Are you sure you want to create it?" ):
+            return False, None, "group did not pass due to user request"
+
+        else:
+            return True, str(val), None
+
+    
+        # # check if group is 3 capital letters (ISO3)
+        # if len(val) == 3 and val.isupper():
+        #     # check if name == group_adm0
+        #     if name == val + "_adm0":
+        #         return True, str(val), None
+        #     else:
+        #         # check if boundary with group exists
+        #         exists = c_data.find({"type": "boundary", "group": val}).limit(1)
+        #         if len(exists) > 0:
+        #             return True, str(val), None
+        #         else: 
+        #             return False, None, "country group (adm0 dataset) must exist before adding"
+
+        # else:
+        #     if val == name:
+        #         return True, str(val), None
+        #     else:
+        #         exists = c_data.find({"type": "boundary", "group": val}).limit(1)
+        #         if len(exists) > 0:
+        #             return True, str(val), None
+        #         else:
+        #             return False, None, "group does not match name or existing group"
+
