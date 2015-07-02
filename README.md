@@ -1,4 +1,4 @@
-# KFW_Imagery
+# extract-scripts
 
 ##ndvi_mosaic
 Scripts for creating a job on the Sciclone cluster which preprocesses/mosaics contemporary GIMMS NDVI data in parallel

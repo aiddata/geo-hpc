@@ -9,13 +9,16 @@ readIn <- commandArgs(trailingOnly = TRUE)
 
 extract_type <- readIn[1]
 
+project_name <- readIn[2]
+
+
 mod <- "air_temp"
 
 if (extract_type == "terrestrial_precipitation") {
 	mod <- "precip"
 }
 
-base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/",extract_type,sep="")
+base <- paste("/sciclone/aiddata10/REU/projects/",project_name,"/extracts/",extract_type,sep="")
 out <- "extract_merge.csv"
 
 
@@ -34,7 +37,7 @@ for (y in 1:length(years)) {
 
 		day<- days[d]
 
-		path <- paste(base,"/output/",year,"/",day,"/",mod,"_extract_",year,"_",day,".shp",sep="")
+		path <- paste(base,"/output/",year,"/",day,"/extract_",year,"_",day,".shp",sep="")
 
 		# read extract shp 
 		v <- readShapePoly(path)
@@ -45,12 +48,18 @@ for (y in 1:length(years)) {
 
 		# create df if it does not exist
 		if (c == 0) {
-			df <- data.frame(id= c(1:length(ex)))
-			c <- 1
-		}
+			# df <- data.frame(id= c(1:length(ex)))
+            df <- v@data
 
-		# add extract to df
-		df[[paste(year,day,sep="_")]] <- ex
+            x <- match(mod, colnames(df))
+            colnames(df)[x] <- paste(year,day,sep="_")
+
+			c <- 1
+		} else {
+
+    		# add extract to df
+    		df[[paste(year,day,sep="_")]] <- ex
+        }
 
 	}
 }

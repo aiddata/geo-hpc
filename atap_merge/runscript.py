@@ -5,8 +5,15 @@ import os
 
 runscript = sys.argv[1]
 
-extract_type = "terrestrial_air_temperature"
+# --------------------------------------------------
+
+# project name (must match folder in /sciclone/aiddata10/REU/projects)
+project_name = sys.argv[2] # "kfw"
+
+extract_type = sys.argv[3] # "terrestrial_air_temperature"
 # extract_type = "terrestrial_precipitation"
+
+# --------------------------------------------------
 
 comm = MPI.COMM_WORLD
 
@@ -16,7 +23,7 @@ rank = comm.Get_rank()
 if rank == 0:
 
 	try:
-		cmd = "Rscript "+runscript+" "+extract_type
+		cmd = "Rscript "+runscript+" "+extract_type+" "+project_name
 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 		print sts
 

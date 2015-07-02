@@ -5,16 +5,28 @@ import os
 
 runscript = sys.argv[1]
 
-comm = MPI.COMM_WORLD
 
+# --------------------------------------------------
+
+# project name (must match folder in /sciclone/aiddata10/REU/projects)
+project_name = sys.argv[2] # "kfw"
+
+# shapefile file name (no path or extension)
+shape_name = sys.argv[3] # "terra_indegenousMatched"
+
+atap_type = sys.argv[4] # "terrestrial_air_temperature"
+# atap_type = "terrestrial_precipitation"
+
+# --------------------------------------------------
+
+
+comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-atap_type = "terrestrial_air_temperature"
-# atap_type = "terrestrial_precipitation"
 
 # base path where year/day directories for processed data are located
-path_base = "/sciclone/data20/aiddata/REU/data/" + atap_type + "/"
+path_base = "/sciclone/aiddata10/REU/data/" + atap_type + "/"
 
 # list of years to ignore
 ignore = []
@@ -55,7 +67,7 @@ c = rank
 while c < len(qlist):
 
 	try:
-		cmd = "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]+" "+atap_type
+		cmd = "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+qlist[c][2]+" "+atap_type+" "+project_name+" "+shape_name
 		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 		print sts
 

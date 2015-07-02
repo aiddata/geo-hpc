@@ -13,6 +13,9 @@ day <- readIn[2]
 name <- readIn[3]
 
 atap_type <- readIn[4]
+project_name <- readIn[5]
+shape_name <- readIn[6]
+
 
 atap_abbr <- "air_temp"
 if (atap_type == "terrestrial_precipitation") {
@@ -22,13 +25,13 @@ if (atap_type == "terrestrial_precipitation") {
 timer <- proc.time()
 
 
-in_base <- paste("/sciclone/data20/aiddata/REU/data/",atap_type,sep="")
-out_base <- paste("/sciclone/data20/aiddata/REU/projects/kfw/extracts/",atap_type,"/output/",year,"/",day, sep="")
+in_base <- paste("/sciclone/aiddata10/REU/data/",atap_type,sep="")
+out_base <- paste("/sciclone/aiddata10/REU/projects/",project_name,"/extracts/",atap_type,"/output/",year,"/",day, sep="")
 
 
 
 # myVector <- readOGR('/path/to/shps', 'terra_indigenaPolygon')
-myVector <- readShapePoly('/sciclone/data20/aiddata/REU/projects/kfw/shps/terra_indigenaPolygon.shp')
+myVector <- readShapePoly(paste("/sciclone/aiddata10/REU/projects/",project_name,"/shps/",shape_name,".shp", sep=""))
 
 
 myRaster <- raster(paste(in_base, year, day, name, sep="/")) 
@@ -45,9 +48,9 @@ colnames(myExtract@data)[x] <- atap_abbr
 dir.create(out_base, recursive=TRUE)
 
 myOutput <- myExtract@data
-write.table(myOutput, paste(out_base,"/",atap_abbr,"_extract_",year,"_",day,".csv", sep=""), quote=T, row.names=F, sep=",")
+write.table(myOutput, paste(out_base,"/extract_",year,"_",day,".csv", sep=""), quote=T, row.names=F, sep=",")
 
-out_shp <- paste(out_base,"/",atap_abbr,"_extract_",year,"_",day,".shp", sep="")
+out_shp <- paste(out_base,"/extract_",year,"_",day,".shp", sep="")
 writePolyShape(myExtract, out_shp)
 
 
