@@ -8,8 +8,8 @@ library("maptools")
 # --------------------------------------------------
 
 base <- "/home/userz/globus-data"
-project_name <- "liberia"
-shape_name <- "LBR_adm3"
+project_name <- "birds"
+shape_name <- "matched_ibas_proj"
 
 # --------------------------------------------------
 

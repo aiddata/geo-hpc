@@ -9,7 +9,7 @@ timer <- proc.time()
 # --------------------------------------------------
 
 base <- "/home/userz/globus-data"
-project_name <- "liberia"
+project_name <- "birds"
 
 # --------------------------------------------------
 
