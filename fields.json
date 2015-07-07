@@ -19,11 +19,23 @@
     "type": {"default": ""},
     "file_format": {"default": ""},
     "file_extension": {"default": ""}, 
-    "extract_types": {"default": []},
-    "factor": {"default": 1},
-    "file_mask": {"default": ""},
     "scale": {"default": ""},
+    "file_mask": {"default": ""},
     "temporal": {"default": []}, 
     "spatial": {"default": ""},
-    "resources": {"default": []}
+    "resources": {"default": []},
+
+    "options": {
+        "default": {},
+
+        "raster": {
+            "extract_types": {"default": []},
+            "factor": {"default": 1}
+        },
+
+        "boundary": {
+            "group": {"default": "None"},
+            "actual": {"default": 0}
+        }
+    }
 }

@@ -122,10 +122,13 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
                 if k not in v.fields:
                     del dp[k]
 
+            # clean options?
+            # 
+
     return dp
 
 
-def generic_input(input_type, update, var_str, in_1, in_2):
+def generic_input(input_type, update, var_str, in_1, in_2=0, opt=0):
 
     if interface:
         if update:
@@ -135,11 +138,17 @@ def generic_input(input_type, update, var_str, in_1, in_2):
             
             if input_type == "open":
                 v.data[var_str] = p.user_prompt_open(in_1, in_2)
-                data_package[var_str] = v.data[var_str]
+                if not opt:
+                    data_package[var_str] = v.data[var_str]
+                else:
+                    data_package["options"][var_str] = v.data[var_str]
 
             elif input_type == "loop":
                 v.data[var_str] = p.user_prompt_loop(in_1, in_2)
-                data_package[var_str] = v.data[var_str]
+                if not opt:
+                    data_package[var_str] = v.data[var_str]
+                else:
+                    data_package["options"][var_str] = v.data[var_str]
 
         # elif update and not user_update:
             # validate anyway - in case validation function changed
@@ -172,11 +181,17 @@ def generic_input(input_type, update, var_str, in_1, in_2):
             if not valid:
                 quit("Bad automated input " + error)
 
-            data_package[var_str] = answer
-
+            if not opt:
+                data_package[var_str] = answer
+            else:
+                data_package["options"][var_str] = answer
+                 
         else:
-            data_package[var_str] = v.data[var_str]
-
+            if not opt:
+                data_package[var_str] = answer
+            else:
+                data_package["options"][var_str] = answer
+                 
 
 # --------------------------------------------------
 # user inputs
@@ -330,10 +345,10 @@ generic_input("open", update_data_package, "file_extension", "Primary file exten
 # raster info
 if data_package["type"] == "raster":
     # extract_types (multiple)
-    generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types)
+    generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, opt=True)
 
     # factor
-    generic_input("open", update_data_package, "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor)
+    generic_input("open", update_data_package, "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor, opt=True)
 
 
 # boundary info
@@ -341,6 +356,9 @@ elif data_package["type"] == "boundary":
     # boundary group
     generic_input("open", update_data_package, "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group)
 
+    # if data_package["group"] != "None":
+        # group actual
+        # 
 
 
 # --------------------
@@ -432,7 +450,11 @@ for f in ru.file_list:
         # boundary datasets can be multiple files (for administrative zones)
         if data_package["type"] == "boundary" and f_count == 0:
             geo_ext = ru.vector_envelope(f)
+            f_count += 1
 
+
+        elif data_package["type"] == "boundary" and f_count > 0:     
+            quit("Boundaries must be submitted individually.")
 
 
         else:
@@ -468,12 +490,6 @@ ru.spatial = {
 
 # --------------------------------------------------
 # temporal data and resource meta information
-
-
-# *** WARNING ***
-# this section used to determine temporal 
-# data and gather information on individual 
-# files is designed custom for each dataset
 
 
 def run_file_mask(fmask, fname, fbase=0):
@@ -517,6 +533,11 @@ def validate_date(date_obj):
 # validate file_mas
 def validate_file_mask(vmask):
 
+    # designates temporally invariant dataset
+    if vmask == "None":
+        return True, vmask, None
+
+
     # test file_mask for first file in file_list
     test_date_str = run_file_mask(vmask, ru.file_list[0], data_package["base"])
     valid_date = validate_date(test_date_str) 
@@ -551,21 +572,34 @@ def get_date_range(date_obj, drange=0):
     return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d'))
 
 
-# name for temporal data format
-ru.temporal["name"] = "Date Range"
-ru.temporal["format"] = "%Y%m%d"
 
 # file mask identifying temporal attributes in path/file names
 generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base)\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
 print data_package["file_mask"]
 
-# day range for each file (eg: MODIS 8 day composites) 
-use_day_range = False
-if interface:
-    use_day_range = user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
 
-if use_day_range or "day_range" in v.data:
-    generic_input("open", update_data_package, "day_range", "File day range? (Must be integer)", v.day_range)
+if data_package["file_mask"] == "None":
+
+    # temporally invariant dataset
+    ru.temporal["name"] = "Temporally Invariant"
+    ru.temporal["format"] = "None"
+
+else:
+
+    # name for temporal data format
+    ru.temporal["name"] = "Date Range"
+    ru.temporal["format"] = "%Y%m%d"
+
+    # day range for each file (eg: MODIS 8 day composites) 
+    use_day_range = False
+    if interface:
+        use_day_range = p.user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
+
+    if use_day_range or "day_range" in v.data:
+        generic_input("open", update_data_package, "day_range", "File day range? (Must be integer)", v.day_range)
+
+
+
 
 
 for f in ru.file_list:
@@ -581,28 +615,34 @@ for f in ru.file_list:
     # file size
     resource_tmp["bytes"] = os.path.getsize(f)
 
+    if data_package["file_mask"] != "None":
+        # temporal
+        # get unique time range based on dir path / file names
 
-    # temporal
-    # get unique time range based on dir path / file names
+        # get data from mask
+        date_str = run_file_mask(v.data["file_mask"], resource_tmp["path"])
 
-    # get data from mask
-    date_str = run_file_mask(v.data["file_mask"], resource_tmp["path"])
+        validate_date_str = validate_date(date_str)
 
-    validate_date_str = validate_date(date_str)
-
-    if not validate_date_str[0]:
-        quit(validate_date_str[1])
-
-
-    if "day_range" in data_package:
-        range_start, range_end = get_date_range(date_str, data_package["day_range"])
-
-    else: 
-        range_start, range_end = get_date_range(date_str)
+        if not validate_date_str[0]:
+            quit(validate_date_str[1])
 
 
-    # name (unique among this dataset's resources - not same name as dataset)
-    resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] +date_str["day"]
+        if "day_range" in data_package:
+            range_start, range_end = get_date_range(date_str, data_package["day_range"])
+
+        else: 
+            range_start, range_end = get_date_range(date_str)
+
+        # name (unique among this dataset's resources - not same name as dataset)
+        resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] +date_str["day"]
+
+    else:
+        range_start = 10000101
+        range_end = 99991231
+
+        resource_tmp["name"] = data_package["name"]
+
 
     # file date range
     resource_tmp["start"] = range_start

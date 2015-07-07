@@ -1,6 +1,9 @@
 data guidelines for the data aggregation framework
 --------------------------------------------------
 
+- all datasets must be projected to WGS84 (EPSG4326) before entering into system
+
+
 for external datasets / manual logging:
 
 - /sciclone/aiddata10/REU/raw always contains data that has not been altered since being collected from source
@@ -9,25 +12,41 @@ for external datasets / manual logging:
 
 - temporal information for datasets/files in data folder must be retrievable from the path to files and/or file names
 - files must all include at least 4 digit years
-- acceptable temporal data types include 
+- except made for temporally invariant data which is designated using a "file_mask" input of "None"
+
+- acceptable temporal data types for DET use include 
+    - temporally invariant
     - year
     - year, month
+- other temporal data types which may be added to database but are NOT valid for DET use include:
     - year, month, day of month (with additional day range option)
     - year, day of year (with additional day range option)
+
 - file names / paths should be consistent for all files in a dataset
 - all files in a raster dataset must have the same bounds and resolution
 
 - processed data must be logged before it can be used in any application (creates datapackage.json and inserts into database)
 
 
-boundary datasets
+- data being input into the framework for DET use must be either monthly, yearly or temporally invariant
+- datasets with resources spanning multiple years (eg: 2004-2005,2006-2007,...) must either be reduced to a single year each (eg: start year) and a notation made in the dataset description OR each resource should be added as its own dataset 
+- for data with a large range and small resource year spans (eg: 1900-2000 with resource for every 2 years) we suggest reducing each resource to a single year so it can be included in a single dataset
+- data with large year spans (eg: 1900-2000 with resource every 50 years) can be added as individual datasets
+
+
+boundary datasets 
+
+requirement
 - every boundary file has its own dataset
 - all boundary files must be uploaded individually
-- adm boundary file dataset names must be: <uppercase country ISO3>_adm<adm #> (eg: NPL_adm0)
-- country groups for adm boundary datasets my be the uppercase country ISO3 (eg: NPL)
-- adm boundaries other than adm0 require that an adm0 boundary dataset already exists
 
-- for non adm boundaries (dataset name does not follow adm format), group names must either be the file's own name or match an existing group
+recommendations
+- adm boundary file dataset names should be: <uppercase country ISO3>_adm<adm #> (eg: NPL_adm0)
+- country groups for adm boundary datasets should be the uppercase country ISO3 (eg: NPL)
+- adm0 boundary dataset for a country (group) should always exist before other adm boundary datasets are added 
+
+notes:
+- boundary datasets do not officially become a group (in the DET interface) until they have more than 1 dataset in the group (included in "other" category until then)
 
 
 

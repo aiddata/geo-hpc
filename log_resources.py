@@ -67,27 +67,29 @@ class resource_utils():
 
 
     # reprojects raster
-    def ReprojectCoords(self, coords, src_srs, tgt_srs):
-        ''' Reproject a list of x,y coordinates.
+    # def ReprojectCoords(self, coords, src_srs, tgt_srs):
+    #     ''' Reproject a list of x,y coordinates.
 
-            @type geom:     C{tuple/list}
-            @param geom:    List of [[x,y],...[x,y]] coordinates
-            @type src_srs:  C{osr.SpatialReference}
-            @param src_srs: OSR SpatialReference object
-            @type tgt_srs:  C{osr.SpatialReference}
-            @param tgt_srs: OSR SpatialReference object
-            @rtype:         C{tuple/list}
-            @return:        List of transformed [[x,y],...[x,y]] coordinates
-        '''
+    #         @type geom:     C{tuple/list}
+    #         @param geom:    List of [[x,y],...[x,y]] coordinates
+    #         @type src_srs:  C{osr.SpatialReference}
+    #         @param src_srs: OSR SpatialReference object
+    #         @type tgt_srs:  C{osr.SpatialReference}
+    #         @param tgt_srs: OSR SpatialReference object
+    #         @rtype:         C{tuple/list}
+    #         @return:        List of transformed [[x,y],...[x,y]] coordinates
+    #     '''
 
-        trans_coords=[]
-        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+    #     print src_srs
 
-        for x,y in coords:
-            x,y,z = transform.TransformPoint(x,y)
-            trans_coords.append([x,y])
+    #     trans_coords=[]
+    #     transform = osr.CoordinateTransformation(src_srs, tgt_srs)
 
-        return trans_coords
+    #     for x,y in coords:
+    #         x,y,z = transform.TransformPoint(x,y)
+    #         trans_coords.append([x,y])
+
+    #     return trans_coords
 
 
     # acceptas new and old envelope
@@ -119,21 +121,24 @@ class resource_utils():
 
     # gets bounds of specified raster file
     def raster_envelope(self, path):
-        ds=gdal.Open(path)
+        ds = gdal.Open(path)
 
         gt = ds.GetGeoTransform()
         cols = ds.RasterXSize
         rows = ds.RasterYSize
         ext = self.GetExtent(gt,cols,rows)
 
-        src_srs = osr.SpatialReference()
-        src_srs.ImportFromWkt(ds.GetProjection())
-        #tgt_srs=osr.SpatialReference()
-        #tgt_srs.ImportFromEPSG(4326)
-        tgt_srs = src_srs.CloneGeogCS()
+        # src_srs = osr.SpatialReference()
+        # src_srs.ImportFromWkt(ds.GetProjection())
 
-        geo_ext = self.ReprojectCoords(ext, src_srs, tgt_srs)
-        # geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
+        # tgt_srs = osr.SpatialReference()
+        # tgt_srs.ImportFromEPSG(4326)
+        # # tgt_srs = src_srs.CloneGeogCS()
+
+        # geo_ext = self.ReprojectCoords(ext, src_srs, tgt_srs)
+        # # geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
+
+        geo_ext = ext
 
         return geo_ext
 

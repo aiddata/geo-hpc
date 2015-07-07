@@ -56,11 +56,15 @@ class validate():
         self.fields = json.load(open(self.dir_base + "/fields.json", 'r'), object_pairs_hook=OrderedDict)
 
         # mongo stuff
-        self.client = pymongo.MongoClient()
-        self.db = self.client.daf
-        self.c_data = self.db.data
+        self.use_mongo = False
 
+        self.client = None # pymongo.MongoClient()
+        self.db = None # self.client.daf
+        self.c_data = None # self.db.data
 
+        self.new_boundary = False
+
+        
     # -------------------------
     #  misc functions
 
@@ -174,6 +178,12 @@ class validate():
     # boundary group
     def group(self, val):
 
+        if not self.use_mongo:
+            self.use_mongo = True
+            self.client = pymongo.MongoClient()
+            self.db = self.client.daf
+            self.c_data = self.db.data
+
         val = str(val)
 
         name = self.data["name"]
@@ -190,6 +200,7 @@ class validate():
             return False, None, "group did not pass due to user request"
 
         else:
+            self.new_boundary = True
             return True, str(val), None
 
     
