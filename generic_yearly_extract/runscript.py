@@ -72,3 +72,30 @@ while c < len(qlist):
 
 
 comm.Barrier()
+
+
+
+import pandas as pd
+from copy import deepcopy
+
+merge = 0
+if rank == 0:
+    c = 0
+    for item in qlist:
+        print item
+        year = item[0]
+        year_result = "/sciclone/aiddata10/REU/projects/" + project_name + "/extracts/" + extract_name +"/output/" + year + "/extract_" + year + ".csv"
+
+        year_df = pd.read_csv(year_result, quotechar='\"', na_values='', keep_default_na=False)
+
+        if not isinstance(merge, pd.DataFrame):
+            merge = deepcopy(year_df)
+            merge.rename(columns={extract_field: "ntl_"+year}, inplace=True)
+
+        else:
+            merge["ntl_"+year] = year_df[extract_field]
+
+
+    merge_output = "/sciclone/aiddata10/REU/projects/" + project_name + "/extracts/" + extract_name +"/"+ extract_name +"_merge.csv"
+    merge.to_csv(merge_output, index=False)
+

@@ -58,7 +58,7 @@ def getData(path, merge_id):
 file_path = base + "/" + proj_name
 merged_df = getData(file_path, merge_id)
 
-merged_df.to_csv(file_path + "/extracts/srtm_slope_access_merge.csv")
+merged_df.to_csv(file_path + "/extracts/srtm_slope_access_merge.csv", index = False)
 
 
 
