@@ -1,0 +1,8 @@
+#!/bin/tcsh
+#PBS -N ad:sg-ye:ntl
+#PBS -l nodes=6:xeon:compute:ppn=8
+#PBS -l walltime=24:00:00
+#PBS -j oe
+
+cd $PBS_O_WORKDIR
+mvp2run -m cyclic python-mpi ./runscript.py ./yearly_extract_hpc.R liberia LBR_adm3 v4avg_lights_x_pct v4avg_lights_x_pct lights F1xYYYY.v4x.avg_lights_x_pct.tif
