@@ -5,10 +5,12 @@ import pymongo
 # update database(s)
 class update_mongo():
     
-    # loc is 2dsphere spatial index
-    # > db.data.createIndex( { loc : "2dsphere" } )
+    # existing core database indexes:
+    # 
+    # spatial is 2dsphere spatial index
+    # > db.data.createIndex( { spatial : "2dsphere" } )
     # path is unique index
-    # > db.data.createIndex( { path : 1 }, { unique: 1 } )
+    # > db.data.createIndex( { base : 1 }, { unique: 1 } )
     # name is unique index
     # > db.data.createIndex( { name : 1 }, { unique: 1 } )
 
@@ -18,37 +20,64 @@ class update_mongo():
         self.client = pymongo.MongoClient()
         self.db = self.client.daf
         self.c_data = self.db.data
-        self.c_ckan = self.db.ckan
-        self.c_tmp = self.db.tmp
+        # self.c_tmp = self.db.tmp
 
 
     def update_core(self, in_data):
-
+        print "update_core"
+        # self.c_data.replace_one({"base": in_data["base"]}, in_data, upsert=True)
         try:
-            # insert 
-            c_data.insert(in_data)
-
-        except pymongo.errors.DuplicateKeyError, e:
-            # print e
-            # quit("Dataset with same name or path exists.")
-
-            # update (replace)
-            # 
-
-
-        # check insert and notify user
-        vp = c_data.find({"path": in_data["path"]})
-        vn = c_data.find({"name": in_data["name"]})
-
-        if vp.count() < 1 or vn.count() < 1:
-            # quit( "Error - No items with name or path found in database.")
-            return 1
-        elif vp.count() > 1 or vn.count() > 1:
-            # quit( "Error - Multiple items with name or path found in database.")
-            return 2
-        else:
-            # print "Success - Item successfully inserted into database.\n"
+            self.c_data.replace_one({"base": in_data["base"]}, in_data, upsert=True)
+            print "update_core: good"
             return 0
+        except:
+            print "update_core: bad"
+            return 1
+
+
+
+        # vb = c_data.find({"base": in_data["base"]})
+        # update = False
+        # if vb.count() > 0:
+        #     update = True
+
+
+        # if update:
+            
+        #     try:
+        #         # update (replace) 
+        #         c_data.update()
+
+        #     except:
+        #         quit("Error updating.")
+ 
+
+        # else:
+
+        #     try:
+        #         # insert 
+        #         c_data.insert(in_data)
+
+        #     except pymongo.errors.DuplicateKeyError, e:
+        #         print e
+        #         quit("Error inserting - Dataset with same name or path exists.")
+
+
+
+
+        # # check insert and notify user
+
+        # vn = c_data.find({"name": in_data["name"]})
+
+        # if vb.count() < 1 or vn.count() < 1:
+        #     # quit( "Error - No items with name or path found in database.")
+        #     return 1
+        # elif vb.count() > 1 or vn.count() > 1:
+        #     # quit( "Error - Multiple items with name or path found in database.")
+        #     return 2
+        # else:
+        #     # print "Success - Item successfully inserted into database.\n"
+        #     return 0
 
 
     # update/create boundary tracker(s)
@@ -79,6 +108,3 @@ class update_mongo():
                 c_bnd.insert(dset)
 
 
-    # update ckan mongodb (contains all existing datapackage.json as documents)
-    def update_ckan(self):
-        print "ckan"

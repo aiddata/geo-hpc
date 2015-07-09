@@ -23,7 +23,7 @@ import json
 from log_validate import validate
 from log_prompt import prompts
 from log_resources import resource_utils
-# from log_mongo import update_mongo
+from log_mongo import update_mongo
 
 
 # --------------------------------------------------
@@ -39,6 +39,8 @@ v = validate()
 # prompt class instance
 p = prompts()
 
+# update mongo class instance
+update_db = update_mongo()
 
 # --------------------------------------------------
 # functions
@@ -132,7 +134,11 @@ def generic_input(input_type, update, var_str, in_1, in_2=0, opt=0):
 
     if interface:
         if update:
-            user_update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package[var_str]) + "\")")
+            if not opt:
+                user_update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package[var_str]) + "\")")
+            else:
+                user_update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package["options"][var_str]) + "\")")
+
 
         if not update or update and user_update:
             
@@ -383,8 +389,18 @@ if interface and p.user_prompt_bool("Would you like to review your inputs?"):
 
 # option to rerun file checks for manual script
 if update_data_package and interface and not p.user_prompt_bool("Run resource checks?"):
-    write_data_package()
-    quit("User request.")
+
+    # update mongo
+    update_status = update_db.update_core(data_package)
+
+    # if mongo updates were successful:
+    if update_status == 0:
+        # create datapackage
+        write_data_package()
+
+    quit("User request - no resource checks run")
+
+
 
 
 # resource utils class instance
@@ -620,7 +636,7 @@ for f in ru.file_list:
         # get unique time range based on dir path / file names
 
         # get data from mask
-        date_str = run_file_mask(v.data["file_mask"], resource_tmp["path"])
+        date_str = run_file_mask(data_package["file_mask"], resource_tmp["path"])
 
         validate_date_str = validate_date(date_str)
 
@@ -671,63 +687,67 @@ data_package["spatial"] = ru.spatial
 data_package["resources"] = ru.resources
 
 
-
-print "\n\n\n"
-print data_package
-write_data_package()
-
-
-
 # --------------------------------------------------
 # database update(s) and datapackage output
 
 
-# build dictionary for mongodb insert
-mdata = {
-    
-    # generation info
-    "datapackage_script": data_package["datapackage_script"],
-    "datapackage_version": data_package["datapackage_version"],
-    "datapackage_generator": data_package["datapackage_generator"],
+print "\n\n\n"
+print data_package
 
-    # path to parent datapackage dir
-    "datapackage_path": data_package["base"],
-    # parent datapackage name (ie: group field)
-    "datapackage_name": data_package["name"],
-
-
-    # datapackage
-    "title": data_package["title"],
-    "version": data_package["version"],
-    "licenses": data_package["licenses"],
-    "citation": data_package["citation"],
-    "sources": data_package["sources"],
-    "source_link": data_package["source_link"],
-    "short": data_package["short"],
-    "variable_description": data_package["variable_description"],
-    "type": data_package["type"],
-    "file_format": data_package["file_format"],
-    "file_extension": data_package["file_extension"],
-    "scale": data_package["scale"],
-
-    # resource spatial
-    "loc": ru.spatial,
-
-    # file specific info from resource_tmp
-    "name": resource_tmp["name"],
-    "path": resource_tmp["path"],
-    "bytes": resource_tmp["bytes"],
-    "start": resource_tmp["start"],
-    "end": resource_tmp["end"]
-
-}
 
 # update mongo
-# 
-# from log_mongo import update_mongo
-# update mongo class instance
-# update_db = update_mongo()
+update_status = update_db.update_core(data_package)
+
+# if mongo updates were successful:
+if update_status == 0:
+    # create datapackage
+    write_data_package()
 
 
-# create datapackage
+# call/do ckan stuff eventually
 # 
+
+
+# --------------------------------------------------
+
+
+# # build dictionary for mongodb insert
+# mdata = {
+    
+#     # generation info
+#     "datapackage_script": data_package["datapackage_script"],
+#     "datapackage_version": data_package["datapackage_version"],
+#     "datapackage_generator": data_package["datapackage_generator"],
+
+#     # path to parent datapackage dir
+#     "datapackage_path": data_package["base"],
+#     # parent datapackage name (ie: group field)
+#     "datapackage_name": data_package["name"],
+
+
+#     # datapackage
+#     "title": data_package["title"],
+#     "version": data_package["version"],
+#     "licenses": data_package["licenses"],
+#     "citation": data_package["citation"],
+#     "sources": data_package["sources"],
+#     "source_link": data_package["source_link"],
+#     "short": data_package["short"],
+#     "variable_description": data_package["variable_description"],
+#     "type": data_package["type"],
+#     "file_format": data_package["file_format"],
+#     "file_extension": data_package["file_extension"],
+#     "scale": data_package["scale"],
+
+#     # resource spatial
+#     "loc": ru.spatial,
+
+#     # file specific info from resource_tmp
+#     "name": resource_tmp["name"],
+#     "path": resource_tmp["path"],
+#     "bytes": resource_tmp["bytes"],
+#     "start": resource_tmp["start"],
+#     "end": resource_tmp["end"]
+
+# }
+
