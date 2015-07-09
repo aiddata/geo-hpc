@@ -337,7 +337,7 @@ for f in flist:
 
 # file format (raster or vector)
 if data_package["type"] == "raster":
-    data_package["file_format"] = data_package["type"]
+    data_package["file_format"] = "raster"
 else:
     data_package["file_format"] = "vector"
 
@@ -360,11 +360,19 @@ if data_package["type"] == "raster":
 # boundary info
 elif data_package["type"] == "boundary":
     # boundary group
-    generic_input("open", update_data_package, "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group)
+    generic_input("open", update_data_package, "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group, opt=True)
 
-    # if data_package["group"] != "None":
-        # group actual
-        # 
+    # boundary class
+    # only a single actual may exist for a group
+    if v.actual_exists[data_package["group"]]:
+        # force sub if actual exists
+        data_package["options"]["group_class"] = "sub"
+    else:
+        generic_input("open", update_data_package, "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
+        
+        if data_package["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["group"]]):
+            v.new_boundary = True
+        
 
 
 # --------------------
@@ -376,7 +384,7 @@ if interface and p.user_prompt_bool("Would you like to review your inputs?"):
 
     # option to quit or continue
     if not p.user_prompt_bool("Continue with these inputs?"):
-        quit("User request.")
+        quit("User request - rejected inputs.")
 
 
 
@@ -398,7 +406,7 @@ if update_data_package and interface and not p.user_prompt_bool("Run resource ch
         # create datapackage
         write_data_package()
 
-    quit("User request - no resource checks run")
+    quit("User request - update completed but without resource run")
 
 
 
@@ -442,7 +450,7 @@ for f in ru.file_list:
                 scale = "global"
                 # prompt to continue
                 if interface and not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
-                    quit("User request.")
+                    quit("User request - rejected global bounding box.")
 
             data_package["scale"] = scale
 
@@ -451,7 +459,7 @@ for f in ru.file_list:
 
             # prompt to continue
             if interface and not p.user_prompt_bool("Continue with this bounding box?"):
-                quit("User request.")
+                quit("User request - rejected bounding box.")
 
             f_count += 1
 
@@ -502,6 +510,16 @@ ru.spatial = {
                     geo_ext[0]
                 ] ]
             }
+
+
+# if updating an existing boundary who is the actual for a group
+# warn users when the new geometry does not match the existing geometry
+# continuing will force the boundary tracker database to be dumped
+# all datasets that were in the tracker database will need to be reindexed
+if update_data_package and data_package["type"] == "boundary" and data_package["options"]["actual"] == True and ru.spatial != data_package["spatial"]:
+    v.update_boundary = True
+    if interface and not p.user_prompt_bool("The geometry of your new boundary does not match the existing boundary, do you wish to continue? (Warning: This will force a dump of the existing tracker database and all datasets in it will need to be reindexed)"):
+        quit("User request - boundary geometry change.")
 
 
 # --------------------------------------------------
@@ -696,10 +714,13 @@ print data_package
 
 
 # update mongo
-update_status = update_db.update_core(data_package)
+
+core_update_status = update_db.update_core(data_package)
+
+tracker_update_status = self.update_trackers(data_package, v.new_boundary, v.update_boundary)
 
 # if mongo updates were successful:
-if update_status == 0:
+if core_update_status == 0:
     # create datapackage
     write_data_package()
 

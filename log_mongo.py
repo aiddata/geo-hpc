@@ -19,10 +19,22 @@ class update_mongo():
         # connect to mongodb
         self.client = pymongo.MongoClient()
         self.db = self.client.daf
-        self.c_data = self.db.data
+
+        if not "data" in self.db.collection_names():
+            self.c_data = self.db.data
+
+            self.c_data.create_index("base", unique=True)
+            self.c_data.create_index("name", unique=True)
+            self.c_data.create_index("spatial", pymongo.GEOSPHERE)
+
+        else:
+            self.c_data = self.db.data
+        
+
         # self.c_tmp = self.db.tmp
 
 
+    # update main database 
     def update_core(self, in_data):
         print "update_core"
         # self.c_data.replace_one({"base": in_data["base"]}, in_data, upsert=True)
@@ -35,6 +47,51 @@ class update_mongo():
             return 1
 
 
+
+    # update/create boundary tracker(s)
+    # *** add error handling for all inserts (above and below) ***
+    # *** remove previous inserts if later insert fails, etc. ***
+    def update_trackers(self, in_data, new_boundary=0, update_boundary=0):
+
+        if in_data["type"] == "boundary" and in_data["options"]["actual"] == True:
+
+            # drop boundary tracker if geometry has changed
+            if update_boundary:
+                print "update existing boundary with new geom"
+                self.db.drop_collection(in_data["group"])
+
+
+            if new_boundary or update_boundary:
+                # if dataset is boundary and a group actual
+                # create new boundary tracker collection
+                c_bnd = db[in_data["group"]]
+                c_bnd.create_index("name", unique=True)
+                c_bnd.create_index("base", unique=True)
+
+                # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
+                dsets =  c_data.find({"type": {"$ne": "boundary"}})
+                for dset in dsets:
+                    dset['status'] = -1
+                    c_bnd.insert(dset)
+
+        elif in_data["type"] != "boundary":
+            # if dataset is not boundary
+            # add dataset to each boundary collection with "unprocessed" flag
+            dset = deepcopy(in_data)
+            dset['status'] = -1
+            bnds = c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
+            for bnd in bnds:
+                c_bnd = db[bnd["options"]["group"]]
+                # c_bnd.insert(dset)
+                c_bnd.replace_one({"base": dset["base"]}, dset, upsert=True)
+
+
+        return 0
+
+
+
+
+    # def update_core(self, in_data):
 
         # vb = c_data.find({"base": in_data["base"]})
         # update = False
@@ -79,32 +136,5 @@ class update_mongo():
         #     # print "Success - Item successfully inserted into database.\n"
         #     return 0
 
-
-    # update/create boundary tracker(s)
-    # *** add error handling for all inserts (above and below) ***
-    # *** remove previous inserts if later insert fails, etc. ***
-    def update_trackers(self, in_data):
-
-        if in_type == "boundary":
-            # if dataset is boundary
-            # create new boundary tracker collection
-            c_bnd = db[in_data["name"]]
-            c_bnd.create_index("name", unique=True)
-
-            # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
-            dsets =  c_data.find({"type": {"$ne": "boundary"}})
-            for dset in dsets:
-                dset['status'] = -1
-                c_bnd.insert(dset)
-
-        else:
-            # if dataset is not boundary
-            # add dataset to each boundary collection with "unprocessed" flag
-            dset = deepcopy(in_data)
-            dset['status'] = -1
-            bnds = c_data.find({"type": "boundary"},{"name": 1})
-            for bnd in bnds:
-                c_bnd = db[bnd['name']]
-                c_bnd.insert(dset)
 
 

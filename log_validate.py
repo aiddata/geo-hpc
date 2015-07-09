@@ -36,7 +36,8 @@ class validate():
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
             },
-            "extracts": ['mean', 'max']
+            "extracts": ['mean', 'max'],
+            "group_class": ['actual', 'sub']
         }
 
         # error messages to go with validation functions
@@ -49,7 +50,8 @@ class validate():
             "extract_types": "at least one extract type given not in list of valid extract types",
             "factor": "could not be converted to float",
             "day_range": "could not be converted to int",
-            "string": "could not be converted to string"
+            "string": "could not be converted to string",
+            "group_class": "not a valid group class"
         }
 
         # current datapackage fields
@@ -63,7 +65,8 @@ class validate():
         self.c_data = None # self.db.data
 
         self.new_boundary = False
-
+        self.update_boundary = False
+        self.actual_exists = {}
         
     # -------------------------
     #  misc functions
@@ -88,24 +91,29 @@ class validate():
     def name(self, val):
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
 
-        if val == "":
-            return False, None, "??? Error message needed ???"
+        if len(val) < 5:
+            return False, None, "Name must be at least 5 (valid) chars"
 
 
         val = val.lower()
         
         if self.interface and not p.user_prompt_use_input(value=val):
-            return False, None, "??? Error message needed ???"
+            return False, None, "User rejected input"
         
-        # check mongodb
-        # 
-        # unique = 
+        if not self.use_mongo:
+            self.use_mongo = True
+            self.client = pymongo.MongoClient()
+            self.db = self.client.daf
+            self.c_data = self.db.data
 
-        # unique = True 
+        # check mongodb
+        if not "name" in self.data or ("name" in self.data and val != self.data["name"]):
+            unique = c_data.find({"name": val}).limit(1).count() == 0
+
+            if not unique:   
+              return False, None, "Name matches an existing dataset (names must be unique)"
         
-        # if not unique:   
-        #   return False, None, None
-        
+
         return True, val, None
 
 
@@ -175,14 +183,26 @@ class validate():
             return False, None, self.error["string"]
 
 
+    # boundary group_class
+    def group_class(self, val):
+        return val in self.types["group_class"], val, self.error["group_class"]
+
+
     # boundary group
     def group(self, val):
+
+        # core database is already named data
+        # cannot have tracker database with same name
+        if val == "data":
+            return False, None, "group name can not be \"data\""
+
 
         if not self.use_mongo:
             self.use_mongo = True
             self.client = pymongo.MongoClient()
             self.db = self.client.daf
             self.c_data = self.db.data
+
 
         val = str(val)
 
@@ -193,15 +213,27 @@ class validate():
             val = name
 
         # check if boundary with group exists
-        exists = c_data.find({"type": "boundary", "group": val}).limit(1).count() > 0
+        exists = c_data.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
+       
+        self.actual_exists = {}
 
-    
-        if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does not exist. Are you sure you want to create it?" ):
+        if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does NOT exist. Are you sure you want to create it?" ):
             return False, None, "group did not pass due to user request"
+        
+        elif exists:
 
-        else:
-            self.new_boundary = True
-            return True, str(val), None
+            self.actual_exists[val] =  c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
+
+            if self.actual_exists[val]:
+                tmp_str = "already exists"
+            else:
+                tmp_str = "does NOT exist"
+
+            if not self.actual_exists[val] and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" "+tmp_str+". Do you wish to continue?" ):
+                return False, None, "group did not pass due to user request"
+            
+
+        return True, str(val), None
 
     
         # # check if group is 3 capital letters (ISO3)
