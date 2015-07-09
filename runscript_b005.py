@@ -346,6 +346,21 @@ def getGeom(code, lon, lat):
     elif lookup[code]["type"] == "buffer":
         try:
             tmp_int = float(lookup[code]["data"])
+
+            # reproj stuff
+            # from pyproj import Proj, transform
+            # p1 = Point(x,y)
+            # proj_utm = Proj('+proj=utm +zone=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ')
+            # proj_wgs = Proj(init="epsg:4326")
+            # p2a = transform(proj_wgs, proj_utm, p1.x, p1,y)
+            # p2 = Point(p2a)
+            # b2 = p2.buffer(tmp_int)
+            # from functools import partial
+            # from shapely.ops import transform as transforms
+            # polyproj = partial(transform, proj_utm, proj_wgs)
+            # b1a = transforms(polyproj, b2)
+
+
             tmp_buffer = tmp_pnt.buffer(tmp_int)
 
             if inCountry(tmp_buffer):
