@@ -53,7 +53,7 @@ class update_mongo():
     # *** remove previous inserts if later insert fails, etc. ***
     def update_trackers(self, in_data, new_boundary=0, update_boundary=0):
 
-        if in_data["type"] == "boundary" and in_data["options"]["actual"] == True:
+        if in_data["type"] == "boundary" and in_data["options"]["group_class"] == "actual":
 
             # drop boundary tracker if geometry has changed
             if update_boundary:

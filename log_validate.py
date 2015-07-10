@@ -67,7 +67,9 @@ class validate():
         self.new_boundary = False
         self.update_boundary = False
         self.actual_exists = {}
-        
+        self.is_actual = False
+        self.group_exists = False
+
     # -------------------------
     #  misc functions
 
@@ -89,6 +91,7 @@ class validate():
 
     # check if name is unique and valid
     def name(self, val):
+        val = re.sub(' ', '_', val)
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
 
         if len(val) < 5:
@@ -108,10 +111,12 @@ class validate():
 
         # check mongodb
         if not "name" in self.data or ("name" in self.data and val != self.data["name"]):
-            unique = c_data.find({"name": val}).limit(1).count() == 0
+            unique_search = self.c_data.find({"name": val}).limit(1)
 
-            if not unique:   
-              return False, None, "Name matches an existing dataset (names must be unique)"
+            unique = unique_search.count() == 0
+
+            if not unique and unique_search[0]["base"] != self.data["base"]:
+                return False, None, "Name matches an existing dataset (names must be unique)"
         
 
         return True, val, None
@@ -213,24 +218,33 @@ class validate():
             val = name
 
         # check if boundary with group exists
-        exists = c_data.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
+        exists = self.c_data.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
        
         self.actual_exists = {}
+        self.actual_exists[val] = False
 
         if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does NOT exist. Are you sure you want to create it?" ):
-            return False, None, "group did not pass due to user request"
+            return False, None, "group did not pass due to user request - new group"
         
         elif exists:
+            self.group_exists = True
 
-            self.actual_exists[val] =  c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
+            search_actual = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1)
+            self.actual_exists[val] =  search_actual.count() > 0
 
             if self.actual_exists[val]:
                 tmp_str = "already exists"
+
+                # case where updating actual
+                if search_actual[0]["base"] == self.data["base"]:
+                    self.is_actual = True
+                    return True, str(val), None
+
             else:
                 tmp_str = "does NOT exist"
 
             if not self.actual_exists[val] and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" "+tmp_str+". Do you wish to continue?" ):
-                return False, None, "group did not pass due to user request"
+                return False, None, "group did not pass due to user request - existing group"
             
 
         return True, str(val), None

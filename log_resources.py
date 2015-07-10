@@ -147,7 +147,7 @@ class resource_utils():
     # iterates over polygons and generates envelope using check_envelope function
     def vector_envelope(self, path):
         ds = ogr.Open(path)
-        lyr_name = in_path[path.rindex('/')+1:path.rindex('.')]
+        lyr_name = path[path.rindex('/')+1:path.rindex('.')]
         lyr = ds.GetLayerByName(lyr_name)
         env = []
 

@@ -259,7 +259,11 @@ else:
     data_package["base"] = v.data["base"]
     update_data_package = False
 
-# print data_package
+
+# remove trailing slash from path
+if data_package["base"].endswith("/"):
+    data_package["base"] = data_package["base"][:-1]
+    v.data["base"] = data_package["base"]
 
 
 # --------------------
@@ -364,13 +368,17 @@ elif data_package["type"] == "boundary":
 
     # boundary class
     # only a single actual may exist for a group
-    if v.actual_exists[data_package["group"]]:
+    if v.is_actual:
+        data_package["options"]["group_class"] = "actual"
+    
+    elif v.actual_exists[data_package["options"]["group"]]:
         # force sub if actual exists
         data_package["options"]["group_class"] = "sub"
+    
     else:
         generic_input("open", update_data_package, "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
         
-        if data_package["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["group"]]):
+        if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
             v.new_boundary = True
         
 
@@ -608,7 +616,7 @@ def get_date_range(date_obj, drange=0):
 
 
 # file mask identifying temporal attributes in path/file names
-generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base)\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
+generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
 print data_package["file_mask"]
 
 
@@ -717,7 +725,7 @@ print data_package
 
 core_update_status = update_db.update_core(data_package)
 
-tracker_update_status = self.update_trackers(data_package, v.new_boundary, v.update_boundary)
+tracker_update_status = update_db.update_trackers(data_package, v.new_boundary, v.update_boundary)
 
 # if mongo updates were successful:
 if core_update_status == 0:
