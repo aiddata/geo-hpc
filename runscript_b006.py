@@ -30,7 +30,7 @@ import shapefile
 import pyproj
 from functools import partial
 from shapely.ops import transform
-
+import geopandas as gpd
 
 # ====================================================================================================
 # ====================================================================================================
@@ -146,10 +146,10 @@ agg_types = ["point", "buffer", "adm"]
 # code field values
 lookup = {
     "1": {"type":"point","data":0},
-    "2": {"type":"buffer","data":1},
+    "2": {"type":"buffer","data":20000},
     "3": {"type":"adm","data":"2"},
     "4": {"type":"adm","data":"2"},
-    "5": {"type":"buffer","data":1},
+    "5": {"type":"buffer","data":20000},
     "6": {"type":"adm","data":"0"},
     "7": {"type":"adm","data":"0"},
     "8": {"type":"adm","data":"0"}
@@ -520,20 +520,20 @@ if rank == 0:
     # --------------------------------------------------
     # initialize results file output
 
-    results_str = "Mean Surface Rasters Output File\t "
+    # results_str = "Mean Surface Rasters Output File\t "
 
-    results_str += "\nstart time\t" + str(Ts)
-    results_str += "\ncountry\t" + str(country)
-    results_str += "\nabbr\t" + str(abbr)
-    results_str += "\npixel_size\t" + str(pixel_size)
-    results_str += "\nnodata\t" + str(nodata)
-    results_str += "\naid_field\t" + str(aid_field)
-    results_str += "\ncode_field\t" + str(code_field)
-    results_str += "\ncountry bounds\t" + str((adm0_minx, adm0_miny, adm0_maxx, adm0_maxy))
+    # results_str += "\nstart time\t" + str(Ts)
+    # results_str += "\ncountry\t" + str(country)
+    # results_str += "\nabbr\t" + str(abbr)
+    # results_str += "\npixel_size\t" + str(pixel_size)
+    # results_str += "\nnodata\t" + str(nodata)
+    # results_str += "\naid_field\t" + str(aid_field)
+    # results_str += "\ncode_field\t" + str(code_field)
+    # results_str += "\ncountry bounds\t" + str((adm0_minx, adm0_miny, adm0_maxx, adm0_maxy))
 
-    results_str += "\nrows\t" + str(len(rows))
-    results_str += "\ncolumns\t" + str(len(cols))
-    results_str += "\nlocations\t" + str(len(i_m))
+    # results_str += "\nrows\t" + str(len(rows))
+    # results_str += "\ncolumns\t" + str(len(cols))
+    # results_str += "\nlocations\t" + str(len(i_m))
 
     # results_str += "\nfilters\t" + str(filters)
 
@@ -567,7 +567,7 @@ if rank == 0:
     time_init = time.time()
     T_init = int(time_init - Ts)
 
-    results_str += "\nInit Runtime\t" + str(T_init//60) +'m '+ str(int(T_init%60)) +'s'
+    # results_str += "\nInit Runtime\t" + str(T_init//60) +'m '+ str(int(T_init%60)) +'s'
     print('\tInit Runtime: ' + str(T_init//60) +'m '+ str(int(T_init%60)) +'s')
 
 
@@ -672,13 +672,13 @@ if rank == 0:
 
         stack_mean_surf = np.vstack(all_mean_surf)
         sum_mean_surf = np.sum(stack_mean_surf, axis=0)
-        # save_mean_surf = dir_outputs+"/mean_surf.npy"
+        # save_mean_surf = dir_working+"/mean_surf.npy"
         # np.save(save_mean_surf, sum_mean_surf)
 
         # write asc file
         sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
         asc_sum_mean_surf_str = asc + sum_mean_surf_str
-        fout_sum_mean_surf = open(dir_outputs+"/mean_surf.asc", "w")
+        fout_sum_mean_surf = open(dir_working+"/mean_surf.asc", "w")
         fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
     else:
@@ -788,6 +788,7 @@ else:
             break
 
 
+
 if rank == 0:
 
     # validate sum_mean_surf
@@ -800,7 +801,7 @@ if rank == 0:
     time_surf = time.time()
     T_surf = int(time_surf - time_init)
 
-    results_str += "\nSurf Runtime\t" + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s'
+    # results_str += "\nSurf Runtime\t" + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s'
 
     print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
 
@@ -816,46 +817,58 @@ comm.Barrier()
 # ====================================================================================================
 # output unique geometries and sum of all project locations associated with that geometry
 
-# creating geodataframe
-geo_df = gpd.GeoDataFrame()
-geo_df["dollars"] = i_m["split_dollars_pp"]
-geo_df["geometry"] = gpd.GeoSeries(i_m["agg_geom"])
-geo_df["str_geo"] = geo_df["geometry"].astype(str)
-geo_df['index'] = range(0, len(geo_df))
-geo_df = geo_df.set_index('index')
-
-
-sum_unique = geo_df.groupby(by ='str_geo')['dollars'].sum()
-
-tmp_geo_df = gpd.GeoDataFrame()
-tmp_geo_df['unique_dollars'] = sum_unique
-tmp_geo_df['str_geo'] = tmp_geo_df.index
-
-new_geo_df = geo_df.merge(tmp_geo_df, how = 'inner', on = "str_geo")
-
-# drops duplicate rows
-new_geo_df.drop_duplicates(subset = "str_geo", inplace = True)
-
-# gets rid of str_geo column
-new_geo_df.drop('str_geo', axis = 1, inplace = True)
-
-# create final output geodataframe
-out_geo_df = gpd.GeoDataFrame()
-out_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
-out_geo_df['index'] = range(len(out_geo_df))
-out_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
-
-# write to geojson
-geo_json = out_geo_df.to_json()
-geo_file = open(dir_base+"/unique.geojson", "w")
-json.dump(json.loads(geo_json), geo_file, indent = 4)
-
-
-# ====================================================================================================
-# ====================================================================================================
-
-
 if rank == 0:
+
+    # creating geodataframe
+    geo_df = gpd.GeoDataFrame()
+    # assuming even split of total project dollars is "max" dollars that project location could receive
+    geo_df["dollars"] = i_m["split_dollars_pp"]
+    # geometry for each project location
+    geo_df["geometry"] = gpd.GeoSeries(i_m["agg_geom"])
+    # string version of geometry used to determine duplicates
+    geo_df["str_geo"] = geo_df["geometry"].astype(str)
+    # create and set unique index
+    geo_df['index'] = range(0, len(geo_df))
+    geo_df = geo_df.set_index('index')
+
+    # group project locations by geometry using str_geo field 
+    # and for each unique geometry get the sum of dollars for
+    # all project locations with that geometry
+    sum_unique = geo_df.groupby(by ='str_geo')['dollars'].sum()
+
+    # temporary dataframe with unique geometry and dollar sums
+    # which can be used to merge with original geo_df dataframe
+    tmp_geo_df = gpd.GeoDataFrame()
+    tmp_geo_df['unique_dollars'] = sum_unique
+    tmp_geo_df['str_geo'] = tmp_geo_df.index
+
+    # merge geo_df with tmp_geo_df
+    new_geo_df = geo_df.merge(tmp_geo_df, how = 'inner', on = "str_geo")
+    # drops duplicate rows
+    new_geo_df.drop_duplicates(subset = "str_geo", inplace = True)
+    # gets rid of str_geo column
+    new_geo_df.drop('str_geo', axis = 1, inplace = True)
+
+    # create final output geodataframe with index, unique_dollars and unique geometry
+    out_geo_df = gpd.GeoDataFrame()
+    out_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
+    out_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
+    out_geo_df['index'] = range(len(out_geo_df))
+
+    # write to geojson
+    geo_json = out_geo_df.to_json()
+    geo_file = open(dir_working+"/unique.geojson", "w")
+    json.dump(json.loads(geo_json), geo_file, indent = 4)
+
+
+    # calc section runtime and total runtime
+    time_end = time.time()
+    T_unique = int(time_end - time_surf)
+    T_total = int(time_end - Ts)
+
+    # ====================================================================================================
+    # ====================================================================================================
+
 
     # msr options
     # output as json which will be loaded into a mongo database
@@ -904,6 +917,7 @@ if rank == 0:
 
     add_json("T_init",T_init)
     add_json("T_surf",T_surf)
+    add_json("T_unique",T_unique)
     add_json("T_total",T_total)
 
     json_out = dir_base+'/json/mongo/ready/'+str(Rid)+'.json'

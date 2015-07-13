@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N ad:sg-msr
-#PBS -l nodes=4:xeon:compute:ppn=8
+#PBS -l nodes=2:xeon:compute:ppn=8
 #PBS -l walltime=01:00:00
 #PBS -j oe
 
