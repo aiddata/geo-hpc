@@ -18,11 +18,6 @@ abbr
 pixel_size
 data_version
 
-force_mean_surf
-iter_max
-iter_thresh
-iter_improvement
-
 filters_type
 filters
 nodata
@@ -52,13 +47,8 @@ rows
 cols
 locations
 T_init
-run_mean_surf
 T_surf
-iterations
-error_log_mean
-error_log_sum
-error_log_percent
-T_iter
+
 T_total
 
 

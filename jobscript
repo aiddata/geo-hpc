@@ -1,8 +1,8 @@
 #!/bin/tcsh
-#PBS -N ad:sg-mcr
+#PBS -N ad:sg-msr
 #PBS -l nodes=4:xeon:compute:ppn=8
 #PBS -l walltime=01:00:00
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript_b005.py nepal NPL 0.5
+mvp2run -m cyclic python-mpi ./runscript_b006.py
