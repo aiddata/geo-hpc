@@ -53,23 +53,31 @@ class update_mongo():
     # *** remove previous inserts if later insert fails, etc. ***
     def update_trackers(self, in_data, new_boundary=0, update_boundary=0):
 
+
+        # to do:
+        # - remove core insert if tracker fails
+        # - only insert partial of core document 
+        #       - essential identifying info only: name, path, type, others?
+        #       - no meta info in trackers so we do not have to update them if meta changes
+
+
         if in_data["type"] == "boundary" and in_data["options"]["group_class"] == "actual":
 
             # drop boundary tracker if geometry has changed
             if update_boundary:
                 print "update existing boundary with new geom"
-                self.db.drop_collection(in_data["group"])
+                self.db.drop_collection(in_data["options"]["group"])
 
 
             if new_boundary or update_boundary:
                 # if dataset is boundary and a group actual
                 # create new boundary tracker collection
-                c_bnd = db[in_data["group"]]
+                c_bnd = self.db[in_data["options"]["group"]]
                 c_bnd.create_index("name", unique=True)
                 c_bnd.create_index("base", unique=True)
 
                 # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
-                dsets =  c_data.find({"type": {"$ne": "boundary"}})
+                dsets =  self.c_data.find({"type": {"$ne": "boundary"}})
                 for dset in dsets:
                     dset['status'] = -1
                     c_bnd.insert(dset)
@@ -79,9 +87,9 @@ class update_mongo():
             # add dataset to each boundary collection with "unprocessed" flag
             dset = deepcopy(in_data)
             dset['status'] = -1
-            bnds = c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
+            bnds = self.c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
             for bnd in bnds:
-                c_bnd = db[bnd["options"]["group"]]
+                c_bnd = self.db[bnd["options"]["group"]]
                 # c_bnd.insert(dset)
                 c_bnd.replace_one({"base": dset["base"]}, dset, upsert=True)
 
