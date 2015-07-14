@@ -16,7 +16,8 @@ runscript = sys.argv[1]
 # project name which corresponds to folder in /sciclone/aiddata10/REU/projects
 project_name = sys.argv[2]
 
-# name of shapefile without extension
+# path of vector file relative to projects/<project_name>/shps folder 
+# includes file with extension
 shape_name = sys.argv[3]
 
 # data_path relative to /sciclone/aiddata10/REU/data

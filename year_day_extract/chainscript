@@ -17,7 +17,7 @@
 
 project_name="kfw"
 
-shape_name="terra_indegenaPolygon_id"
+shape_name="terra_indegenaPolygon_id.shp"
 
 data_path="ltdr.nascom.nasa.gov/allData/Ver4/ndvi"
 

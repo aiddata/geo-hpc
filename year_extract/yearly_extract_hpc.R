@@ -29,8 +29,7 @@ in_base <- paste(data_base,"/data/",data_path, sep="")
 out_base <- paste(project_base,"/projects/",project_name,"/extracts/",extract_name,"/output/",year, sep="")
 
 
-myVector <- readShapePoly(paste(project_base,"/projects/",project_name,"/shps/",shape_name,".shp", sep=""))
-# myVector <- readOGR(paste(project_base,"/projects/",project_name,"/shps, sep=""), shape_name)
+myVector <- readShapePoly(paste(project_base,"/projects/",project_name,"/shps/",shape_name, sep=""))
 
 myRaster <- raster(paste(in_base,file_name, sep="/")) 
 

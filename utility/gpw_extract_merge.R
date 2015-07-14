@@ -9,7 +9,7 @@ timer <- proc.time()
 # --------------------------------------------------
 
 base <- "/home/userz/globus-data"
-project_name <- "birds"
+project_name <- "liberia"
 
 # --------------------------------------------------
 
@@ -62,7 +62,7 @@ for (y in 1:length(years)) {
 
 
 table_out <- paste(base,"/",out, sep="")
-write.table(df, table_out, quote=F, row.names=F, sep=",")
+write.table(df, table_out, quote=T, row.names=F, sep=",")
 
 timer <- proc.time() - timer 
 print(timer)
