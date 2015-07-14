@@ -25,15 +25,12 @@ data_path = sys.argv[4]
 # output path relative to /sciclone/aiddata10/REU/projects/<project_name>/extracts
 extract_name = sys.argv[5]
 
-# column name to be used for extract data
-# will be truncated in shapefile if over 10 characters
-extract_field = sys.argv[6]
 
 # year must be 4 digits and specified in file mask with "YYYY"
 # other chars in mask do not matter as long as they are not "Y"
 # file mask must be same length as file names
 # eg: (for v4avg_lights_x_pct)  F1xYYYY.v4x.avg_lights_x_pct.tif
-file_mask = sys.argv[7]
+file_mask = sys.argv[6]
 
 # validate file mask
 if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
@@ -90,12 +87,12 @@ if rank == 0:
 
         if not isinstance(merge, pd.DataFrame):
             merge = deepcopy(year_df)
-            merge.rename(columns={extract_field: "ntl_"+year}, inplace=True)
+            merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
 
         else:
-            merge["ntl_"+year] = year_df[extract_field]
+            merge["ad_"+year] = year_df["ad_extract"]
 
 
-    merge_output = "/sciclone/aiddata10/REU/projects/" + project_name + "/extracts/" + extract_name +"/"+ extract_name +"_merge.csv"
+    merge_output = "/sciclone/aiddata10/REU/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
     merge.to_csv(merge_output, index=False)
 

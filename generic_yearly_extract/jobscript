@@ -5,4 +5,4 @@
 #PBS -j oe
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ./yearly_extract_hpc.R liberia LBR_adm3 v4avg_lights_x_pct v4avg_lights_x_pct lights F1xYYYY.v4x.avg_lights_x_pct.tif
+mvp2run -m cyclic python-mpi ./runscript.py ./yearly_extract_hpc.R liberia LBR_adm3 v4avg_lights_x_pct v4avg_lights_x_pct F1xYYYY.v4x.avg_lights_x_pct.tif

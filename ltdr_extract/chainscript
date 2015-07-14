@@ -1,9 +1,25 @@
 #!/bin/bash
 
+
+# --------------------------------------------------
+# example jobscript output:
+
+# #!/bin/tcsh
+# #PBS -N ad:sg-ltdr_ex
+# #PBS -l nodes=3:xeon:compute:ppn=8
+# #PBS -l walltime=02:30:00
+# #PBS -j oe
+
+# cd $PBS_O_WORKDIR
+# mvp2run -m cyclic python-mpi ../runscript.py ../extract_hpc.R 1981
+
+# --------------------------------------------------
+
+
 mkdir -p "jobs"
 cd "jobs"
 
-for year in $(seq 2003 2014); do
+for year in $(seq 1983 2014); do
 
 	job=jobscript_"$year"
 
@@ -15,4 +31,9 @@ for year in $(seq 2003 2014); do
 
 	qsub "$job"
 
+    # could add prev_job = qsub "$sub" -DEPENDS ON PREVJOB OK
+    # to run years sequentially (prevent continuing if a year has an error)
+
 done
+
+
