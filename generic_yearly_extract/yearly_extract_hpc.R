@@ -20,16 +20,19 @@ shape_name <- readIn[4]
 data_path <- readIn[5]
 extract_name <- readIn[6]
 
+data_base <- readIn[7]
+project_base <- readIn[8]
+
 # =========================
 
-core_base <- "/sciclone/aiddata10/REU"
-
-in_base <- paste(core_base,"/data/",data_path, sep="")
-out_base <- paste(core_base,"/projects/",project_name,"/extracts/",extract_name,"/output/",year, sep="")
 
 
-myVector <- readShapePoly(paste(core_base,"/projects/",project_name,"/shps/",shape_name,".shp", sep=""))
-# myVector <- readOGR(paste(core_base,"/projects/",project_name,"/shps, sep=""), shape_name)
+in_base <- paste(data_base,"/data/",data_path, sep="")
+out_base <- paste(project_base,"/projects/",project_name,"/extracts/",extract_name,"/output/",year, sep="")
+
+
+myVector <- readShapePoly(paste(project_base,"/projects/",project_name,"/shps/",shape_name,".shp", sep=""))
+# myVector <- readOGR(paste(project_base,"/projects/",project_name,"/shps, sep=""), shape_name)
 
 myRaster <- raster(paste(in_base,file_name, sep="/")) 
 
