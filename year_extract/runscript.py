@@ -9,6 +9,7 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
+# =========================
 
 runscript = sys.argv[1]
 
@@ -37,6 +38,7 @@ data_base = sys.argv[7]
 # path to project folder parent
 project_base = sys.argv[8]
 
+# =========================
 
 # validate file mask
 if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
@@ -55,16 +57,19 @@ if not os.path.isdir(path_base):
 ignore = []
 
 # list of all [year, file] combos
-qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and name.endswith(".tif") and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
+qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
 qlist = sorted(qlist)
 
 
 c = rank
 while c < len(qlist):
 
-	try:
-		cmd = "Rscript "+runscript+" "+qlist[c][0]+" "+qlist[c][1]+" "+project_name+" "+shape_name+" "+data_path+" "+extract_name+" "+extract_field+" "+data_base+" "+project_base
-		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+	try:  
+        core = ["Rscript", runscript, qlist[c][0], qlist[c][1]]
+        args = [project_name, shape_name, data_path, extract_name, extract_field, data_base, project_base]
+        cmd = " ".join(str(e) for e in core + args)
+
+        sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
 		print sts
 
 	except sp.CalledProcessError as sts_err:                                                                                                   
