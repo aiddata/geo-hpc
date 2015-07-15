@@ -1,5 +1,5 @@
 #!/bin/tcsh
-#PBS -N ad:sg-ltdr_ex
+#PBS -N ad:sg-yde:ltdr
 #PBS -l nodes=3:xeon:compute:ppn=8
 #PBS -l walltime=02:30:00
 #PBS -j oe

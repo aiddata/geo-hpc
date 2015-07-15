@@ -22,13 +22,13 @@ rank = comm.Get_rank()
 
 if rank == 0:
 
-	try:
-		cmd = "Rscript "+runscript+" "+extract_type+" "+project_name
-		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-		print sts
+    try:
+        cmd = "Rscript "+runscript+" "+extract_type+" "+project_name
+        sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+        print sts
 
-	except sp.CalledProcessError as sts_err:                                                                                                   
-	    print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+    except sp.CalledProcessError as sts_err:                                                                                                   
+        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
 
 comm.Barrier()

@@ -65,18 +65,18 @@ qlist = sorted(qlist)
 c = rank
 while c < len(qlist):
 
-	try:  
+    try:  
         core = ["Rscript", runscript, qlist[c][0], qlist[c][1]]
-        args = [project_name, shape_name, data_path, extract_name, extract_field, data_base, project_base]
+        args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
         cmd = " ".join(str(e) for e in core + args)
 
         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-		print sts
+        print sts
 
-	except sp.CalledProcessError as sts_err:                                                                                                   
-	    print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+    except sp.CalledProcessError as sts_err:                                                                                                   
+        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
-	c += size
+    c += size
 
 
 comm.Barrier()

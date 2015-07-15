@@ -15,9 +15,24 @@
 
 # --------------------------------------------------
 
-project_name="kfw"
+# project_name="kfw"
 
-shape_name="terra_indegenaPolygon_id.shp"
+# shape_name="terra_indegenaPolygon_id.shp"
+
+# data_path="ltdr.nascom.nasa.gov/allData/Ver4/ndvi"
+
+# extract_name="ltdr_ndvi"
+
+# file_mask="YYYY/AVH13C1.A1984DDD.N07.004.2013225115505.tif"
+
+# data_base="/sciclone/aiddata10/REU"
+
+# project_base="/sciclone/aiddata10/REU"
+
+
+project_name="nepal"
+
+shape_name="ADM3/NPL_adm3.shp"
 
 data_path="ltdr.nascom.nasa.gov/allData/Ver4/ndvi"
 
@@ -30,21 +45,20 @@ data_base="/sciclone/aiddata10/REU"
 project_base="/sciclone/aiddata10/REU"
 
 
-
 mkdir -p "jobs"
 cd "jobs"
 
-for year in $(seq 1983 2014); do
+for year in $(seq 1982 1982); do
 
-	job=jobscript_"$year"
+    job=jobscript_"$year"
 
-	cat ../jobscript_base > "$job"
+    cat ../jobscript_base > "$job"
 
-	mpi_str="mvp2run -m cyclic python-mpi ../runscript.py ../extract_hpc.R"
+    mpi_str="mvp2run -m cyclic python-mpi ../runscript.py ../extract_hpc.R"
 
-	echo "$mpi_str" "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base" "$year" >> "$job"
+    echo "$mpi_str" "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base" "$year" >> "$job"
 
-	qsub "$job"
+    qsub "$job"
 
     # could add prev_job = qsub "$sub" -DEPENDS ON PREVJOB OK
     # to run years sequentially (prevent continuing if a year has an error)

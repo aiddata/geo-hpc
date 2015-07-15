@@ -36,7 +36,7 @@ path_base = data_base + "/data/" + data_path
 path_year = path_base +"/"+ year
 files = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and (name.endswith('.tif') or name.endswith('.asc'))]
 
-# list of all [year, day, name] combos for year	
+# list of all [year, day, name] combos for year 
 qlist = [[year, "".join([x for x,y in zip(name, file_mask) if y == 'D' and x.isdigit()]), name] for name in files]
 qlist = sorted(qlist)
 
@@ -44,18 +44,18 @@ qlist = sorted(qlist)
 c = rank
 while c < len(qlist):
 
-	try:
+    try:
         core = ["Rscript", runscript, qlist[c][0], qlist[c][1], qlist[c][2]]
-        args = [project_name, shape_name, data_path, extract_name, extract_field, data_base, project_base]
+        args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
         cmd = " ".join(str(e) for e in core + args)
-		
-		sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-		print sts
 
-	except sp.CalledProcessError as sts_err:                                                                                                   
-	    print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+        sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+        print sts
 
-	c += size
+    except sp.CalledProcessError as sts_err:                                                                                                   
+        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+
+    c += size
 
 
 comm.Barrier()
