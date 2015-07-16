@@ -16,12 +16,12 @@ year <- readIn[1]
 day <- readIn[2]
 file_name <- readIn[3]
 
-project_name <- readIn[3]
-shape_name <- readIn[4]
-data_path <- readIn[5]
-extract_name <- readIn[6]
-data_base <- readIn[7]
-project_base <- readIn[8]
+project_name <- readIn[4]
+shape_name <- readIn[5]
+data_path <- readIn[6]
+extract_name <- readIn[7]
+data_base <- readIn[8]
+project_base <- readIn[9]
 
 # =========================
 

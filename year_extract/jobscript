@@ -20,4 +20,4 @@ project_base="/sciclone/aiddata10/REU"
 
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ./yearly_extract_hpc.R "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base"
+mvp2run -m cyclic python-mpi ./runscript.py ./extract.R "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base"
