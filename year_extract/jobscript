@@ -1,22 +1,40 @@
 #!/bin/tcsh
-#PBS -N ad:sg-ye:ntl
+#PBS -N asg:ye-ntl
 #PBS -l nodes=6:xeon:compute:ppn=8
 #PBS -l walltime=24:00:00
 #PBS -j oe
 
-project_name="liberia"
 
-shape_name="LBR_adm3.shp"
+# set project_name = "liberia"
 
-data_path="v4avg_lights_x_pct"
+# set shape_name = "LBR_adm3.shp"
 
-extract_name="v4avg_lights_x_pct"
+# set data_path = "v4avg_lights_x_pct"
 
-file_mask="F1xYYYY.v4x.avg_lights_x_pct.tif"
+# set extract_name = "v4avg_lights_x_pct"
 
-data_base="/sciclone/aiddata10/REU"
+# set file_mask = "F1xYYYY.v4x.avg_lights_x_pct.tif"
 
-project_base="/sciclone/aiddata10/REU"
+# set data_base = "/sciclone/aiddata10/REU"
+
+# set project_base = "/sciclone/aiddata10/REU"
+
+
+
+set project_name = "kfw_grid_clip"
+
+set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
+
+set data_path = "ltdr_yearly/ndvi_max"
+
+set extract_name = "ltdr_yearly_max"
+
+set file_mask = "YYYY.tif"
+
+set data_base = "/sciclone/aiddata10/REU"
+
+set project_base = "/sciclone/aiddata10/REU"
+
 
 
 cd $PBS_O_WORKDIR

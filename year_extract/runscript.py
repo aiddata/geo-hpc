@@ -1,3 +1,4 @@
+
 from mpi4py import MPI
 import subprocess as sp
 import sys
@@ -5,11 +6,9 @@ import os
 
 
 comm = MPI.COMM_WORLD
-
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-# =========================
 
 runscript = sys.argv[1]
 
@@ -39,26 +38,30 @@ data_base = sys.argv[7]
 # path to project folder parent
 project_base = sys.argv[8]
 
-# =========================
 
-# validate file mask
-if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
-    sys.exit("invalid file mask")
-
-
-# base path where year/day directories for processed data are located
+# base path where year directories (or actual data) for processed data are located
 path_base = data_base + "/data/" + data_path
 
 # validate path_base
 if not os.path.isdir(path_base):
     sys.exit("path_base is not valid ("+ path_base +")")
 
+# ==================================================
 
-# list of years to ignore
-ignore = []
+# validate file mask
+if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
+    sys.exit("invalid file mask")
 
+
+# list of years to ignore/accept
 # list of all [year, file] combos
-qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
+
+# ignore = []
+# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
+
+accept = ["1983","1984"]
+qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
+
 qlist = sorted(qlist)
 
 

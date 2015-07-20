@@ -49,23 +49,29 @@ if not os.path.isdir(path_base):
 # ==================================================
 
 # validate file mask
-if file_mask.count("D") != 3 or not "DDD" in file_mask:
+if (file_mask.count("Y") != 4 or not "YYYY" in file_mask) or (file_mask.count("M") != 2 or not "MM" in file_mask):
     sys.exit("invalid file mask")
 
 
-year = str(sys.argv[9])
+# list of years to ignore/accept
+# list of all years
+
+ignore = []
+years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
+
+# accept = []
+# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in accept]
 
 
-# ignore = ["1982"]
 
-# if year in ignore:
-    # sys.exit("Ignoring year "+year)
+# list of all [year, month, name] combos
+qlist = []
 
-path_year = path_base +"/"+ year
-files = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and (name.endswith('.tif') or name.endswith('.asc'))]
+for year in years:
 
-# list of all [year, day, name] combos for year 
-qlist = [[year, "".join([x for x,y in zip(name, file_mask) if y == 'D' and x.isdigit()]), name] for name in files]
+    path_year = path_base +"/"+ year
+    qlist += [[year, "".join([x for x,y in zip(name, file_mask) if y == 'M' and x.isdigit()]), name] for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and (name.endswith(".tif") or name.endswith(".asc"))]
+
 qlist = sorted(qlist)
 
 
