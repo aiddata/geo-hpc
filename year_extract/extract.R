@@ -15,6 +15,7 @@ readIn <- commandArgs(trailingOnly = TRUE)
 year <- readIn[1]
 file_name <- readIn[2]
 
+
 project_name <- readIn[3]
 shape_name <- readIn[4]
 data_path <- readIn[5]
@@ -46,4 +47,4 @@ write.table(myOutput, paste(out_base,"/extract_",year,".csv", sep=""), quote=T, 
 
 
 timer <- proc.time() - timer
-print(paste("yearly_extract_hpc.R:",project_name,data_path,year,"extract completed in",timer[3],"seconds.", sep=" "))
+print(paste("extract.R: (year)",project_name,data_path,year,"extract completed in",timer[3],"seconds.", sep=" "))

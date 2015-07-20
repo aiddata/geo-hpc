@@ -92,18 +92,17 @@ merge = 0
 if rank == 0:
     c = 0
     for item in qlist:
-        print item
         year = item[0]
-        year_result = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output/" + year + "/extract_" + year + ".csv"
+        result_csv = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output/" + year + "/extract_" + year + ".csv"
 
-        year_df = pd.read_csv(year_result, quotechar='\"', na_values='', keep_default_na=False)
+        result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
         if not isinstance(merge, pd.DataFrame):
-            merge = deepcopy(year_df)
+            merge = deepcopy(result_df)
             merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
 
         else:
-            merge["ad_"+year] = year_df["ad_extract"]
+            merge["ad_"+year] = result_df["ad_extract"]
 
 
     merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"

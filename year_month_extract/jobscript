@@ -1,7 +1,7 @@
 #!/bin/tcsh
 #PBS -N asg:yme-at
-#PBS -l nodes=4:xeon:compute:ppn=8
-#PBS -l walltime=72:00:00
+#PBS -l nodes=2:xeon:compute:ppn=8
+#PBS -l walltime=20:00:00
 #PBS -j oe
 
 
@@ -11,7 +11,7 @@ set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
 
 set data_path = "terrestrial_precipitation"
 
-set extract_name = "precip"
+set extract_name = "terrestrial_precipitation"
 
 set file_mask = "precip_YYYY_MM.tif"
 

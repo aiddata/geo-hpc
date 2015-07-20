@@ -42,9 +42,9 @@ dir.create(out_base, recursive=TRUE)
 myOutput <- myExtract@data
 write.table(myOutput, paste(out_base,"/extract_",year,"_",month,".csv", sep=""), quote=T, row.names=F, sep=",")
 
-out_shp <- paste(out_base,"/extract_",year,"_",month,".shp", sep="")
-writePolyShape(myExtract, out_shp)
+# out_shp <- paste(out_base,"/extract_",year,"_",month,".shp", sep="")
+# writePolyShape(myExtract, out_shp)
 
 
 timer <- proc.time() - timer
-print(paste("extract_hpc.R:",year,month,"completed in",timer[3],'seconds. ', sep=" "))
+print(paste("extract.R: (year-month)",project_name,data_path,year,month,"extract completed in",timer[3],"seconds.", sep=" "))

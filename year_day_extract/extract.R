@@ -47,4 +47,4 @@ writePolyShape(myExtract, out_shp)
 
 
 timer <- proc.time() - timer
-print(paste("extract_hpc.R:",year,day,"completed in",timer[3],'seconds. ', sep=" "))
+print(paste("extract.R: (year-day)",project_name,data_path,year,day,"extract completed in",timer[3],"seconds.", sep=" "))

@@ -56,11 +56,11 @@ if (file_mask.count("Y") != 4 or not "YYYY" in file_mask) or (file_mask.count("M
 # list of years to ignore/accept
 # list of all years
 
-ignore = []
-years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
+# ignore = []
+# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
 
-# accept = []
-# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in accept]
+accept = ["1990"]
+years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in accept]
 
 
 
@@ -93,3 +93,29 @@ while c < len(qlist):
 
 
 comm.Barrier()
+
+
+import pandas as pd
+from copy import deepcopy
+
+merge = 0
+if rank == 0:
+    c = 0
+    for item in qlist:
+        year = item[0]
+        month = item[1]
+        result_csv = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output/" + year +"/"+ month + "/extract_" + year +"_"+ month + ".csv"
+
+        result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+
+        if not isinstance(merge, pd.DataFrame):
+            merge = deepcopy(result_df)
+            merge.rename(columns={"ad_extract": "ad_"+year+"_"+month}, inplace=True)
+
+        else:
+            merge["ad_"+year+"_"+month] = result_df["ad_extract"]
+
+
+    merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/extract_merge.csv"
+    merge.to_csv(merge_output, index=False)
+
