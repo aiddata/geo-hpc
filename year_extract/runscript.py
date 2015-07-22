@@ -56,11 +56,11 @@ if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
 # list of years to ignore/accept
 # list of all [year, file] combos
 
-# ignore = []
-# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
+ignore = []
+qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
 
-accept = ["1983","1984"]
-qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
+# accept = ["1983","1984"]
+# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
 
 qlist = sorted(qlist)
 
@@ -89,7 +89,7 @@ import pandas as pd
 from copy import deepcopy
 
 merge = 0
-if rank == 0:
+if rank == 0 and len(qlist) > 0:
     c = 0
     for item in qlist:
         year = item[0]

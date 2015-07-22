@@ -56,11 +56,11 @@ if (file_mask.count("Y") != 4 or not "YYYY" in file_mask) or (file_mask.count("M
 # list of years to ignore/accept
 # list of all years
 
-# ignore = []
-# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
+ignore = [str(e) for e in range(1900, 1982)]
+years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name not in ignore]
 
-accept = ["1990"]
-years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in accept]
+# accept = ["1990"]
+# years = [name for name in os.listdir(path_base) if os.path.isdir(os.path.join(path_base, name)) and name in accept]
 
 
 
@@ -99,7 +99,7 @@ import pandas as pd
 from copy import deepcopy
 
 merge = 0
-if rank == 0:
+if rank == 0 and len(qlist) > 0:
     c = 0
     for item in qlist:
         year = item[0]

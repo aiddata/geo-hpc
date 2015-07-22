@@ -45,10 +45,24 @@ data_base="/sciclone/aiddata10/REU"
 project_base="/sciclone/aiddata10/REU"
 
 
+# for a range of consecutive years assign a start and end year
+# start_year and end_year values are included in range
+# to cover a single year, make start_year and end_year the same
+start_year=1982
+end_year=1982
+
+range=$(seq $start_year $end_year)
+
+
+# for non-consecutive years use manual range
+# example: range="1982 1989 1995"
+# range=""
+
+
 mkdir -p "jobs"
 cd "jobs"
 
-for year in $(seq 1982 1982); do
+for year in $range; do
 
     job=jobscript_"$year"
 
@@ -65,4 +79,5 @@ for year in $(seq 1982 1982); do
 
 done
 
-
+# call merge script
+# python ../merge.py "$project_base"/projects/"$project_name"/extracts/"$extract_name"  
