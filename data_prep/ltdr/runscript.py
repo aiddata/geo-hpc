@@ -39,7 +39,7 @@ rank = comm.Get_rank()
 # base path where data is located
 # data downloaded using wget (same wget call can be used to download new data)
 # wget -r -c -N --retr-symlinks=yes ftp://ltdr.nascom.nasa.gov/allData/Ver4/
-path_base = "/sciclone/data20/aiddata/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4"
+path_base = "/sciclone/aiddata10/REU/raw/ltdr.nascom.nasa.gov/allData/Ver4"
 
 
 # reference object used to eliminate duplicate year / day combos

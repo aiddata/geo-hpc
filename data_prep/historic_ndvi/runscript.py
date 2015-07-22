@@ -26,7 +26,7 @@ def isInt(numStr, numType):
 
 
 # base path historic year_month files are located
-path_base = "/sciclone/data20/aiddata/REU/raw/historic_gimms_ndvi"
+path_base = "/sciclone/aiddata10/REU/raw/historic_gimms_ndvi"
 
 # list of all [year, file] combos
 qlist = [[name[14:18], name[18:20], name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and name.endswith('.asc') and isInt(name[14:18], 'year') and isInt(name[18:20], 'month')]

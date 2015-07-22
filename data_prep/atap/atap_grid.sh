@@ -51,7 +51,7 @@ for item in "$base"/"$src"/*;do
 			m=0"$m"
 		fi
 
-		outpath="$out"/"$year"/"$m"/
+		outpath="$out"/"$year"/
 		mkdir -p "$outpath"
 
 		# create raster from vrt

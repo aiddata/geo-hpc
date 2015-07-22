@@ -27,9 +27,9 @@ export GDAL_CACHEMAX=8191
 myuser="sgoodman"
 
 # input and output directories
-in_dir="/sciclone/data20/aiddata/REU/raw/historic_gimms_ndvi"
+in_dir="/sciclone/aiddata10/REU/raw/historic_gimms_ndvi"
 tmp_dir="/local/scr/"${myuser}"/REU/data/historic_gimms_ndvi/"${year}/${month}
-out_dir="/sciclone/data20/aiddata/REU/data/historic_gimms_ndvi/"${year}/${month}
+out_dir="/sciclone/aiddata10/REU/data/historic_gimms_ndvi/"${year}
 
 
 process_in="$in_dir"/"$file"
@@ -43,9 +43,11 @@ if [[ -f "$process_act" && $force -eq 0 ]]; then
 fi
 
 
-# clean up tmp and out directories if they exists
+# clean up tmp directories if they exists
 \rm -f -r "$tmp_dir"
-\rm -f -r "$out_dir"
+
+# remove output file if it exists (force==1)
+\rm -f "$process_act"
 
 # make tmp directory
 mkdir -p "$tmp_dir"

@@ -26,9 +26,9 @@ export GDAL_CACHEMAX=22527
 myuser="sgoodman"
 
 # input and output directories
-in_dir="/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
+in_dir="/sciclone/aiddata10/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
 tmp_dir="/local/scr/"${myuser}"/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
-out_dir="/sciclone/data20/aiddata/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}/${day}
+out_dir="/sciclone/aiddata10/REU/data/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"${year}
 
 cd "$in_dir"
 
@@ -53,9 +53,11 @@ if [[ -f "$mosaic_act" && $force -eq 0 ]]; then
 fi
 
 
-# clean up tmp and out directories if they exists
+# clean up tmp directories if they exists
 \rm -f -r "$tmp_dir"
-\rm -f -r "$out_dir"
+
+# remove output mosaic if it already exists (force == 1)
+\rm -f "$mosaic_act"
 
 # make tmp directories
 mkdir -p "$tmp_dir"/unzip

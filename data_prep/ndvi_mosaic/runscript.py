@@ -14,7 +14,7 @@ rank = comm.Get_rank()
 # base path where year/day directories are located
 # data downloaded using wget (same wget call can be used to download new data)
 # wget -r -c -N ftp://gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/
-path_base = "/sciclone/data20/aiddata/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
+path_base = "/sciclone/aiddata10/REU/raw/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 
 # list of years to ignore
 ignore = ['2000','2001','2002','2003','2004','2005','2006']
