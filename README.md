@@ -7,21 +7,21 @@ scripts for preparing, extracting and working with datasets on sciclone
 
 generic extract scripts for datasets based on the temporal availability of data
 
-## year_extract
+- ## year_extract
 data identified by year
 
-## year_month_extract
+- ## year_month_extract
 data identified by year and month
 
-## year_day_extract
+- ## year_day_extract
 data identified by year and day of year
 
-## single_extract
+- ## single_extract
 temporally invariant data
 
 --------------------------------------------------
 
-## data prep 
+- ## data prep 
 scripts for processing raw data
 
    #### ltdr  
@@ -38,7 +38,7 @@ scripts for processing raw data
 
 --------------------------------------------------
 
-## utility
+- ## utility
 postprocessing scripts for working with extract data
 ..
 
