@@ -1,25 +1,25 @@
 #!/bin/tcsh
-#PBS -N abd:se-srtm
+#PBS -N asg:se-srtm
 #PBS -l nodes=1:xeon:compute:ppn=1
-#PBS -l walltime=24:00:00
+#PBS -l walltime=36:00:00
 #PBS -j oe
 
 
-echo ""
+set project_name = "kfw_grid_clip"
 
-set project_name = "nepal"
-
-set shape_name = "ADM3/NPL_adm3.shp"
+set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
 
 set data_path = "srtm/SRTM_500m.tif"
 
 set extract_name = "elevation"
 
+set file_mask = "None"
+
 set data_base = "/sciclone/aiddata10/REU"
 
-set project_base = "/sciclone/home00/bfdyks/work"
+set project_base = "/sciclone/aiddata10/REU"
 
 
 
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ./extract.R "$project_name" "$shape_name" "$data_path" "$extract_name" "$data_base" "$project_base"
+mvp2run -m cyclic python-mpi ./runscript.py ./extract.R "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base"

@@ -1,11 +1,14 @@
-from mpi4py import MPI
+
+# from mpi4py import MPI
 import subprocess as sp
 import sys
 import os
 
-#comm = MPI.COMM_WORLD
 
-# =========================
+# comm = MPI.COMM_WORLD
+# size = comm.Get_size()
+# rank = comm.Get_rank()
+
 
 runscript = sys.argv[1]
 
@@ -27,21 +30,13 @@ extract_name = sys.argv[5]
 # other chars in mask do not matter as long as they are not "Y"
 # file mask must be same length as file names
 # eg: (for v4avg_lights_x_pct)  F1xYYYY.v4x.avg_lights_x_pct.tif
-
+file_mask = sys.argv[6]
 
 # path to data folder parent
-data_base = sys.argv[6]
+data_base = sys.argv[7]
 
 # path to project folder parent
-project_base = sys.argv[7]
-
-output_path = project_base + "/projects/" + project_name + "/extracts/" + extract_name
-
-# =========================
-
-# validate file mask
-#if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
-#    sys.exit("invalid file mask")
+project_base = sys.argv[8]
 
 
 # base path where year/day directories for processed data are located
@@ -51,26 +46,25 @@ path_base = data_base + "/data/" + data_path
 if not os.path.isfile(path_base):
     sys.exit("path_base is not valid ("+ path_base +")")
 
-
-raster_path = data_base + "/data/" + data_path  
-#validate data_path assuming that full raster file path is given
-if not os.path.isfile(raster_path):
-    sys.exit("raster_path is not valid ("+ raster_path +")")
-
-#shape_path = data_base + "/Projects/" + project_name + "/extracts/" + extract_name \
-#/ "/outputs/" + project_name + shape_name
-
-if not os.path.isdir(project_base + "/projects/" + project_name):
-    sys.exit("project does not exist (" + project_base + "/projects/" \
-        + project_name + ")")
-
-shape_file = project_base + "/projects/" + project_name + "/shps/" + shape_name
-#validate shape_name assuming that full shapefile path is given
-if not os.path.isfile(shape_file):
-    sys.exit("shape_file is not valid (" + shape_file + ")")
+# ==================================================
 
 
+# validate raster exists
+r_path = data_base + "/data/" + data_path
+if not os.path.isfile(r_path):
+    sys.exit("raster does not exist (" + r_path + ")")
 
+
+# validate project exists
+p_path = project_base + "/projects/" + project_name
+if not os.path.isdir(p_path):
+    sys.exit("project does not exist (" + p_path + ")")
+
+
+# validate vector exists
+v_path = project_base + "/projects/" + project_name + "/shps/" + shape_name
+if not os.path.isfile(v_path):
+    sys.exit("vector does not exist (" + v_path + ")")
 
 
 try:  
@@ -85,7 +79,4 @@ try:
 
 except sp.CalledProcessError as sts_err:                                                                                                   
     print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
-
-    
-
 
