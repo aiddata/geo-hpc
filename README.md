@@ -18,26 +18,26 @@ data identified by year and day of year
 ## single_extract
 temporally invariant data
 
+## data prep 
+scripts for processing raw data
 
-data prep scripts for processing raw data
+   #### ltdr
+   preprocessing for ltdr ndvi data
 
-## ltdr_prep
-preprocessing for ltdr ndvi data
+   #### ndvi_mosaic
+   Scripts for creating a job on the Sciclone cluster which preprocesses/mosaics contemporary GIMMS NDVI data in parallel
 
-## ndvi_mosaic
-Scripts for creating a job on the Sciclone cluster which preprocesses/mosaics contemporary GIMMS NDVI data in parallel
+   #### historic_ndvi
+   Scripts for creating a job on the Sciclone cluster to process historic GIMMS NDVI data (1981-2003)
 
-## historic_ndvi_prep
-Scripts for creating a job on the Sciclone cluster to process historic GIMMS NDVI data (1981-2003)
-
-## utility/atap_grid.sh
-creates rasters from raw atap data
+   #### atap
+   creates rasters from raw atap data
 
 
+## utility
 postprocessing scripts for working with extract data
-
-## utility/..
 ..
+
 
 
 other
@@ -45,6 +45,7 @@ other
 ## ndvi_original
 Contains original Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
 
+--------------------------------------------------
 --------------------------------------------------
 
 old scripts (most in process of being updated, moved or deprecated)
