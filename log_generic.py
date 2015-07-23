@@ -354,6 +354,10 @@ generic_input("open", update_data_package, "file_extension", "Primary file exten
 
 # raster info
 if data_package["type"] == "raster":
+
+    # resolution
+    generic_input("open", update_data_package, "factor", "Dataset resolution? (in degrees)", v.factor, opt=True)
+
     # extract_types (multiple)
     generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, opt=True)
 
