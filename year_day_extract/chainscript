@@ -62,6 +62,18 @@ range=$(seq $start_year $end_year)
 mkdir -p "jobs"
 cd "jobs"
 
+
+# init merge_jobscript to call merge.py
+
+# cat > merge_jobscript <<EOF
+# #!/bin/tcsh
+# #PBS -N asg:ydm:ltdr
+# #PBS -l nodes=1:xeon:compute:ppn=1
+# #PBS -l walltime=04:00:00
+# #PBS -j oe
+# EOF
+
+
 for year in $range; do
 
     job=jobscript_"$year"
@@ -72,12 +84,26 @@ for year in $range; do
 
     echo "$mpi_str" "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base" "$year" >> "$job"
 
-    qsub "$job"
-
     # could add prev_job = qsub "$sub" -DEPENDS ON PREVJOB OK
     # to run years sequentially (prevent continuing if a year has an error)
+    sub=qsub "$job"
+
+
+    # add job dependency to merge_jobscript
+    # echo -e \n"#PBS -W depend=afterok:${sub}" >> merge_jobscript
 
 done
 
-# call merge script
-# python ../merge.py "$project_base"/projects/"$project_name"/extracts/"$extract_name"  
+
+# finalize merge_jobscript
+# cat >> merge_jobscript <<EOF
+
+# cd $PBS_O_WORKDIR
+
+# python ../merge.py ${project_base}/projects/${project_name}/extracts/${extract_name}
+
+# EOF
+
+
+# sub merge_jobscript
+# qsub merge_jobscript

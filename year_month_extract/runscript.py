@@ -99,23 +99,40 @@ import pandas as pd
 from copy import deepcopy
 
 merge = 0
-if rank == 0 and len(qlist) > 0:
-    c = 0
-    for item in qlist:
-        year = item[0]
-        month = item[1]
-        result_csv = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output/" + year +"/"+ month + "/extract_" + year +"_"+ month + ".csv"
+if rank == 0:
 
-        result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+    
+    # if len(qlist) > 0:
 
-        if not isinstance(merge, pd.DataFrame):
-            merge = deepcopy(result_df)
-            merge.rename(columns={"ad_extract": "ad_"+year+"_"+month}, inplace=True)
-
-        else:
-            merge["ad_"+year+"_"+month] = result_df["ad_extract"]
+    #     for item in qlist:
+    #         year = item[0]
+    #         month = item[1]
 
 
-    merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/extract_merge.csv"
-    merge.to_csv(merge_output, index=False)
+    output_base = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output"
+    rlist = [[year, month] for year in os.listdir(output_base) for month in os.listdir(output_base +"/"+ year)]
+
+    if len(rlist) > 0:
+
+        for item in rlist:
+
+            year = item[0]
+            month = item[1]
+
+            result_csv = output_base +"/"+ year +"/"+ month + "/extract_" + year +"_"+ month + ".csv"
+
+            if os.path.isfile(result_csv):
+
+                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+
+                if not isinstance(merge, pd.DataFrame):
+                    merge = deepcopy(result_df)
+                    merge.rename(columns={"ad_extract": "ad_"+year+"_"+month}, inplace=True)
+
+                else:
+                    merge["ad_"+year+"_"+month] = result_df["ad_extract"]
+
+
+        merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/extract_merge.csv"
+        merge.to_csv(merge_output, index=False)
 

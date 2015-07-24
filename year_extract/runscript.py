@@ -89,20 +89,34 @@ import pandas as pd
 from copy import deepcopy
 
 merge = 0
-if rank == 0 and len(qlist) > 0:
-    c = 0
-    for item in qlist:
-        year = item[0]
-        result_csv = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output/" + year + "/extract_" + year + ".csv"
+if rank == 0:
 
-        result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
-        if not isinstance(merge, pd.DataFrame):
-            merge = deepcopy(result_df)
-            merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
+    # if len(qlist) > 0:
 
-        else:
-            merge["ad_"+year] = result_df["ad_extract"]
+    #     for item in qlist:
+    #         year = item[0]
+
+
+    output_base = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output"
+    rlist = [year for year in os.listdir(output_base)]
+   
+    if len(rlist) > 0:
+
+        for year in rlist:
+
+            result_csv = output_base "/"+ year + "/extract_" + year + ".csv"
+            
+            if os.path.isfile(result_csv):
+
+                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+
+                if not isinstance(merge, pd.DataFrame):
+                    merge = deepcopy(result_df)
+                    merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
+
+                else:
+                    merge["ad_"+year] = result_df["ad_extract"]
 
 
     merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
