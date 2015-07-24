@@ -9,7 +9,6 @@ from osgeo import gdal_array
 from osgeo import osr
 
 
-
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
@@ -20,9 +19,23 @@ status = MPI.Status()
 
 data_path = "/sciclone/aiddata10/REU/data/ltdr.nascom.nasa.gov/allData/Ver4/ndvi"
 
+out_base = "/sciclone/aiddata10/REU/data/ltdr_yearly"
+
 method = "mean"
 
+nodata = -9999
+
 # --------------------
+
+
+# verify data_path contains daily data
+# 
+
+# verify out_base exists
+# 
+
+# create method folder in out_base if it does not exists
+# 
 
 
 def enum(*sequential, **named):
@@ -38,8 +51,11 @@ if method not in method_list:
     sys.exit("Bad method given")
 
 
+# list of years to ignore/accept
+# list of all years to process
+
 # ignore = ['1981']
-# qlist = [name for name in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, name)) and not name in ignore]
+# qlist = [name for name in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, name)) and name not in ignore]
 
 accept = ['1981']
 qlist = [name for name in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, name)) and name in accept]
@@ -49,17 +65,17 @@ for i in range(len(qlist)):
 
     year = qlist[i]
 
-    filelist = [data_path + "/" + year + "/" + name for name in os.listdir(data_path + "/" + year) if not os.path.isdir(os.path.join(data_path+"/" + year ,name)) ]
+    filelist = [data_path + "/" + year + "/" + name for name in os.listdir(data_path +"/"+ year) if not os.path.isdir(os.path.join(data_path +"/"+ year, name)) ]
 
     if rank ==0:
 
         geotransform = None
-        tmp = gdal.Open(filelist[1])
-        testarray = np.array(tmp.GetRasterBand(1).ReadAsArray())
-        nrows,ncols = np.shape(testarray)
-        geotransform = tmp.GetGeoTransform()
+        tmp_file = gdal.Open(filelist[1])
+        tmp_array = np.array(tmp.GetRasterBand(1).ReadAsArray())
+        nrows,ncols = np.shape(tmp_array)
+        geotransform = tmp_file.GetGeoTransform()
 
-        result=[]
+        year_data=[]
         tasks = filelist
         task_index = 0
         num_workers = size - 1
@@ -82,7 +98,7 @@ for i in range(len(qlist)):
                     comm.send(None, dest=source, tag=tags.EXIT)
 
             elif tag == tags.DONE:
-                result.append(data)
+                year_data.append(data)
                 print("Got data from worker %d" % source)
 
             elif tag == tags.EXIT:
@@ -90,51 +106,42 @@ for i in range(len(qlist)):
                 closed_workers +=1
 
 
-        # ndviarr= np.dstack(result)
-        # ndvivalue = []
-        # for row in range(0,len(ndviarr)):
-        #   ndvivalue.append([])
-        #   for cell in range(0,len(ndviarr[row])):
-        #       ndvivalue[row].append(np.max(ndviarr[row][cell]))
-
-        nodata = -9999
-
-        result = np.array(result)
-        # masked_result = np.ma.MaskedArray(result, np.in1d(result, [nodata]), fill_value=nodata)
+        year_data = np.array(year_data)
+        # masked_year_data = np.ma.MaskedArray(year_data, np.in1d(year_data, [nodata]), fill_value=nodata)
 
         if method == "max":
-            ndvivalue = np.max(result, axis=0)
+            result = np.max(year_data, axis=0)
 
         elif method == "mean":
-            result = np.array(result, dtype=np.float32)
-            result[result == -9999] = np.nan
-            ndvivalue = np.nanmean(result, axis=0)
-            ndvivalue[np.isnan(ndvivalue)] = float(nodata)
-            # ndvivalue = np.ma.mean(masked_result, axis=0).filled(nodata)
+            year_data = np.array(year_data, dtype=np.float32)
+            year_data[year_data == -9999] = np.nan
+            result = np.nanmean(year_data, axis=0)
+            result[np.isnan(result)] = float(nodata)
+            # result = np.ma.mean(masked_year_data, axis=0).filled(nodata)
 
         elif method == "var":
-            # ndvivalue = np.ma.var(masked_result, axis=0).filled(nodata)
-            result = np.array(result, dtype=np.float32)
-            result[result == -9999] = np.nan
-            ndvivalue = np.nanvar(result, axis=0)
-            ndvivalue[np.isnan(ndvivalue)] = float(nodata)
+            # result = np.ma.var(masked_year_data, axis=0).filled(nodata)
+            year_data = np.array(year_data, dtype=np.float32)
+            year_data[year_data == -9999] = np.nan
+            result = np.nanvar(year_data, axis=0)
+            result[np.isnan(result)] = float(nodata)
 
 
-        # ndvivalue = ndvivalue[np.isnan(ndvivalue)] = nodata
+        # result = result[np.isnan(result)] = nodata
 
-        # if np.nan in np.ravel(ndvivalue):
-        #     sys.exit("NOT A NUMBER IS PRESENT IN NDVIVALUE ARRAY")
+        # if np.nan in np.ravel(result):
+        #     sys.exit("NOT A NUMBER IS PRESENT IN result ARRAY")
 
 
         if geotransform != None:
-            output_path = '/sciclone/home00/zjn/wbproj/ndvimpi/output/ndvi_'+method+'/'+ year+'.tif'
+            output_path = out_base +"/"+ method +"/"+ year + ".tif"
             output_raster = gdal.GetDriverByName('GTiff').Create(output_path,ncols, nrows, 1 ,gdal.GDT_Float32)  
             output_raster.SetGeoTransform(geotransform)  
             srs = osr.SpatialReference()                 
             srs.ImportFromEPSG(4326)  
             output_raster.SetProjection(srs.ExportToWkt()) 
             output_raster.GetRasterBand(1).SetNoDataValue(nodata)
-            output_raster.GetRasterBand(1).WriteArray(ndvivalue)
+            output_raster.GetRasterBand(1).WriteArray(result)
 
 
     else:
