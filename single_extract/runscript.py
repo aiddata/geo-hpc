@@ -50,29 +50,26 @@ if not os.path.isfile(path_base):
 
 
 # validate raster exists
-r_path = data_base + "/data/" + data_path
-if not os.path.isfile(r_path):
-    sys.exit("raster does not exist (" + r_path + ")")
+raster = data_base + "/data/" + data_path
+if not os.path.isfile(raster):
+    sys.exit("raster does not exist (" + raster + ")")
 
 
-# validate project exists
-p_path = project_base + "/projects/" + project_name
-if not os.path.isdir(p_path):
-    sys.exit("project does not exist (" + p_path + ")")
+# validate vector (and thus project) exists
+vector = project_base + "/projects/" + project_name + "/shps/" + shape_name
+if not os.path.isfile(vector):
+    sys.exit("vector does not exist (" + vector + ")")
 
 
-# validate vector exists
-v_path = project_base + "/projects/" + project_name + "/shps/" + shape_name
-if not os.path.isfile(v_path):
-    sys.exit("vector does not exist (" + v_path + ")")
-
+output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/extract"
 
 try:  
-    core = ["Rscript", runscript ]
-    args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
+    # core = ["Rscript", runscript ]
+    # args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
+    # cmd = " ".join(str(e) for e in core + args)
 
-    cmd = " ".join(str(e) for e in core + args)
-    print(cmd)
+    cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
+    print cmd
 
     sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
     print sts

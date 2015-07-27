@@ -56,6 +56,7 @@ if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
 
 vector = project_base + "/projects/" + project_name + "/shps/" + shape_name
 
+# check that vector (and thus project) exist
 if not os.path.isfile(vector):
     sys.exit("vector does not exist (" + vector + ")")
 
@@ -112,7 +113,7 @@ while c < len(qlist):
         raster = tmp_path
 
         # raster= data_base + "/data/" + data_path + "/" + qlist[c][1]]
-        output= project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
+        output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
 
         cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
         print cmd

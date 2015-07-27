@@ -53,13 +53,20 @@ if file_mask.count("D") != 3 or not "DDD" in file_mask:
     sys.exit("invalid file mask")
 
 
+vector = project_base + "/projects/" + project_name + "/shps/" + shape_name
+
+# check that vector (and thus project) exist
+if not os.path.isfile(vector):
+    sys.exit("vector does not exist (" + vector + ")")
+
+
 year = str(sys.argv[9])
 
 
-# ignore = ["1982"]
+ignore = []
 
-# if year in ignore:
-    # sys.exit("Ignoring year "+year)
+if year in ignore:
+    sys.exit("Ignoring year "+year)
 
 path_year = path_base +"/"+ year
 files = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and (name.endswith('.tif') or name.endswith('.asc'))]
@@ -73,9 +80,14 @@ c = rank
 while c < len(qlist):
 
     try:
-        core = ["Rscript", runscript, qlist[c][0], qlist[c][1], qlist[c][2]]
-        args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
-        cmd = " ".join(str(e) for e in core + args)
+        # core = ["Rscript", runscript, qlist[c][0], qlist[c][1], qlist[c][2]]
+        # args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
+        # cmd = " ".join(str(e) for e in core + args)
+
+        raster = data_base + "/data/" + data_path + "/" + qlist[0][2]]
+        output= project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] +"/"+ qlist[c][1] + "/extract_" + qlist[c][0] +"_"+ qlist[c][1] 
+        cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
+        print cmd
 
         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
         print sts

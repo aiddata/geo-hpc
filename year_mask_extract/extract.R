@@ -31,11 +31,9 @@ colnames(myExtract@data)[length(colnames(myExtract@data))] <- "ad_extract"
 
 dir.create(dirname(output), recursive=TRUE)
 
-myOutput <- myExtract@data
-write.table(myOutput, paste(output, ".csv", sep=""), quote=T, row.names=F, sep=",")
+write.table(myExtract@data, paste(output, ".csv", sep=""), quote=T, row.names=F, sep=",")
 
-# out_shp <- paste(output,".shp", sep="")
-# writePolyShape(myExtract, out_shp)
+# writePolyShape(myExtract, paste(output,".shp", sep=""))
 
 
 timer <- proc.time() - timer

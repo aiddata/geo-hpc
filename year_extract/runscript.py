@@ -53,6 +53,13 @@ if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
     sys.exit("invalid file mask")
 
 
+vector = project_base + "/projects/" + project_name + "/shps/" + shape_name
+
+# check that vector (and thus project) exist
+if not os.path.isfile(vector):
+    sys.exit("vector does not exist (" + vector + ")")
+
+
 # list of years to ignore/accept
 # list of all [year, file] combos
 
@@ -69,9 +76,14 @@ c = rank
 while c < len(qlist):
 
     try:  
-        core = ["Rscript", runscript, qlist[c][0], qlist[c][1]]
-        args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
-        cmd = " ".join(str(e) for e in core + args)
+        # core = ["Rscript", runscript, qlist[c][0], qlist[c][1]]
+        # args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
+        # cmd = " ".join(str(e) for e in core + args)
+        
+        raster = data_base + "/data/" + data_path + "/" + qlist[0][1]]
+        output= project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
+        cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
+        print cmd
 
         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
         print sts
