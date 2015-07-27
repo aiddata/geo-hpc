@@ -117,7 +117,7 @@ if rank == 0:
 
         for year in rlist:
 
-            result_csv = output_base "/"+ year + "/extract_" + year + ".csv"
+            result_csv = output_base +"/"+ year + "/extract_" + year + ".csv"
             
             if os.path.isfile(result_csv):
 
@@ -131,6 +131,6 @@ if rank == 0:
                     merge["ad_"+year] = result_df["ad_extract"]
 
 
-    merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
-    merge.to_csv(merge_output, index=False)
+        merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
+        merge.to_csv(merge_output, index=False)
 

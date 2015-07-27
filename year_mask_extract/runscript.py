@@ -3,7 +3,9 @@ from mpi4py import MPI
 import subprocess as sp
 import sys
 import os
-from osgeo import gdal
+import errno
+from osgeo import gdal, osr
+import numpy as np
 
 
 comm = MPI.COMM_WORLD
@@ -64,22 +66,22 @@ if not os.path.isfile(vector):
 # list of years to ignore/accept
 # list of all [year, file] combos
 
-ignore = []
-qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
+# ignore = []
+# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
 
-# accept = ["1983","1984"]
-# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
+accept = ["1983","1984"]
+qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
 
 qlist = sorted(qlist)
 
 
 # read first raster from list into numpy array
-mask_base = data_base + "/data/" + data_path + "/" + qlist[0][1]]
+mask_base = data_base + "/data/" + data_path + "/" + qlist[0][1]
 mask_raster = gdal.Open(mask_base)
 mask_data = np.array(mask_raster.GetRasterBand(1).ReadAsArray())
 
 # get raster data
-nrows,ncols = np.shape(testarray)
+nrows,ncols = np.shape(mask_data)
 geotransform = mask_raster.GetGeoTransform()
 srs = osr.SpatialReference()                 
 srs.ImportFromEPSG(4326)
@@ -93,7 +95,7 @@ while c < len(qlist):
 
     try:
         # read raster into array
-        q_base = data_base + "/data/" + data_path + "/" + qlist[0][1]]
+        q_base = data_base + "/data/" + data_path + "/" + qlist[0][1]
         q_raster = gdal.Open(q_base)
         q_data = np.array(q_raster.GetRasterBand(1).ReadAsArray())
             
@@ -101,7 +103,14 @@ while c < len(qlist):
         np.place(q_data, mask_actual, 0)
 
         # save tmp to local disk
-        tmp_path  = "/local/scr/sgoodman/REU/data/" + data_path + "/" + qlist[0][1]
+        tmp_path = "/local/scr/sgoodman/REU/data/" + data_path + "/" + qlist[0][1]
+
+        try:
+            os.makedirs(os.path.dirname(tmp_path))
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
         tmp_raster = gdal.GetDriverByName('GTiff').Create(tmp_path, ncols, nrows, 1, gdal.GDT_Float32)  
         tmp_raster.SetGeoTransform(geotransform)  
      
@@ -157,7 +166,7 @@ if rank == 0:
 
         for year in rlist:
 
-            result_csv = output_base "/"+ year + "/extract_" + year + ".csv"
+            result_csv = output_base +"/"+ year + "/extract_" + year + ".csv"
             
             if os.path.isfile(result_csv):
 
@@ -171,6 +180,6 @@ if rank == 0:
                     merge["ad_"+year] = result_df["ad_extract"]
 
 
-    merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
-    merge.to_csv(merge_output, index=False)
+        merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
+        merge.to_csv(merge_output, index=False)
 
