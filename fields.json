@@ -29,6 +29,7 @@
         "default": {},
 
         "raster": {
+            "resolution": {"default": 0},
             "extract_types": {"default": []},
             "factor": {"default": 1}
         },

@@ -21,14 +21,14 @@ db = client.daf
 c_data = db.data
 
 # lookup all boundary datasets
-bnds = c_data.find({"type": "boundary"})
+bnds = c_data.find({"type": "boundary", "options.group_class": "actual"})
 
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
-	c_bnd = db[bnd['name']]
+	c_bnd = db[bnd["options"]["group"]]
 
 	# get boundary bbox
-	geo = bnd['loc']
+	geo = bnd["spatial"]
 
 	# lookup all unprocessed data in boundary tracker
 	uprocs = c_bnd.find({"status": -1})
@@ -38,7 +38,7 @@ for bnd in bnds:
 							"status": -1,
 							"$or": [
 								{
-									"loc": {
+									"spatial": {
 										"$geoIntersects": {
 											"$geometry": geo
 										}
@@ -55,21 +55,21 @@ for bnd in bnds:
 	for match in matches:
 		print match['name']
 
-		# boundary path and type
-		bnd_path = bnd['path']
+		# boundary base and type
+		bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
 		bnd_type = bnd['type']
 
-		# dataset path and type
-		dset_path = match['path']
+		# dataset base and type
+		dset_base = match['base'] +"/"+ match["resources"][0]["path"]
 		dset_type = match['type'] 
 
 		result = False
-		if match['format'] == "raster":
+		if match['file_format'] == "raster":
 
 			if bnd_type == "boundary" and dset_type == "raster":
 				# python raster stats extract
-				bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_path).shapes()])
-				extract = rs.zonal_stats(bnd_geo, dset_path, stats="min max")
+				bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+				extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
 
 				if extract[0]['min'] != extract[0]['max']:
 					result = True
@@ -80,36 +80,36 @@ for bnd in bnds:
 
 			# check results and update tracker
 			if result == True:
-				c_bnd.update({"name": match['name']},{"$set": {"status": 1}}, upsert=False)
+				c_bnd.update_one({"name": match['name']},{"$set": {"status": 1}}, upsert=False)
 			else:
-				c_bnd.update({"name": match['name']},{"$set": {"status": 0}}, upsert=False)
+				c_bnd.update_one({"name": match['name']},{"$set": {"status": 0}}, upsert=False)
 
-		elif match['format'] == "vector":
+		# elif match['format'] == "vector":
 
-			if bnd_type == "boundary" and dset_type == "polydata":
-				# shapely intersect
-				bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_path).shapes()])
- 				dset_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(dset_path).shapes()])
+		# 	if bnd_type == "boundary" and dset_type == "polydata":
+		# 		# shapely intersect
+		# 		bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+ 	# 			dset_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
 				
- 				intersect = bnd_geo.intersects(dset_geo)
+ 	# 			intersect = bnd_geo.intersects(dset_geo)
 
-				if intersect == True:
-					result = True
+		# 		if intersect == True:
+		# 			result = True
 
-			else:
-				print "Error - Dataset type not yet supported (skipping dataset).\n"
-				continue
+		# 	else:
+		# 		print "Error - Dataset type not yet supported (skipping dataset).\n"
+		# 		continue
 
-			# check results and update tracker
-			if result == True:
-				c_bnd.update({"name": match['name']},{"$set": {"status": 1}}, upsert=False)
-			else:
-				c_bnd.update({"name": match['name']},{"$set": {"status": 0}}, upsert=False)
+		# 	# check results and update tracker
+		# 	if result == True:
+		# 		c_bnd.update({"name": match['name']},{"$set": {"status": 1}}, upsert=False)
+		# 	else:
+		# 		c_bnd.update({"name": match['name']},{"$set": {"status": 0}}, upsert=False)
 
 		else:
 			# update tracker with error status for dataset and continue
 			print "Error - Invalid format for dataset \"" + match['name'] + "\" in \"" + c_bnd + "\" tracker (skipping dataset).\n"
-			c_bnd.update({"name": match['name']},{"$set": {"status": -2}}, upsert=False)
+			c_bnd.update_one({"name": match['name']},{"$set": {"status": -2}}, upsert=False)
 			continue
 
 
@@ -125,4 +125,4 @@ for bnd in bnds:
 	# update tracker for all unprocessed dataset not matching first stage search
 	for uproc in uprocs:
 		if uproc['status'] == -1:
-			c_bnd.update({"name": uproc['name']},{"$set": {"status": 0}}, upsert=False)
+			c_bnd.update_many({"name": uproc['name']},{"$set": {"status": 0}}, upsert=False)

@@ -356,7 +356,7 @@ generic_input("open", update_data_package, "file_extension", "Primary file exten
 if data_package["type"] == "raster":
 
     # resolution
-    generic_input("open", update_data_package, "factor", "Dataset resolution? (in degrees)", v.factor, opt=True)
+    generic_input("open", update_data_package, "resolution", "Dataset resolution? (in degrees)", v.factor, opt=True)
 
     # extract_types (multiple)
     generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, opt=True)
@@ -507,6 +507,18 @@ for f in ru.file_list:
 
 
 
+for c in range(len(geo_ext)):
+    if geo_ext[c][0] < -180:
+        geo_ext[c][0] = -180 
+
+    elif geo_ext[c][0] > 180:
+        geo_ext[c][0] = 180
+
+    if geo_ext[c][1] < -90:
+        geo_ext[c][1] = -90 
+
+    elif geo_ext[c][1] > 90:
+        geo_ext[c][1] = 90
 
 
 # spatial

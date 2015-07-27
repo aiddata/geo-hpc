@@ -25,7 +25,7 @@ class update_mongo():
 
             self.c_data.create_index("base", unique=True)
             self.c_data.create_index("name", unique=True)
-            self.c_data.create_index("spatial", pymongo.GEOSPHERE)
+            self.c_data.create_index([("spatial", pymongo.GEOSPHERE)])
 
         else:
             self.c_data = self.db.data
