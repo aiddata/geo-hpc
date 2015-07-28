@@ -69,13 +69,15 @@ if not os.path.isfile(vector):
 # ignore = []
 # qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
 
-accept = ["1983","1984"]
+accept = ["1982","1983","1984","1985"]
 qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
 
 qlist = sorted(qlist)
 
 
 # read first raster from list into numpy array
+nodata = -9999
+thresh = 6000
 mask_base = data_base + "/data/" + data_path + "/" + qlist[0][1]
 mask_raster = gdal.Open(mask_base)
 mask_data = np.array(mask_raster.GetRasterBand(1).ReadAsArray())
@@ -87,7 +89,7 @@ srs = osr.SpatialReference()
 srs.ImportFromEPSG(4326)
 
 # create mask
-mask_actual = mask_data < 6000
+mask_actual = (mask_data < thresh) & (mask_data != nodata)
 
 
 c = rank
@@ -95,7 +97,7 @@ while c < len(qlist):
 
     try:
         # read raster into array
-        q_base = data_base + "/data/" + data_path + "/" + qlist[0][1]
+        q_base = data_base + "/data/" + data_path + "/" + qlist[c][1]
         q_raster = gdal.Open(q_base)
         q_data = np.array(q_raster.GetRasterBand(1).ReadAsArray())
             
@@ -103,7 +105,8 @@ while c < len(qlist):
         np.place(q_data, mask_actual, 0)
 
         # save tmp to local disk
-        tmp_path = "/local/scr/sgoodman/REU/data/" + data_path + "/" + qlist[0][1]
+        tmp_path = "/local/scr/sgoodman/REU/data/" + data_path + "/" + qlist[c][1]
+        # tmp_path = "/sciclone/home00/sgoodman/REU/data/" + data_path + "/" + qlist[c][1]
 
         try:
             os.makedirs(os.path.dirname(tmp_path))
@@ -115,7 +118,7 @@ while c < len(qlist):
         tmp_raster.SetGeoTransform(geotransform)  
      
         tmp_raster.SetProjection(srs.ExportToWkt()) 
-        tmp_raster.GetRasterBand(1).SetNoDataValue(-9999)
+        tmp_raster.GetRasterBand(1).SetNoDataValue(nodata)
         tmp_raster.GetRasterBand(1).WriteArray(q_data)
 
         # set raster value to tmp path

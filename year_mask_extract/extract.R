@@ -23,7 +23,8 @@ myVector <- readShapePoly(vector)
 
 myRaster <- raster(raster) 
 
-myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
+# myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
+myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, na.rm=TRUE)
 
 
 colnames(myExtract@data)[length(colnames(myExtract@data))] <- "ad_extract"
