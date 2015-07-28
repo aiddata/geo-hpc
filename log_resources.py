@@ -1,4 +1,11 @@
 from osgeo import gdal,ogr,osr
+import geopandas as gpd
+import sys
+import os
+import json
+
+# import shapefile
+# import itertools
 
 
 class resource_utils():
@@ -148,7 +155,8 @@ class resource_utils():
     def vector_envelope(self, path):
         ds = ogr.Open(path)
         lyr_name = path[path.rindex('/')+1:path.rindex('.')]
-        lyr = ds.GetLayerByName(lyr_name)
+        # lyr = ds.GetLayerByName(lyr_name)
+        lyr = ds.GetLayer(0)
         env = []
 
         for feat in lyr:
@@ -172,3 +180,58 @@ class resource_utils():
             
     #     geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
     #     return geo_ext
+
+
+    # adds unique id field (ad_id) and outputs geojson (serves as shp to geojson converter)
+    def add_ad_id(self, path):
+
+        try:
+            geo_df = gpd.GeoDataFrame.from_file(path)
+            geo_df["ad_id"] = range(len(geo_df))
+
+            geo_json = geo_df.to_json()
+            geo_file = open(os.path.splitext(path)[0] + ".geojson", "w")
+            json.dump(json.loads(geo_json), geo_file, indent = 4)
+
+            return 0
+
+        except:
+            return 1
+
+
+    # # converts shapefile to geojson
+    # # source: https://groups.google.com/forum/#!topic/geospatialpython/7bZnpHkD7ys
+    # def shp_to_geojson(self, path):
+
+    #     out = path[:-3] + "geojson"
+
+    #     try:
+    #         # read the shapefile
+    #         reader = shapefile.Reader(path)
+    #         fields = reader.fields[1:]
+    #         field_names = [field[0] for field in fields]
+    #         buffer = []
+
+    #         # for sr in reader.shapeRecords():
+    #         #     atr = dict(zip(field_names, sr.record))
+    #         #     geom = sr.shape.__geo_interface__
+    #         #     buffer.append(dict(type="Feature", geometry=geom, properties=atr)) 
+
+    #         for (sr, ss) in itertools.izip(reader.iterRecords(), reader.iterShapes()):
+    #             atr = dict(zip(field_names, sr))
+    #             geom = ss.__geo_interface__
+    #             buffer.append(dict(type="Feature", geometry=geom, properties=atr)) 
+
+
+    #         # write the GeoJSON file
+    #         geojson = open(out, "w")
+    #         geojson.write(json.dumps({"type": "FeatureCollection","features": buffer}, indent=4) + "\n")
+    #         geojson.close()
+
+    #         return 0
+
+    #     except:
+    #         return 1
+
+
+        

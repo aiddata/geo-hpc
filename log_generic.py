@@ -238,6 +238,10 @@ if generator == "manual":
 if interface:
     v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir)
 
+    if "REU/data/boundaries" in v.data["base"] and not p.user_prompt_bool("Warning: boundary files will be modified/overwritten/deleted during process. Make sure you have a backup. Continue?"):
+        quit("User request - boundary backup.")
+
+
 elif not "base" in v.data:
     quit("No datapackage path given.")
 
@@ -372,10 +376,10 @@ elif data_package["type"] == "boundary":
 
     # boundary class
     # only a single actual may exist for a group
-    if v.is_actual:
+    if v.is_actual or (update_data_package and data_package["options"]["group_class"] == "actual"):
         data_package["options"]["group_class"] = "actual"
     
-    elif v.actual_exists[data_package["options"]["group"]]:
+    elif v.actual_exists[data_package["options"]["group"]] or (update_data_package and data_package["options"]["group_class"] == "sub"):
         # force sub if actual exists
         data_package["options"]["group_class"] = "sub"
     
@@ -485,8 +489,32 @@ for f in ru.file_list:
 
         # boundary datasets can be multiple files (for administrative zones)
         if data_package["type"] == "boundary" and f_count == 0:
+            print f
             geo_ext = ru.vector_envelope(f)
+            
+            convert_status = ru.add_ad_id(f)
+            if convert_status == 1:
+                 quit("Error adding ad_id to boundary file and outputting geojson.")
+            
+
+            if data_package["file_extension"] == "shp":
+
+                # update file list 
+                ru.file_list[0] = os.path.splitext(ru.file_list[0])[0] + ".geojson"
+
+                # update extension
+                data_package["file_extension"] = "geojson"
+
+                # remove shapefile
+                for z in os.listdir(os.path.dirname(ru.file_list[0])):
+                    if os.path.isfile(data_package["base"] +"/"+ z) and not z.endswith(".geojson") and not z.endswith("datapackage.json"):
+                        print "deleting " + data_package["base"] +"/"+ z
+                        os.remove(data_package["base"] +"/"+ z)
+
+
             f_count += 1
+
+
 
 
         elif data_package["type"] == "boundary" and f_count > 0:     
@@ -540,7 +568,7 @@ ru.spatial = {
 # warn users when the new geometry does not match the existing geometry
 # continuing will force the boundary tracker database to be dumped
 # all datasets that were in the tracker database will need to be reindexed
-if update_data_package and data_package["type"] == "boundary" and data_package["options"]["actual"] == True and ru.spatial != data_package["spatial"]:
+if update_data_package and data_package["type"] == "boundary" and data_package["options"]["group_class"] == "actual" and ru.spatial != data_package["spatial"]:
     v.update_boundary = True
     if interface and not p.user_prompt_bool("The geometry of your new boundary does not match the existing boundary, do you wish to continue? (Warning: This will force a dump of the existing tracker database and all datasets in it will need to be reindexed)"):
         quit("User request - boundary geometry change.")
