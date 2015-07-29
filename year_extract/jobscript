@@ -36,17 +36,33 @@
 # set project_base = "/sciclone/aiddata10/REU"
 
 
+# set project_name = "kfw_grid_clip"
+
+# set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
+
+# set data_path = "gpw_v3"
+
+# set extract_name = "gpw_v3"
+
+# set file_mask = "gldsxxag_YYYY.asc"
+
+# set data_base = "/sciclone/aiddata10/REU"
+
+# set project_base = "/sciclone/aiddata10/REU"
+
+
 set project_name = "kfw_grid_clip"
 
-set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
+# set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
+set shape_name = "testclip.shp"
 
-set data_path = "gpw_v3"
+set data_path = "ltdr_yearly/ndvi_max_mask_lt6k"
 
-set extract_name = "gpw_v3"
+set extract_name = "ltdr_yearly_max_mask_lt6k"
 
-set file_mask = "gldsxxag_YYYY.asc"
+set file_mask = "YYYY.tif"
 
-set data_base = "/sciclone/aiddata10/REU"
+set data_base = "/sciclone/home00/sgoodman/REU"
 
 set project_base = "/sciclone/aiddata10/REU"
 

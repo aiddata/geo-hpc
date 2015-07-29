@@ -1,25 +1,29 @@
 # extract data based on user inputs
 
-library("raster")
-library("rgdal")
-library("maptools")
-
-timer <- proc.time()
-
 # inputs:
 #   vector_in - <required> file path of vector used for extraction
 #   raster_in - <required> file path of raster which data is to be extracted from (must be tif or asc for now)
 #   output_in - <required> name of output file with no extension (used for shapefile and csv output)
 #   field_in  - <optional> name of field used for output csv and shapefile (not enforced but should be under 10 characters or shapefile will truncate). uses raster file name by default
 
+library("rgdal")
+library("raster")
+library("maptools")
+
+timer <- proc.time()
+
 readIn <- commandArgs(trailingOnly = TRUE)
+
 
 vector_in <- readIn[1]
 raster_in <- readIn[2]
 output_in <- readIn[3]
 
+
 field_in <- ""
-field_in <- readIn[4]
+if (length(readIn) == 4) {
+    field_in <- readIn[4]
+}
 
 if ( is.na(vector_in) || is.na(raster_in) || is.na(output_in) ) {
     stop("Must include all input fields.")
@@ -51,7 +55,6 @@ if ( file.exists(out_dir) == FALSE) {
     }
 }
 
-# myVector <- readOGR('/home/userx/Desktop/kfw/shps', 'terra_indigenaPolygon')
 myVector <- readShapePoly(vector_in)
 
 myRaster <- raster(raster_in) 
@@ -60,17 +63,17 @@ myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=
 
 
 if (field_in != "") {
-    rbase <- substring(basename(raster_in), 1, nchar(basename(raster_in))-4)
-    fx <- match(rbase, colnames(myExtract@data))
-    colnames(myExtract@data)[fx] <- field_in
+    colnames(myExtract@data)[length(colnames(myExtract@data))] <- field_in
+
+} else {
+    colnames(myExtract@data)[length(colnames(myExtract@data))] <- "ad_extract"
 }
 
 
-myOutput <- myExtract@data
+write.table(myExtract@data, paste(output_in,'.csv',sep=""), quote=T, row.names=F, sep=",")
 
-write.table(myOutput, paste(output_in,'.csv',sep=""), quote=T, row.names=F, sep=",")
+# writePolyShape(myExtract, paste(output_in,'.shp',sep=""))
 
-writePolyShape(myExtract, paste(output_in,'.shp',sep=""))
 
 timer <- proc.time() - timer
-print(timer)
+print(paste("extract completed in", timer[3], "seconds."))

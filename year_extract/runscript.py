@@ -66,7 +66,7 @@ if not os.path.isfile(vector):
 ignore = []
 qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
 
-# accept = ["1983","1984"]
+accept = ["1983","1984"]
 # qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
 
 qlist = sorted(qlist)
@@ -80,7 +80,7 @@ while c < len(qlist):
         # args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
         # cmd = " ".join(str(e) for e in core + args)
         
-        raster = data_base + "/data/" + data_path + "/" + qlist[0][1]]
+        raster = data_base + "/data/" + data_path + "/" + qlist[0][1]
         output= project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
         cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
         print cmd

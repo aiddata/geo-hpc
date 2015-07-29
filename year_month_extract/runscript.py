@@ -90,7 +90,7 @@ while c < len(qlist):
         # args = [project_name, shape_name, data_path, extract_name, data_base, project_base]
         # cmd = " ".join(str(e) for e in core + args)
 
-        raster = data_base + "/data/" + data_path + "/" + qlist[0][2]]
+        raster = data_base + "/data/" + data_path + "/" + qlist[0][2]
         output= project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] +"/"+ qlist[c][1] + "/extract_" + qlist[c][0] +"_"+ qlist[c][1] 
         cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
         print cmd

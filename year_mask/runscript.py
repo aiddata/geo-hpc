@@ -66,11 +66,11 @@ if not os.path.isfile(vector):
 # list of years to ignore/accept
 # list of all [year, file] combos
 
-# ignore = []
-# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
+ignore = []
+qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) not in ignore]
 
 accept = ["1982","1983","1984","1985"]
-qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
+# qlist = [["".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]), name] for name in os.listdir(path_base) if not os.path.isdir(os.path.join(path_base, name)) and (name.endswith(".tif") or name.endswith(".asc")) and "".join([x for x,y in zip(name, file_mask) if y == 'Y' and x.isdigit()]) in accept]
 
 qlist = sorted(qlist)
 
@@ -102,11 +102,14 @@ while c < len(qlist):
         q_data = np.array(q_raster.GetRasterBand(1).ReadAsArray())
             
         # create tmp raster using mask
-        np.place(q_data, mask_actual, 0)
+        np.place(q_data, mask_actual, nodata)
 
         # save tmp to local disk
-        tmp_path = "/local/scr/sgoodman/REU/data/" + data_path + "/" + qlist[c][1]
-        # tmp_path = "/sciclone/home00/sgoodman/REU/data/" + data_path + "/" + qlist[c][1]
+        # tmp_path = "/local/scr/sgoodman/REU/data/" + data_path + "/" + qlist[c][1]
+        tmp_path = "/sciclone/home00/sgoodman/REU/data/" + data_path + "/" + qlist[c][1]
+        
+        if os.path.isfile(tmp_path):
+            os.remove(tmp_path)
 
         try:
             os.makedirs(os.path.dirname(tmp_path))
@@ -121,23 +124,24 @@ while c < len(qlist):
         tmp_raster.GetRasterBand(1).SetNoDataValue(nodata)
         tmp_raster.GetRasterBand(1).WriteArray(q_data)
 
+
         # set raster value to tmp path
         raster = tmp_path
 
-        # raster= data_base + "/data/" + data_path + "/" + qlist[c][1]]
-        output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
 
-        cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
-        print cmd
+        # output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
+
+        # cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
+        # print cmd
 
 
-        try:  
+        # try:  
 
-            sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-            print sts
+        #     sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+        #     print sts
 
-        except sp.CalledProcessError as sts_err:                                                                                                   
-            print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+        # except sp.CalledProcessError as sts_err:                                                                                                   
+        #     print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
     except:
         print ">> error generating mask"
@@ -149,40 +153,40 @@ while c < len(qlist):
 comm.Barrier()
 
 
-import pandas as pd
-from copy import deepcopy
+# import pandas as pd
+# from copy import deepcopy
 
-merge = 0
-if rank == 0:
-
-
-    # if len(qlist) > 0:
-
-    #     for item in qlist:
-    #         year = item[0]
+# merge = 0
+# if rank == 0:
 
 
-    output_base = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output"
-    rlist = [year for year in os.listdir(output_base)]
+#     # if len(qlist) > 0:
+
+#     #     for item in qlist:
+#     #         year = item[0]
+
+
+#     output_base = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output"
+#     rlist = [year for year in os.listdir(output_base)]
    
-    if len(rlist) > 0:
+#     if len(rlist) > 0:
 
-        for year in rlist:
+#         for year in rlist:
 
-            result_csv = output_base +"/"+ year + "/extract_" + year + ".csv"
+#             result_csv = output_base +"/"+ year + "/extract_" + year + ".csv"
             
-            if os.path.isfile(result_csv):
+#             if os.path.isfile(result_csv):
 
-                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+#                 result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
-                if not isinstance(merge, pd.DataFrame):
-                    merge = deepcopy(result_df)
-                    merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
+#                 if not isinstance(merge, pd.DataFrame):
+#                     merge = deepcopy(result_df)
+#                     merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
 
-                else:
-                    merge["ad_"+year] = result_df["ad_extract"]
+#                 else:
+#                     merge["ad_"+year] = result_df["ad_extract"]
 
 
-        merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
-        merge.to_csv(merge_output, index=False)
+#         merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
+#         merge.to_csv(merge_output, index=False)
 
