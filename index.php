@@ -30,17 +30,17 @@
     <div id="navigation">
         <ul id="nav_top">
             <li>Boundary</li>
-            <li>Raster</li>
+            <li>Data</li>
             <li>Overview</li>
             <li>Checkout</li>
         </ul>
         <div id="nav_mid">
-            <div id="back"><button>Back</button></div>
-            <div id="step">Section Title</div>
-            <div id="next"><button>Next</button></div>
+            <div id="back"><button style="display:none;">Back</button></div>
+            <div id="step">Boundary Selection</div>
+            <div id="next"><button style="display:none;">Next</button></div>
         </div>
         <div id="nav_bot">
-            <div id="message">message</div>
+            <div id="message">Select a boundary to get started</div>
         </div>
     </div>
     
@@ -59,13 +59,27 @@
                 <div id="bnd_title"></div>
                 <div id="bnd_short"></div>
                 <div id="bnd_link"></div>
-
-                <button id="bnd_view">View</button>
-                <div id="bnd_lock"></div>
+                <button id="bnd_lock" style="display:none;" data-locked="false">Select</button>
             </div>
         </div>
 
-        <div id="raster" class="content" style="display:none;"></div>
+        <div id="data" class="content" style="display:none;">
+            <div id="data_top">
+                <div id="data_bnd">
+                    <span>Boundary Info</span>
+                    <div></div>
+                </div>
+                <div id="data_summary">
+                    <span>Data Summary</span>
+                    <div></div>
+                </div>    
+            </div>
+            <div id="data_mid">
+                <span>Available Data:</span>
+                <button>Clear All</span>
+            </div>
+            <div id="data_bot"></div>
+        </div>
 
         <div id="overview" class="content" style="display:none;"></div>
 

@@ -34,6 +34,9 @@ body {
 
     #nav_top, #nav_mid, #nav_bot {
         width: 80%; 
+        min-width: 850px;
+        position:relative;
+        height:50px;
         margin: 0px 10%;
         padding-top: 10px;
         padding-bottom: 10px;
@@ -42,6 +45,7 @@ body {
 
     #nav_top {
         font-size: 25px;
+        padding: 0;
     }
         #nav_top li {
             display:inline-block;
@@ -55,33 +59,38 @@ body {
         font-size: 25px;
     }
         #nav_mid div {
-            display:inline-block;
+            display:inline;
         }
             #nav_mid button {
                 height:35px;
                 width:150px;
                 line-height: 100%;
             }
-                #step {
-                    color: white;
-                }
-
                 #back {
-                    float: left;
+                    position:absolute;
+                    left:10%;
                 }
-
                 #next {
-                    float: right;
+                    position:absolute;
+                    right:10%;             
+                }
+                #step {
+                    float:left;
+                    width:100%;
+                    color: white;
                 }
 
     #nav_bot {
         font-size: 20px;
     }
-
         #message {
+            width:100%;
+            text-align: center;
+            clear:both;
             color: yellow;
+            position: relative;
+            top: 20px;
         }
-
 
 #main {
     width: 100%;
@@ -92,43 +101,92 @@ body {
 
     .content {
         min-height: 500px;
-        width: 75argis%; 
+        width: 80%; 
         margin: 0px 10%;
-        border: 1px solid blue;
-        border-radius: 15px;
     }
 
-    #boundary div {
-        display: inline-block;
-    }
+    #boundary {}
 
-    #bnd_opts {
-        width:25%;
-        height:400px;
-        padding-left: 0%
-    }
-        #bnd_opts div {
-            width:100%;
-            text-align: center;
-        }
-        #bnd_options {
-            width: 100%;
-            display:block;
-            padding:10px;
+        #boundary>div {
+            display: inline-block;
         }
 
-    #bnd_map {
-        float:right;
-        width:75%;
-        height:400px;
-        padding-top: 20px;
-    }
-        #map {
-            width:100%;
-            height:100%;
+        #bnd_opts {
+            width:25%;
+            height:400px;
+            padding-left: 0%
+        }
+            #bnd_opts div {
+                width:100%;
+                text-align: center;
+            }
+            #bnd_options {
+                width: 100%;
+                display:block;
+                padding:10px;
             }
 
-    #bnd_info {
-        height:100px;
-        width: 100%;
-    }
+        #bnd_map {
+            float:right;
+            width:75%;
+            height:400px;
+            padding-top: 20px;
+        }
+            #map {
+                width:100%;
+                height:100%;
+                }
+
+        #bnd_info {
+            height:100px;
+            width: 100%;
+        }
+
+        #bnd_lock {
+            width: 100px;
+            height: 50px;
+            display: block;
+            margin-left: 50%;
+            position: relative;
+            left: -50px;
+        }
+
+    #data {}
+
+        #data_top {
+            position: relative;
+            width: 100%;
+            height: 100px;
+        }
+
+            #data_top>div {
+                display: inline-block;
+                width: 45%;
+                height: 100%;
+                border: 1px solid black;
+                
+            }
+
+            #data_bnd {
+                position: absolute;
+                left: 2.50%;
+            }
+
+            #data_summary {
+                position: absolute;
+                right: 2.50%;
+            }
+
+        #data_mid {
+            margin-top: 50px;
+            margin-bottom: 20px;
+        }
+            #data_mid>button {
+                float: right;
+            }
+
+        #data_bot {
+            height:500px;
+            border: 1px solid black;
+        }
+
