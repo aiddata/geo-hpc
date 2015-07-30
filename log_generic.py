@@ -638,28 +638,35 @@ def validate_file_mask(vmask):
 
 
 def get_date_range(date_obj, drange=0):
+
+    date_type = "None"
+    
     # year, day of year (7)
     if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
         tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
         tmp_end = tmp_start + relativedelta(days=drange)
+        date_type = "day of year"
 
     # year, month, day (8)
     if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
         tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
         tmp_end = tmp_start + relativedelta(days=drange)
+        date_type = "year month day"
 
     # year, month (6)
     if date_obj["month"] != "" and date_obj["day"] == "":   
         tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
         month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
         tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
+        date_type = "year month"
 
     # year (4)
     if date_obj["month"] == "" and date_obj["day"] == "":   
         tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
         tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
+        date_type = "year"
 
-    return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d'))
+    return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
 
 
 
@@ -673,12 +680,14 @@ if data_package["file_mask"] == "None":
     # temporally invariant dataset
     ru.temporal["name"] = "Temporally Invariant"
     ru.temporal["format"] = "None"
+    ru.temporal["type"] = "None"
 
 else:
 
     # name for temporal data format
     ru.temporal["name"] = "Date Range"
     ru.temporal["format"] = "%Y%m%d"
+    ru.temporal["type"] = get_date_range(run_file_mask(data_package["file_mask"], ru.file_list[0], data_package["base"]))[2]
 
     # day range for each file (eg: MODIS 8 day composites) 
     use_day_range = False
@@ -719,10 +728,10 @@ for f in ru.file_list:
 
 
         if "day_range" in data_package:
-            range_start, range_end = get_date_range(date_str, data_package["day_range"])
+            range_start, range_end, range_type = get_date_range(date_str, data_package["day_range"])
 
         else: 
-            range_start, range_end = get_date_range(date_str)
+            range_start, range_end, range_type = get_date_range(date_str)
 
         # name (unique among this dataset's resources - not same name as dataset)
         resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] +date_str["day"]
