@@ -1,4 +1,5 @@
 <?php
+
 set_time_limit(0);
 
 switch ($_POST['call']) {
@@ -8,7 +9,7 @@ switch ($_POST['call']) {
 
 		// init mongo
 		$m = new MongoClient();
-		$db = $m->selectDB('daf');
+		$db = $m->selectDB('asdf');
 		$col = $db->selectCollection('data');
 
 
@@ -26,7 +27,8 @@ switch ($_POST['call']) {
 		);
 
 		$cursor = $col->find($query, $fields);
-		
+		$cursor->snapshot();
+
 		$actuals = array();
 		$all = array();
 
@@ -47,6 +49,57 @@ switch ($_POST['call']) {
 			} else if (count($all[$group]) == 1) {
 				$output['single_datasets'][] = $all[$group][0];
 			}
+		}
+
+		echo json_encode($output);
+		break;
+
+
+
+	case "datasets":
+
+		$group = $_POST['group'];
+
+		// init mongo
+		$m = new MongoClient();
+		$db = $m->selectDB('asdf');
+
+		// get valid datasets from tracker
+		$tracker_col = $db->selectCollection($group);
+
+		$tracker_query = array('status' => 1);
+
+		$tracker_fields = array(
+			'name' => true, 
+		);
+
+		$tracker_cursor = $tracker_col->find($tracker_query, $tracker_fields);
+		$tracker_cursor->snapshot();
+
+		// put tracker results into array
+		$list = array();
+		foreach ($tracker_cursor as $doc) {
+		    $list[] = $doc['name'];
+		}
+
+
+		// get data for datasets found in tracker
+		$col = $db->selectCollection('data');
+
+
+
+		$query = array('name' => array('$in' => $list));
+
+		$cursor = $col->find($query);
+		$cursor->snapshot();
+
+
+		$output = array();
+
+		foreach ($cursor as $doc) {
+		    
+		    $output[] = $doc;
+
 		}
 
 		echo json_encode($output);
@@ -103,9 +156,6 @@ switch ($_POST['call']) {
 	// 	$out = array_unique($data);
 	// 	echo json_encode($out);
 	// 	break;
-
-
-
 
 
 

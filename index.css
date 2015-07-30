@@ -177,6 +177,11 @@ body {
                 right: 2.50%;
             }
 
+            #data_top>div>div {
+                padding-left: 20px;
+                padding-top: 10px;
+            }
+
         #data_mid {
             margin-top: 50px;
             margin-bottom: 20px;
@@ -186,7 +191,60 @@ body {
             }
 
         #data_bot {
-            height:500px;
-            border: 1px solid black;
+            position: relative;
+            width:100%;
         }
+
+            .dataset_header {
+                position: relative;
+                height: 80px;
+                width: 100%;
+                margin-top: 10px;
+                background: rgb(200,200,200);
+            }
+
+                .dataset_header>div {
+                    height:50%;
+                }
+
+ 
+                    .dataset_icon {
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        display:inline-block;
+                        font-size: 20px;
+                        line-height: 30px;
+                        background-color:black;
+                        color:white;
+                        width: 30px;
+                        height: 30px;
+                        text-align: center;
+                        vertical-align: bottom;
+                        cursor: pointer;
+                    }
+
+                    .dataset_header>div>div {
+                        display: inline-block;
+                        line-height: 40px;
+                    }
+
+                    .dataset_h1 {
+                        margin-left: 25px;
+                    }
+
+                    .dataset_h2 {
+                        width: 25%;
+                        text-align: center;
+                    }
+
+                    .dataset_title {
+                        font-weight: bold;
+                    }
+
+            .dataset_body {
+                display: none;
+                height: 100px;
+                background: rgb(200,200,200);
+            }
 

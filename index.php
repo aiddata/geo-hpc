@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>AidData DET 2.0 Alpha</title> 
 
-    <!-- <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet"> -->
+    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
     <link href='http://fonts.googleapis.com/css?family=Abel' rel='stylesheet' type='text/css'>
@@ -67,11 +67,18 @@
             <div id="data_top">
                 <div id="data_bnd">
                     <span>Boundary Info</span>
-                    <div></div>
+                    <div>
+                        <div id="data_bnd_title"></div>
+                        <div id="data_bnd_short"></div>
+                        <div id="data_bnd_link"></div>
+                    </div>
                 </div>
                 <div id="data_summary">
                     <span>Data Summary</span>
-                    <div></div>
+                    <div>
+                        <div>Datasets Available: <span id="data_summary_available">#</span></div>
+                        <div>Items Selected: <span id="data_summary_selected">#</span></div>
+                    </div>
                 </div>    
             </div>
             <div id="data_mid">

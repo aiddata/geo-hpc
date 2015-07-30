@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-	var step, options, map, countryLayer;
+	var step, options, tmp_options, data_list, map, countryLayer;
 
 	// current step of process
 	step = 0;
@@ -11,74 +11,14 @@ $(document).ready(function(){
 		"data": {}
 	};
 
+	// logs "options" data when returning to previous sections
+	// used to determine if any options have changes
+	tmp_options = 0;
+
+	data_list = [];
+
 	// init boundary map
 	map_init();
-
-	// boundary select
-	$('#bnd_options').on('change', function () {
-
-		if ($(this).val() == null) {
-			return;
-		}
-
-		var sel = $(this).find('option:selected');
-		$('#bnd_title').html(sel.data('title') + " ("+sel.data('group')+" : "+ sel.data('name') +")");
-		$('#bnd_short').html(sel.data('short'));
-		$('#bnd_link').html(sel.data('source_link'));
-
-		var file = sel.data('path');
-		addCountry(file);
-
-		$('#bnd_lock').show();
-	});
-
-	// boundary selection lock toggle
-	$('#bnd_lock').click(function () {
-		var sel = $('#bnd_options').find('option:selected');
-
-		if ($(this).data("locked") == false) {
-			$('#bnd_options').prop('disabled', true);
-			$(this).html("Deselect");
-			$(this).data("locked", true);
-			options["boundary"] = sel.data();
-			message("Click the \"Next\" button to continue");
-			$('#next button').show();
-
-		} else {
-			$('#bnd_options').prop('disabled', false);
-			$(this).html("Select");
-			$(this).data("locked", false);
-			options["boundary"] = {};
-			message("Select a boundary");
-			$('#next button').hide();
-		}
-	});
-
-	$('#next').click(function () {
-		if (step == 0) {
-			$('#step').html("Data Selection");
-			$('#boundary').hide();
-			$('#data').show();
-			$('#back button').show();
-			$('#next button').hide();
-			message("Select data");
-			step = 1;
-			get_data();
-		}
-	});
-
-	$('#back').click(function () {
-		if (step == 1) {
-			$('#step').html("Boundary Selection");
-			$('#data').hide();
-			$('#boundary').show();
-			map.invalidateSize();
-			$('#back button').hide();
-			$('#next button').show();
-			message("Click the \"Next\" button to continue");
-			step = 0;
-		}
-	});
 
 	// get boundary options from mongo
 	// build select menu
@@ -117,6 +57,83 @@ $(document).ready(function(){
 
 	});
 
+
+	// boundary select
+	$('#bnd_options').on('change', function () {
+
+		if ($(this).val() == null) {
+			return;
+		}
+
+		var sel = $(this).find('option:selected');
+		$('#bnd_title, #data_bnd_title').html(sel.data('title') + " ("+sel.data('group')+" : "+ sel.data('name') +")");
+		$('#bnd_short, #data_bnd_short').html(sel.data('short'));
+		$('#bnd_link, #data_bnd_link').html(sel.data('source_link'));
+
+		var file = sel.data('path');
+		addCountry(file);
+
+		$('#bnd_lock').show();
+	});
+
+	// boundary selection lock toggle
+	$('#bnd_lock').click(function () {
+		var sel = $('#bnd_options').find('option:selected');
+
+		if ($(this).data("locked") == false) {
+			$('#bnd_options').prop('disabled', true);
+			$(this).html("Deselect");
+			$(this).data("locked", true);
+			options["boundary"] = sel.data();
+			message("Click the \"Next\" button to continue");
+			$('#next button').show();
+
+		} else {
+			$('#bnd_options').prop('disabled', false);
+			$(this).html("Select");
+			$(this).data("locked", false);
+			options["boundary"] = {};
+			message("Select a boundary");
+			$('#next button').hide();
+		}
+	});
+
+	$('#next').click(function () {
+		if (step == 0) {
+			$('#step').html("Data Selection");
+			$('#boundary').hide();
+			$('#data').show();
+			$('#back button').show();
+			$('#next button').hide();
+			message("Select data");
+			step = 1;
+
+			if (JSON.stringify(options['boundary']) != JSON.stringify(tmp_options["boundary"])) {
+				get_data();
+			}
+		}
+	});
+
+	$('#back').click(function () {
+		if (step == 1) {
+			$('#step').html("Boundary Selection");
+			$('#data').hide();
+			$('#boundary').show();
+			map.invalidateSize();
+			$('#back button').hide();
+			$('#next button').show();
+			message("Click the \"Next\" button to continue");
+			tmp_options = JSON.parse(JSON.stringify(options));
+			step = 0;
+		}
+	});
+
+	$('#data_bot').on('click', '.dataset_icon', function () {
+		$(this).toggleClass( "fa-chevron-down fa-chevron-up" );
+		$(this).parent().parent().parent().find('.dataset_body').toggle();
+	});
+
+
 	// initialize map
 	function map_init() {
 		L.mapbox.accessToken = 'pk.eyJ1Ijoic2dvb2RtIiwiYSI6InotZ3EzZFkifQ.s306QpxfiAngAwxzRi2gWg';
@@ -139,7 +156,7 @@ $(document).ready(function(){
 		process({call:"geojson", file:file}, function (request, status, e) {
 			geojsonFeature = request;
 			error = e;
-			// console.log(request)
+			// console.log(request);
 
 			if (error) {
 				console.log(error);
@@ -178,6 +195,73 @@ $(document).ready(function(){
 	// get data from boundary tracker
 	// build data selection menu
 	function get_data() {
+
+		$('#data_bot').empty();
+
+		console.log(options["boundary"]["group"]);
+
+		mongo_search({call:"datasets", group:options["boundary"]["group"]}, function (result){
+
+			console.log(result);
+
+			data_list = result;
+
+			$('#data_summary_available').html(result.length);
+			$('#data_summary_selected').html(0);
+
+		    for (var i=0, ix=result.length; i<ix; i++) {
+
+				var data_html = '';
+
+		    	var dataset = result[i];
+		    	
+		    	console.log(dataset);
+
+	    		data_html += '<div class="data" data-id="' + i + '" data-name="' + dataset['name'] + '">';
+		    	
+	    		// dataset header
+		    	data_html += '<div class="dataset_header ui-icon-minusthick">';
+
+		    	data_html += '<div>'
+		    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
+		    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] + ')</div>';
+		    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
+				data_html += '</div>'
+		    	
+		    	data_html += '<div>'
+		    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
+		    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
+		    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "year month" ? "monthly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
+		    	data_html += '<div class="dataset_h2 dataset_items">Items: <span>' + dataset['resources'].length + '</span></div>';
+		    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
+		    	data_html += '</div>'
+
+				data_html += '</div>';
+
+				// dataset body
+		    	data_html += '<div class="dataset_body">';
+
+		    	data_html += '<div class="dataset_meta">';
+		    	data_html += '</div>';
+
+		    	data_html += '<div class="dataset_options">';
+		    	data_html += '</div>';
+
+		    	data_html += '<div class="dataset_temporal">';
+		    	data_html += '</div>';
+
+		    	data_html += '</div>';
+
+
+		    	data_html += '</div>';
+
+		    	$('#data_bot').append(data_html);
+
+			}
+
+			$('#data_bot').sortable();
+
+		});
 
 	}
 
