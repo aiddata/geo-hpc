@@ -61,11 +61,11 @@ class validate():
         self.use_mongo = False
 
         self.client = None # pymongo.MongoClient()
-        self.db = None # self.client.daf
+        self.db = None # self.client.asdf
         self.c_data = None # self.db.data
 
         self.new_boundary = False
-        self.update_boundary = False
+        self.update_geometry = False
         self.actual_exists = {}
         self.is_actual = False
         self.group_exists = False
@@ -106,7 +106,7 @@ class validate():
         if not self.use_mongo:
             self.use_mongo = True
             self.client = pymongo.MongoClient()
-            self.db = self.client.daf
+            self.db = self.client.asdf
             self.c_data = self.db.data
 
         # check mongodb
@@ -205,7 +205,7 @@ class validate():
         if not self.use_mongo:
             self.use_mongo = True
             self.client = pymongo.MongoClient()
-            self.db = self.client.daf
+            self.db = self.client.asdf
             self.c_data = self.db.data
 
 

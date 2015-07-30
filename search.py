@@ -17,7 +17,7 @@ import rasterstats as rs
 
 # connect to mongodb
 client = pymongo.MongoClient()
-db = client.daf
+db = client.asdf
 c_data = db.data
 
 # lookup all boundary datasets

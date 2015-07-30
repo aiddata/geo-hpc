@@ -569,10 +569,14 @@ ru.spatial = {
 # continuing will force the boundary tracker database to be dumped
 # all datasets that were in the tracker database will need to be reindexed
 if update_data_package and data_package["type"] == "boundary" and data_package["options"]["group_class"] == "actual" and ru.spatial != data_package["spatial"]:
-    v.update_boundary = True
-    if interface and not p.user_prompt_bool("The geometry of your new boundary does not match the existing boundary, do you wish to continue? (Warning: This will force a dump of the existing tracker database and all datasets in it will need to be reindexed)"):
+    v.update_geometry = True
+    if interface and not p.user_prompt_bool("The geometry of your boundary does not match the existing geometry, do you wish to continue? (Warning: This will force a dump of the existing tracker database and all datasets in it will need to be reindexed)"):
         quit("User request - boundary geometry change.")
 
+elif update_data_package and data_package["type"] != "boundary" and ru.spatial != data_package["spatial"]:
+    v.update_geometry = True
+    if interface and not p.user_prompt_bool("The geometry of your dataset does not match the existing geometry, do you wish to continue? (Warning: This dataset will need to be reindexed in all trackers)"):
+        quit("User request - dataset geometry change.")
 
 # --------------------------------------------------
 # temporal data and resource meta information
@@ -769,7 +773,7 @@ print data_package
 
 core_update_status = update_db.update_core(data_package)
 
-tracker_update_status = update_db.update_trackers(data_package, v.new_boundary, v.update_boundary)
+tracker_update_status = update_db.update_trackers(data_package, v.new_boundary, v.update_geometry, update_data_package)
 
 # if mongo updates were successful:
 if core_update_status == 0:
