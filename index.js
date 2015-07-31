@@ -11,7 +11,8 @@ $(document).ready(function(){
 		"data": {},
 		"email": "",
 		"counts": {},
-		"total": 0
+		"total": 0,
+		"data_valid": false
 	};
 
 	// logs "request" data when returning to previous sections
@@ -112,13 +113,32 @@ $(document).ready(function(){
 			message("Select data");
 			step = 1;
 
-			if (JSON.stringify(request['boundary']) != JSON.stringify(tmp_request["boundary"])) {
+			if (JSON.stringify(request) != JSON.stringify(tmp_request)) {
 				get_datasets();
+			} 
+
+			if (request["data_valid"] == true) {
+				$('#next button').show();
+			}
+
+		} else if (step == 1) {
+
+			$('#step').html("Review Selection");
+			$('#data').hide();
+			$('#overview').show();
+			$('#next button').hide();
+			message("Enter email and review selection before proceeding");
+			step = 2;
+
+			if (JSON.stringify(request) != JSON.stringify(tmp_request)) {
+				build_data_request();
 			}
 		}
 	});
 
 	$('#back').click(function () {
+		tmp_request = JSON.parse(JSON.stringify(request));
+
 		if (step == 1) {
 			$('#step').html("Boundary Selection");
 			$('#data').hide();
@@ -127,8 +147,14 @@ $(document).ready(function(){
 			$('#back button').hide();
 			$('#next button').show();
 			message("Click the \"Next\" button to continue");
-			tmp_request = JSON.parse(JSON.stringify(request));
 			step = 0;
+		} else if (step ==2) {
+			$('#step').html("Data Selection");
+			$('#overview').hide();
+			$('#data').show();
+			$('#next button').show();
+			message("Click the \"Next\" button to continue");
+			step = 1;
 		}
 	});
 
@@ -137,6 +163,19 @@ $(document).ready(function(){
 		$(this).parent().parent().parent().find('.dataset_body').toggle();
 	});
 
+	// when checkbox changes for a dataset
+	// recalculate the number of extracts being request for dataset
+	// number extracts = number of extract type * number of files
+	$('#data').on('change', ':checkbox', function () {
+		var parent_data = $(this).closest('.data');
+		var parent_name = parent_data.data("name");
+		var extract_types_length = parent_data.find('.dataset_options :checked').length;
+		var resources_length = parent_data.find('.dataset_temporal :checked').length;
+
+		var total_count = extract_types_length * resources_length;
+		request["counts"][parent_name] = total_count;
+		sum_counts();
+	});
 
 	// initialize map
 	function map_init() {
@@ -200,9 +239,11 @@ $(document).ready(function(){
 	// build data selection menu
 	function get_datasets() {
 
+		request["counts"] = {};
+
 		$('#data_bot').empty();
 
-		console.log(request["boundary"]["group"]);
+		// console.log(request["boundary"]["group"]);
 
 		mongo_search({call:"datasets", group:request["boundary"]["group"]}, function (result){
 
@@ -224,6 +265,7 @@ $(document).ready(function(){
 
 			$('#data_bot').sortable();
 
+			sum_counts();
 		});
 
 	}
@@ -234,7 +276,7 @@ $(document).ready(function(){
 			var data_html = '';
 
 			// open data div
-    		data_html += '<div class="data" data-name="' + dataset['name'] + '" data-base="' + dataset['base'] + '" data-temporal_type="' + dataset['temporal']['type'] + '">';
+    		data_html += '<div class="data" id="' + dataset['name'] + '" data-name="' + dataset['name'] + '" data-base="' + dataset['base'] + '" data-type="' + dataset['type'] + '" data-temporal_type="' + dataset['temporal']['type'] + '">';
 	    	
     		// dataset header
 	    	data_html += '<div class="dataset_header ui-icon-minusthick">';
@@ -282,11 +324,13 @@ $(document).ready(function(){
 				    	data_html += '<div class="dataset_h4">';
 			    		// data_html += '';
 				    	if (dataset["type"] == "raster") {
-				    		data_html += '<div class="dataset_opt">Extract Types:<div data-type="extract_types">';
+				    		data_html += '<div class="dataset_opt" data-type="extract_types">Extract Types:';
+				    		data_html += '<div>';
 			    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
 			    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
 			    		   	}
-				    		data_html += '</div></div>';
+				    		data_html += '</div>';
+				    		data_html += '</div>';
 				    	}
 				    	data_html += '</div>';
 			    	data_html += '</div>';
@@ -296,11 +340,18 @@ $(document).ready(function(){
 		    	data_html += '<div class="dataset_temporal">';
 			    	data_html += '<div class="dataset_h3">Temporal</div>';
 			    	data_html += '<div class="dataset_h4">';
+
 			    	if (dataset["temporal"]["type"] == "None") {
-	    		   		data_html += '<label><input type="checkbox" value="data">Temporally Invariant - Select Dataset</label>';
+	    		   		data_html += '<label><input type="checkbox" value="data" ';
+						data_html += 'data-name="'+dataset['resources'][0]["name"]+'" '; 
+						data_html += 'data-path="'+dataset['resources'][0]["path"]+'" '; 
+	    		   		data_html += '>Temporally Invariant - Select Dataset</label>';
 			    	} else {
 	    		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
-							data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'">'+dataset['resources'][i]['name']+'</label>';
+							data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
+							data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
+							data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
+							data_html += '>'+dataset['resources'][i]['name']+'</label>';
 						}
 			    	}
 			    	data_html += '</div>';
@@ -315,19 +366,6 @@ $(document).ready(function(){
 	    	return data_html;
 	}
 
-	// when checkbox changes for a dataset
-	// recalculate the number of extracts being request for dataset
-	// number extracts = number of extract type * number of files
-	$('#data').on('change', ':checkbox', function () {
-		var parent_data = $(this).closest('.data');
-		var parent_name = parent_data.data("name");
-		var extract_types_length = parent_data.find('.dataset_options :checked').length;
-		var resources_length = parent_data.find('.dataset_temporal :checked').length;
-
-		var total_count = extract_types_length * resources_length;
-		request["counts"][parent_name] = total_count;
-		sum_counts();
-	});
 
 	// sum counts for all datasets
 	function sum_counts() {
@@ -339,20 +377,62 @@ $(document).ready(function(){
 		} 
 		$('#data_summary_selected').html(request["total"]);
 
-		if (request["total"] > 0) {
+		request["data_valid"] = false;
+		if (request["total"] > 0 && request["total"] < 10) {
 			$('#next button').show();
-			message("Click the \"Next\" button to continue")
+			message("Click the \"Next\" button to continue");
+			request["data_valid"] = true;			
+		} else if (request["total"] > 0) {
+			message("Too many items selected");
 		} else {
 			$('#next button').hide();
-			message("Select data")
+			message("Select data");
 
 		}
 	}
 
+
+
 	// build request["data"] object
 	// scans through selected options/resources for all datasets
 	function build_data_request() {
+
 		console.log("build data request");
+
+		request["data"] = {};
+
+		for (var i=0, ix=_.keys(request["counts"]).length; i<ix; i++) {
+			var key = _.keys(request["counts"])[i]
+			var $dataset = $('#'+key);
+			if (request["counts"][key] > 0) {
+				request["data"][key] = {
+					name: key,
+					base: $dataset.data("base"),
+					type: $dataset.data("type"),
+					temporal_type: $dataset.data("temporal_type"),
+					options: {},
+					files: []
+				}
+
+				if ($dataset.data("type") == "raster") {
+					request["data"][key]["options"]["extract_types"] = [];
+					$dataset.find('.dataset_opt').each(function () {
+						if ($(this).data("type") == "extract_types") {
+							$(this).find(":checked").each(function (){
+								request["data"][key]["options"]["extract_types"].push($(this).val());
+							})
+						}
+					})	
+				}
+
+				$dataset.find('.dataset_temporal :checked').each(function () {
+					request["data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path")});
+				})	
+
+			}
+		}
+		console.log(request)
+
 	}
 
 	// ajax to search.php for mongo related calls

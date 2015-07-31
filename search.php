@@ -4,7 +4,6 @@ set_time_limit(0);
 
 switch ($_POST['call']) {
 	
-
 	case "boundaries":
 
 		// init mongo
@@ -55,7 +54,6 @@ switch ($_POST['call']) {
 		break;
 
 
-
 	case "datasets":
 
 		$group = $_POST['group'];
@@ -85,8 +83,6 @@ switch ($_POST['call']) {
 
 		// get data for datasets found in tracker
 		$col = $db->selectCollection('data');
-
-
 
 		$query = array(
 						'name' => array('$in' => $list), 

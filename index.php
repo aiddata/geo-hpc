@@ -104,10 +104,9 @@
     <!-- // <script src="http://code.highcharts.com/highcharts.js"></script> -->
     <!-- // <script src="http://code.highcharts.com/modules/exporting.js"></script> -->
 
-
-    <!-- // <script src="/aiddata/libs/leaflet.spin.js"></script> -->
-    <!-- // <script src="/aiddata/libs/spin.min.js"></script>     -->
     <script src="/libs/underscoremin.js"></script>
+
+    <!-- // <script src="/aiddata/libs/spin.min.js"></script>     -->
     <!-- // <script src="/aiddata/libs/simple_statistics.js"></script> -->
     <!-- // <script src="/aiddata/libs/URI.js"></script> -->
 
