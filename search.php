@@ -88,7 +88,11 @@ switch ($_POST['call']) {
 
 
 
-		$query = array('name' => array('$in' => $list));
+		$query = array(
+						'name' => array('$in' => $list), 
+						'temporal.type' => array('$in' => array('year', 'None')),
+						'type' => 'raster'
+		);
 
 		$cursor = $col->find($query);
 		$cursor->snapshot();
@@ -106,96 +110,5 @@ switch ($_POST['call']) {
 		break;
 
 }
-
-
-	// // return list of fields for selected country
-	// case "fields":
-	// 	$database = $_POST['country'];
-	// 	$collection = "complete";
-
-	// 	$m = new MongoClient();
-	// 	$db = $m->selectDB($database);
-	// 	$col = $db->$collection;
-	// 	$cursor = $col->find();
-
-	//     $first = true;
-	//     foreach ($cursor as $item) {
-	//         if ( $first == true ){
-	//     	    $data = (array) $item;
-	//             $out = array_keys( $data );
-	//             array_shift($out);
-	//             $first = false;
-	//         }
-	//     }
-
-	// 	echo json_encode($out);
-	// 	break;
-
-	// // return options for specific field
-	// case "options":
-	// 	$database = $_POST['country'];
-	// 	$field = $_POST['field'];
-	// 	$collection = "complete";
-
-	// 	$m = new MongoClient();
-	// 	$db = $m->selectDB($database);
-	// 	$col = $db->$collection;
-	// 	$data = $col->distinct($field);
-
-	// 	// initial split
-	// 	for ($i=0; $i<count($data);$i++) {
-	// 		if (strpos($data[$i], "|") !== false) {
-	// 			$new = explode("|", $data[$i]);
-	// 			$data[$i] = array_shift($new);
-	// 			foreach ($new as $item) {
-	// 				$data[] = $item;
-	// 			}
-	// 		}
-	// 	}
-
-	// 	$out = array_unique($data);
-	// 	echo json_encode($out);
-	// 	break;
-
-
-
-
-
-
-
-
-	// 	// fwrite( $testhandle, json_encode($query) );
-	// 	$cursor = $col->aggregate($query);
-	// 	// fwrite( $testhandle2, json_encode($cursor) );
-
-	// 	//build csv if query produced results
-	// 	if ( count($cursor["result"]) > 0 ) {
-
-	// 		$c = 0;
-	// 		foreach ($cursor["result"] as $item) {
-	//     	    $row = (array) $item;
-	//     	    $array_values = array_values($row); 
-
-	//             if ($request == 2 || $request == 0 || $aggregate == "geography") {
-		    	    
-	// 	    	    // get rid of mongo _id field
-	//            		array_shift($row);
-
-	//            		// manage csv header
-	// 			 	if ($c == 0) {
-	// 			 		$array_keys = array_keys($row);
-	// 			    	fputcsv($file, $array_keys);
-	// 			    	$c = 1;
-	// 			 	}
-
-	// 			 	// get rid of extra mongo _id field
-	// 			 	array_shift($array_values);
-				 	
-
-	//            	} 
-
-
-
-
 
 ?>

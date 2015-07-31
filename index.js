@@ -1,19 +1,22 @@
 $(document).ready(function(){
 
-	var step, options, tmp_options, data_list, map, countryLayer;
+	var step, request, tmp_request, data_list, map, countryLayer;
 
 	// current step of process
 	step = 0;
 	
-	// final output options
-	options = {
+	// final output request
+	request = {
 		"boundary": {},
-		"data": {}
+		"data": {},
+		"email": "",
+		"counts": {},
+		"total": 0
 	};
 
-	// logs "options" data when returning to previous sections
-	// used to determine if any options have changes
-	tmp_options = 0;
+	// logs "request" data when returning to previous sections
+	// used to determine if any request options have changes
+	tmp_request = 0;
 
 	data_list = [];
 
@@ -61,6 +64,7 @@ $(document).ready(function(){
 	// boundary select
 	$('#bnd_options').on('change', function () {
 
+		// prevents error when loading with no hash link
 		if ($(this).val() == null) {
 			return;
 		}
@@ -84,7 +88,7 @@ $(document).ready(function(){
 			$('#bnd_options').prop('disabled', true);
 			$(this).html("Deselect");
 			$(this).data("locked", true);
-			options["boundary"] = sel.data();
+			request["boundary"] = sel.data();
 			message("Click the \"Next\" button to continue");
 			$('#next button').show();
 
@@ -92,7 +96,7 @@ $(document).ready(function(){
 			$('#bnd_options').prop('disabled', false);
 			$(this).html("Select");
 			$(this).data("locked", false);
-			options["boundary"] = {};
+			request["boundary"] = {};
 			message("Select a boundary");
 			$('#next button').hide();
 		}
@@ -108,8 +112,8 @@ $(document).ready(function(){
 			message("Select data");
 			step = 1;
 
-			if (JSON.stringify(options['boundary']) != JSON.stringify(tmp_options["boundary"])) {
-				get_data();
+			if (JSON.stringify(request['boundary']) != JSON.stringify(tmp_request["boundary"])) {
+				get_datasets();
 			}
 		}
 	});
@@ -123,13 +127,13 @@ $(document).ready(function(){
 			$('#back button').hide();
 			$('#next button').show();
 			message("Click the \"Next\" button to continue");
-			tmp_options = JSON.parse(JSON.stringify(options));
+			tmp_request = JSON.parse(JSON.stringify(request));
 			step = 0;
 		}
 	});
 
 	$('#data_bot').on('click', '.dataset_icon', function () {
-		$(this).toggleClass( "fa-chevron-down fa-chevron-up" );
+		$(this).toggleClass("fa-chevron-down fa-chevron-up");
 		$(this).parent().parent().parent().find('.dataset_body').toggle();
 	});
 
@@ -194,16 +198,17 @@ $(document).ready(function(){
 
 	// get data from boundary tracker
 	// build data selection menu
-	function get_data() {
+	function get_datasets() {
 
 		$('#data_bot').empty();
 
-		console.log(options["boundary"]["group"]);
+		console.log(request["boundary"]["group"]);
 
-		mongo_search({call:"datasets", group:options["boundary"]["group"]}, function (result){
+		mongo_search({call:"datasets", group:request["boundary"]["group"]}, function (result){
 
 			console.log(result);
 
+			// store data list in external variable for later reference
 			data_list = result;
 
 			$('#data_summary_available').html(result.length);
@@ -211,49 +216,7 @@ $(document).ready(function(){
 
 		    for (var i=0, ix=result.length; i<ix; i++) {
 
-				var data_html = '';
-
-		    	var dataset = result[i];
-		    	
-		    	console.log(dataset);
-
-	    		data_html += '<div class="data" data-id="' + i + '" data-name="' + dataset['name'] + '">';
-		    	
-	    		// dataset header
-		    	data_html += '<div class="dataset_header ui-icon-minusthick">';
-
-		    	data_html += '<div>'
-		    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
-		    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] + ')</div>';
-		    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
-				data_html += '</div>'
-		    	
-		    	data_html += '<div>'
-		    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
-		    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
-		    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "year month" ? "monthly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
-		    	data_html += '<div class="dataset_h2 dataset_items">Items: <span>' + dataset['resources'].length + '</span></div>';
-		    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
-		    	data_html += '</div>'
-
-				data_html += '</div>';
-
-				// dataset body
-		    	data_html += '<div class="dataset_body">';
-
-		    	data_html += '<div class="dataset_meta">';
-		    	data_html += '</div>';
-
-		    	data_html += '<div class="dataset_options">';
-		    	data_html += '</div>';
-
-		    	data_html += '<div class="dataset_temporal">';
-		    	data_html += '</div>';
-
-		    	data_html += '</div>';
-
-
-		    	data_html += '</div>';
+				var data_html = build_data_html(result[i]);
 
 		    	$('#data_bot').append(data_html);
 
@@ -263,6 +226,133 @@ $(document).ready(function(){
 
 		});
 
+	}
+
+	// build dataset html for given dataset object
+	function build_data_html(dataset, i) {
+
+			var data_html = '';
+
+			// open data div
+    		data_html += '<div class="data" data-name="' + dataset['name'] + '" data-base="' + dataset['base'] + '" data-temporal_type="' + dataset['temporal']['type'] + '">';
+	    	
+    		// dataset header
+	    	data_html += '<div class="dataset_header ui-icon-minusthick">';
+
+	    	data_html += '<div>'
+	    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
+	    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] + ')</div>';
+	    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
+			data_html += '</div>'
+	    	
+	    	data_html += '<div>'
+	    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
+	    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
+	    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
+	    	data_html += '<div class="dataset_h2 dataset_items">Items: <span>' + dataset['resources'].length + '</span></div>';
+	    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
+	    	data_html += '</div>'
+
+			data_html += '</div>';
+
+			// dataset body
+	    	data_html += '<div class="dataset_body">';
+
+
+		    	data_html += '<div class="dataset_meta">';
+			    	data_html += '<div class="dataset_h3">Meta</div>';
+			    	data_html += '<div class="dataset_h4">';
+			    	data_html += '<div class="dataset_meta_info">Short:<div>'+(dataset['short'] == "" ? "-" : dataset['short'])+'</div></div>';
+			    	data_html += '<div class="dataset_meta_info">Variable Description:<div>'+(dataset['variable_description'] == "" ? "-" : dataset['variable_description'])+'</div></div>';
+
+					if (dataset["type"] == "raster") {
+			    		data_html += '<div class="dataset_meta_info">Resolution:<div>'+(dataset['options']['resolution'] == "" ? "-" : dataset['options']['resolution'])+' degrees</div></div>';
+			    	}
+			    	data_html += '</div>';
+		    	data_html += '</div>';
+
+
+			    // temporary raster check since other types might not have options
+			    // not really necessary but will serve as placeholder/reminder to
+			    // revisit dataset options when we add in other dataset types
+		    	if (dataset["type"] == "raster") {
+
+			    	data_html += '<div class="dataset_options">';
+				    	data_html += '<div class="dataset_h3">Options</div>';
+				    	data_html += '<div class="dataset_h4">';
+			    		// data_html += '';
+				    	if (dataset["type"] == "raster") {
+				    		data_html += '<div class="dataset_opt">Extract Types:<div data-type="extract_types">';
+			    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
+			    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+			    		   	}
+				    		data_html += '</div></div>';
+				    	}
+				    	data_html += '</div>';
+			    	data_html += '</div>';
+			    }
+
+
+		    	data_html += '<div class="dataset_temporal">';
+			    	data_html += '<div class="dataset_h3">Temporal</div>';
+			    	data_html += '<div class="dataset_h4">';
+			    	if (dataset["temporal"]["type"] == "None") {
+	    		   		data_html += '<label><input type="checkbox" value="data">Temporally Invariant - Select Dataset</label>';
+			    	} else {
+	    		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
+							data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'">'+dataset['resources'][i]['name']+'</label>';
+						}
+			    	}
+			    	data_html += '</div>';
+		    	data_html += '</div>';
+
+	    	data_html += '</div>';
+
+
+	    	// close data div
+	    	data_html += '</div>';
+	
+	    	return data_html;
+	}
+
+	// when checkbox changes for a dataset
+	// recalculate the number of extracts being request for dataset
+	// number extracts = number of extract type * number of files
+	$('#data').on('change', ':checkbox', function () {
+		var parent_data = $(this).closest('.data');
+		var parent_name = parent_data.data("name");
+		var extract_types_length = parent_data.find('.dataset_options :checked').length;
+		var resources_length = parent_data.find('.dataset_temporal :checked').length;
+
+		var total_count = extract_types_length * resources_length;
+		request["counts"][parent_name] = total_count;
+		sum_counts();
+	});
+
+	// sum counts for all datasets
+	function sum_counts() {
+		request["total"] = 0;
+		if (_.values(request["counts"]).length > 0) {
+			for (var i=0, ix=_.values(request["counts"]).length; i<ix; i++) {
+				request["total"] += _.values(request["counts"])[i];
+			}
+		} 
+		$('#data_summary_selected').html(request["total"]);
+
+		if (request["total"] > 0) {
+			$('#next button').show();
+			message("Click the \"Next\" button to continue")
+		} else {
+			$('#next button').hide();
+			message("Select data")
+
+		}
+	}
+
+	// build request["data"] object
+	// scans through selected options/resources for all datasets
+	function build_data_request() {
+		console.log("build data request");
 	}
 
 	// ajax to search.php for mongo related calls
