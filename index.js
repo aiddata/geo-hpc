@@ -213,6 +213,7 @@ $(document).ready(function(){
 		if (request["checkout_valid"] == true) {
 			request["email"] = $('#co_email input').val();
 			request["submit_time"] = Math.floor(Date.now() / 1000);
+			request["status"] = -1;
 			submit_request();
 		}
 	});

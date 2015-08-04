@@ -14,7 +14,7 @@ switch ($_POST['call']) {
 	case "request":
 
 		$request = json_decode($_POST['request']);
-
+		
 		// init mongo
 		$m = new MongoClient();
 		$db = $m->selectDB('det');
