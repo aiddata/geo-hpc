@@ -212,7 +212,7 @@ input:checkbox {
 
             .dataset_header {
                 position: relative;
-                height: 50px;
+                height: 80px;
                 width: 100%;
                 margin-top: 10px;
                 background: rgb(200,200,200);
@@ -241,7 +241,7 @@ input:checkbox {
 
                     .dataset_header>div>div {
                         display: inline-block;
-                        line-height: 25px;
+                        line-height: 40px;
                     }
 
                     .dataset_h1 {
@@ -286,7 +286,6 @@ input:checkbox {
                             .dataset_h4 input {
                                 margin: 0px 5px;
                             }
-    #checkout {}
 
         #co_top {
             text-align: center;
@@ -315,19 +314,3 @@ input:checkbox {
                 #co_submit>div {
                     font-style: italic;
                 }
-
-        #co_bot {}
-
-            #co_boundary {
-                padding: 10px;
-            }
-
-            .co_dset {
-                padding: 10px;
-            }
-
-    #confirmation {}
-
-        #confirmation p {
-            text-align: center;
-        }

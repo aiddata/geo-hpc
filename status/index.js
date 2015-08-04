@@ -62,10 +62,6 @@ $(document).ready(function(){
 
 	});
 
-	// clear checkout page inputs
-    $('#co_email input').val("");
-	$('#co_terms input').attr('checked', false);
- 
 	// load terms of use into textarea on checkout page
 	$.ajax({
        url : "termsofuse.txt",
@@ -74,7 +70,6 @@ $(document).ready(function(){
            $("#co_terms textarea").text(data);
        }
     });
-
 
 	$('#next').click(function () {
 		if (step == 0) {
@@ -102,12 +97,10 @@ $(document).ready(function(){
 			$('#next button').hide();
 			message("Enter email and review selection before submitting");
 			step = 2;
-			valid_checkout()
-			
+
 			if (JSON.stringify(request) != JSON.stringify(tmp_request)) {
 				build_data_request();
 			}
-
 		}
 	});
 
@@ -175,13 +168,6 @@ $(document).ready(function(){
 		}
 	});
 
-	// clear all data selections
-	$('#data_clear').click(function () {
-		$('#data :checked').each( function () {
-			$(this).attr('checked', false);
-		});
-	});
-
 	// toggle display of datasets
 	$('#data_bot').on('click', '.dataset_icon', function () {
 		$(this).toggleClass("fa-chevron-down fa-chevron-up");
@@ -210,9 +196,7 @@ $(document).ready(function(){
 
 	// on submit button click
 	$('#co_submit button').on('click', function () {
-		if (request["checkout_valid"] == true) {
-			request["email"] = $('#co_email input').val();
-			request["submit_time"] = Math.floor(Date.now() / 1000);
+		if (checkout_valid == true) {
 			submit_request();
 		}
 	});
@@ -369,7 +353,7 @@ $(document).ready(function(){
 	    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
 	    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
 	    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
-	    	data_html += '<div class="dataset_h2 dataset_files">Files: <span>' + dataset['resources'].length + '</span></div>';
+	    	data_html += '<div class="dataset_h2 dataset_items">Items: <span>' + dataset['resources'].length + '</span></div>';
 	    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
 	    	data_html += '</div>'
 
@@ -484,7 +468,6 @@ $(document).ready(function(){
 			if (request["counts"][key] > 0) {
 				request["data"][key] = {
 					name: key,
-					title: $dataset.find('.dataset_title').html(),
 					base: $dataset.data("base"),
 					type: $dataset.data("type"),
 					temporal_type: $dataset.data("temporal_type"),
@@ -519,62 +502,22 @@ $(document).ready(function(){
 	// build summary for checkout page
 	function build_summary() {
 		console.log("build checkout summary");
-
-		// summary sentence
-		$('#co_s1').html(request["total"]);
-		$('#co_s2').html(_.keys(request["data"]).length);
-		$('#co_s3').html(request["boundary"]["title"]);
-
-		// boundary
-		var sel = request["boundary"];
-		$('#co_bnd_title').html(sel['title'] + " ("+sel['group']+" : "+ sel['name'] +")");
-		$('#co_bnd_short').html(sel['short']);
-		$('#co_bnd_link').html(sel['source_link']);
-
-		// datasets
-		var dset_html = '';
-		for (var i=0, ix=_.keys(request["data"]).length; i<ix; i++) {
-			var dset = _.values(request["data"])[i];
-			dset_html += '<div class="co_dset">';
-
-		    	dset_html += '<table style="width:100%;"><tbody><tr>'
-			    	dset_html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['title'] + '</span> ('+dset['name']+') </td>';
-			    	dset_html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
-			    	dset_html += '<td style="width:20%;">Items: <span>' + (dset['type'] == "raster" ? dset['files'].length * dset['options']['extract_types'].length : dset['files'].length) + '</span></td>';
-		    	dset_html += '</tr>';
-
-		    	if (dset['type'] == "raster") {
-		    		dset_html += '<tr><td>Extract Types Selected: ' + dset['options']['extract_types'].join(', ') + '</td></tr>';
-		    	}
-
-		    	dset_html += '<tr><td>Files: ';
-		    	for (var j=0, jx=dset['files'].length; j<jx; j++) {
-		    		dset_html += j>0 ? ', ' : '';
-		    		dset_html += dset['files'][j]['name'];
-		    	}
-
-		    	dset_html += '</td></tr>';
-		    	dset_html += '</tbody></table>';
-
-			dset_html += '</div>'; 
-		}
-		$('#co_datasets').html(dset_html);
+		// 
 	}
 
 	// basic email validation
 	// source: http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
 	function validate_email(email) {
-	    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
-	    // var re = /\S+@\S+\.\S+/;
+	    var re = /\S+@\S+\.\S+/;
 	    return re.test(email);
 	}
 
 	function valid_checkout() {
 		if (validate_email($('#co_email input').val()) && $('#co_terms input').is(':checked')) {
-			request["checkout_valid"] = true;
+			checkout_valid = true;
 			$('#co_submit').show();
 		} else {
-			request["checkout_valid"] = false;
+			checkout_valid = false;
 			$('#co_submit').hide();
 		}
 	}
@@ -583,60 +526,35 @@ $(document).ready(function(){
 	function submit_request() {
 		console.log("submit request");
 
-		console.log(request);
-		// console.log(JSON.stringify(request));
-
 		// start loading animation
 		// 
 
 		var request_id, error;
 
 		// submit request json and run preprocessing script to generate status page
-		process({call:"request", request:JSON.stringify(request)}, function (result, status, e) {
+		process({call:"request", request:JSON.stringify(request)}, function (request, status, e) {
 			
-			console.log(result);
-
-			request_id = result[0];
+			request_id = request;
 			error = e;
-
-			chtml = '';
 
 			if (error) {
 				console.log(error);
-
-				// display error on confirmation page
-				chtml += '<p>There was an error submitting your request. Please try again.</p>';
-				chtml += '<p>'+error+'</p>';
-			
-			} else {
-				// confirm success
-				chtml += '<p>Your request has been successfully submitted!</p>';
-
-				// provide request id
-				chtml += '<br><p>Request id: ' +request_id+'</p><br>';
-
-				// notify that email has been sent
-				chtml += '<p>An email has been sent to '+request['email']+' and an additional email will be sent when your request has been completed.</p>';
-
-				// link to status page with request id
-				chtml += '<p>You can check the status of your request and download the results when it has been compelted using this link:';
-				chtml += '<br><a href="/DET/status/#'+request_id+'">'+window.location.host+'/DET/status/#'+request_id+'</a></p>';
+				return 1;
 			}
 
-			chtml += '<br><br><p><a href="/DET">Click here to return to the Data Extraction Tool main page.</a></p>';
-
-			$('#confirmation').html(chtml)
-
-			$('#navigation').hide();
-			$('#checkout').hide();
-
-			// stop loading animation
 			// 
-			
-			$('#confirmation').show();
 
-		});
 
+		})
+
+
+		// provide confirmation and link to status page
+		$('#confirmation').html('stuff');
+
+		$('#checkout').hide();
+		// stop loading animation
+		// 
+		$('#confirmation').show();
 	}
 
 

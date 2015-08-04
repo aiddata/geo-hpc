@@ -31,7 +31,6 @@
         <ul id="nav_top">
             <li>Boundary</li>
             <li>Data</li>
-            <li>Overview</li>
             <li>Checkout</li>
         </ul>
         <div id="nav_mid">
@@ -83,14 +82,41 @@
             </div>
             <div id="data_mid">
                 <span>Available Data:</span>
-                <button>Clear All</span>
+                <button id="data_clear">Clear All</span>
             </div>
             <div id="data_bot"></div>
         </div>
 
-        <div id="overview" class="content" style="display:none;"></div>
+        <div id="checkout" class="content" style="display:none;">
+            <div id="co_top">
+                <div id="co_summary">Request includes <span id="co_s1">#</span> extractions across <span id="co_s2">#</span> dataset(s) for boundary "<span id="co_s3">X</span>"</div>
+                <div id="co_email">Email: <input type="text" placeholder="enter email"></input></div>
+                <div id="co_terms">
+                    <div><textarea rows="4" cols="50">
+                        **
+                        - Terms of Use
+                        **
+                    </textarea></div>
+                    <div><label>I agree to the Terms of Use: <input type="checkbox" value="false"></label></div>
+                </div>
+                <div id="co_submit" style="display:none;">
+                    <div>Submit Request?</div>
+                    <button>Submit</button>
+                </div>
+            </div>
+            <div id="co_bot">Boundary
+                <div id="co_boundary">
+                    <div id="co_bnd_title"></div>
+                    <div id="co_bnd_short"></div>
+                    <div id="co_bnd_link"></div>
+                </div>
+                <br>
+                Datasets
+                <div id="co_datasets"></div>
+            </div>
+        </div>
 
-        <div id="checkout" class="content" style="display:none;"></div>
+        <div id="confirmation" class="content" style="display:none;"></div>
 
     </div>
 
