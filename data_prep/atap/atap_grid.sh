@@ -3,10 +3,19 @@
 # create rasters from atap (air temperature and precipitation) data 
 # atap source data is csv-like format 
 
-base=/home/userx/Desktop
+# base path (data folder parent path)
+base=$1
 
-src=Global2011P
+# data folder name
+src=$2
+
+# src=Global2011P
 # src=Global2011T
+
+# src=precip_2014
+# src=air_temp_2014
+
+
 
 out="$base"/"$src"_out
 mkdir -p "$out"
