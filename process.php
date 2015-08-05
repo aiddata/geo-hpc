@@ -4,6 +4,7 @@ set_time_limit(0);
 
 switch ($_POST['call']) {
 
+	// returns geojson at the specified file path
 	case "geojson":
 
 		$output = file_get_contents($_POST['file']);
@@ -11,10 +12,13 @@ switch ($_POST['call']) {
 		echo $output;
 		break;
 
+	// inserts request object as document in det->queue mongo db/collection
+	// sends email to user that made request [not working]
+	// returns unique mongoid as request id
 	case "request":
 
 		$request = json_decode($_POST['request']);
-		
+
 		// init mongo
 		$m = new MongoClient();
 		$db = $m->selectDB('det');

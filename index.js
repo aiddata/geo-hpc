@@ -213,6 +213,7 @@ $(document).ready(function(){
 		if (request["checkout_valid"] == true) {
 			request["email"] = $('#co_email input').val();
 			request["submit_time"] = Math.floor(Date.now() / 1000);
+			request["priority"] = 0;
 			request["status"] = -1;
 			submit_request();
 		}
@@ -420,19 +421,16 @@ $(document).ready(function(){
 			    	data_html += '<div class="dataset_h3">Temporal</div>';
 			    	data_html += '<div class="dataset_h4">';
 
-			    	if (dataset["temporal"]["type"] == "None") {
-	    		   		data_html += '<label><input type="checkbox" value="data" ';
-						data_html += 'data-name="'+dataset['resources'][0]["name"]+'" '; 
-						data_html += 'data-path="'+dataset['resources'][0]["path"]+'" '; 
-	    		   		data_html += '>Temporally Invariant - Select Dataset</label>';
-			    	} else {
-	    		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
-							data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
-							data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
-							data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
-							data_html += '>'+dataset['resources'][i]['name']+'</label>';
+    		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
+						data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
+						data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
+						data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
+						if (dataset["type"] == "raster") {
+							data_html += 'data-reliability="'+dataset['resources'][i]["reliability"]+'" '; 
 						}
-			    	}
+						data_html += '>'+dataset['resources'][i]['name']+'</label>';
+					}
+
 			    	data_html += '</div>';
 		    	data_html += '</div>';
 
@@ -505,7 +503,7 @@ $(document).ready(function(){
 				}
 
 				$dataset.find('.dataset_temporal :checked').each(function () {
-					request["data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path")});
+					request["data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path"), reliability:$(this).data("reliability")});
 				})	
 
 			}
@@ -620,7 +618,7 @@ $(document).ready(function(){
 				chtml += '<p>An email has been sent to '+request['email']+' and an additional email will be sent when your request has been completed.</p>';
 
 				// link to status page with request id
-				chtml += '<p>You can check the status of your request and download the results when it has been compelted using this link:';
+				chtml += '<p>You can check the status of your request and download the results when it has been completed using this link:';
 				chtml += '<br><a href="/DET/status/#'+request_id+'">'+window.location.host+'/DET/status/#'+request_id+'</a></p>';
 			}
 
