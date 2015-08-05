@@ -711,6 +711,15 @@ for f in ru.file_list:
     # path relative to datapackage.json
     resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
 
+    # check for reliability geojson
+    # should only be present for rasters generated using mean surface script
+    if data_package["type"] == "raster":
+        resource_tmp["reliability"] = False
+        reliability_file = data_package["base"] +"/"+ resource_tmp["path"][:-len(data_package["file_extension"])] + "geojson"
+        if os.path.isfile(reliability_file):
+            resource_tmp["reliability"] = True
+
+
     # file size
     resource_tmp["bytes"] = os.path.getsize(f)
 
