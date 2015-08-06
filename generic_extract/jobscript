@@ -5,27 +5,17 @@
 #PBS -j oe
 
 
-# set project_name = "kfw_grid_clip"
-
-# set shape_name = "KFW_ohFiveDecimalDegrees_grid_clipped.shp"
-
-# set data_path = "srtm/SRTM_500m.tif"
-
-# set extract_name = "elevation"
-
-# set file_mask = "None"
-
-# set data_base = "/sciclone/aiddata10/REU"
-
-# set project_base = "/sciclone/aiddata10/REU"
+# extract options: based on temporal type of dataset
+# run_option value  | description
+# ------------------|------------------------
+# 1                 | temporally invariant
+# 2                 | year
+# 3                 | year month
+# 4                 | year day
 
 
-
-# cd $PBS_O_WORKDIR
-# mvp2run -m cyclic python-mpi ./runscript.py ./extract.R "$project_name" "$shape_name" "$data_path" "$extract_name" "$file_mask" "$data_base" "$project_base"
-
-
-
+# specifies dataset temporal type (see above)
+set run_option = 1
 
 # boundary name 
 # if boundary is in asdf this must match name used for boundary in asdf
@@ -56,6 +46,5 @@ set file_mask = "None"
 set output_base = "/sciclone/aiddata10/REU/extracts"
 
 
-
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ./extract.R "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$file_mask" "extract_type" "$output_base"
+mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$file_mask" "extract_type" "$output_base"
