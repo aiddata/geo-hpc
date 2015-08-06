@@ -20,22 +20,22 @@ generic extract scripts for temporally invariant data
 
 
 ## data prep 
-scripts for preprocessing raw data
+scripts for processing data before running extracts
 
 - **ltdr**  
-   preprocessing for ltdr ndvi data
+   preprocessing for raw ltdr ndvi data
 
 - **ndvi_mosaic**  
-   Scripts for creating a job on the Sciclone cluster which preprocesses/mosaics contemporary GIMMS NDVI data in parallel
+   scripts for creating a job on the Sciclone cluster which preprocesses/mosaics raw contemporary GIMMS NDVI data in parallel
 
 - **historic_ndvi**  
-   Scripts for creating a job on the Sciclone cluster to process historic GIMMS NDVI data (1981-2003)
+   scripts for creating a job on the Sciclone cluster to process raw historic GIMMS NDVI data (1981-2003)
 
 - **atap**  
    creates rasters from raw atap data
 
 - **year_mask**  
-    mask yearly datasets using specified dataset and threshold value
+    mask existing yearly datasets using specified dataset and threshold value
     
 
 ## data post
