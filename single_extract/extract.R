@@ -1,4 +1,4 @@
-# extract for single data
+# generic extract script for sciclone jobs
 
 
 library("rgdal")

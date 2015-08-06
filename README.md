@@ -34,7 +34,9 @@ scripts for preprocessing raw data
 - atap  
    creates rasters from raw atap data
 
-
+- year_mask
+    mask yearly datasets using specified dataset and threshold value
+    
 
 ## data post
 postprocessing scripts for working with extract data

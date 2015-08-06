@@ -1,4 +1,4 @@
-# extract for data with data/year.ext
+# generic extract script for sciclone jobs
 
 
 library("rgdal")
