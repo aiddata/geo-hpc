@@ -5,6 +5,9 @@ import subprocess as sp
 import sys
 import os
 
+from rpy2.robjects.packages import importr
+from rpy2 import robjects
+
 
 run_option = sys.argv[1]
 
@@ -43,6 +46,10 @@ output_base = sys.argv[9]
 
 # ==================================================
 
+# accepted vector and raster file extensions
+vector_extensions = [".geojson", ".shp"]
+raster_extensions = [".tif", ".asc"]
+
 
 # base path where year/day directories for processed data are located
 path_base = data_base + "/" + data_path 
@@ -51,17 +58,54 @@ path_base = data_base + "/" + data_path
 if not os.path.isfile(path_base):
     sys.exit("path_base is not valid ("+ path_base +")")
 
+
 # validate vector exists
 vector = bnd_absolute
+
 if not os.path.isfile(vector):
     sys.exit("vector does not exist (" + vector + ")")
 
-# accepted raster file extensions
-extensions = [".tif", ".asc"]
+# check extension
+if not vector.endswith(tuple(vector_extensions)):
+    sys.exit("invalid vector extension (" + vector + ")")
+
+vector_dirname = os.path.dirname(vector)
+vector_filename, vector_extension = os.path.splitext(os.path.basename(vector))
+
+# break vector down into path and layer
+# different for shapefiles and geojsons
+if vector_extension == ".geojson":
+    vector_info = (vector, "OGRGeoJSON")
+
+elif vector_extension == ".shp":
+    vector_info = (vector_dirname, vector_filename)
+
+else:
+    sys.exit("invalid vector extension (" + vector_extension + ")")
+
+# try loading r packages and vector file
+try:
+    rlib_rgdal = importr("rgdal")
+    rlib_raster = importr("raster")
+
+    r_vector = rlib_rgdal.readOGR(vector_info[0], vector_info[1])
+
+except:
+    sys.exit("rpy2 initialization failed")
+
+
+# list of valid extract types with r functions
+extract_funcs = {
+    "mean":robjects.r.mean
+}
+
+# validate input extract type
+if extract_type not in extract_funcs.keys():
+    sys.exit("invalid extract type")
 
 
 # run R extract script using subprocess call
-def run_extract(vector, raster, output, extract_type):
+def script_extract(vector, raster, output, extract_type):
     try:  
 
         cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
@@ -73,7 +117,29 @@ def run_extract(vector, raster, output, extract_type):
     except sp.CalledProcessError as sts_err:                                                                                                   
         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
-    
+
+# run extract using rpy2
+def rpy2_extract(r_vector, raster, output, extract_type):
+
+    try:
+        r_raster = rlib_raster.raster(raster)
+
+        # *** need to implement different kwargs based on extract type ***
+        kwargs = {"fun":extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
+
+        robjects.r.assign('r_extract', rlib_raster.extract(r_raster, r_vector, **kwargs))
+
+        robjects.r.assign('r_output', output)
+
+        robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
+        robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
+        
+        return True, None
+
+    except:
+        return False, "R extract failed"
+
+
 # ==================================================
 
 
@@ -107,14 +173,15 @@ if run_option == 1:
         sys.exit("raster does not exist (" + raster + ")")
 
     # check extension
-    if not raster.endswith(tuple(extensions)):
-        sys.exit("invalid extension (" + raster + ")")
+    if not raster.endswith(tuple(raster_extensions)):
+        sys.exit("invalid raster extension (" + raster + ")")
 
     # full path to output file (without file extension)
     # output = output_base + "/projects/" + bnd_name + "/extracts/" + data_name + "/extract"
     output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract"
 
-   run_extract(vector, raster, output, extract_type)
+   # run_extract(vector, raster, output, extract_type)
+   run_extract(r_vector, raster, output, extract_type)
 
 
 # temporal dataset
@@ -173,7 +240,8 @@ else:
         raster = data_base +"/"+ data_path +"/"+ item[1]
         output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
 
-        run_extract(vector, raster, output, extract_type)
+        # run_extract(vector, raster, output, extract_type)
+        run_extract(r_vector, raster, output, extract_type)
 
         c += size
 

@@ -22,6 +22,9 @@ extract_type <- readIn[4]
 
 myVector <- readShapePoly(vector)
 
+# myVector <- readOGR("path", "layer")
+# myVector <- readOGR("full", "OGRGeoJSON")
+
 myRaster <- raster(raster) 
 
 myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
