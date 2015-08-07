@@ -5,17 +5,24 @@ scripts for preparing, extracting and working with datasets on sciclone
 --------------------------------------------------
 --------------------------------------------------
 
-## year_extract
-generic extract scripts for datasets identified by year
+## generic extract
+fully integrate extract script which can be used for datasets with any temporal type  
 
-## year_month_extract
-generic extract scripts for datasets identified by year and month
 
-## year_day_extract
-generic extract scripts for datasets identified by year and day of year
+## individual temporal extracts (no subfolder)
+sciclone scripts for extracting and merging extract data based on the temporal type of the dataset  
 
-## single_extract
-generic extract scripts for temporally invariant data
+- **year_extract**  
+    generic extract scripts for datasets identified by year
+
+- **year_month_extract**  
+    generic extract scripts for datasets identified by year and month
+
+- **year_day_extract**  
+    generic extract scripts for datasets identified by year and day of year
+
+- **single_extract**  
+    generic extract scripts for temporally invariant data
 
 
 
@@ -47,7 +54,6 @@ postprocessing scripts for working with extract data
 
 ## old
 old scripts (most in process of being updated, moved or deprecated)
-
 
 - ndvi_original  
     Contains original Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
