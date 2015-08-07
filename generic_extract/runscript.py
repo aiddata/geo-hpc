@@ -1,5 +1,6 @@
 # generic runscript for sciclone extract jobs
 
+
 from mpi4py import MPI
 import subprocess as sp
 import sys
@@ -9,42 +10,39 @@ from rpy2.robjects.packages import importr
 from rpy2 import robjects
 
 
+# inputs from jobscript
+# see jobscript comments for detailed descriptions of inputs
+
+# temporal type option 
 run_option = sys.argv[1]
 
-# boundary name which will be used to identify/generate folder in output path
-# if boundary file exists in asdf, bnd_name should match asdf name
+# boundary name 
 bnd_name = sys.argv[2]
 
 # absolute path of boundary file
-# includes file with extension
 bnd_absolute = sys.argv[3]
 
-# path to data folder parent
+# folder which contains data
 data_base = sys.argv[4]
 
-# data_path relative to /sciclone/aiddata10/REU/data
-# eg: v4avg_lihgts_x_pct or ltdr_yearly/ndvi_mean
+# path relative to data_base
 data_path = sys.argv[5]
 
 # dataset name
-# if dataset exists in asdf, data_name should match asdf name
 data_name = sys.argv[6]
 
-# year must be 4 digits and specified in file mask with "YYYY"
-# other chars in mask do not matter as long as they are not "Y"
-# file mask must be same length as file names
-# eg: (for v4avg_lights_x_pct)  F1xYYYY.v4x.avg_lights_x_pct.tif
+# file mask for dataset files
 file_mask = sys.argv[7]
 
-# extract type (mean, max, etc.)
+# extract type
 extract_type = sys.argv[8]
 
-# parent folder for outputs
-# bnd_name folder should exist or will be created in this folder
+# output folder
 output_base = sys.argv[9]
 
 
 # ==================================================
+
 
 # accepted vector and raster file extensions
 vector_extensions = [".geojson", ".shp"]

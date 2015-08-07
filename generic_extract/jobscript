@@ -14,14 +14,17 @@
 # 4                 | year day
 
 
+# temporal type options
 # specifies dataset temporal type (see above)
 set run_option = 1
 
 # boundary name 
-# if boundary is in asdf this must match name used for boundary in asdf
+# boundary name which will be used to identify/generate folder in output path
+# if boundary file exists in asdf, bnd_name should match asdf name
 set bnd_name = "kfw_grid_clip"
 
-# absolute path to shapefile 
+# absolute path of boundary file
+# includes file with extension
 # can be anywhere accessible on /sciclone
 set bnd_absolute = "/sciclone/aiddata10/REU/extracts/kfw_grid_clip/shps/KFW_ohFiveDecimalDegrees_grid_clipped.shp"
 
@@ -29,19 +32,26 @@ set bnd_absolute = "/sciclone/aiddata10/REU/extracts/kfw_grid_clip/shps/KFW_ohFi
 set data_base = "/sciclone/aiddata10/REU/data"
 
 # path relative to data_base
+# eg: v4avg_lihgts_x_pct or ltdr_yearly/ndvi_mean
 set data_path = "srtm/SRTM_500m.tif"
 
 # dataset name
-# if dataset is in asdf this must match name used for dataset in asdf
+# if dataset exists in asdf, data_name should match asdf name
 set data_name = "srtm_elevation"
 
-# extract type
-set extract_type = "mean"
-
 # file mask for dataset files
+# year must be 4 digits and specified in file mask with "YYYY"
+# other chars in mask do not matter as long as they are not "Y"
+# file mask must be same length as file names
+# eg: (for v4avg_lights_x_pct)  F1xYYYY.v4x.avg_lights_x_pct.tif
 set file_mask = "None"
 
-# folder where extracts will be output to
+# extract type
+# (mean, max, etc.)
+set extract_type = "mean"
+
+# parent folder for outputs
+# bnd_name folder should exist or will be created in this folder
 # extract outputs will be in <output_base>/extracts/<bnd_name>/cache/<data_name>/<extract_type>/extract.csv
 set output_base = "/sciclone/aiddata10/REU/extracts"
 

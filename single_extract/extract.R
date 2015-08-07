@@ -15,7 +15,6 @@ readIn <- commandArgs(trailingOnly = TRUE)
 vector <- readIn[1]
 raster <- readIn[2]
 output <- readIn[3]
-extract_type <- readIn[4]
 
 # =========================
 
