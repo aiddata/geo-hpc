@@ -63,7 +63,7 @@ if not cr_status:
 # if extracts are cached then merge and generate documentation
 if (not run_extract and cr_count == 0) or run_extract:
 
-    # merge cached results if all are availed
+    # merge cached results if all are available
     merge_status = cache.merge(request_obj)
 
     # generate documentation

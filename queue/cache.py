@@ -7,7 +7,7 @@ import pymongo
 import pandas as pd 
 import geopandas as gpd
 
-import subprocess as sp
+# import subprocess as sp
 
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -29,46 +29,57 @@ class cache():
             "mean":robjects.r.mean
         }
 
+        self.merge_list = []
 
-    # check for cache given boundary, dataset and extract type
-    def check_individual(self, boundary, dataset, extract_type, reliability):
+
+    # check for cache given boundary, raster and extract type
+    def check_individual(self, boundary, raster, extract_type, reliability, output):
 
         print "check_individual"
 
-      # # check db
-      # db_exists = 
+        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability}
 
-      # if db_exists:
-      #     # check file
-      #     file_exists = 
-            
-      #     if file_exists:
-      #         return True
-      #     else:
-      #         # remove from db
-      #         # 
-      #         return False
+        # check db
+        db_exists = self.cache.find(check_data).count() > 0
 
-      #   else:
-      #     return False
+        if db_exists:
+
+            # check file
+            extract_path = output + "_e.csv"
+            extract_exists = os.path.isfile(extract_path)
+
+            if reliability:
+                reliability_path = output + "_r.csv"
+                reliability_exists = os.path.isfile(reliability_path)
+
+            if (reliability and extract_exists and reliability_exists) or (not reliability and extract_exists):
+                return True
+
+            else:
+                # remove from db
+                self.cache.delete_one(check_data)
+                return False
+
+        else:
+            return False
     
 
-    # initialize boundary vector using rpy2
-    def init_boundary(self, vector):
+    # initialize boundary using rpy2
+    def init_boundary(self, boundary):
 
         try:
-            vector_dirname = os.path.dirname(vector)
-            vector_filename, vector_extension = os.path.splitext(os.path.basename(vector))
+            boundary_dirname = os.path.dirname(boundary)
+            boundary_filename, boundary_extension = os.path.splitext(os.path.basename(boundary))
 
-            # break vector down into path and layer
+            # break boundary down into path and layer
             # different for shapefiles and geojsons
-            if vector_extension == ".geojson":
-                vector_info = (vector, "OGRGeoJSON")
+            if boundary_extension == ".geojson":
+                boundary_info = (boundary, "OGRGeoJSON")
 
-            elif vector_extension == ".shp":
-                vector_info = (vector_dirname, vector_filename)
+            elif boundary_extension == ".shp":
+                boundary_info = (boundary_dirname, boundary_filename)
 
-            self.r_vector = self.rlib_rgdal.readOGR(vector_info[0], vector_info[1])
+            self.r_boundary = self.rlib_rgdal.readOGR(boundary_info[0], boundary_info[1])
             
             return True
 
@@ -85,7 +96,7 @@ class cache():
             # *** need to implement different kwargs based on extract type ***
             kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
 
-            robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_vector, **kwargs))
+            robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_boundary, **kwargs))
 
             robjects.r.assign('r_output', output)
 
@@ -99,10 +110,10 @@ class cache():
 
 
     # use subprocess to run Rscript
-    # def script_extract(self, vector, raster, output, extract_type):
+    # def script_extract(self, boundary, raster, output, extract_type):
 
     #     try:
-    #         cmd = "Rscript " + os.path.dirname(__file__) + "/extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
+    #         cmd = "Rscript " + os.path.dirname(__file__) + "/extract.R " + boundary +" "+ raster +" "+ output +" "+ extract_type
     #         print cmd
 
     #         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
@@ -118,45 +129,50 @@ class cache():
     # reliability calcs for extract
     # intersect for every single boundary that intersects with unique ones from geojson
     # sum for each intersect
-    def run_reliability(self, boundary, reliability_geojson):
-        
-        extract_bound = sys.argv[1] # .../NPL_adm2.shp
-        mean_surf_geom = sys.argv[2] # .../string.geojson
-        extract_result = sys.argv[3] # .../extract_ADM2.csv
-        output = sys.argv[4] # .../reliability_output_ADM2.csv
+    def run_reliability(self, boundary, reliability_geojson, output):
+       
+       try: 
 
-        # extract boundary geo dataframe
-        gdf_a = gpd.GeoDataFrame.from_file(extract_bound)
-        gdf_a['idx'] = range(len(gdf_a)) #creates unique index to merge on
+            # extract boundary geo dataframe
+            bnd_df = gpd.GeoDataFrame.from_file(boundary)
 
-        # mean surface unique polygon dataframe
-        mean_surf_df = gpd.GeoDataFrame.from_file(mean_surf_geom)
-
-        # result of mean surface extracted to boundary
-        df = pd.DataFrame.from_csv(extract_result)
-        df['idx'] = range(len(df)) #index to merge with gdf_a
-        df['max'] = 0 *len(df)
+            # mean surface unique polygon dataframe
+            rel_df = gpd.GeoDataFrame.from_file(reliability_geojson)
 
 
-        # iterate over shapes
-        for row_raw in gdf_a.iterrows():
+            # result of mean surface extracted to boundary
+            df = pd.DataFrame.from_csv(output+"_e.csv")
 
-            row = row_raw[1]
-            geom = row['geometry']
-            unique_id = row['idx'] # ID field common to both dfs
-            mean_surf_df['intersect'] = mean_surf_df['geometry'].intersects(geom)
-            tmp_series = mean_surf_df.groupby(by = 'intersect')['unique_dollars'].sum()
-            
-            df.loc[df['idx'] == unique_id, 'max'] = tmp_series[True]
-            
+            # index to merge with bnd_df
+            df['ad_id'] = bnd_df['ad_id']
 
-        # reliability statistic
-        df["reliability"] = df['mean_aid']/df['max']
+            # init max column
+            df['max'] = 0 *len(df)
 
-        # output
-        df.to_csv(output)
 
-        return x 
+            # iterate over shapes in boundary dataframe
+            for row_raw in bnd_df.iterrows():
+
+                row = row_raw[1]
+                geom = row['geometry']
+                # id field common to both dfs
+                unique_id = row['ad_id']
+                rel_df['intersect'] = rel_df['geometry'].intersects(geom)
+                tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
+                
+                df.loc[df['ad_id'] == unique_id, 'max'] = tmp_series[True]
+                
+
+            # calculate reliability statistic
+            df["reliability"] = df['mean_aid']/df['max']
+
+            # output to reliability csv
+            df.to_csv(output+"_r.csv")
+
+            return True
+
+        except:
+            return False
 
 
     # check entire request object for cache
@@ -173,36 +189,52 @@ class cache():
             for i in data["files"]:
                 df_name = data["files"][i]["name"]
                 raster_path = data["base"] +"/"+ data["files"][i]["path"]
+                is_reliability_raster = data["files"][i]["reliability"]
 
                 for extract_type in request["data"]["options"]["extract_types"]:
 
+                    # incomplete output file string
+                    output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+df_name[df_name.rindex("_")+1:df_name.rindex(".")]
+
+
+                    self.merge_list.append(output +"_e.csv")
+                    if is_reliability_raster:
+                        self.merge_list.append(output +"_r.csv")
+
+
                     # check if cache exists
-                    exists = self.check_individual(request["boundary"]["name"], df_name, extract_type, data["files"][i]["reliability"])
+                    exists = self.check_individual(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, output)
 
                     if not exists:
                         if extract:
                             # run extract
-                            output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/extract_"+df_name[df_name.rindex("_")+1:df_name.rindex(".")] +".csv"
                             
                             # re_status = self.script_extract(request["boundary"]["path"], raster_path, output, extract_type)
-                            re_status = self.rpy2_extract(request["boundary"]["path"], raster_path, output, extract_type)
+                            re_status = self.rpy2_extract(request["boundary"]["path"], raster_path, output+"_e.csv", extract_type)
 
                             # return False if extract fails
                             if not re_status:
                                 return False, 0
 
                             # run reliability calcs if needed
-                            elif data["files"][i]["reliability"]:
+                            elif is_reliability_raster:
                                 raster_parent = os.path.dirname(raster_path)
-                                rr_status = self.run_reliability(vector, raster_parent+"/string.geojson")
+                                rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/string.geojson", output)
 
                                 # return False if reliability calc fails
                                 if not rr_status:
                                     return False, 0
 
                             # update cache db
-                            # 
-                            
+                            cache_data = {
+                                "boundary": request["boundary"]["name"], 
+                                "raster": df_name, 
+                                "extract_type": extract_type, 
+                                "reliability": is_reliability_raster
+                            }
+
+                            self.cache.replace_one(cache_data, cache_data, upsert=True)
+
                         else:
                             count += 1
 

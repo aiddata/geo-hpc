@@ -374,7 +374,7 @@ $(document).ready(function(){
 
 	    	data_html += '<div>'
 	    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
-	    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] + ')</div>';
+	    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] +' - '+ dataset['mini_name'] + ')</div>';
 	    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
 			data_html += '</div>'
 	    	

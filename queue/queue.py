@@ -1,9 +1,8 @@
 # utilty functions for processing requests in queue
 
-
+import time
 import pymongo
 from bson.objectid import ObjectId
-import time
 
 class queue():
 
