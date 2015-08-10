@@ -28,7 +28,13 @@ $(document).ready(function(){
 	// get boundary options from mongo
 	// build select menu
 	// check and active link if given
-	mongo_search({call:"boundaries"}, function (result){
+	mongo_search({call:"boundaries"}, function (result, status, error){
+
+		if (error) {
+			console.log(error);
+			return 1
+		}
+
 		// console.log(result);
 		var bnd_html = '';
 
@@ -230,8 +236,8 @@ $(document).ready(function(){
 	        success: function (result) {
 			    callback(result);
 			},    
-	    	error: function (request, status, error) {
-        		callback(request, status, error);
+	    	error: function (result, status, error) {
+        		callback(result, status, error);
     		}
 	    });
 	}
@@ -247,8 +253,8 @@ $(document).ready(function(){
 	        success: function (result) {
 			    callback(result);
 			},    
-	    	error: function (request, status, error) {
-        		callback(request, status, error);
+	    	error: function (result, status, error) {
+        		callback(result, status, error);
     		}
 	    });
 	}
@@ -279,10 +285,10 @@ $(document).ready(function(){
 
 		var process_call = 0
 
-		process({call:"geojson", file:file}, function (request, status, e) {
-			geojsonFeature = request;
+		process({call:"geojson", file:file}, function (result, status, e) {
+			geojsonFeature = result;
 			error = e;
-			// console.log(request);
+			// console.log(result);
 
 			if (error) {
 				console.log(error);
@@ -325,7 +331,12 @@ $(document).ready(function(){
 
 		// console.log(request["boundary"]["group"]);
 
-		mongo_search({call:"datasets", group:request["boundary"]["group"]}, function (result){
+		mongo_search({call:"datasets", group:request["boundary"]["group"]}, function (result, status, error){
+
+			if (error) {
+				console.log(error);
+				return 1
+			}
 
 			console.log(result);
 

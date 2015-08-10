@@ -5,13 +5,13 @@ import pymongo
 from bson.objectid import ObjectId
 import time
 
-class utility():
+class queue():
 
 
     def __init__(self):
         self.client = pymongo.MongoClient()
         self.db = self.client.det
-        self.cache = self.db.queue
+        self.queue = self.db.queue
 
 
     # verify request with id exists
@@ -19,7 +19,7 @@ class utility():
 
         try:
             # check document with request id exists
-            search = self.cache.find({"_id":ObjectId(rid)})
+            search = self.queue.find({"_id":ObjectId(rid)})
             exists = search.count()
             
             return 1, exists, search[0]
@@ -35,7 +35,7 @@ class utility():
         
         try:
             # find all status 1 jobs and sort by priority then submit_time
-            sort = self.cache.find({"status":1}).sort([("priority": -1), ("submit_time": 1)])
+            sort = self.queue.find({"status":1}).sort([("priority": -1), ("submit_time": 1)])
             if sort.count() > 0
                 rid = str(sort[0]["_id"])
                 return 1, rid, sort[0]
@@ -64,7 +64,7 @@ class utility():
 
         try:
             # update request document
-            self.cache.update({"_id": ObjectId(rid)}, {"$set": updates})
+            self.queue.update({"_id": ObjectId(rid)}, {"$set": updates})
             return True
 
         except:

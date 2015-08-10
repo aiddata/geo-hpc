@@ -195,11 +195,14 @@ class cache():
                             elif data["files"][i]["reliability"]:
                                 raster_parent = os.path.dirname(raster_path)
                                 rr_status = self.run_reliability(vector, raster_parent+"/string.geojson")
-                                
+
                                 # return False if reliability calc fails
                                 if not rr_status:
                                     return False, 0
 
+                            # update cache db
+                            # 
+                            
                         else:
                             count += 1
 

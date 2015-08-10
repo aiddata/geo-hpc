@@ -3,12 +3,12 @@
 
 import sys
 
-from utility import utility
+from queue import queue
 from cache import cache
 # from documentation import doc
 
 
-util = utility()
+queue = queue()
 cache = cache()
 # doc = doc()
 
@@ -22,7 +22,7 @@ if len(sys.argv) == 2:
 
     # check if request with id exists
     # return status of check, boolean of exists and request data if exists 
-    ci_status, ci_return, request_obj = util.check_id(sys.argv[1])
+    ci_status, ci_return, request_obj = queue.check_id(sys.argv[1])
 
     if not ci_status:
         sys.exit("Error while checking request id")
@@ -37,7 +37,7 @@ else:
 
     # get next request in queue based on priority and submit time
     # returns status of search, request id if search succeeds, and request data
-    gn_status, request_id, request_obj = util.get_next()
+    gn_status, request_id, request_obj = queue.get_next()
     
     if not gn_status:
        sys.exit("Error while searching for next request in queue")
@@ -48,7 +48,7 @@ else:
 
 # update status to being processed 
 # (without running extracts: 2, with runnning extracts: 3)
-us = util.update_status(request_id, 2+run_extract)
+us = queue.update_status(request_id, 2+run_extract)
 
 
 # check results for cached data
@@ -71,10 +71,10 @@ if (not run_extract and cr_count == 0) or run_extract:
 
     # add processed time
     if not run_extract:
-        us = util.update_status(request_id, 3)
+        us = queue.update_status(request_id, 3)
 
     # update status 0 (done)
-    us = util.update_status(request_id, 0)
+    us = queue.update_status(request_id, 0)
 
 else:
     # add cr_count to request so number of needed extracts 
@@ -82,5 +82,5 @@ else:
     # 
 
     # update status 1 (ready for processing)
-    us = util.update_status(request_id, 1)
+    us = queue.update_status(request_id, 1)
 
