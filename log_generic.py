@@ -157,6 +157,7 @@ def generic_input(input_type, update, var_str, in_1, in_2=0, opt=0):
                     data_package["options"][var_str] = v.data[var_str]
 
         # elif update and not user_update:
+            # v.data[var_str] = data_package[var_str] 
             # validate anyway - in case validation function changed
             # force to enter new input if needed
             # 
@@ -164,7 +165,7 @@ def generic_input(input_type, update, var_str, in_1, in_2=0, opt=0):
             # data_package[var_str] = v.data[var_str]
 
 
-    else:
+    if not interface:
         if input_type == "open" and in_2:
 
             if not var_str in v.data:
@@ -236,7 +237,7 @@ if generator == "manual":
 # base path
 # get base path
 if interface:
-    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /mnt/sciclone-aiddata/REU/data/path/to/dataset)", v.is_dir)
+    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /sciclone/aiddata10/REU/data/path/to/dataset)", v.is_dir)
 
     if "REU/data/boundaries" in v.data["base"] and not p.user_prompt_bool("Warning: boundary files will be modified/overwritten/deleted during process. Make sure you have a backup. Continue?"):
         quit("User request - boundary backup.")
@@ -260,9 +261,11 @@ if interface and os.path.isfile(v.data["base"]+"/datapackage.json"):
 else:
     # false: creation protocol
     data_package = init_datapackage()
-    data_package["base"] = v.data["base"]
     update_data_package = False
 
+
+# init base for new datapackage and overwrite old base in case datapackage moved
+data_package["base"] = v.data["base"]
 
 # remove trailing slash from path
 if data_package["base"].endswith("/"):
@@ -279,6 +282,12 @@ flist = [
         "type": "open",
         "in_1": "Dataset name? (must be unique from existing datasets)", 
         "in_2": v.name
+    },
+    {   
+        "id": "mini_name",
+        "type": "open",
+        "in_1": "Dataset mini name? (must be 4 characters and unique from existing datasets)", 
+        "in_2": v.mini_name
     },
     {   
         "id": "title",
@@ -374,21 +383,25 @@ elif data_package["type"] == "boundary":
     # boundary group
     generic_input("open", update_data_package, "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group, opt=True)
 
-    # boundary class
-    # only a single actual may exist for a group
-    if v.is_actual or (update_data_package and data_package["options"]["group_class"] == "actual"):
-        data_package["options"]["group_class"] = "actual"
-    
-    elif v.actual_exists[data_package["options"]["group"]] or (update_data_package and data_package["options"]["group_class"] == "sub"):
-        # force sub if actual exists
-        data_package["options"]["group_class"] = "sub"
-    
-    else:
-        generic_input("open", update_data_package, "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
+    # do not recheck if group already set
+    # probably should allow this, currently does not work due to requiring fields set during initial validation
+    if not "group" in data_package["options"] and not "group_class" in data_package["options"]:
+
+        # boundary class
+        # only a single actual may exist for a group
+        if v.is_actual or (update_data_package and data_package["options"]["group_class"] == "actual"):
+            data_package["options"]["group_class"] = "actual"
         
-        if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
-            v.new_boundary = True
+        elif v.actual_exists[data_package["options"]["group"]] or (update_data_package and data_package["options"]["group_class"] == "sub"):
+            # force sub if actual exists
+            data_package["options"]["group_class"] = "sub"
         
+        else:
+            generic_input("open", update_data_package, "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
+            
+            if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
+                v.new_boundary = True
+            
 
 
 # --------------------
@@ -443,15 +456,14 @@ for root, dirs, files in os.walk(data_package["base"]):
             ru.file_list.append(file)
 
 
+
 # iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
 f_count = 0
 for f in ru.file_list:
-
     if data_package["file_format"] == "raster":
 
         # get basic geo info from each file
         geo_ext = ru.raster_envelope(f)
-
         # get full geo info from first file
         if f_count == 0:
             base_geo = geo_ext
@@ -532,7 +544,6 @@ for f in ru.file_list:
 
     else:
         quit("File format error.")
-
 
 
 for c in range(len(geo_ext)):

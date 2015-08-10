@@ -1,24 +1,26 @@
-data guidelines for the data aggregation framework
+data guidelines for the aiddata spatial data framework
 --------------------------------------------------
 
 - all datasets must be projected to WGS84 (EPSG4326) before entering into system
+
+- user inputting data into asdf are responsible for managing unique names which properly identify the dataset (this includes incorporating version into name for datasets which exist in multiple versions - the version field does not handle this)
 
 
 for external datasets / manual logging:
 
 - /sciclone/aiddata10/REU/raw always contains data that has not been altered since being collected from source
 
-- the file structure of processed data in /sciclone/aiddata10/REU/data should mirror the structure of the raw version of data whenever possible
+- the file structure of processed data in /sciclone/aiddata10/REU/data should follow the standard of grouping the lowest level of temporal data in the same folder (eg: .../dataset/year/{month01.ext, month02.ext, ...)
 
 - temporal information for datasets/files in data folder must be retrievable from the path to files and/or file names
 - files must all include at least 4 digit years
-- except made for temporally invariant data which is designated using a "file_mask" input of "None"
+- exception made for temporally invariant data which is designated using a "file_mask" input of "None"
 
 - acceptable temporal data types for DET use include 
     - temporally invariant
     - year
-    - year, month
 - other temporal data types which may be added to database but are NOT valid for DET use include:
+    - year, month
     - year, month, day of month (with additional day range option)
     - year, day of year (with additional day range option)
 
@@ -28,7 +30,7 @@ for external datasets / manual logging:
 - processed data must be logged before it can be used in any application (creates datapackage.json and inserts into database)
 
 
-- data being input into the framework for DET use must be either monthly, yearly or temporally invariant
+- data being input into the framework for DET use must be either yearly or temporally invariant
 - datasets with resources spanning multiple years (eg: 2004-2005,2006-2007,...) must either be reduced to a single year each (eg: start year) and a notation made in the dataset description OR each resource should be added as its own dataset 
 - for data with a large range and small resource year spans (eg: 1900-2000 with resource for every 2 years) we suggest reducing each resource to a single year so it can be included in a single dataset
 - data with large year spans (eg: 1900-2000 with resource every 50 years) can be added as individual datasets
@@ -41,12 +43,11 @@ requirement
 - all boundary files must be uploaded individually
 
 recommendations
-- adm boundary file dataset names should be: <uppercase country ISO3>_adm<adm #> (eg: NPL_adm0)
-- country groups for adm boundary datasets should be the uppercase country ISO3 (eg: NPL)
-- adm0 boundary dataset for a country (group) should always exist before other adm boundary datasets are added 
-
-notes:
-- boundary datasets do not officially become a group (in the DET interface) until they have more than 1 dataset in the group (included in "other" category until then)
+- adm boundary file dataset names should be: <country ISO3>_adm<adm #> (eg: NPL_adm0 - note: this will always be converted to all lowercase)
+- country groups for adm boundary datasets should be the lowercase country name (eg: nepal) with spaces replaces with underscores (eg: timor_leste)
+- an "actual" boundary for each group should always be added before other boundaries are added to group, though it is not required 
+- groups without an actual will not be usable until an actual is added and indexed by the system
+- boundary datasets do not officially become a group (in the DET interface) until they have an actual associated with them
 
 
 

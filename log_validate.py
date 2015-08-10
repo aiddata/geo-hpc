@@ -122,6 +122,38 @@ class validate():
         return True, val, None
 
 
+    def mini_name(self, val):
+
+        val = re.sub(' ', '_', val)
+        val = re.sub('[^0-9a-zA-Z._-]+', '', val)
+
+        if len(val) != 4:
+            return False, None, "Mini name must be at 4 (valid) chars"
+
+        val = val.lower()
+        
+        if self.interface and not p.user_prompt_use_input(value=val):
+            return False, None, "User rejected input"
+        
+        if not self.use_mongo:
+            self.use_mongo = True
+            self.client = pymongo.MongoClient()
+            self.db = self.client.asdf
+            self.c_data = self.db.data
+
+        # check mongodb
+        if not "mini_name" in self.data or ("mini_name" in self.data and val != self.data["mini_name"]):
+            unique_search = self.c_data.find({"mini_name": val}).limit(1)
+
+            unique = unique_search.count() == 0
+
+            if not unique and unique_search[0]["base"] != self.data["base"]:
+                return False, None, "Mini name matches an existing dataset (names must be unique)"
+        
+
+        return True, val, None
+
+
     # each extract type in extract_types
     def license_types(self, val):
         valx = [x.strip(' ') for x in val.split(",")]
