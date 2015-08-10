@@ -1,9 +1,16 @@
 # accepts request object and checks if all extracts have been processed (return boolean)
 
+import sys
 import os
+
 import pymongo
 import pandas as pd 
 import geopandas as gpd
+
+import subprocess as sp
+
+from rpy2.robjects.packages import importr
+from rpy2 import robjects
 
 
 class cache():
@@ -14,6 +21,14 @@ class cache():
         self.db = self.client.det
         self.cache = self.db.cache
         
+        self.rlib_rgdal = importr("rgdal")
+        self.rlib_raster = importr("raster")
+
+        # list of valid extract types with r functions
+        self.extract_funcs = {
+            "mean":robjects.r.mean
+        }
+
 
     # check for cache given boundary, dataset and extract type
     def check_individual(self, boundary, dataset, extract_type, reliability):
@@ -38,15 +53,66 @@ class cache():
       #     return False
     
 
-    # merge extracts when all are completed
-    def merge_extracts(self, request):
+    # initialize boundary vector using rpy2
+    def init_boundary(self, vector):
 
-        print "merge_extracts"
+        try:
+            vector_dirname = os.path.dirname(vector)
+            vector_filename, vector_extension = os.path.splitext(os.path.basename(vector))
 
-        # something
-        # 
+            # break vector down into path and layer
+            # different for shapefiles and geojsons
+            if vector_extension == ".geojson":
+                vector_info = (vector, "OGRGeoJSON")
 
-        return something
+            elif vector_extension == ".shp":
+                vector_info = (vector_dirname, vector_filename)
+
+            self.r_vector = self.rlib_rgdal.readOGR(vector_info[0], vector_info[1])
+            
+            return True
+
+        except:
+            return False
+
+
+    # run extract using rpy2
+    def rpy2_extract(self, raster, output, extract_type):
+
+        try:
+            r_raster = self.rlib_raster.raster(raster)
+
+            # *** need to implement different kwargs based on extract type ***
+            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
+
+            robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_vector, **kwargs))
+
+            robjects.r.assign('r_output', output)
+
+            robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
+            robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
+            
+            return True, None
+
+        except:
+            return False, "R extract failed"
+
+
+    # use subprocess to run Rscript
+    # def script_extract(self, vector, raster, output, extract_type):
+
+    #     try:
+    #         cmd = "Rscript " + os.path.dirname(__file__) + "/extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
+    #         print cmd
+
+    #         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+    #         print sts
+
+    #         return True
+
+    #     except:
+    #         return False
+
 
 
     # reliability calcs for extract
@@ -93,55 +159,60 @@ class cache():
         return x 
 
 
-    # use subprocess to run Rscript
-    # run reliability calcs if needed
-    def run_extract(self, vector, raster, output, extract_type, reliability):
-
-        try:
-
-            cmd = "Rscript " + os.path.dirname(__file__) + "/extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
-            print cmd
-
-            sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-            print sts
-
-            if reliability:
-                r = self.run_reliability(vector, raster_parent+"/string.geojson")
-                return r
-            else:
-                return True
-
-        except:
-            return False
-
-
     # check entire request object for cache
     def check_request(self, request, extract=False):
 
         print "check_request"
+
+        self.init_boundary(request["boundary"]["path"])
+
         count = 0
+
         for name, data in request["data"].iteritems():
 
             for i in data["files"]:
-
-                file_path = data["base"] +"/"+ data["files"][i]["path"]
+                df_name = data["files"][i]["name"]
+                raster_path = data["base"] +"/"+ data["files"][i]["path"]
 
                 for extract_type in request["data"]["options"]["extract_types"]:
 
                     # check if cache exists
-                    exists = self.check_individual(request["boundary"]["name"], data["files"][i]["name"], extract_type, data["files"][i]["reliability"])
+                    exists = self.check_individual(request["boundary"]["name"], df_name, extract_type, data["files"][i]["reliability"])
 
                     if not exists:
                         if extract:
                             # run extract
-                            output = 
-                            re = self.run_extract(request["boundary"]["path"], file_path, output, extract_type, data["files"][i]["reliability"])
+                            output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/extract_"+df_name[df_name.rindex("_")+1:df_name.rindex(".")] +".csv"
                             
-                            if not re:
+                            # re_status = self.script_extract(request["boundary"]["path"], raster_path, output, extract_type)
+                            re_status = self.rpy2_extract(request["boundary"]["path"], raster_path, output, extract_type)
+
+                            # return False if extract fails
+                            if not re_status:
                                 return False, 0
+
+                            # run reliability calcs if needed
+                            elif data["files"][i]["reliability"]:
+                                raster_parent = os.path.dirname(raster_path)
+                                rr_status = self.run_reliability(vector, raster_parent+"/string.geojson")
+                                
+                                # return False if reliability calc fails
+                                if not rr_status:
+                                    return False, 0
 
                         else:
                             count += 1
 
         return True, count
+
+
+    # merge extracts when all are completed
+    def merge_extracts(self, request):
+
+        print "merge_extracts"
+
+        # something
+        # 
+
+        return something
 
