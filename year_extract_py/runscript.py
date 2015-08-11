@@ -3,7 +3,8 @@ from mpi4py import MPI
 import sys
 import os
 
-import subprocess as sp
+import errno
+import rasterstats as rs
 
 
 comm = MPI.COMM_WORLD
@@ -47,7 +48,18 @@ path_base = data_base + "/data/" + data_path
 if not os.path.isdir(path_base):
     sys.exit("path_base is not valid ("+ path_base +")")
 
+
+# creates directories
+def make_dir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
 # ==================================================
+
 
 # validate file mask
 if file_mask.count("Y") != 4 or not "YYYY" in file_mask:
@@ -79,15 +91,23 @@ while c < len(qlist):
     raster = data_base + "/data/" + data_path + "/" + qlist[c][1]
     output = project_base + "/projects/" + project_name + "/extracts/" + extract_name + "/output/" + qlist[c][0] + "/extract_" + qlist[c][0]
 
-    try:  
-        cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output
-        print cmd
+    make_dir(os.path.dirname(output))
 
-        sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-        print sts
+    try:
+        extract_type = "mean"
+        stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True)
 
-    except sp.CalledProcessError as sts_err:                                                                                                   
-        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+        for i in stats:
+             i["ad_extract"] = i.pop(extract_type)
+
+        out = open(output+".csv", "w")
+        out.write(rs.utils.stats_to_csv(stats))
+
+    except:
+        if os.path.isfile(output+".csv"):
+            os.remove(output+".csv")
+
+        print ">> error for raster: "+ raster
 
 
     c += size
@@ -96,33 +116,38 @@ while c < len(qlist):
 comm.Barrier()
 
 
-import pandas as pd
-from copy import deepcopy
+# import pandas as pd
+# from copy import deepcopy
 
-merge = 0
-if rank == 0:
+# merge = 0
+# if rank == 0:
 
-    output_base = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output"
-    rlist = [year for year in os.listdir(output_base)]
+#     output_base = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/output"
+#     rlist = [year for year in os.listdir(output_base)]
    
-    if len(rlist) > 0:
+#     if len(rlist) > 0:
 
-        for year in rlist:
+#         for year in rlist:
 
-            result_csv = output_base +"/"+ year + "/extract_" + year + ".csv"
+#             result_csv = output_base +"/"+ year + "/extract_" + year + ".csv"
             
-            if os.path.isfile(result_csv):
+#             if os.path.isfile(result_csv):
 
-                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+#                 try:
+#                     result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
-                if not isinstance(merge, pd.DataFrame):
-                    merge = deepcopy(result_df)
-                    merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
+#                     if not isinstance(merge, pd.DataFrame):
+#                         merge = deepcopy(result_df)
+#                         merge.rename(columns={"ad_extract": "ad_"+year}, inplace=True)
 
-                else:
-                    merge["ad_"+year] = result_df["ad_extract"]
+#                     else:
+#                         merge["ad_"+year] = result_df["ad_extract"]
+
+#                 except:
+#                     print result_csv
+#                     print year
 
 
-        merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
-        merge.to_csv(merge_output, index=False)
+#         merge_output = project_base + "/projects/" + project_name + "/extracts/" + extract_name +"/extract_merge.csv"
+#         merge.to_csv(merge_output, index=False)
 

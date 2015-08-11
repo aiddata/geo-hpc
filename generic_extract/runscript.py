@@ -2,13 +2,16 @@
 
 
 from mpi4py import MPI
-import subprocess as sp
 import sys
 import os
 
-from rpy2.robjects.packages import importr
-from rpy2 import robjects
+# import subprocess as sp
 
+# from rpy2.robjects.packages import importr
+# from rpy2 import robjects
+
+import rasterstats as rs
+import pandas as pd
 
 # inputs from jobscript
 # see jobscript comments for detailed descriptions of inputs
@@ -57,6 +60,13 @@ if not os.path.isfile(path_base):
     sys.exit("path_base is not valid ("+ path_base +")")
 
 
+valid_extracts = ["mean"]
+
+# validate input extract type
+if extract_type not in valid_extracts:
+    sys.exit("invalid extract type")
+
+
 # validate vector exists
 vector = bnd_absolute
 
@@ -81,61 +91,73 @@ elif vector_extension == ".shp":
 else:
     sys.exit("invalid vector extension (" + vector_extension + ")")
 
-# try loading r packages and vector file
-try:
-    rlib_rgdal = importr("rgdal")
-    rlib_raster = importr("raster")
 
-    r_vector = rlib_rgdal.readOGR(vector_info[0], vector_info[1])
+# # try loading rpy2 packages, open vector file and other init
+# try:
+#     rlib_rgdal = importr("rgdal")
+#     rlib_raster = importr("raster")
 
-except:
-    sys.exit("rpy2 initialization failed")
+#     r_vector = rlib_rgdal.readOGR(vector_info[0], vector_info[1])
 
+#     # list of valid extract types with r functions
+#     extract_funcs = {
+#         "mean": robjects.r.mean
+#     }
 
-# list of valid extract types with r functions
-extract_funcs = {
-    "mean":robjects.r.mean
-}
-
-# validate input extract type
-if extract_type not in extract_funcs.keys():
-    sys.exit("invalid extract type")
+# except:
+#     sys.exit("rpy2 initialization failed")
 
 
-# run R extract script using subprocess call
-def script_extract(vector, raster, output, extract_type):
-    try:  
+# # run R extract script using subprocess call
+# def rscript_extract(vector, raster, output, extract_type):
+#     try:  
 
-        cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
-        print cmd
+#         cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
+#         print cmd
 
-        sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-        print sts
+#         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+#         print sts
 
-    except sp.CalledProcessError as sts_err:                                                                                                   
-        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+#     except sp.CalledProcessError as sts_err:                                                                                                   
+#         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
 
-# run extract using rpy2
-def rpy2_extract(r_vector, raster, output, extract_type):
+# # run extract using rpy2
+# def rpy2_extract(r_vector, raster, output, extract_type):
+
+#     try:
+#         r_raster = rlib_raster.raster(raster)
+
+#         # *** need to implement different kwargs based on extract type ***
+#         kwargs = {"fun":extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
+
+#         robjects.r.assign('r_extract', rlib_raster.extract(r_raster, r_vector, **kwargs))
+
+#         robjects.r.assign('r_output', output)
+
+#         robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
+#         robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
+        
+#         return True, None
+
+#     except:
+#         return False, "R extract failed"
+
+
+def python_extract(vector, raster, output, extract_type):
 
     try:
-        r_raster = rlib_raster.raster(raster)
+        stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True)
+        out = open(output+".csv", "w")
+        out.write(rs.utils.stats_to_csv(stats))
 
-        # *** need to implement different kwargs based on extract type ***
-        kwargs = {"fun":extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
-
-        robjects.r.assign('r_extract', rlib_raster.extract(r_raster, r_vector, **kwargs))
-
-        robjects.r.assign('r_output', output)
-
-        robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
-        robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
-        
-        return True, None
+        return True
 
     except:
-        return False, "R extract failed"
+        if os.path.isfile(output+".csv"):
+            os.remove(output+".csv")
+
+        return False
 
 
 # ==================================================
@@ -236,10 +258,12 @@ else:
         item = qlist[c]
 
         raster = data_base +"/"+ data_path +"/"+ item[1]
+        # output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
         output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
 
-        # run_extract(vector, raster, output, extract_type)
-        run_extract(r_vector, raster, output, extract_type)
+        # rscript_extract(vector, raster, output, extract_type)
+        # rpy2_extract(r_vector, raster, output, extract_type)
+        python_extract(vector, raster, output, extract_type)
 
         c += size
 
