@@ -210,7 +210,7 @@ def getData(path, merge_id, field_ids, only_geo):
     loc_path = path+"/locations.tsv"
 
     # make sure files exist
-    #
+    # 
 
     # read input csv files into memory
     amp = getCSV(amp_path)
@@ -382,9 +382,9 @@ def geomVal(agg_type, code, lon, lat):
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
-adm_paths.append(dir_base+"/countries/"+country+"/shapefiles/ADM0/"+abbr+"_adm0.shp")
-adm_paths.append(dir_base+"/countries/"+country+"/shapefiles/ADM1/"+abbr+"_adm1.shp")
-adm_paths.append(dir_base+"/countries/"+country+"/shapefiles/ADM2/"+abbr+"_adm2.shp")
+adm_paths.append(dir_base+"/countries/"+country+"/shps/"+abbr+"_adm0.shp")
+adm_paths.append(dir_base+"/countries/"+country+"/shps/"+abbr+"_adm1.shp")
+adm_paths.append(dir_base+"/countries/"+country+"/shps/"+abbr+"_adm2.shp")
 
 # get adm0 bounding box
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
