@@ -53,7 +53,7 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 
 
 run_stage = "beta"
-run_version_str = "006"
+run_version_str = "007"
 run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
@@ -72,19 +72,45 @@ arg = sys.argv
 
 try:
     country = "nepal" # sys.argv[1]
-    abbr = "NPL" # sys.argv[2]
-    pixel_size = 0.5 # float(sys.argv[3])
-    data_version = 1.1 # sys.argv[4]
 
-    # raw_filter = sys.argv[5]
+    data_version = "1.1" # sys.argv[2]
+
+    pixel_size = 0.5 # float(sys.argv[3])
+
+    # raw_filter = sys.argv[4]
+    sector = "agriculture"
 
 except:
     sys.exit("invalid inputs")
 
 
 # --------------------------------------------------
-# pixel size options
+# validate country and data_version
 
+abbrvs = {
+    "drc": "COD",
+    "honduras": "HND",
+    "nepal": "NPL"
+    "nigeria": "NGA",
+    "senegal": "SEN",
+    "timor-leste": "TLS",
+    "uganda": "UGA"
+}
+
+if country not in abbrvs.keys() or not os.path.isdir(dir_base+"/countries/"+country):
+    sys.exit("invalid country: " + country)
+
+abbr = abbrvs[country]
+
+
+version_path =  dir_base+"/countries/"+country+"/versions/"+country+"_"+data_version
+
+if not os.path.isdir(version_path):
+    sys.exit("invalid data_version: " + data_version)
+
+
+# --------------------------------------------------
+# validate pixel size
 
 # check for valid pixel size
 # examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
@@ -96,16 +122,16 @@ psi = 1/pixel_size
 
 
 # --------------------------------------------------
-# filter options
+# validate and build filter options
 
 # filter_type = "all"
-filters_type = "specfic"
+# filters_type = "specfic"
 
-filters = {
-    "ad_sector_names": {
-        "Agriculture": 0
-    }
-}
+# filters = {
+#     "ad_sector_names": {
+#         "Agriculture": 0
+#     }
+# }
 
 
 # --------------------------------------------------
@@ -428,7 +454,7 @@ for r in rows:
 # --------------------------------------------------
 # load project data
 
-dir_data = dir_base+"/countries/"+country+"/data/"+country+"_"+str(data_version)+"/data"
+dir_data = dir_base+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 
 merged = getData(dir_data, "project_id", (code_field, "project_location_id"), only_geocoded)
 
@@ -473,11 +499,11 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 # filters_hash = filters_md5.hexdigest()
 
 # generate filters hash
-filters_hash = json_hash(filters)
+# filters_hash = json_hash(filters)
 
 
 # apply filters to project data
-# filtered = merged.loc[merged.ad_sector_names == "Agriculture"]
+filtered = merged.loc[merged.ad_sector_names == "Agriculture"]
 
 # !!! potential issue !!!
 #
@@ -488,7 +514,7 @@ filters_hash = json_hash(filters)
 # - method: recheck project location count and create placeholder random value if locations are missing
 # - will need to rebuild how random num column is added. probaby can use apply with a new function
 
-filtered = deepcopy(merged)
+# filtered = deepcopy(merged)
 
 
 # --------------------------------------------------
@@ -892,7 +918,7 @@ if rank == 0:
 
     add_json("data_version",data_version)
 
-    add_json("filters_type",filters_type)
+    # add_json("filters_type",filters_type)
     add_json("filters",filters)
     add_json("filters_hash",filters_hash)
     add_json("nodata",nodata)
