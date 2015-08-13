@@ -71,14 +71,16 @@ Rid = "msr_" + str(Ts) +"_"+ "56789"
 arg = sys.argv
 
 try:
-    country = "nepal" # sys.argv[1]
+    # country = "nepal"
+    # data_version = "1.1"
+    # pixel_size = 0.1
+    # sector = "Agriculture"
 
-    data_version = "1.1" # sys.argv[2]
-
-    pixel_size = 0.5 # float(sys.argv[3])
-
+    country = sys.argv[1]
+    data_version = sys.argv[2]
+    pixel_size = float(sys.argv[3])
     # raw_filter = sys.argv[4]
-    sector = "agriculture"
+    sector = sys.argv[4]
 
 except:
     sys.exit("invalid inputs")
@@ -90,7 +92,7 @@ except:
 abbrvs = {
     "drc": "COD",
     "honduras": "HND",
-    "nepal": "NPL"
+    "nepal": "NPL",
     "nigeria": "NGA",
     "senegal": "SEN",
     "timor-leste": "TLS",
@@ -170,6 +172,7 @@ code_field = "precision_code"
 agg_types = ["point", "buffer", "adm"]
 
 # code field values
+# buffer values in meters
 lookup = {
     "1": {"type":"point","data":0},
     "2": {"type":"buffer","data":20000},
@@ -503,7 +506,7 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 
 
 # apply filters to project data
-filtered = merged.loc[merged.ad_sector_names == "Agriculture"]
+filtered = merged.loc[merged.ad_sector_names == sector].copy(deep=True)
 
 # !!! potential issue !!!
 #
@@ -914,13 +917,15 @@ if rank == 0:
 
     add_json("country",country)
     add_json("abbr",abbr)
+    add_json("data_version",data_version)
     add_json("pixel_size",pixel_size)
 
-    add_json("data_version",data_version)
+    add_json("sector",sector)
 
     # add_json("filters_type",filters_type)
-    add_json("filters",filters)
-    add_json("filters_hash",filters_hash)
+    # add_json("filters",filters)
+    # add_json("filters_hash",filters_hash)
+
     add_json("nodata",nodata)
     add_json("aid_field",aid_field)
     add_json("is_geocoded",is_geocoded)
@@ -946,6 +951,12 @@ if rank == 0:
     add_json("T_unique",T_unique)
     add_json("T_total",T_total)
 
+    # put json in msr/json/mongo/ready folder
     json_out = dir_base+'/json/mongo/ready/'+str(Rid)+'.json'
-    json_handle = open(json_out, 'w')
-    json.dump(mops, json_handle, sort_keys = True, indent = 4, ensure_ascii=False)
+    make_dir(os.path.dirname(json_out))
+    json_handle1 = open(json_out, 'w')
+    json.dump(mops, json_handle1, sort_keys = True, indent = 4, ensure_ascii=False)
+
+    # store json with outputs as meta
+    json_handle2 = open(dir_working+'/'+str(Rid)+'.json',"w")
+    json.dump(mops, json_handle2, sort_keys = True, indent = 4, ensure_ascii=False)
