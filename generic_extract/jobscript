@@ -1,8 +1,23 @@
 #!/bin/tcsh
-#PBS -N asg:se-srtm
-#PBS -l nodes=1:xeon:compute:ppn=1
-#PBS -l walltime=36:00:00
+#PBS -N asg:ge:wb-alp4
+#PBS -l nodes=2:vortex:compute:ppn=12
+#PBS -l walltime=72:00:00
 #PBS -j oe
+
+
+# !!!
+# 
+# in addition to the script options, remember to update the following:
+# 
+#  PBS job settings
+#       - job name
+#       - requested resource type/quantity
+#       - walltime
+# 
+# and if job is running using openmpi (vortex)
+#       - number of processors in mpirun commands (-np #)
+# 
+# !!!
 
 
 # extract options: based on temporal type of dataset
@@ -16,45 +31,106 @@
 
 # temporal type options
 # specifies dataset temporal type (see above)
-set run_option = 1
+# set run_option = 1
 
-# boundary name 
 # boundary name which will be used to identify/generate folder in output path
-# if boundary file exists in asdf, bnd_name should match asdf name
-set bnd_name = "kfw_grid_clip"
+# if boundary file exists in asdf, bnd_name should match asdf "name"
+# set bnd_name = "wb_vfm_matching_ibas"
 
 # absolute path of boundary file
 # includes file with extension
 # can be anywhere accessible on /sciclone
-set bnd_absolute = "/sciclone/aiddata10/REU/extracts/kfw_grid_clip/shps/KFW_ohFiveDecimalDegrees_grid_clipped.shp"
+# set bnd_absolute = "/sciclone/aiddata10/REU/extracts/wb_vfm_matching_ibas/shps/matching_ibas_proj.shp"
 
 # folder which contains data
-set data_base = "/sciclone/aiddata10/REU/data"
+# set data_base = "/sciclone/aiddata10/REU/data"
 
 # path relative to data_base
 # eg: v4avg_lihgts_x_pct or ltdr_yearly/ndvi_mean
-set data_path = "srtm/SRTM_500m.tif"
+# set data_path = "srtm_elevation/SRTM_500m.tif"
 
 # dataset name
 # if dataset exists in asdf, data_name should match asdf name
-set data_name = "srtm_elevation"
+# set data_name = "srtm_elevation"
+
+# dataset mini name
+# 4 character (alphanumeric) string used to identify dataset in fields names
+# if dataset exists in asdf, data_mini should match asdf "mini_name"
+# if dataset is not in asdf you can set data_mini to "None" to use same value as data_name
+# set data_mini = "selv"
 
 # file mask for dataset files
 # year must be 4 digits and specified in file mask with "YYYY"
 # other chars in mask do not matter as long as they are not "Y"
 # file mask must be same length as file names
 # eg: (for v4avg_lights_x_pct)  F1xYYYY.v4x.avg_lights_x_pct.tif
-set file_mask = "None"
+# set file_mask = "None"
 
 # extract type
 # (mean, max, etc.)
-set extract_type = "mean"
+# set extract_type = "mean"
 
 # parent folder for outputs
 # bnd_name folder should exist or will be created in this folder
 # extract outputs will be in <output_base>/extracts/<bnd_name>/cache/<data_name>/<extract_type>/extract.csv
+# set output_base = "/sciclone/aiddata10/REU/extracts"
+
+
+set bnd_name = "wb_vfm_matching_ibas"
+set bnd_absolute = "/sciclone/aiddata10/REU/extracts/wb_vfm_matching_ibas/shps/matching_ibas_proj.shp"
 set output_base = "/sciclone/aiddata10/REU/extracts"
 
 
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "srtm_elevation/SRTM_500m.tif"
+# set data_name = "srtm_elevation"
+# set data_mini = "selv"
+# set file_mask = "None"
+# set extract_type = "mean"
+
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "srtm_slope/SRTM_500m_slope.tif"
+# set data_name = "srtm_slope"
+# set data_mini = "sslp"
+# set file_mask = "None"
+# set extract_type = "mean"
+
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "accessibility_map/access_50k.tif"
+# set data_name = "accessibility_map"
+# set data_mini = "am50"
+# set file_mask = "None"
+# set extract_type = "mean"
+
+# set run_option = 2
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "gpw_v3"
+# set data_name = "gpw_v3"
+# set data_mini = "gpw3"
+# set file_mask = "gldsxxag_YYYY.asc"
+# set extract_type = "mean"
+
+# set run_option = 2
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "ltdr_yearly/ndvi_max_mask_lt6k"
+# set data_name = "ndvi_max_mask_lt6k"
+# set data_mini = "nm6k"
+# set file_mask = "YYYY.tif"
+# set extract_type = "mean"
+
+set run_option = 2
+set data_base = "/sciclone/aiddata10/REU/data"
+set data_path = "v4avg_lights_x_pct"
+set data_name = "v4avg_lights_x_pct"
+set data_mini = "alp4"
+set file_mask = "FxxYYYY.v4x.avg_lights_x_pct.tif"
+set extract_type = "mean"
+
 cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$file_mask" "extract_type" "$output_base"
+
+# mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
+
+mpirun --mca mpi_warn_on_fork 0 -np 24 python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
