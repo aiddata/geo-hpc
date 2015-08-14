@@ -1,5 +1,9 @@
 # process queue requests
 
+# need better error handling /notification for
+# what are currently "fatal" errors
+# at minimum: update request status so 
+# we are aware and can check it or restart it
 
 import sys
 
@@ -65,6 +69,10 @@ if (not run_extract and cr_count == 0) or run_extract:
 
     # merge cached results if all are available
     merge_status = cache.merge(request_obj)
+
+    # handle merge error
+    if not merge_status[0]:
+        sys.exit(merge_status[1])
 
     # generate documentation
     # doc.documentation()

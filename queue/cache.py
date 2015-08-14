@@ -45,11 +45,11 @@ class cache():
         if db_exists:
 
             # check file
-            extract_path = output + "_e.csv"
+            extract_path = output + "e.csv"
             extract_exists = os.path.isfile(extract_path)
 
             if reliability:
-                reliability_path = output + "_r.csv"
+                reliability_path = output + "r.csv"
                 reliability_exists = os.path.isfile(reliability_path)
 
             if (reliability and extract_exists and reliability_exists) or (not reliability and extract_exists):
@@ -98,7 +98,7 @@ class cache():
 
             robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_boundary, **kwargs))
 
-            robjects.r.assign('r_output', output)
+            robjects.r.assign('r_output', output+"e.csv")
 
             robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
             robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
@@ -141,7 +141,7 @@ class cache():
 
 
             # result of mean surface extracted to boundary
-            df = pd.DataFrame.from_csv(output+"_e.csv")
+            df = pd.DataFrame.from_csv(output+"e.csv")
 
             # index to merge with bnd_df
             df['ad_id'] = bnd_df['ad_id']
@@ -167,7 +167,7 @@ class cache():
             df["reliability"] = df['mean_aid']/df['max']
 
             # output to reliability csv
-            df.to_csv(output+"_r.csv")
+            df.to_csv(output+"r.csv")
 
             return True
 
@@ -193,13 +193,20 @@ class cache():
 
                 for extract_type in request["data"]["options"]["extract_types"]:
 
-                    # incomplete output file string
-                    output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+df_name[df_name.rindex("_")+1:df_name.rindex(".")]
+                    # core basename for output file 
+                    # does not include file type identifier (...e.ext for extracts and ...r.ext for reliability) or file extension
+                    if data["temporal_type"] == "None":
+                        output_name = df_name + "_"
+                    else:
+                        output_name = df_name
+
+                    # output file string without file type identifier or file extension
+                    output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+output_name
 
 
-                    self.merge_list.append(output +"_e.csv")
+                    self.merge_list.append(output +"e.csv")
                     if is_reliability_raster:
-                        self.merge_list.append(output +"_r.csv")
+                        self.merge_list.append(output +"r.csv")
 
 
                     # check if cache exists
@@ -210,7 +217,7 @@ class cache():
                             # run extract
                             
                             # re_status = self.script_extract(request["boundary"]["path"], raster_path, output, extract_type)
-                            re_status = self.rpy2_extract(request["boundary"]["path"], raster_path, output+"_e.csv", extract_type)
+                            re_status = self.rpy2_extract(request["boundary"]["path"], raster_path, output, extract_type)
 
                             # return False if extract fails
                             if not re_status:
@@ -219,7 +226,7 @@ class cache():
                             # run reliability calcs if needed
                             elif is_reliability_raster:
                                 raster_parent = os.path.dirname(raster_path)
-                                rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/string.geojson", output)
+                                rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/unique.geojson", output)
 
                                 # return False if reliability calc fails
                                 if not rr_status:
@@ -246,8 +253,46 @@ class cache():
 
         print "merge_extracts"
 
-        # something
-        # 
+        merged = 0
 
-        return something
+        try:
+            # for each extract there should be from request (dataset, extract_types)
+                # get extract
+                # 
+
+                # check if merged df exists
+                # if merged.istype(pd.DataFrame):
+                    # if merge df exists add data to it
+                    # add only extract column to merged df
+                    # with column name = new extract file name
+                    # 
+                # else:
+                    # if merged df does not exists initialize it 
+                    # init merged df using full csv
+                    # 
+                    # change extract column name to file name
+                    # 
+
+                # check if extract has reliability associated with it
+                # if ...["reliability"]:
+                    # get reliability csv
+                    # 
+                    # add reliability csv to merged df
+                    # with column name = reliability file name
+                    # 
+
+        except:
+            return False, "error building merged dataframe"
+
+        try:
+            # generate output folder for merged df using request id
+            # 
+
+            # write merged df to csv
+            # merge_df.to_csv(...)
+            
+            return True, None
+        
+        except:
+            return False, "error writing merged dataframe"           
 
