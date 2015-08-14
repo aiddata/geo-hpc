@@ -5,26 +5,13 @@ scripts for preparing, extracting and working with datasets on sciclone
 --------------------------------------------------
 --------------------------------------------------
 
-## generic extract
+## generic_extract (gen 3 sciclone extracts)  
 fully integrate extract script which can be used for datasets with any temporal type  
+    - includes: year, year month, year day, temporally invariant
 
-
-## individual temporal extracts (no subfolder)
-sciclone scripts for extracting and merging extract data based on the temporal type of the dataset  
-
-- **year_extract**  
-    generic extract scripts for datasets identified by year
-
-- **year_month_extract**  
-    generic extract scripts for datasets identified by year and month
-
-- **year_day_extract**  
-    generic extract scripts for datasets identified by year and day of year
-
-- **single_extract**  
-    generic extract scripts for temporally invariant data
-
-
+## merge  
+merge scripts for use with gen 3 sciclone extract outputs  
+- coming soon
 
 ## data prep 
 scripts for processing data before running extracts
@@ -52,8 +39,8 @@ postprocessing scripts for working with extract data
 
 
 
-## old
-old scripts (most in process of being updated, moved or deprecated)
+## old/dataset_specific (gen 1 sciclone extracts)
+extract/merge/utility scripts which were designed for specific datasets
 
 - ndvi_original  
     Contains original Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
@@ -80,4 +67,20 @@ old scripts (most in process of being updated, moved or deprecated)
     - _gpw_extract_merge.R_ : merge gpw extract
     - _generic_extract.R_ : generic extract Rscript which takes user inputs
     - _other scripts_ : see script comments for details
+
+
+## old/individual_generic (gen 2 sciclone extracts)
+generic sciclone scripts for extracting data and merging results based on the temporal type of the dataset  
+
+- **year_extract**  
+    generic extract scripts for datasets identified by year
+
+- **year_month_extract**  
+    generic extract scripts for datasets identified by year and month
+
+- **year_day_extract**  
+    generic extract scripts for datasets identified by year and day of year
+
+- **single_extract**  
+    generic extract scripts for temporally invariant data
 
