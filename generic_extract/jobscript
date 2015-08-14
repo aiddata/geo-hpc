@@ -1,6 +1,6 @@
 #!/bin/tcsh
-#PBS -N asg:ge:wb-alp4
-#PBS -l nodes=2:vortex:compute:ppn=12
+#PBS -N asg:ge:wb-dbri
+#PBS -l nodes=1:vortex:compute:ppn=1
 #PBS -l walltime=72:00:00
 #PBS -j oe
 
@@ -83,6 +83,31 @@ set output_base = "/sciclone/aiddata10/REU/extracts"
 
 # set run_option = 1
 # set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "dist_to_all_rivers/world_allrivsCOMP.tif"
+# set data_name = "dist_to_all_rivers"
+# set data_mini = "dari"
+# set file_mask = "None"
+# set extract_type = "mean"
+
+set run_option = 1
+set data_base = "/sciclone/aiddata10/REU/data"
+set data_path = "dist_to_big_rivers/world_bigrivCOMP.tif"
+set data_name = "dist_to_big_rivers"
+set data_mini = "dbri"
+set file_mask = "None"
+set extract_type = "mean"
+
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "dist_to_roads/WorldRoadsCOMP.tif"
+# set data_name = "dist_to_roads"
+# set data_mini = "droa"
+# set file_mask = "None"
+# set extract_type = "mean"
+
+
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
 # set data_path = "srtm_elevation/SRTM_500m.tif"
 # set data_name = "srtm_elevation"
 # set data_mini = "selv"
@@ -121,16 +146,33 @@ set output_base = "/sciclone/aiddata10/REU/extracts"
 # set file_mask = "YYYY.tif"
 # set extract_type = "mean"
 
-set run_option = 2
-set data_base = "/sciclone/aiddata10/REU/data"
-set data_path = "v4avg_lights_x_pct"
-set data_name = "v4avg_lights_x_pct"
-set data_mini = "alp4"
-set file_mask = "FxxYYYY.v4x.avg_lights_x_pct.tif"
-set extract_type = "mean"
+# set run_option = 2
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "v4avg_lights_x_pct"
+# set data_name = "v4avg_lights_x_pct"
+# set data_mini = "alp4"
+# set file_mask = "FxxYYYY.v4x.avg_lights_x_pct.tif"
+# set extract_type = "mean"
+
+# set run_option = 3
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "terrestrial_air_temperature_v4.01"
+# set data_name = "terrestrial_air_temperature_v4.01"
+# set data_mini = "at41"
+# set file_mask = "yyyy/air_temp_YYYY_MM.tif"
+# set extract_type = "mean"
+
+# set run_option = 3
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "terrestrial_precipitation_v4.01"
+# set data_name = "terrestrial_precipitation_v4.01"
+# set data_mini = "pc41"
+# set file_mask = "yyyy/precip_YYYY_MM.tif"
+# set extract_type = "mean"
+
 
 cd $PBS_O_WORKDIR
 
 # mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
 
-mpirun --mca mpi_warn_on_fork 0 -np 24 python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
+mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"

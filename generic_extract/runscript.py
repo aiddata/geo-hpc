@@ -194,7 +194,7 @@ c = rank
 ignore = []
 
 # ignore range
-# ignore = [str(e) for e in range(1900, 1982)]
+ignore = [str(e) for e in range(1900, 1982)]
 
 # specify accept by using exceptions in ignore range
 # accept = []
@@ -202,6 +202,7 @@ ignore = []
 
 
 output_dir =  output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
+# output_dir =  output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
 
 if rank == 0:
     make_dir(output_dir)
@@ -248,7 +249,7 @@ else:
 
         for year in years:
             path_year = path_base +"/"+ year
-            qlist += [[[year, "".join([x for x,y in zip(name, file_mask) if y == 'M' and x.isdigit()])], name] for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith(tuple(raster_extensions))]
+            qlist += [[[year, "".join([x for x,y in zip(year+"/"+name, file_mask) if y == 'M' and x.isdigit()])], year+"/"+name] for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith(tuple(raster_extensions))]
 
 
     # year day
@@ -264,7 +265,7 @@ else:
         files = [name for name in os.listdir(path_year) if not os.path.isdir(os.path.join(path_year, name)) and name.endswith(tuple(raster_extensions))]
 
         # list of all [year, day, name] combos for year 
-        qlist = [[[year, "".join([x for x,y in zip(name, file_mask) if y == 'D' and x.isdigit()])], name] for name in files]
+        qlist = [[[year, "".join([x for x,y in zip(year+"/"+name, file_mask) if y == 'D' and x.isdigit()])], year+"/"+name] for name in files]
         
 
     else:
@@ -284,7 +285,7 @@ else:
         raster = data_base +"/"+ data_path +"/"+ item[1]
         # output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
         output = output_dir + "/" + data_mini +"_"+ ''.join([str(e) for e in item[0]]) + "e"
-
+        
         rscript_extract(vector, raster, output, extract_type)
         # rpy2_extract(r_vector, raster, output, extract_type)
         # python_extract(vector, raster, output, extract_type)
