@@ -5,6 +5,7 @@ from mpi4py import MPI
 import sys
 import os
 import errno
+import time
 
 import subprocess as sp
 
@@ -205,6 +206,7 @@ output_dir =  output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"
 # output_dir =  output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
 
 if rank == 0:
+    Ts = int(time.time())
     make_dir(output_dir)
 
 
@@ -285,10 +287,18 @@ else:
         raster = data_base +"/"+ data_path +"/"+ item[1]
         # output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
         output = output_dir + "/" + data_mini +"_"+ ''.join([str(e) for e in item[0]]) + "e"
-        
+
         rscript_extract(vector, raster, output, extract_type)
         # rpy2_extract(r_vector, raster, output, extract_type)
         # python_extract(vector, raster, output, extract_type)
 
         c += size
+
+
+    comm.Barrier()
+
+
+    if rank == 0:
+        T_total = int(time.time() - Ts)
+        print('\n\nRuntime: ' + str(T_total//60) +'m '+ str(int(T_total%60)) +'s')
 
