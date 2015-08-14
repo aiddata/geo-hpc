@@ -207,6 +207,8 @@ output_dir =  output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"
 
 if rank == 0:
     Ts = int(time.time())
+    T_start = time.localtime()
+    print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
     make_dir(output_dir)
 
 
@@ -299,6 +301,10 @@ else:
 
 
     if rank == 0:
-        T_total = int(time.time() - Ts)
-        print('\n\nRuntime: ' + str(T_total//60) +'m '+ str(int(T_total%60)) +'s')
+        T_run = int(time.time() - Ts)
+        T_end = time.localtime()
+        print '\n\n'
+        print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
+        print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
+        print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s')
 
