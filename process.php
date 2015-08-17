@@ -46,6 +46,11 @@ switch ($_POST['call']) {
 		// $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
 
 
+		// call python processing script
+		// handles email and request initialization
+		// exec("python ~/det-module/queue/processing.py " . $request_id); 
+
+
 		// return request id
 		echo json_encode(array($request_id));
 		break;

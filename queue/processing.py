@@ -49,6 +49,11 @@ else:
        sys.exit("Queue is empty")
 
 
+# exit function used for errors
+def quit(rid, status, message):
+    queue.update_status(rid, int(status))
+    sys.exit(">> det processing error: \n\t\t" + str(message))
+
 
 # update status to being processed 
 # (without running extracts: 2, with runnning extracts: 3)
@@ -61,18 +66,18 @@ cr_status, cr_count = cache.check_request(request_obj, run_extract)
 
 
 if not cr_status:
-    sys.exit("Error while checking request cache")
+    quit("Error while checking request cache")
 
 
 # if extracts are cached then merge and generate documentation
 if (not run_extract and cr_count == 0) or run_extract:
-
+    print "finishing request"
     # merge cached results if all are available
-    merge_status = cache.merge(request_obj)
+    merge_status = cache.merge(request_id, request_obj)
 
     # handle merge error
     if not merge_status[0]:
-        sys.exit(merge_status[1])
+        quit(merge_status[1])
 
     # generate documentation
     # doc.documentation()
@@ -85,6 +90,7 @@ if (not run_extract and cr_count == 0) or run_extract:
     us = queue.update_status(request_id, 0)
 
 else:
+    print "finishing prep"
     # add cr_count to request so number of needed extracts 
     # can be factored into queue order (?)
     # 

@@ -24,7 +24,7 @@ class queue():
             return 1, exists, search[0]
 
         except:
-            return 0, 0, None
+            return 0, None, None
 
 
     # get id of next job in queue
@@ -34,8 +34,8 @@ class queue():
         
         try:
             # find all status 1 jobs and sort by priority then submit_time
-            sort = self.queue.find({"status":1}).sort([("priority": -1), ("submit_time": 1)])
-            if sort.count() > 0
+            sort = self.queue.find({"status":1}).sort([("priority", -1), ("submit_time", 1)])
+            if sort.count() > 0:
                 rid = str(sort[0]["_id"])
                 return 1, rid, sort[0]
             else:
