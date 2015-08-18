@@ -4,6 +4,11 @@ import time
 import pymongo
 from bson.objectid import ObjectId
 
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+
+
 class queue():
 
 
@@ -68,4 +73,52 @@ class queue():
 
         except:
             return False
+
+
+    def send_email(self, sender, receiver, subject, message):
+
+        try:
+            pw_search = self.db.email.find({"address": sender}, {"password":1})
+
+            if pw_search.count() > 0:
+                passwd = str(pw_search[0]["password"])
+            else:
+                return 0, "Specified email does not exist"
+
+        except:
+            return 0, "Error looking up email"
+
+
+        try:
+            # source: 
+            # http://stackoverflow.com/questions/64505/sending-mail-from-python-using-smtp
+
+            msg = MIMEMultipart()
+
+            msg['From'] = sender
+            msg['To'] = receiver
+            msg['Subject'] = subject
+            msg.attach(MIMEText(message))
+
+            mailserver = smtplib.SMTP('smtp.gmail.com', 587)
+            # identify ourselves to smtp gmail client
+            mailserver.ehlo()
+            # secure our email with tls encryption
+            mailserver.starttls()
+            # re-identify ourselves as an encrypted connection
+            mailserver.ehlo()
+
+            mailserver.login(sender, passwd)
+            mailserver.sendmail(sender, receiver, msg.as_string())
+            mailserver.quit()
+
+            return 1, None
+
+        except:
+            return 0, "Error generating or sending email"
+            
+
+
+
+
 

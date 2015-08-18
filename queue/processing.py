@@ -60,6 +60,10 @@ def quit(rid, status, message):
 us = queue.update_status(request_id, 2+run_extract)
 
 
+# send initial email
+# if not run_extract:
+    # queue.send_email(...)
+
 # check results for cached data
 # run missing extracts if run_extract is True
 cr_status, cr_count = cache.check_request(request_obj, run_extract)
@@ -88,6 +92,9 @@ if (not run_extract and cr_count == 0) or run_extract:
 
     # update status 0 (done)
     us = queue.update_status(request_id, 0)
+
+    # send final email
+    # queue.send_email(...)
 
 else:
     print "finishing prep"

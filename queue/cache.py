@@ -26,7 +26,8 @@ class cache():
 
         # list of valid extract types with r functions
         self.extract_funcs = {
-            "mean":robjects.r.mean
+            "mean": robjects.r.mean,
+            "max": robjects.r.max
         }
 
         self.merge_list = []
@@ -104,7 +105,10 @@ class cache():
         r_raster = self.rlib_raster.raster(raster)
 
         # *** need to implement different kwargs based on extract type ***
-        kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
+        if extract_type == "mean":
+            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
+        else:
+            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "na.rm":True}
 
         robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_boundary, **kwargs))
 

@@ -104,7 +104,8 @@
                     <button>Submit</button>
                 </div>
             </div>
-            <div id="co_bot">Boundary
+            <div id="co_bot">
+                Boundary
                 <div id="co_boundary">
                     <div id="co_bnd_title"></div>
                     <div id="co_bnd_short"></div>
