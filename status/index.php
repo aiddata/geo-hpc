@@ -26,7 +26,7 @@
     </div>
     
     <div id="navigation">
-        <div id="message">Search for request by email or id</div>
+        <div id="message"></div>
     </div>
     
     <div id="main">

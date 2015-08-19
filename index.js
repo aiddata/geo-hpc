@@ -418,7 +418,14 @@ $(document).ready(function(){
 				    		data_html += '<div class="dataset_opt" data-type="extract_types">Extract Types:';
 				    		data_html += '<div>';
 			    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
-			    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+			    		   		// extract type checkbox - select multiple options
+			    		   		// currently disabled due to not being able to fit extract type in 
+			    		   		// field name without going over 10 char limit for shapefiles
+			    		   		// data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+			    		   		
+			    		   		// extract type radio - select single option
+			    		   		data_html += '<label><input type="radio" name="'+dataset['name']+'" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+
 			    		   	}
 				    		data_html += '</div>';
 				    		data_html += '</div>';
