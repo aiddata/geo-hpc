@@ -148,7 +148,11 @@ def rscript_extract(vector, raster, output, extract_type):
 #         # *** need to implement different kwargs based on extract type ***
 #         kwargs = {"fun":extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
 
+#         Te_start = int(time.time())
 #         robjects.r.assign('r_extract', rlib_raster.extract(r_raster, r_vector, **kwargs))
+#         Te_run = int(time.time() - Te_start)
+#         print 'extract ('+ output +') completed in '+ str(Te_run) +' seconds'
+
 
 #         robjects.r.assign('r_output', output+".csv")
 

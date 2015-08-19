@@ -1,5 +1,5 @@
 #!/bin/tcsh
-#PBS -N asg:ge:wb-dbri
+#PBS -N asg:ge:wb-selv
 #PBS -l nodes=1:vortex:compute:ppn=1
 #PBS -l walltime=72:00:00
 #PBS -j oe
@@ -89,13 +89,13 @@ set output_base = "/sciclone/aiddata10/REU/extracts"
 # set file_mask = "None"
 # set extract_type = "mean"
 
-set run_option = 1
-set data_base = "/sciclone/aiddata10/REU/data"
-set data_path = "dist_to_big_rivers/world_bigrivCOMP.tif"
-set data_name = "dist_to_big_rivers"
-set data_mini = "dbri"
-set file_mask = "None"
-set extract_type = "mean"
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "dist_to_big_rivers/world_bigrivCOMP.tif"
+# set data_name = "dist_to_big_rivers"
+# set data_mini = "dbri"
+# set file_mask = "None"
+# set extract_type = "mean"
 
 # set run_option = 1
 # set data_base = "/sciclone/aiddata10/REU/data"
@@ -106,13 +106,13 @@ set extract_type = "mean"
 # set extract_type = "mean"
 
 
-# set run_option = 1
-# set data_base = "/sciclone/aiddata10/REU/data"
-# set data_path = "srtm_elevation/SRTM_500m.tif"
-# set data_name = "srtm_elevation"
-# set data_mini = "selv"
-# set file_mask = "None"
-# set extract_type = "mean"
+set run_option = 1
+set data_base = "/sciclone/aiddata10/REU/data"
+set data_path = "srtm_elevation/SRTM_500m.tif"
+set data_name = "srtm_elevation"
+set data_mini = "selv"
+set file_mask = "None"
+set extract_type = "mean"
 
 # set run_option = 1
 # set data_base = "/sciclone/aiddata10/REU/data"
