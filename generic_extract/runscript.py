@@ -202,8 +202,7 @@ ignore = [str(e) for e in range(1900, 1982)]
 # ignore = [str(e) for e in range(1800, 2100) if str(e) not in accept]
 
 
-output_dir =  output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
-# output_dir =  output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
+output_dir =  output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
 
 if rank == 0:
     Ts = int(time.time())
@@ -306,5 +305,5 @@ else:
         print '\n\n'
         print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
         print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
-        print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s')
+        print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
 
