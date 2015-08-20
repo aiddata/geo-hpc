@@ -19,12 +19,11 @@ input:checkbox, input:radio {
 }
 
 #header {
-    height: 100px;
     width: 100%;
-    background: rgb(245,245,245)
 }
 
     #title {
+        height: 100px;
         width: 80%; 
         margin: 0px 10%;
         color:black;
@@ -39,73 +38,81 @@ input:checkbox, input:radio {
         text-decoration-color: green;
     }
 
-#navigation {
-    width:100%;
-    background: rgb(100,100,100);
-    text-align: center; 
-    padding-top: 20px;
-    padding-bottom: 20px; 
-}
-
-    #nav_top, #nav_mid, #nav_bot {
-        width: 80%; 
-        min-width: 850px;
-        position:relative;
-        height:50px;
-        margin: 0px 10%;
-        padding-top: 10px;
-        padding-bottom: 10px;
+    #navigation {
+        width:100%;
+        background: rgb(100,100,100);
         text-align: center; 
+        /*padding-top: 20px;*/
+        /*padding-bottom: 10px; */
     }
 
-    #nav_top {
-        font-size: 25px;
-        padding: 0;
-    }
-        #nav_top li {
-            display:inline-block;
-            background: rgb(255,255,255);
-            width: 150px;
-            border: 1px solid blue;
-            border-radius: 5px;
+        #nav_top, #nav_mid, #nav_bot {
+            width: 80%; 
+            min-width: 850px;
+            position:relative;
+            /*height:50px;*/
+            margin: 0px 10%;
+            /*padding-top: 10px;*/
+            /*padding-bottom: 10px;*/
+            /*text-align: center; */
         }
 
-    #nav_mid {
-        font-size: 25px;
-    }
-        #nav_mid div {
-            display:inline;
+        #nav_top {
+            font-size: 22px;
+            padding: 0;
+            height:50px;
         }
-            #nav_mid button {
-                height:35px;
-                width:150px;
-                line-height: 100%;
+            #nav_top li {
+                position: relative;
+                top: 10px;
+                height:30px;
+                display:inline-block;
+                background: rgb(255,255,255);
+                width: 150px;
+                border: 1px solid blue;
+                border-radius: 5px;
             }
-                #back {
-                    position:absolute;
-                    left:10%;
-                }
-                #next {
-                    position:absolute;
-                    right:10%;             
-                }
-                #step {
-                    float:left;
-                    width:100%;
-                    color: white;
-                }
 
-    #nav_bot {
-        font-size: 20px;
-    }
-        #message {
-            width:100%;
-            text-align: center;
-            clear:both;
-            color: yellow;
+        #nav_mid {
             position: relative;
-            top: 20px;
+            font-size: 25px;
+            height: 50px;
         }
+            #nav_mid div {
+                display:inline;
+            }
+                #nav_mid button {
+                    height:35px;
+                    width:150px;
+                    line-height: 100%;
+                }
+                    #back {
+                        position:absolute;
+                        left:10%;
+                    }
+                    #next {
+                        position:absolute;
+                        right:10%;             
+                    }
+                    #step {
+                        float:left;
+                        width:100%;
+                        color: white;
+                        line-height: 50px;
+                    }
+
+        #nav_bot {
+            font-size: 20px;
+            height: 50px;
+        }
+            #message {
+                width:100%;
+                text-align: center;
+                clear:both;
+                color: yellow;
+                position: relative;
+                top: 10px;
+            }
 
 #main {
     width: 100%;

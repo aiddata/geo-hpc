@@ -1,26 +1,44 @@
 $(document).ready(function(){
 
+    // --------------------------------------------------
+    // init
+
+
 	// used to stored mongodb search results
-	var search_results = []
+	// indexed by request id
+	var search_results = {};
 
 	// possible messages
 	var messages = {
 		"search": "search for requests by email or request id",
 		"select": "select a request from search results",
+		"found": "request found",
 		"invalid": "invalid email or request id",
 		"no_email": "no requests found matching email",
 		"no_id": "no request found matching id",
 		"search_error": "error searching for requests"
 	};
 
+	// status info for requests 
+	// status: [display name, associated request field with timestamp]
+	var status = {
+		"-2":["error", 0],
+		"-1":["preprocessing queue", "submit_time"],
+		"0":["completed", "complete_time"],
+		"1":["processing queue", "prep_time"],
+		"2":["preprocessing", "prep_time"],
+		"3":["processing", "process_time"]
+	};
+
 	// initialize search field
 	$('#search_input input').val("");
 
-	// initialize message
-	message("search");
-
 	// check hash on page load
     checkSearch(window.location.hash.substr(1), "hash");
+
+
+    // --------------------------------------------------
+    // events
 
 
 	// check hash on change
@@ -29,7 +47,6 @@ $(document).ready(function(){
     	// console.log(hash);
   		checkSearch(hash, "hash");
     });
-
 
     // check if search input is valid and trigger search
     $('#search_button button').on('click', function () {
@@ -45,20 +62,70 @@ $(document).ready(function(){
 		}
 	});
 
+	// scroll to top of page
+	$('#return_to_search button').on('click', function () {
+		scrollToElement('body');
+	});
+
+	// lookup request data using request id and search__results array
+	$('#sr_table').on('click', '.request_link', function () {
+		var rid = $(this).html();
+		var request = search_results[rid];
+		add_request_summary(request);
+	});
+
+
+    // --------------------------------------------------
+    // functions
+
+
+	// scroll to specified element
+	function scrollToElement(element) {
+		$('html, body').animate({
+            scrollTop: $(element).offset().top
+        }, 500);
+	};
+
 	// update banner message
 	function message(message_key) {
 		$('#message').html(messages[message_key]);
-	}
+	};
 
     // checks if input (from hash or search field) is valid and triggers search
     function checkSearch(input, source) {
-  		var check_input = validate(input);
-  		console.log(check_input)
 
-  		if (check_input[0]) {
-  			run_search(source, check_input[1], check_input[2])
+  		var check_input = validate(input);
+  		console.log(check_input);
+
+  		// dump any existing search data from storage
+  		search_results = {};
+
+  		// clear request section whenever new query is entered
+		clear_request_summary();
+
+		// hide search results while query is being processed
+		$('#search_results').hide();
+
+		// if search_val is from hash, set search field value to hash search_val
+		// will allow user to adjust search easily if no results are found 
+		// or if they return to search page from a request page
+		if (source == "hash") {
+			$('#search_input input').val(input);
+		}
+
+
+		if (input == "") {
+			message("search");
+
+  		} else if (check_input[0]) {
+  			// run search on valid query
+  			run_search(source, check_input[1], check_input[2]);
+
+  		} else {
+			// notify user query was invalid
+			message("invalid");
   		}
-    }
+    };
 
   	// check hashtag (called on page load or on hashtag change)
   	function validate(value) {
@@ -71,7 +138,7 @@ $(document).ready(function(){
   			search_type = "id";
   		}
 
-		return [search_type != 0, search_type, value]
+		return [search_type != 0, search_type, value];
   	};
 
 	// email validation
@@ -90,9 +157,6 @@ $(document).ready(function(){
 	    return re.test(mongoid);
 	};
 
-
-
-
 	// check mongodb (det->queue) for results matching search email or id
 	function run_search(source, type, search_val) {
 
@@ -105,41 +169,52 @@ $(document).ready(function(){
 			if (error) {
 				console.log(error);
 				message("search_error");
-				return 1
+				return 1;
 			}
 
 			console.log(result);
 
 			// store search results in external variable for later reference
-			search_results = result;
+			for (var i=0, ix=result.length; i<ix; i++) {
+				var tmp_rid = result[i]['_id']['$id'];
+				search_results[tmp_rid] = result[i];
+			}
 
+			console.log(search_results);
 			// check if requests were found
 			requests_exist = result.length > 0;
 
-			// if search_val is from hash, set search field value to hash search_val
-			// will allow user to adjust search easily if no results are found 
-			// or if they return to search page from a request page
-			if (source == "hash") {
-				$('#search_input input').val(search_val);
-			}
+			// update search results sentence with count and query
+			$('#count_span').html(result.length);
+			$('#query_span').html(search_val);
+
+			// build and update search results
+			var sr_html = build_search_results(result);
+			console.log(sr_html);
+			$('#sr_table tbody').html(sr_html);
 
 
-			if (requests_exist && (source == "search" || type == "email")) {
-				// build search results
-				build_search_results(result);
+			if (requests_exist) {
+				// show search results if requests were found
+				$('#search_results').show();
 
-			} else if (requests_exist && source == "hash" && type == "id") {
-				// build request page
-				build_request_page(result);
+				if (source == "hash" && type == "id") {
+					message("found");
+
+					// update page with request summary if search is 
+					// trigger by hash and query is a request id
+					add_request_summary(result[0]);
+
+				} else {
+					message("select");
+				}
 
 			} else {
-				// notify user no requests were found
 				message("no_"+type);
+				$('#search_results').hide();
 			}
 
-
 		});
-
 	};
 
 	// ajax to search.php for mongo related calls
@@ -157,18 +232,67 @@ $(document).ready(function(){
         		callback(result, status, error);
     		}
 	    });
-	}
-
-
-	// build table html for search results
-	function build_search_results() {
-
 	};
 
-	// build request page html
-	function build_request_page() {
+	// build table html for search results
+	function build_search_results(result) {
+		console.log("build_search_results");
 
-	}
+		var html = '';
+
+		for (var i=0, ix=result.length; i<ix; i++) {
+
+			var r = result[i];
+
+			var status_info = status[String(r['status'])];
+			var activity = new Date( r[status_info[1]] * 1000 );
+
+			html += '<tr><td><a class="request_link">'+ r['_id']['$id'] +'</a></td><td>'+ r['email'] +'</td><td>'+ status_info[0] +'</td><td>'+ activity +'</td></tr>';
+		}
+
+		return html;
+	};
+
+	// clear request section
+	function clear_request_summary() {
+		$('#request_header').empty();
+		$('#request_download').empty();
+		$('#request_summary').empty();
+		$('#return_to_search').hide();
+	};
+
+	// update page when request is selected
+	function add_request_summary(request) {
+
+
+		var status_info = status[String(request['status'])];
+		var activity = new Date( request[status_info[1]] * 1000 );
+
+		// update request header
+		var rh_html = '';
+		rh_html += '<div>Request id: ' + request['_id']['$id'] + '</div>';
+		rh_html += '<div>Email: ' + request['email'] + '</div>'
+		rh_html += '<div>Status: (' + request['status'] +') '+ status_info[0] + '</div>'
+		rh_html += '<div>Updated: ' + activity + '</div>'
+
+		$('#request_header').html(rh_html);
+
+		if (request['status'] == 0) {
+			// check if request is finished 
+			// update request download if it is
+			var rd_html = '<div><a href="../results/'+request['_id']['$id']+'.zip">Download</a></div>';
+			$('#request_download').html(rd_html);
+		}
+
+		// build and update request summary
+		var rs_html = build_request_summary(request);
+		$('#request_summary').html(rs_html);
+		$('#return_to_search').show();
+
+		// scroll page to request section
+		scrollToElement('#request');
+
+	};
 
 	// build request summary html
 	function build_request_summary(request) {
@@ -178,21 +302,21 @@ $(document).ready(function(){
 
 		// summary sentence
 		html += '<div class="rs_summary">';
-		html += '<div class="rs_s1">' + request["total"] + '</div>';
-		html += '<div class="rs_s2">' + _.keys(request["data"]).length + '</div>';
-		html += '<div class="rs_s3">' + request["boundary"]["title"] + '</div>';
+			html += '<div class="rs_s1">Total items: ' + request["total"] + '</div>';
+			html += '<div class="rs_s2">Datasets: ' + _.keys(request["data"]).length + '</div>';
+			html += '<div class="rs_s3">Boundary: ' + request["boundary"]["title"] + '</div>';
 		html += '</div>';
 
 		// boundary
 		var bnd = request["boundary"];
-		html += '<div class="rs_boundary">';
-		html += '<div class="rs_bnd_title">' + bnd['title'] + " ("+bnd['group']+" : "+ bnd['name'] +")" +'</div>';
-		html += '<div class="rs_bnd_short">' + bnd['short'] + '<div>';
-		html += '<div class="rs_bnd_link">' + bnd['source_link'] + '<div>';
+		html += '<div class="rs_boundary">Boundary';
+			html += '<div class="rs_bnd_title">' + bnd['title'] + " ("+bnd['group']+" : "+ bnd['name'] +")" +'</div>';
+			html += '<div class="rs_bnd_short">' + bnd['short'] + '<div>';
+			html += '<div class="rs_bnd_link">' + bnd['source_link'] + '<div>';
 		html += '</div';
 
 		// datasets
-		html += '<div class"=rs_datasets">';
+		html += '<div class"=rs_datasets">Datasets';
 
 		for (var i=0, ix=_.keys(request["data"]).length; i<ix; i++) {
 
@@ -226,9 +350,6 @@ $(document).ready(function(){
 
 		return html;
 	};
-
-
-
 
 
 })

@@ -197,7 +197,8 @@ $(document).ready(function(){
 	// when checkbox changes for a dataset
 	// recalculate the number of extracts being request for dataset
 	// number extracts = number of extract type * number of files
-	$('#data').on('change', ':checkbox', function () {
+	// $('#data').on('change', ':checkbox', function () {
+	$('#data').on('change', 'input', function () {
 		var parent_data = $(this).closest('.data');
 		var parent_name = parent_data.data("name");
 		var extract_types_length = parent_data.find('.dataset_options :checked').length;

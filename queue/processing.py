@@ -6,6 +6,7 @@
 # we are aware and can check it or restart it
 
 import sys
+import shutil
 
 from queue import queue
 from cache import cache
@@ -61,8 +62,9 @@ us = queue.update_status(request_id, 2+run_extract)
 
 
 # send initial email
-# if not run_extract:
-    # queue.send_email(...)
+if not run_extract:
+    p_message = "Your data extraction request (" + request_id + ") has been received. You can check on the status of the request via devlabs.aiddata.wm.edu/DET/status/#"+request_id +". Results can be downloaded from the same page when they are ready."
+    queue.send_email("aiddatatest2@gmail.com", request_obj["email"], "AidData Data Extraction Tool Request Received ("+request_id+")", p_message)
 
 # check results for cached data
 # run missing extracts if run_extract is True
@@ -90,11 +92,17 @@ if (not run_extract and cr_count == 0) or run_extract:
     if not run_extract:
         us = queue.update_status(request_id, 3)
 
+
+    # zip files and delete originals
+    shutil.make_archive("/sciclone/aiddata10/REU/det/results/"+ request_id, "zip", "/sciclone/aiddata10/REU/det/results/", request_id)
+    shutil.rmtree("/sciclone/aiddata10/REU/det/results/"+ request_id)
+
     # update status 0 (done)
     us = queue.update_status(request_id, 0)
 
     # send final email
-    # queue.send_email(...)
+    c_message = "Your data extraction request (" + request_id + ") has completed. The results are available via devlabs.aiddata.wm.edu/DET/status/#"+request_id
+    queue.send_email("aiddatatest2@gmail.com", request_obj["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
 
 else:
     print "finishing prep"

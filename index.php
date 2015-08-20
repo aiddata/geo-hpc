@@ -25,21 +25,21 @@
 
     <div id="header">
         <div id="title">Data Extraction Tool</div>
-    </div>
     
-    <div id="navigation">
-        <ul id="nav_top">
-            <li>Boundary</li>
-            <li>Data</li>
-            <li>Checkout</li>
-        </ul>
-        <div id="nav_mid">
-            <div id="back"><button style="display:none;">Back</button></div>
-            <div id="step">Boundary Selection</div>
-            <div id="next"><button style="display:none;">Next</button></div>
-        </div>
-        <div id="nav_bot">
-            <div id="message">Select a boundary to get started</div>
+        <div id="navigation">
+            <ul id="nav_top">
+                <li>Boundary</li>
+                <li>Data</li>
+                <li>Checkout</li>
+            </ul>
+            <div id="nav_mid">
+                <div id="back"><button style="display:none;">Back</button></div>
+                <div id="step">Boundary Selection</div>
+                <div id="next"><button style="display:none;">Next</button></div>
+            </div>
+            <div id="nav_bot">
+                <div id="message">Select a boundary to get started</div>
+            </div>
         </div>
     </div>
     

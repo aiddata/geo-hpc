@@ -23,10 +23,10 @@
 
     <div id="header">
         <div id="title">DET - Status Page</div>
-    </div>
     
-    <div id="navigation">
-        <div id="message"></div>
+	    <div id="navigation">
+	        <div id="message"></div>
+	    </div>
     </div>
     
     <div id="main">
@@ -37,44 +37,35 @@
     		<div id="search_button"><button>search</button></div>
 
     		<div id="search_results" style="display:none;">
-	    		<div id="sr_info">Results: <span>x</span> results found for <span>search</span></div>
+	    		<div id="sr_info">Results: <span id="count_span">x</span> request(s) found matching <span id="query_span">search</span></div>
 	    		<div id="sr_table">
 	    			<table>
 	    				<thead>
-	    					<tr><th>id</th><th>email</th><th>status</th><th>details</th></tr>
+	    					<tr><th>id</th><th>email</th><th>status</th><th>updated</th></tr>
 	    				</thead>
 	    				<tbody>
-	    				<tbody>
+	    					<!-- search results -->
+	    				</tbody>
 	    			</table>
 	    		</div>
 	    	</div>
-
-    		<div id="search_popup" style="display:none;">
-				Boundary
-                <div id="sp_boundary">
-                    <div id="sp_bnd_title"></div>
-                    <div id="sp_bnd_short"></div>
-                    <div id="sp_bnd_link"></div>
-                </div>
-                <br>
-                Datasets
-                <div id="sp_datasets"></div>
-    		</div>
-
     	</div>
 
 
-	    <div id="request" style="display:none;">
-	        <div id="top">
-	        	status info and search again button
+	    <div id="request">
+
+	    	<div id="return_to_search"><button>Search again</button></div>
+
+	        <div id="request_header">
+	        	<!-- request id, email, status info -->
 	        </div>
 
-	        <div id="mid">
-	        	download data if done
+	        <div id="request_download">
+	        	<!-- download data if done -->
 	        </div>
 
-	        <div id="bot">
-	        	request details table
+	        <div id="request_summary">
+	        	<!-- request details table -->
 	        </div>
 	     </div>
 
