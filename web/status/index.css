@@ -1,7 +1,6 @@
 body {
     min-width: 900px;
     background: rgb(245,245,245);
-    height:5000px;
 }
 label {
     display: inline-block;

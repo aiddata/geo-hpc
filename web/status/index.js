@@ -32,6 +32,8 @@ $(document).ready(function(){
 
 	// initialize search field
 	$('#search_input input').val("");
+	
+	$("html, body").animate({ scrollTop: 0 }, 500);
 
 	// check hash on page load
     checkSearch(window.location.hash.substr(1), "hash");
