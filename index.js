@@ -1,6 +1,9 @@
 $(document).ready(function(){
 
-	var step, request, tmp_request, data_list, map, countryLayer;
+	var step, request, tmp_request, data_list, map, countryLayer, is_checkedout;
+
+	// prevents multiple checkouts
+	is_checkedout = false;
 
 	// current step of process
 	step = 0;
@@ -217,7 +220,8 @@ $(document).ready(function(){
 
 	// on submit button click
 	$('#co_submit button').on('click', function () {
-		if (request["checkout_valid"] == true) {
+		if (request["checkout_valid"] == true && is_checkedout == false) {
+			is_checkedout = true;
 			request["email"] = $('#co_email input').val();
 			request["submit_time"] = Math.floor(Date.now() / 1000);
 			request["priority"] = 0;
@@ -605,7 +609,14 @@ $(document).ready(function(){
 		// console.log(JSON.stringify(request));
 
 		// start loading animation
-		// 
+		$('#confirmation').html("<p>Please wait a moment while your request is submitted</p>")
+
+		$('#navigation').hide();
+		$('#checkout').hide();
+		
+		$('#confirmation').show(); 
+
+		$("html, body").animate({ scrollTop: 0 }, 500);
 
 		var request_id, error;
 
@@ -645,13 +656,13 @@ $(document).ready(function(){
 
 			$('#confirmation').html(chtml)
 
-			$('#navigation').hide();
-			$('#checkout').hide();
+			// $('#navigation').hide();
+			// $('#checkout').hide();
 
 			// stop loading animation
 			// 
 			
-			$('#confirmation').show();
+			// $('#confirmation').show();
 
 		});
 

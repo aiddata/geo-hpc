@@ -48,7 +48,7 @@ switch ($_POST['call']) {
 
 		// call python processing script
 		// handles email and request initialization
-		// exec("python ~/det-module/queue/processing.py " . $request_id); 
+		exec("/usr/bin/python /home/smgoodman/det-module/queue/processing.py " . $request_id); 
 
 
 		// return request id

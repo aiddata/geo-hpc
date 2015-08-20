@@ -263,7 +263,7 @@ $(document).ready(function(){
 
 	// update page when request is selected
 	function add_request_summary(request) {
-
+		clear_request_summary();
 
 		var status_info = status[String(request['status'])];
 		var activity = new Date( request[status_info[1]] * 1000 );
@@ -277,13 +277,17 @@ $(document).ready(function(){
 
 		$('#request_header').html(rh_html);
 
+		var rd_html = '';
 		if (request['status'] == 0) {
 			// check if request is finished 
 			// update request download if it is
-			var rd_html = '<div><a href="../results/'+request['_id']['$id']+'.zip">Download</a></div>';
-			$('#request_download').html(rd_html);
+			rd_html = '<div><a href="../results/'+request['_id']['$id']+'.zip">Download</a></div>';
+		} else {
+			rd_html = '<div>Download Not Yet Available</div>';
 		}
 
+		$('#request_download').html(rd_html);
+		
 		// build and update request summary
 		var rs_html = build_request_summary(request);
 		$('#request_summary').html(rs_html);
