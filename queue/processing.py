@@ -86,7 +86,7 @@ if (not run_extract and cr_count == 0) or run_extract:
         quit(merge_status[1])
 
     # generate documentation
-    # doc.documentation()
+    # doc.build_doc(request_obj)
 
     # add processed time
     if not run_extract:
