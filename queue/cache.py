@@ -24,6 +24,12 @@ class cache():
         self.rlib_rgdal = importr("rgdal")
         self.rlib_raster = importr("raster")
 
+        self.extract_options = {
+            "mean": "e",
+            "max": "x"
+
+        }
+
         # list of valid extract types with r functions
         self.extract_funcs = {
             "mean": robjects.r.mean,
@@ -78,11 +84,11 @@ class cache():
         if db_exists:
 
             # check file
-            extract_path = output + "e.csv"
+            extract_path = output
             extract_exists = os.path.isfile(extract_path)
 
             if reliability:
-                reliability_path = output + "r.csv"
+                reliability_path = output[:-4] + "r.csv"
                 reliability_exists = os.path.isfile(reliability_path)
 
             if (reliability and extract_exists and reliability_exists) or (not reliability and extract_exists):
@@ -106,13 +112,13 @@ class cache():
 
         # *** need to implement different kwargs based on extract type ***
         if extract_type == "mean":
-            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "weights":True, "small":True, "na.rm":True}
+            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "na.rm":True, "weights":True, "small":True}
         else:
             kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "na.rm":True}
 
         robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_boundary, **kwargs))
 
-        robjects.r.assign('r_output', output+"e.csv")
+        robjects.r.assign('r_output', output)
 
         robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
         robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
@@ -155,7 +161,7 @@ class cache():
 
 
         # result of mean surface extracted to boundary
-        df = pd.DataFrame.from_csv(output+"e.csv")
+        df = pd.DataFrame.from_csv(output)
 
         # index to merge with bnd_df
         # df['ad_id'] = bnd_df['ad_id']
@@ -181,7 +187,7 @@ class cache():
         df["ad_extract"] = df['mean_aid']/df['max']
 
         # output to reliability csv
-        df.to_csv(output+"r.csv")
+        df.to_csv(output[:-4]+"r.csv")
 
         return True
 
@@ -215,24 +221,25 @@ class cache():
                         output_name = df_name
 
                     # output file string without file type identifier or file extension
-                    output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
-                    self.make_dir(os.path.dirname(output))
+                    base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
+                    extract_output = base_output + self.extract_options[extract_type] + ".csv"
+                    self.make_dir(os.path.dirname(base_output))
 
-                    self.merge_list.append(output + "e.csv")
+                    self.merge_list.append(extract_output)
 
                     if is_reliability_raster:
-                        self.merge_list.append(output + "r.csv")
+                        self.merge_list.append(base_output + "r.csv")
 
 
                     # check if cache exists
-                    exists = self.check_individual(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, output)
+                    exists = self.check_individual(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
 
                     if not exists and extract:
                         print "running extracts"
                         # run extract
                         
-                        # re_status = self.script_extract(request["boundary"]["path"], raster_path, output, extract_type)
-                        re_status = self.rpy2_extract(raster_path, output, extract_type)
+                        # re_status = self.script_extract(request["boundary"]["path"], raster_path, extract_output, extract_type)
+                        re_status = self.rpy2_extract(raster_path, extract_output, extract_type)
 
                         # return False if extract fails
                         if not re_status:
@@ -241,7 +248,7 @@ class cache():
                         # run reliability calcs if needed
                         elif is_reliability_raster:
                             raster_parent = os.path.dirname(raster_path)
-                            rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/unique.geojson", output)
+                            rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/unique.geojson", extract_output)
 
                             # return False if reliability calc fails
                             if not rr_status:

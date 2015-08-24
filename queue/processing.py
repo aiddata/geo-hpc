@@ -10,12 +10,12 @@ import shutil
 
 from queue import queue
 from cache import cache
-# from documentation import doc
+from documentation import doc
 
 
 queue = queue()
 cache = cache()
-# doc = doc()
+doc = doc()
 
 request_id = 0
 run_extract = False
@@ -56,6 +56,14 @@ def quit(rid, status, message):
     sys.exit(">> det processing error: \n\t\t" + str(message))
 
 
+
+# ---
+# doc.request = request_obj
+# doc.build_doc(request_obj)
+# sys.exit("@!")
+# ---
+
+
 # update status to being processed 
 # (without running extracts: 2, with runnning extracts: 3)
 us = queue.update_status(request_id, 2+run_extract)
@@ -85,20 +93,25 @@ if (not run_extract and cr_count == 0) or run_extract:
     if not merge_status[0]:
         quit(merge_status[1])
 
-    # generate documentation
-    # doc.build_doc(request_obj)
 
     # add processed time
     if not run_extract:
         us = queue.update_status(request_id, 3)
 
+    # update status 0 (done)
+    us = queue.update_status(request_id, 0)
+
+
+    # generate documentation
+    doc.request = request_obj
+    print doc.request
+    bd_status = doc.build_doc(request_id)
+    print bd_status
+
 
     # zip files and delete originals
     shutil.make_archive("/sciclone/aiddata10/REU/det/results/"+ request_id, "zip", "/sciclone/aiddata10/REU/det/results/", request_id)
     shutil.rmtree("/sciclone/aiddata10/REU/det/results/"+ request_id)
-
-    # update status 0 (done)
-    us = queue.update_status(request_id, 0)
 
     # send final email
     c_message = "Your data extraction request (" + request_id + ") has completed. The results are available via devlabs.aiddata.wm.edu/DET/status/#"+request_id
