@@ -92,6 +92,7 @@ except:
 abbrvs = {
     "drc": "COD",
     "honduras": "HND",
+    "iraq": "IRQ",
     "nepal": "NPL",
     "nigeria": "NGA",
     "senegal": "SEN",
@@ -166,23 +167,54 @@ if only_geocoded:
 
 
 # fields name associated with values in lookup dict
-code_field = "precision_code"
+code_field_1 = "precision_code"
+code_field_2 = "location_type_code"
 
 # aggregation types used in lookup dict
 agg_types = ["point", "buffer", "adm"]
 
-# code field values
+# # precision code field values
+# # buffer values in meters
+# lookup = {
+#     "1": {"type":"point","data":0},
+#     "2": {"type":"buffer","data":25000},
+#     "3": {"type":"adm","data":"2"},
+#     "4": {"type":"adm","data":"1"},
+#     "5": {"type":"buffer","data":25000},
+#     "6": {"type":"adm","data":"0"},
+#     "7": {"type":"adm","data":"0"},
+#     "8": {"type":"adm","data":"0"}
+# }
+
+# precision and feature code values (uses default if feature code not listed)
 # buffer values in meters
 lookup = {
-    "1": {"type":"point","data":0},
-    "2": {"type":"buffer","data":20000},
-    "3": {"type":"adm","data":"2"},
-    "4": {"type":"adm","data":"2"},
-    "5": {"type":"buffer","data":20000},
-    "6": {"type":"adm","data":"0"},
-    "7": {"type":"adm","data":"0"},
-    "8": {"type":"adm","data":"0"}
+    "1": {
+        "default":{"type":"point","data":0}
+    },
+    "2": {
+        "default":{"type":"buffer","data":25000}
+    },
+    "3": {
+        "default":{"type":"adm","data":"2"}
+    },
+    "4": {
+        "default":{"type":"adm","data":"1"}
+    },
+    "5": {
+        "default":{"type":"buffer","data":25000}
+    },
+    "6": {
+        "default":{"type":"adm","data":"0"}
+    },
+    "7": {
+        "default":{"type":"adm","data":"0"}
+    },
+    "8": {
+        "default":{"type":"adm","data":"0"}
+    }
 }
+
 
 # --------------------------------------------------
 # file paths
@@ -279,19 +311,23 @@ def enum(*sequential, **named):
 
 # gets geometry type based on lookup table
 # depends on lookup and not_geocoded
-def geomType(is_geo, code):
+def geomType(is_geo, code_1, code_2):
 
     try:
         is_geo = int(is_geo)
-        code = str(int(code))
+        code_1 = str(int(code_1))
+        code_2 = str(code_2)
 
         if is_geo == 1:
-            if code in lookup:
-                tmp_type = lookup[code]["type"]
-                return tmp_type
-
+            if code_1 in lookup:
+                if code_2 in lookup[code_1]:
+                    tmp_type = lookup[code_1][code_2]["type"]
+                    return tmp_type
+                else:
+                    tmp_type = lookup[code_1]["default"]["type"]
+                    return tmp_type
             else:
-                print("lookup code not recognized: " + code)
+                print("lookup code_1 not recognized: " + code_1)
                 return "None"
 
         elif is_geo == 0:
@@ -326,66 +362,75 @@ def inCountry(shp):
 
 # build geometry for point based on code
 # depends on lookup and adm0
-def getGeom(code, lon, lat):
+def getGeom(code_1, code_2, lon, lat):
     tmp_pnt = Point(lon, lat)
 
     if not inCountry(tmp_pnt):
         print("point not in country")
         return 0
 
-    elif lookup[code]["type"] == "point":
-        return tmp_pnt
-
-    elif lookup[code]["type"] == "buffer":
-        try:
-            # get buffer size (meters)
-            tmp_int = float(lookup[code]["data"])
-
-            # reproject point
-            proj_utm = pyproj.Proj('+proj=utm +zone=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ')
-            proj_wgs = pyproj.Proj(init="epsg:4326")
-
-            utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm, tmp_pnt.x, tmp_pnt.y)
-            utm_pnt_act = Point(utm_pnt_raw)
-
-            # create buffer in meters
-            utm_buffer = utm_pnt_act.buffer(tmp_int)
-
-            # reproject back
-            buffer_proj = partial(pyproj.transform, proj_utm, proj_wgs)
-            tmp_buffer = transform(buffer_proj, utm_buffer)
-
-            # clip buffer if it extends outside country
-            if inCountry(tmp_buffer):
-                return tmp_buffer
-            else:
-                return tmp_buffer.intersection(adm0)
-
-        except:
-            print("buffer value could not be converted to float")
-            return 0
-
-    elif lookup[code]["type"] == "adm":
-        try:
-            tmp_int = int(lookup[code]["data"])
-            return getPolyWithin(tmp_pnt, adm_shps[tmp_int])
-
-        except:
-            print("adm value could not be converted to int")
-            return 0
-
     else:
-        print("code type not recognized")
-        return 0
+        if code_2 in lookup[code_1]:
+            tmp_lookup = lookup[code_1][code_2]
+        else:
+            tmp_lookup = lookup[code_1]["default"]
+
+
+        if tmp_lookup["type"] == "point":
+            return tmp_pnt
+
+        elif tmp_lookup["type"] == "buffer":
+            try:
+                # get buffer size (meters)
+                tmp_int = float(tmp_lookup["data"])
+
+                # reproject point
+                proj_utm = pyproj.Proj('+proj=utm +zone=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ')
+                proj_wgs = pyproj.Proj(init="epsg:4326")
+
+                utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm, tmp_pnt.x, tmp_pnt.y)
+                utm_pnt_act = Point(utm_pnt_raw)
+
+                # create buffer in meters
+                utm_buffer = utm_pnt_act.buffer(tmp_int)
+
+                # reproject back
+                buffer_proj = partial(pyproj.transform, proj_utm, proj_wgs)
+                tmp_buffer = transform(buffer_proj, utm_buffer)
+
+                # clip buffer if it extends outside country
+                if inCountry(tmp_buffer):
+                    return tmp_buffer
+                else:
+                    return tmp_buffer.intersection(adm0)
+
+            except:
+                print("buffer value could not be converted to float")
+                return 0
+
+        elif tmp_lookup["type"] == "adm":
+            try:
+                tmp_int = int(tmp_lookup["data"])
+                return getPolyWithin(tmp_pnt, adm_shps[tmp_int])
+
+            except:
+                print("adm value could not be converted to int")
+                return 0
+
+        else:
+            print("geom object type not recognized")
+            return 0
 
 
 # returns geometry for point
 # depends on agg_types and adm0
-def geomVal(agg_type, code, lon, lat):
+def geomVal(agg_type, code_1, code_2, lon, lat):
     if agg_type in agg_types:
 
-        code = str(int(code))
-        tmp_geom = getGeom(code, lon, lat)
+        code_1 = str(int(code_1))
+        code_2 = str(code_2)
+
+        tmp_geom = getGeom(code_1, code_2, lon, lat)
 
         if tmp_geom != 0:
             return tmp_geom
@@ -459,7 +504,7 @@ for r in rows:
 
 dir_data = dir_base+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 
-merged = getData(dir_data, "project_id", (code_field, "project_location_id"), only_geocoded)
+merged = getData(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
 
 
 # --------------------------------------------------
@@ -527,8 +572,8 @@ filtered = merged.loc[merged.ad_sector_names == sector].copy(deep=True)
 filtered["agg_type"] = ["None"] * len(filtered)
 filtered["agg_geom"] = ["None"] * len(filtered)
 
-filtered.agg_type = filtered.apply(lambda x: geomType(x[is_geocoded], x[code_field]), axis=1)
-filtered.agg_geom = filtered.apply(lambda x: geomVal(x.agg_type, x[code_field], x.longitude, x.latitude), axis=1)
+filtered.agg_type = filtered.apply(lambda x: geomType(x[is_geocoded], x[code_field_1], x[code_field_2]), axis=1)
+filtered.agg_geom = filtered.apply(lambda x: geomVal(x.agg_type, x[code_field_1], x[code_field_2], x.longitude, x.latitude), axis=1)
 
 i_m = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
 
@@ -557,7 +602,7 @@ if rank == 0:
     # results_str += "\npixel_size\t" + str(pixel_size)
     # results_str += "\nnodata\t" + str(nodata)
     # results_str += "\naid_field\t" + str(aid_field)
-    # results_str += "\ncode_field\t" + str(code_field)
+    # results_str += "\ncode_field_1\t" + str(code_field_1)
     # results_str += "\ncountry bounds\t" + str((adm0_minx, adm0_miny, adm0_maxx, adm0_maxy))
 
     # results_str += "\nrows\t" + str(len(rows))
@@ -931,7 +976,7 @@ if rank == 0:
     add_json("is_geocoded",is_geocoded)
     add_json("only_geocoded",only_geocoded)
     add_json("not_geocoded",not_geocoded)
-    add_json("code_field",code_field)
+    add_json("code_field_1",code_field_1)
     add_json("agg_types",agg_types)
     add_json("lookup",lookup)
 
