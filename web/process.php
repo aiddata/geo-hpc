@@ -46,9 +46,10 @@ switch ($_POST['call']) {
 		// $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
 
 
+		// !!! running on cron job now !!!
 		// call python processing script
 		// handles email and request initialization
-		exec("/usr/bin/python /home/smgoodman/det-module/queue/processing.py " . $request_id); 
+		// exec("/usr/bin/python /home/smgoodman/det-module/queue/prep.py " . $request_id); 
 
 
 		// return request id

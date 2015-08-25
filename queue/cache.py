@@ -19,7 +19,7 @@ class cache():
         # connect to mongodb
         self.client = pymongo.MongoClient()
         self.db = self.client.det
-        self.cache = self.db.cache
+        self.c_cache = self.db.cache
         
         self.rlib_rgdal = importr("rgdal")
         self.rlib_raster = importr("raster")
@@ -79,7 +79,7 @@ class cache():
         check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability}
 
         # check db
-        db_exists = self.cache.find(check_data).count() > 0
+        db_exists = self.c_cache.find(check_data).count() > 0
 
         if db_exists:
 
@@ -96,7 +96,7 @@ class cache():
 
             else:
                 # remove from db
-                self.cache.delete_one(check_data)
+                self.c_cache.delete_one(check_data)
                 return False
 
         else:
@@ -227,6 +227,9 @@ class cache():
 
                     self.merge_list.append(extract_output)
 
+                    print extract_output
+                    print self.merge_list
+
                     if is_reliability_raster:
                         self.merge_list.append(base_output + "r.csv")
 
@@ -262,7 +265,7 @@ class cache():
                             "reliability": is_reliability_raster
                         }
 
-                        self.cache.replace_one(cache_data, cache_data, upsert=True)
+                        self.c_cache.replace_one(cache_data, cache_data, upsert=True)
 
                     elif not exists:
                         count += 1
@@ -282,7 +285,7 @@ class cache():
 
         # for each result file that should exist for request (extracts and reliability)
         for result_csv in self.merge_list:
-            
+            print result_csv
             # make sure file exists
             if os.path.isfile(result_csv):
 

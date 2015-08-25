@@ -10,6 +10,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
+import pymongo
 
 class doc():
 
@@ -28,16 +29,29 @@ class doc():
         self.styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
         self.styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
 
+        # connect to mongodb
+        self.client = pymongo.MongoClient()
+        self.c_asdf = self.client.asdf.data
+
+
+    def time_str(self, timestamp=None):
+        if timestamp != None:
+            try:
+                timestamp = int(timestamp)
+            except:
+                return "---"
+
+        return time.strftime('%Y-%m-%d %H:%M:%S (%Z)', time.localtime(timestamp))
 
 
     def build_doc(self, rid):
 
-        print "build_doc: " + rid
+        print 'build_doc: ' + rid
 
         # try:
-        # self.doc = SimpleDocTemplate("/sciclone/aiddata10/REU/det/results/documentation.pdf", pagesize=letter)
+        # self.doc = SimpleDocTemplate('/sciclone/aiddata10/REU/det/results/documentation.pdf', pagesize=letter)
 
-        self.doc = SimpleDocTemplate("/sciclone/aiddata10/REU/det/results/"+rid+"/documentation.pdf", pagesize=letter)
+        self.doc = SimpleDocTemplate('/sciclone/aiddata10/REU/det/results/'+rid+'/documentation.pdf', pagesize=letter)
         
         # build doc call all functions
         self.add_header()
@@ -56,10 +70,10 @@ class doc():
 
 
 
-
+    # documentation header 
     def add_header(self):
         # aiddata logo
-        logo = self.dir_base + "/templates/logo.png"
+        logo = self.dir_base + '/templates/logo.png'
 
         im = Image(logo, 2.188*inch, 0.5*inch)
         im.hAlign = 'LEFT'
@@ -69,19 +83,19 @@ class doc():
 
         # title
         ptext = '<font size=20>Data Extraction Tool Request Documentation</font>'
-        self.Story.append(Paragraph(ptext, self.styles["Center"]))
+        self.Story.append(Paragraph(ptext, self.styles['Center']))
         self.Story.append(Spacer(1, 0.5*inch))
 
 
+    # report generation info
     def add_info(self):
-        # report generation info
         ptext = '<font size=12>Report Info:</font>'
         self.Story.append(Paragraph(ptext, self.styles['BodyText']))
         self.Story.append(Spacer(1, 0.1*inch))
 
         data = [['Request', str(self.request['_id'])],
                ['Email', self.request['email']],
-               ['Generated on', time.strftime('%Y-%m-%d %H:%M:%S (%Z)', time.localtime())]]
+               ['Generated on', self.time_str()]]
 
         t = Table(data)
 
@@ -93,9 +107,9 @@ class doc():
         self.Story.append(Spacer(1,0.3*inch))
 
 
+    # intro paragraphs
     def add_general(self):
 
-        # intro paragraphs
         with open(self.dir_base + '/templates/general.txt') as general:
             for line in general:
                 p = Paragraph(line, self.styles['BodyText'])
@@ -104,9 +118,8 @@ class doc():
         self.Story.append(Spacer(1,0.3*inch))
 
 
+    # general readme
     def add_readme(self):
-
-        # general readme
 
         with open(self.dir_base + '/templates/readme.txt') as readme:
             for line in readme:
@@ -116,24 +129,21 @@ class doc():
         self.Story.append(Spacer(1,0.3*inch))
 
 
-
+    # request overview
     def add_overview(self):
-
-
-        # request overview
 
         ptext = '<b><font size=12>Request Overview</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.15*inch))
 
         # boundary
-        ptext = '<i>Boundary</i>'
+        ptext = '<i>Boundary - '+self.request['boundary']['name']+'</i>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.05*inch))
 
-        data = [['Title (Name: Group)','blank'],
-                ['Description','blank'],
-                ['Source Link','blank']]
+        data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
+                ['Description',  self.request['boundary']['short']],
+                ['Source Link',  self.request['boundary']['source_link']]]
 
         t = Table(data)
         t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
@@ -143,26 +153,78 @@ class doc():
 
 
         # datasets
-        for i in [0,1]:
-            ptext = '<i>Dataset '+str(i)+'</i>'
+        for dset in self.request['data'].values():
+
+            ptext = '<i>Dataset - '+dset['name']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
-            data = [['Title (Name)','blank'],
-                    ['Type','blank'],
-                    ['Items Requested','blank'],
-                    ['Extract Types Selected','blank'],
-                    ['Files','blank']]
+            data = [['Title (Name)',dset['title'] +' ('+ dset['name'] +')'],
+                    ['Type', dset['type']],
+                    ['Items Requested', self.request['counts'][dset['name']]],
+                    ['Temporal Type', dset['temporal_type']],
+                    ['Files', ', '.join([f['name'] for f in dset['files']])]]
+
+            if dset['type'] == 'raster':
+                data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
 
             t = Table(data)
             t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
                                     ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
-        self.Story.append(t)
-        self.Story.append(Spacer(1, 0.1*inch))
+            self.Story.append(t)
+            self.Story.append(Spacer(1, 0.1*inch))
 
 
         self.Story.append(Spacer(1, 0.3*inch))
+
+    def build_meta(self, name, item_type):
+
+        # get meta from asdf
+        meta = self.c_asdf.find({'name': name})
+
+        # build generic meta
+        data = [
+
+            ['Title', 'blank'],
+            ['Name', 'blank'],
+            ['Version', 'blank'],
+            ['Mini Name', 'blank'],
+            ['Short', 'blank'],
+            ['Variable Description', 'blank'],
+            ['Source Link', 'blank'],
+
+            ['Type', 'blank'],
+            ['File Format', 'blank'],
+            ['File Extension', 'blank'],
+            ['Scale', 'blank'],
+
+            ['Temporal', '***'],
+            ['Bounding Box', '***'],
+
+            ['Sources', '***'],
+            ['Licenses', '***'],
+
+            ['Maintainers', '***'],
+            ['Publishers', '***'],
+
+            ['Date Added', 'blank'],
+            ['Date Updated', 'blank'],
+
+        ]
+
+
+        if item_type == 'boundary':
+            data.append(['Group', 'blank'])
+            data.append(['Group Class', 'blank'])
+
+        elif item_type == 'raster':
+            data.append(['Resolution', 'blank'])
+            data.append(['Extract Types', ', '.join([])])
+            data.append(['Factor', 'blank'])
+
+
+        return data
 
 
     def add_meta(self):
@@ -172,14 +234,13 @@ class doc():
         self.Story.append(Spacer(1, 0.15*inch))
 
         # full boundary meta
-
         ptext = '<i>Boundary </i>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.05*inch))
 
-        data = [['Title (Name: Group)','blank'],
-            ['Description','blank'],
-            ['Source Link','blank']]
+
+        # build boundary meta table array
+        data = self.build_meta(self.request['boundary']['name'], 'boundary')
 
 
         t = Table(data)
@@ -191,18 +252,17 @@ class doc():
 
 
         # full dataset meta
+        for dset in self.request['data'].values():
+            
 
-        for i in [0,1]:
-            ptext = '<i>Dataset '+str(i)+'</i>'
+            ptext = '<i>Dataset - '+dset['name']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
-            data = [['Title (Name)','blank'],
-                    ['Type','blank'],
-                    ['Items Requested','blank'],
-                    ['Extract Types Selected','blank'],
-                    ['Files','blank']]
 
+
+            # build dataset meta table array
+            data = self.build_meta(dset['name'], dset['type'])
 
 
             t = Table(data)
@@ -218,16 +278,17 @@ class doc():
 
 
 
+    # full request timeline / other processing info 
     def add_timeline(self):
-
-        # full request timeline / other processing info 
 
         ptext = '<b><font size=12>request timeline info</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        data = [['submit', self.request['submit_time']],
-                ['prep', self.request['prep_time']],
-                ['process', self.request['process_time']],
-                ['complete', self.request['complete_time']]]
+        data = [
+                ['submit', self.time_str(self.request['submit_time'])],
+                ['prep', self.time_str(self.request['prep_time'])],
+                ['process', self.time_str(self.request['process_time'])],
+                ['complete', self.time_str(self.request['complete_time'])]
+            ]
 
 
         t = Table(data)
@@ -242,7 +303,6 @@ class doc():
 
     # license stuff
     def add_license(self):
-        print "add_license"
 
         with open(self.dir_base + '/templates/license.txt') as license:
             for line in license:
@@ -255,7 +315,5 @@ class doc():
 
     # write the document to disk
     def output_doc(self):
-        print "output_doc"
         self.doc.build(self.Story)
-
 
