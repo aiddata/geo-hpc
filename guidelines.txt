@@ -54,3 +54,28 @@ recommendations
 for internal datasets / automatic logging:
 
 - 
+
+
+
+combined extract cache for sciclone and det 
+
+- sciclone and the det both output extracts into /sciclone/aiddata10/REU/extracts
+- top level folder in this directory is based on boundary names within the asdf
+- when running extracts through sciclone, make sure to use correct name if boundary exists in asdf
+- within each boundary folder, there is a cache folder for extracts and an optional shps folder for storing boundary files that do not exist in asdf
+
+- inside the cache folder, datasets are specified by their name in the asdf or by their folder name in /sciclone/aiddata10/REU/data 
+- if dataset does not exist in /sciclone/aiddata10/REU/data make sure to use a unique name that will not interfere with existing extracts (it is not suggested to store these extracts in this location)
+
+- each dataset folder contains subfolders which specify the extract type (mean, max, sum, etc.)
+- actual extracts files exist in a flat file structure within the extract type subfolder
+
+- overview: /sciclone/aiddata10/REU/extracts/<bnd_name>/cache/<data_name>/<extract_type>/{extracts, ...}
+
+
+
+projects folder
+
++ used for storing project specific data, not extracts
++ separate merge script can be run on extract cache to generate merges as needed which can be output to project folder or other location
+

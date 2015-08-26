@@ -37,7 +37,7 @@
 
         "boundary": {
             "group": {"default": "None"},
-            "actual": {"default": 0}
+            "group_class": {"default": 0}
         }
     }
 }
