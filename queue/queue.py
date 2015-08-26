@@ -33,18 +33,21 @@ class queue():
         sys.exit(">> det processing error: \n\t\t" + str(message))
 
 
-    # # verify request with id exists
-    # def check_id(self, rid):
+    # verify request with id exists
+    def check_id(self, rid):
 
-    #     try:
-    #         # check document with request id exists
-    #         search = self.c_queue.find({"_id":ObjectId(rid)})
-    #         exists = search.count()
-            
-    #         return 1, exists, search[0]
+        try:
+            # check document with request id exists
+            search = self.c_queue.find({"_id":ObjectId(rid)})
+            exists = search.count()
 
-    #     except:
-    #         return 0, None, None
+            self.request_id = rid
+            self.request_obj = search[0]
+
+            return 1, exists, search[0]
+
+        except:
+            return 0, None, None
 
 
     # get id of next job in queue

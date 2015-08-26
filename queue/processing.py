@@ -28,14 +28,28 @@ print '\n------------------------------------------------'
 print 'Processing Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
-# get next request in queue based on priority and submit time
-# returns status of search, request id if search succeeds, and request data
-gn_status, request_id, request_obj = queue.get_next(1)
+# run given a request_id via input
+# does not run extract
+if len(sys.argv) == 2:
+    request_id = sys.argv[1]
 
-if not gn_status:
-   sys.exit("Error while searching for next request in queue")
-elif request_id == None:
-   sys.exit("Processing queue is empty")
+    # check if request with id exists
+    # return status of check, boolean of exists and request data if exists 
+    ci_status, ci_return, request_obj = queue.check_id(sys.argv[1])
+
+    if not ci_status:
+        sys.exit("Error while checking request id")
+    elif not ci_return:
+        sys.exit("Request with id does not exist")
+else:
+    # get next request in queue based on priority and submit time
+    # returns status of search, request id if search succeeds, and request data
+    gn_status, request_id, request_obj = queue.get_next(1)
+
+    if not gn_status:
+       sys.exit("Error while searching for next request in queue")
+    elif request_id == None:
+       sys.exit("Processing queue is empty")
 
 
 print 'Request id: ' + request_id
@@ -59,6 +73,6 @@ if not cr_status:
 # merge and generate documentation
 print "finishing request"
 
-queue.build_output(request_id, request_obj, True)
+queue.build_output(request_id, True)
 
 

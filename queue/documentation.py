@@ -181,47 +181,63 @@ class doc():
     def build_meta(self, name, item_type):
 
         # get meta from asdf
-        meta = self.c_asdf.find({'name': name})
+        meta = self.c_asdf.find({'name': name})[0]
 
         # build generic meta
         data = [
 
-            ['Title', 'blank'],
-            ['Name', 'blank'],
-            ['Version', 'blank'],
-            ['Mini Name', 'blank'],
-            ['Short', 'blank'],
-            ['Variable Description', 'blank'],
-            ['Source Link', 'blank'],
+            ['Title', meta['title']],
+            ['Name', meta['name']],
+            ['Mini Name', meta['mini_name']],
+            ['Version', meta['version']],
+            ['Short', meta['short']],
+            ['Variable Description', meta['variable_description']],
+            ['Source Link', meta['source_link']],
 
-            ['Type', 'blank'],
-            ['File Format', 'blank'],
-            ['File Extension', 'blank'],
-            ['Scale', 'blank'],
-
-            ['Temporal', '***'],
-            ['Bounding Box', '***'],
-
-            ['Sources', '***'],
-            ['Licenses', '***'],
-
-            ['Maintainers', '***'],
-            ['Publishers', '***'],
-
-            ['Date Added', 'blank'],
-            ['Date Updated', 'blank'],
-
+            ['Type', meta['type']],
+            ['File Format', meta['file_format']],
+            ['File Extension', meta['file_extension']],
+            ['Scale', meta['scale']],
+            ['Temporal']
         ]
 
 
+        data.append(['Temporal Type', meta['temporal']['name']])
+
+        if meta['temporal']['format'] != 'None':
+            data.append(['Temporal Start', meta['temporal']['start']])
+            data.append(['Temporal End', meta['temporal']['end']])
+            data.append(['Temporal Format', meta['temporal']['format']])
+
+            
+        data.append(['Bounding Box', Paragraph(str(meta['spatial']['coordinates']), self.styles['Normal'])])
+
+
+        for i in range(len(meta['sources'])):
+            data.append(['Source #'+str(i+1), Paragraph('<i>name:</i> '+meta['sources'][i]['name']+'<br /><i>web:</i> '+meta['sources'][i]['web'], self.styles['Normal'])])
+        
+        for i in range(len(meta['licenses'])):
+            data.append(['License #'+str(i+1), Paragraph('<i>name:</i> '+meta['licenses'][i]['name']+'<br /><i>version:</i> '+meta['licenses'][i]['version']+'<br /><i>url:</i> '+meta['licenses'][i]['url'], self.styles['Normal'])])
+            
+
+        for i in range(len(meta['maintainers'])):
+            data.append(['Maintainer #'+str(i+1), Paragraph('<i>name:</i> '+meta['maintainers'][i]['name']+'<br /><i>web:</i> '+meta['maintainers'][i]['web']+'<br /><i>email:</i> '+meta['maintainers'][i]['email'], self.styles['Normal'])])
+            
+        for i in range(len(meta['publishers'])):
+            data.append(['Publisher #'+str(i+1), Paragraph('<i>name:</i> '+meta['publishers'][i]['name']+'<br /><i>web:</i> '+meta['publishers'][i]['web']+'<br /><i>email:</i> '+meta['publishers'][i]['email'], self.styles['Normal'])])
+
+        data.append(['Date Added', meta['date_added']])
+        data.append(['Date Updated', meta['date_updated']])
+
+
         if item_type == 'boundary':
-            data.append(['Group', 'blank'])
-            data.append(['Group Class', 'blank'])
+            data.append(['Group', meta['options']['group']])
+            data.append(['Group Class', meta['options']['group_class']])
 
         elif item_type == 'raster':
-            data.append(['Resolution', 'blank'])
-            data.append(['Extract Types', ', '.join([])])
-            data.append(['Factor', 'blank'])
+            data.append(['Resolution', meta['options']['resolution']])
+            data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
+            data.append(['Factor', meta['options']['factor']])
 
 
         return data

@@ -227,9 +227,6 @@ class cache():
 
                     self.merge_list.append(extract_output)
 
-                    print extract_output
-                    print self.merge_list
-
                     if is_reliability_raster:
                         self.merge_list.append(base_output + "r.csv")
 
@@ -285,7 +282,7 @@ class cache():
 
         # for each result file that should exist for request (extracts and reliability)
         for result_csv in self.merge_list:
-            print result_csv
+
             # make sure file exists
             if os.path.isfile(result_csv):
 
