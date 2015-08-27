@@ -45,6 +45,9 @@ $(document).ready(function(){
 	    	var grp = _.keys(result)[i];
     		bnd_html += '<optgroup label="'+grp+'">';
 	    	
+	    	// sort boundaries by name for each group
+	    	result[grp] = _.sortBy(result[grp], 'name')
+
 		    for (var j=0, jx=_.keys(result[grp]).length; j<jx; j++) {
 		    	// console.log(result[grp][j]);
 		    	var item = result[grp][j];

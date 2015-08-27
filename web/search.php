@@ -31,6 +31,7 @@ switch ($_POST['call']) {
 		$actuals = array();
 		$all = array();
 
+
 		foreach ($cursor as $doc) {
 		    
 		    $all[$doc['options']['group']][] = $doc;
@@ -43,11 +44,14 @@ switch ($_POST['call']) {
 		$output = array();
 
 		foreach ($actuals as $group => $name) {
-			if (count($all[$group]) > 1 ) {
-				$output[$group] = $all[$group];
-			} else if (count($all[$group]) == 1) {
-				$output['single_datasets'][] = $all[$group][0];
-			}
+
+			$output[$group] = $all[$group];
+
+			// if (count($all[$group]) > 1 ) {
+			// 	$output[$group] = $all[$group];
+			// } else if (count($all[$group]) == 1) {
+			// 	$output['single_datasets'][] = $all[$group][0];
+			// }
 		}
 
 		echo json_encode($output);
