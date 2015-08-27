@@ -130,46 +130,67 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
     return dp
 
 
-def generic_input(input_type, update, var_str, in_1, in_2=0, opt=0):
+def check_update(var_str, opt=0):
+    if interface and update_data_package:
+        if not opt:
+            return p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package[var_str]) + "\")")
+        else:
+            return p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package["options"][var_str]) + "\")")
+    else:
+        return False
 
+
+def update_dpval(var_str, val, opt=0):
+    if not opt:
+        data_package[var_str] = val
+    else:
+        data_package["options"][var_str] = val
+
+
+def generic_input(input_type, var_str, in_1, in_2, opt=0):
+
+    user_update = check_update(var_str, opt)
+
+ 
     if interface:
-        if update:
-            if not opt:
-                user_update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package[var_str]) + "\")")
-            else:
-                user_update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package["options"][var_str]) + "\")")
-
-
-        if not update or update and user_update:
+ 
+        if not update_data_package or (update_data_package and user_update):
             
             if input_type == "open":
                 v.data[var_str] = p.user_prompt_open(in_1, in_2)
-                if not opt:
-                    data_package[var_str] = v.data[var_str]
-                else:
-                    data_package["options"][var_str] = v.data[var_str]
+                
+                update_dpval(var_str, v.data[var_str], opt)
 
             elif input_type == "loop":
-                v.data[var_str] = p.user_prompt_loop(in_1, in_2)
-                if not opt:
-                    data_package[var_str] = v.data[var_str]
-                else:
-                    data_package["options"][var_str] = v.data[var_str]
+                
+                v.data[var_str] = []
+                c = 1
+                while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
+                    tmp_loop_obj = {}
+                    for i in in_2.keys():
+                        tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i])
 
-        # elif update and not user_update:
+                    v.data[var_str].append(tmp_loop_obj)
+                    c += 1
+
+                update_dpval(var_str, v.data[var_str], opt)
+
+
+        # elif update_data_package and not user_update:
             # v.data[var_str] = data_package[var_str] 
             # validate anyway - in case validation function changed
             # force to enter new input if needed
             # 
 
-            # data_package[var_str] = v.data[var_str]
+            # update_dpval(var_str, v.data[var_str], opt)
 
 
-    if not interface:
-        if input_type == "open" and in_2:
+    else:
+
+        if input_type == "open":
 
             if not var_str in v.data:
-                v.data[var_str] = ""
+                v.data[var_str] = v.fields[var_str]["default"]
 
             check_result = in_2(v.data[var_str])
             
@@ -188,16 +209,13 @@ def generic_input(input_type, update, var_str, in_1, in_2=0, opt=0):
             if not valid:
                 quit("Bad automated input " + error)
 
-            if not opt:
-                data_package[var_str] = answer
-            else:
-                data_package["options"][var_str] = answer
-                 
-        else:
-            if not opt:
-                data_package[var_str] = answer
-            else:
-                data_package["options"][var_str] = answer
+            update_dpval(var_str, answer, opt)
+
+
+        elif input_type == "loop":
+
+            update_dpval(var_str, v.data[var_str], opt)
+
                  
 
 # --------------------------------------------------
@@ -208,9 +226,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "auto":
 
     generator = "auto"
 
-
     try:
-
         path = sys.argv[2]
 
         if os.path.isfile(path):
@@ -231,7 +247,6 @@ if generator == "manual":
 
 # --------------------------------------------------
 # prompts
-
 
 
 # base path
@@ -277,7 +292,7 @@ if data_package["base"].endswith("/"):
 # independent inputs
 
 flist = [
-    {   
+    {
         "id": "name",
         "type": "open",
         "in_1": "Dataset name? (must be unique from existing datasets)", 
@@ -304,8 +319,8 @@ flist = [
     {   
         "id": "sources",
         "type": "loop",
-        "in_1": {"name":"","web":""}, 
-        "in_2": ("Enter source ", "Add another source?")
+        "in_1": "Add source", 
+        "in_2": {"name": v.string, "web": v.string}
     },
     {   
         "id": "source_link",
@@ -362,31 +377,33 @@ else:
 v.update_file_format(data_package["file_format"])
 
 # file extension (validation depends on file format)
-generic_input("open", update_data_package, "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension)
+generic_input("open", "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension)
 
 
 # raster info
 if data_package["type"] == "raster":
 
     # resolution
-    generic_input("open", update_data_package, "resolution", "Dataset resolution? (in degrees)", v.factor, opt=True)
+    generic_input("open", "resolution", "Dataset resolution? (in degrees)", v.factor, opt=True)
 
     # extract_types (multiple)
-    generic_input("open", update_data_package, "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, opt=True)
+    generic_input("open", "extract_types", "Valid extract types for data in dataset? (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]", v.extract_types, opt=True)
 
     # factor
-    generic_input("open", update_data_package, "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor, opt=True)
+    generic_input("open", "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor, opt=True)
 
 
 # boundary info
 elif data_package["type"] == "boundary":
     # boundary group
-    generic_input("open", update_data_package, "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group, opt=True)
+    generic_input("open", "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group, opt=True)
+
+    v.group_check(data_package['options']['group'])
 
     # do not recheck if group already set
     # probably should allow this, currently does not work due to requiring fields set during initial validation
-    if not "group" in data_package["options"] and not "group_class" in data_package["options"]:
-
+    if not update_data_package:
+        
         # boundary class
         # only a single actual may exist for a group
         if v.is_actual or (update_data_package and data_package["options"]["group_class"] == "actual"):
@@ -397,7 +414,7 @@ elif data_package["type"] == "boundary":
             data_package["options"]["group_class"] = "sub"
         
         else:
-            generic_input("open", update_data_package, "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
+            generic_input("open", "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
             
             if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
                 v.new_boundary = True
@@ -682,7 +699,7 @@ def get_date_range(date_obj, drange=0):
 
 
 # file mask identifying temporal attributes in path/file names
-generic_input("open", update_data_package, "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
+generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
 print data_package["file_mask"]
 
 
@@ -706,7 +723,7 @@ else:
         use_day_range = p.user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
 
     if use_day_range or "day_range" in v.data:
-        generic_input("open", update_data_package, "day_range", "File day range? (Must be integer)", v.day_range)
+        generic_input("open", "day_range", "File day range? (Must be integer)", v.day_range)
 
 
 

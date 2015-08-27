@@ -79,8 +79,13 @@ class update_mongo():
 
                 # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
                 dsets = self.c_data.find({"type": {"$ne": "boundary"}})
-                for dset in dsets:
-                    dset['status'] = -1
+                for full_dset in dsets:
+                    dset = {
+                        'name': full_dset["name"],
+                        'spatial': full_dset["spatial"],
+                        'scale': full_data["scale"],
+                        'status': -1
+                    }
                     c_bnd.insert(dset)
 
         elif in_data["type"] != "boundary":
@@ -90,9 +95,10 @@ class update_mongo():
                 # add dataset to each boundary collection with "unprocessed" flag
                 
                 dset = {
-                    name: in_data["name"],
-                    spatial: in_data["spatial"],
-                    status: -1
+                    'name': in_data["name"],
+                    'spatial': in_data["spatial"],
+                    'scale': in_data["scale"],
+                    'status': -1
                 }
 
                 bnds = self.c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})

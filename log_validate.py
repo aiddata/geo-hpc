@@ -66,9 +66,10 @@ class validate():
 
         self.new_boundary = False
         self.update_geometry = False
+
+        self.group_exists = False
         self.actual_exists = {}
         self.is_actual = False
-        self.group_exists = False
 
     # -------------------------
     #  misc functions
@@ -220,11 +221,6 @@ class validate():
             return False, None, self.error["string"]
 
 
-    # boundary group_class
-    def group_class(self, val):
-        return val in self.types["group_class"], val, self.error["group_class"]
-
-
     # boundary group
     def group(self, val):
 
@@ -252,56 +248,40 @@ class validate():
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
        
-        self.actual_exists = {}
-        self.actual_exists[val] = False
-
+        # if script is in auto mode then it assumes you want to continue with group name and with existing actual
         if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does NOT exist. Are you sure you want to create it?" ):
             return False, None, "group did not pass due to user request - new group"
         
         elif exists:
+            actual_exists = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
+
+            if not actual_exists and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" exists. Do you wish to continue?" ):
+                return False, None, "group did not pass due to user request - existing group actual"
+            
+        return True, str(val), None
+
+ 
+    # boundary group_class
+    def group_class(self, val):
+        return val in self.types["group_class"], val, self.error["group_class"]
+
+
+    def group_check(self, group):
+        # check if boundary with group exists
+        exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0
+       
+        self.actual_exists = {}
+        self.actual_exists[val] = False
+
+        if exists:
             self.group_exists = True
 
             search_actual = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1)
             self.actual_exists[val] =  search_actual.count() > 0
 
             if self.actual_exists[val]:
-                tmp_str = "already exists"
 
                 # case where updating actual
                 if search_actual[0]["base"] == self.data["base"]:
                     self.is_actual = True
-                    return True, str(val), None
-
-            else:
-                tmp_str = "does NOT exist"
-
-            if not self.actual_exists[val] and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" "+tmp_str+". Do you wish to continue?" ):
-                return False, None, "group did not pass due to user request - existing group"
             
-
-        return True, str(val), None
-
-    
-        # # check if group is 3 capital letters (ISO3)
-        # if len(val) == 3 and val.isupper():
-        #     # check if name == group_adm0
-        #     if name == val + "_adm0":
-        #         return True, str(val), None
-        #     else:
-        #         # check if boundary with group exists
-        #         exists = c_data.find({"type": "boundary", "group": val}).limit(1)
-        #         if len(exists) > 0:
-        #             return True, str(val), None
-        #         else: 
-        #             return False, None, "country group (adm0 dataset) must exist before adding"
-
-        # else:
-        #     if val == name:
-        #         return True, str(val), None
-        #     else:
-        #         exists = c_data.find({"type": "boundary", "group": val}).limit(1)
-        #         if len(exists) > 0:
-        #             return True, str(val), None
-        #         else:
-        #             return False, None, "group does not match name or existing group"
-

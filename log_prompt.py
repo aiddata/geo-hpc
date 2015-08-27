@@ -41,7 +41,7 @@ class prompts():
 
 
     # open ended user prompt
-    def user_prompt_open(self, question, check=0):
+    def user_prompt_open(self, question, check):
 
         while True:
             sys.stdout.write(question + " \n> ")
@@ -49,57 +49,17 @@ class prompts():
 
             use_answer = self.user_prompt_use_input(value=raw_answer)
 
-            if use_answer and check:
-                check_result = check(raw_answer)
+            if use_answer:
+                valid, checked_val, error = check(raw_answer)
                 
-                valid = check_result[0]
-                error = check_result[2]
-
-                if valid:
-                    answer = check_result[1]
-
-                else:
-                    answer = raw_answer
-
-
-                if error != None:
-                    error = "("+error+")"
-                else:
-                    error = ""
-
-
                 if not valid:
-                    redo_answer = self.user_prompt_bool("Invalid input " + error + "\nUse a new answer [y] or exit [n]?")
+                    error = ""
+                    if error != None:
+                        error = "("+error+")"
 
-                    if not redo_answer:
+                    if not self.user_prompt_bool("Invalid input " + error + "\nUse a new answer [y] or exit [n]?"):
                        quit("No answer given at open prompt.")
 
                 else:
-                    return answer
+                    return checked_val
 
-            elif use_answer:        
-                return raw_answer
-
-
-    # open prompt loop over defined structure
-    # phrases is tuple which includes open prompt question 
-    # and question used for continuing loop
-    def user_prompt_loop(self, struct, phrases):
-
-        question = phrases[0]
-        cont = phrases[1]
-
-        result = []
-
-        c = 0
-        while True:
-            sub_result = struct
-            for k in sub_result.keys():
-                sub_result[k] = self.user_prompt_open(str(question)+str(c)+" "+k+"?")
-            
-            result.append(sub_result)
-            c += 1
-
-            if not self.user_prompt_bool(str(cont)):
-                return result
-                
