@@ -300,6 +300,10 @@ $(document).ready(function(){
 
 			if (error) {
 				console.log(error);
+				if (map.hasLayer(countryLayer)) {
+					map.removeLayer(countryLayer);
+					map.setView([15, 0], 2);
+				}
 				return 1
 			}
 

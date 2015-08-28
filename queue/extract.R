@@ -28,7 +28,9 @@ if (extract_type == "mean") {
 	myExtract <- extract(myRaster, myVector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
 } else if (extract_type == "max") {
 	myExtract <- extract(myRaster, myVector, fun=max, sp=TRUE, na.rm=TRUE)
-}
+}  else if (extract_type == "sum") {
+	myExtract <- extract(myRaster, myVector, fun=sum, sp=TRUE, na.rm=TRUE)
+} 
 
 colnames(myExtract@data)[length(colnames(myExtract@data))] <- "ad_extract"
 

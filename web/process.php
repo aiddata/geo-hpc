@@ -7,7 +7,9 @@ switch ($_POST['call']) {
 	// returns geojson at the specified file path
 	case "geojson":
 
-		$output = file_get_contents($_POST['file']);
+		$file = dirname($_POST['file']) . "/simplified.geojson";
+
+		$output = file_get_contents($file);
 
 		echo $output;
 		break;

@@ -26,14 +26,16 @@ class cache():
 
         self.extract_options = {
             "mean": "e",
-            "max": "x"
+            "max": "x",
+            "sum": "s"
 
         }
 
         # list of valid extract types with r functions
         self.extract_funcs = {
             "mean": robjects.r.mean,
-            "max": robjects.r.max
+            "max": robjects.r.max,
+            "sum": robjects.r.sum
         }
 
         self.merge_list = []
@@ -88,7 +90,7 @@ class cache():
             extract_exists = os.path.isfile(extract_path)
 
             if reliability:
-                reliability_path = output[:-4] + "r.csv"
+                reliability_path = output[:-5] + "r.csv"
                 reliability_exists = os.path.isfile(reliability_path)
 
             if (reliability and extract_exists and reliability_exists) or (not reliability and extract_exists):
@@ -169,7 +171,6 @@ class cache():
         # init max column
         df['max'] = 0 *len(df)
 
-
         # iterate over shapes in boundary dataframe
         for row_raw in bnd_df.iterrows():
 
@@ -184,10 +185,10 @@ class cache():
             
 
         # calculate reliability statistic
-        df["ad_extract"] = df['mean_aid']/df['max']
+        df["ad_extract"] = df['ad_extract']/df['max']
 
         # output to reliability csv
-        df.to_csv(output[:-4]+"r.csv")
+        df.to_csv(output[:-5]+"r.csv")
 
         return True
 
