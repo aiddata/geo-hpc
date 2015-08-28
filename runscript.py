@@ -53,7 +53,7 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 
 
 run_stage = "beta"
-run_version_str = "007"
+run_version_str = "008"
 run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
@@ -61,7 +61,7 @@ Ts = int(time.time())
 random_id = '{0:05d}'.format(int(random.random() * 10**5))
 Rid = "msr_" + str(Ts) +"_"+ random_id
 
-Rid = "msr_" + str(Ts) +"_"+ "56789"
+# Rid = "msr_" + str(Ts) +"_"+ "56789"
 
 
 # --------------------------------------------------
@@ -549,9 +549,12 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 # generate filters hash
 # filters_hash = json_hash(filters)
 
+if sector != "All":
+    # apply filters to project data
+    filtered = merged.loc[merged.ad_sector_names == sector].copy(deep=True)
+else:
+    filtered = deepcopy(merged)
 
-# apply filters to project data
-filtered = merged.loc[merged.ad_sector_names == sector].copy(deep=True)
 
 # !!! potential issue !!!
 #
@@ -561,8 +564,6 @@ filtered = merged.loc[merged.ad_sector_names == sector].copy(deep=True)
 #   placeholder random values for the locations that were filtered out
 # - method: recheck project location count and create placeholder random value if locations are missing
 # - will need to rebuild how random num column is added. probaby can use apply with a new function
-
-# filtered = deepcopy(merged)
 
 
 # --------------------------------------------------
