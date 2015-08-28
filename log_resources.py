@@ -193,6 +193,11 @@ class resource_utils():
             geo_file = open(os.path.splitext(path)[0] + ".geojson", "w")
             json.dump(json.loads(geo_json), geo_file, indent = 4)
 
+            # create simplified geojson for use with leaflet web map
+            geo_df['geometry'] = geo_df['geometry'].simplify(0.01)
+            json.dump(json.loads(geo_df.to_json()), open(os.path.dirname(path)+"/simplified.geojson", "w"), indent=4)
+
+
             return 0
 
         except:

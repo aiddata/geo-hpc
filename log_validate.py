@@ -36,7 +36,7 @@ class validate():
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
             },
-            "extracts": ['mean', 'max'],
+            "extracts": ['mean', 'max', 'sum'],
             "group_class": ['actual', 'sub']
         }
 
@@ -64,12 +64,13 @@ class validate():
         self.db = None # self.client.asdf
         self.c_data = None # self.db.data
 
-        self.new_boundary = False
-        self.update_geometry = False
-
         self.group_exists = False
         self.actual_exists = {}
         self.is_actual = False
+
+        self.new_boundary = False
+        self.update_geometry = False
+
 
     # -------------------------
     #  misc functions
@@ -257,16 +258,18 @@ class validate():
 
             if not actual_exists and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" exists. Do you wish to continue?" ):
                 return False, None, "group did not pass due to user request - existing group actual"
-            
+
         return True, str(val), None
 
- 
+
     # boundary group_class
     def group_class(self, val):
         return val in self.types["group_class"], val, self.error["group_class"]
 
 
-    def group_check(self, group):
+    # runs check on selected group to determine parameters used in group_check selection
+    # parameters: group_exists, actual_exists, is_actual
+    def run_group_check(self, group):
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0
        

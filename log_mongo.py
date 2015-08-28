@@ -105,7 +105,7 @@ class update_mongo():
                 for bnd in bnds:
                     c_bnd = self.db[bnd["options"]["group"]]
                     # c_bnd.insert(dset)
-                    c_bnd.replace_one({"base": dset["base"]}, dset, upsert=True)
+                    c_bnd.replace_one({"name": dset["name"]}, dset, upsert=True)
 
 
         return 0

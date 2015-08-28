@@ -398,7 +398,8 @@ elif data_package["type"] == "boundary":
     # boundary group
     generic_input("open", "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group, opt=True)
 
-    v.group_check(data_package['options']['group'])
+    # run check on group to prep for group_class selection
+    v.run_group_check(data_package['options']['group'])
 
     # do not recheck if group already set
     # probably should allow this, currently does not work due to requiring fields set during initial validation
