@@ -19,7 +19,7 @@ from log_mongo import update_mongo
 # --------------------------------------------------
 
 script = os.path.basename(sys.argv[0])
-version = "0.1"
+version = "0.2"
 generator = "manual"
 
 # validate class instance
@@ -138,6 +138,7 @@ def update_datapackage_val(var_str, val, opt=0):
 
 
 def generic_input(input_type, var_str, in_1, in_2, opt=0):
+
     user_update = check_update(var_str, opt)
 
     update_val = None
@@ -148,95 +149,62 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
             update_val = data_package["options"][var_str]
 
 
-    if interface:
+    # if interface:
 
-        if input_type == "open":
-            v.data[var_str] = p.user_prompt_open(in_1, in_2, (user_update, update_val))
-            update_datapackage_val(var_str, v.data[var_str], opt)
+    # >>> 
+    if input_type == "open":
+        v.data[var_str] = p.user_prompt_open(in_1, in_2, (user_update, update_val))
 
-        elif input_type == "loop":
-            v.data[var_str] = []
-            c = 1
+    elif input_type == "loop":
+        v.data[var_str] = []
+        c = 1
 
-            if user_update:
-                while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
-                    tmp_loop_obj = {}
-                    for i in in_2.keys():
-                        tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i], (1, None))
+        if user_update:
+            while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
+                tmp_loop_obj = {}
+                for i in in_2.keys():
+                    tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i], (1, None))
 
-                    v.data[var_str].append(tmp_loop_obj)
-                    c += 1
-            else:
-                for x in range(len(update_val)):
-                    tmp_loop_obj = {}
-                    for i in in_2.keys():
-                        tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i], (0, update_val[x][i]))
+                v.data[var_str].append(tmp_loop_obj)
+                c += 1
+        else:
+            for x in range(len(update_val)):
+                tmp_loop_obj = {}
+                for i in in_2.keys():
+                    tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i], (0, update_val[x][i]))
 
-                    v.data[var_str].append(tmp_loop_obj)
-                    c += 1
+                v.data[var_str].append(tmp_loop_obj)
+                c += 1
 
-            update_datapackage_val(var_str, v.data[var_str], opt)
+    update_datapackage_val(var_str, v.data[var_str], opt)
+    # >>>
 
+    # else:
+    #     if input_type == "open":
+    #         if not var_str in v.data:
+    #             v.data[var_str] = v.fields[var_str]["default"]
 
-
-        # if not update_data_package or user_update:
+    #         check_result = in_2(v.data[var_str])
             
-        #     if input_type == "open":
-        #         v.data[var_str] = p.user_prompt_open(in_1, in_2)
-        #         update_datapackage_val(var_str, v.data[var_str], opt)
+    #         if type(check_result) != type(True) and len(check_result) == 3:
+    #             valid, answer, error = check_result
+    #         else:
+    #             valid = check_result
+    #             answer = v.data[var_str]
+    #             error = None
 
-        #     elif input_type == "loop":
-        #         v.data[var_str] = []
-        #         c = 1
-        #         while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
-        #             tmp_loop_obj = {}
-        #             for i in in_2.keys():
-        #                 tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i])
+    #         if error != None:
+    #             error = " ("+error+")"
+    #         else:
+    #             error = ""
 
-        #             v.data[var_str].append(tmp_loop_obj)
-        #             c += 1
+    #         if not valid:
+    #             quit("Bad automated input " + error)
 
-        #         update_datapackage_val(var_str, v.data[var_str], opt)
+    #         update_datapackage_val(var_str, answer, opt)
 
-
-
-        # elif update_data_package and not user_update:
-        #     v.data[var_str] = data_package[var_str] 
-
-        #     # validate anyway - in case validation function changed
-        #     # force to enter new input if needed
-        #     # 
-
-        #     # update_datapackage_val(var_str, v.data[var_str], opt)
-
-
-
-    else:
-        if input_type == "open":
-            if not var_str in v.data:
-                v.data[var_str] = v.fields[var_str]["default"]
-
-            check_result = in_2(v.data[var_str])
-            
-            if type(check_result) != type(True) and len(check_result) == 3:
-                valid, answer, error = check_result
-            else:
-                valid = check_result
-                answer = v.data[var_str]
-                error = None
-
-            if error != None:
-                error = " ("+error+")"
-            else:
-                error = ""
-
-            if not valid:
-                quit("Bad automated input " + error)
-
-            update_datapackage_val(var_str, answer, opt)
-
-        elif input_type == "loop":
-            update_datapackage_val(var_str, v.data[var_str], opt)
+    #     elif input_type == "loop":
+    #         update_datapackage_val(var_str, v.data[var_str], opt)
                  
 
 # --------------------------------------------------
@@ -264,6 +232,8 @@ interface = False
 if generator == "manual":
     interface = True
     v.interface = True
+    p.interface = True
+
 
 
 # --------------------------------------------------

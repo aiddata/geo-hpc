@@ -4,6 +4,11 @@ import sys
 # functions for generating user prompts
 class prompts():
 
+    def __init__(self):
+
+        self.interface = True
+
+
     # prompt to continue function
     def user_prompt_bool(self, question):
         valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
@@ -63,8 +68,11 @@ class prompts():
                     else:
                         error = ""
 
-                    if not self.user_prompt_bool("Invalid input " + error + "\nUse a new answer [y] or exit [n]?"):
-                       quit("No answer given at open prompt.")
+                    if self.interface and not self.user_prompt_bool("Invalid input " + error + "\nUse a new answer [y] or exit [n]?"):
+                        quit("No answer given at open prompt.")
+                    elif not self.interface:
+                        quit("Invalid automated input.")
+  
 
                 else:
                     return checked_val
