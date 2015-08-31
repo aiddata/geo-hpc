@@ -7,27 +7,16 @@
 
 import sys
 import os
-# import re
-# import copy
-
 import datetime
-import calendar
-from dateutil.relativedelta import relativedelta
-
-from collections import OrderedDict
 import json
-
-# import pymongo
-# from osgeo import gdal,ogr,osr
+from collections import OrderedDict
 
 from log_validate import validate
 from log_prompt import prompts
 from log_resources import resource_utils
 from log_mongo import update_mongo
 
-
 # --------------------------------------------------
-
 
 script = os.path.basename(sys.argv[0])
 version = "0.1"
@@ -76,7 +65,6 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
     # init - rebuild from scratch
     # update - update core fields and make sure all current fields exist
     # clean - run update but also remove any outdated fields
-
 
     if not dp or init:
         init = 1
@@ -133,14 +121,16 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
 def check_update(var_str, opt=0):
     if interface and update_data_package:
         if not opt:
-            return p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package[var_str]) + "\")")
+            update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package[var_str]) + "\")")
+            return update
         else:
-            return p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package["options"][var_str]) + "\")")
-    else:
-        return False
+            update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package["options"][var_str]) + "\")")
+            return update
+    
+    return False
 
 
-def update_dpval(var_str, val, opt=0):
+def update_datapackage_val(var_str, val, opt=0):
     if not opt:
         data_package[var_str] = val
     else:
@@ -148,47 +138,81 @@ def update_dpval(var_str, val, opt=0):
 
 
 def generic_input(input_type, var_str, in_1, in_2, opt=0):
-
     user_update = check_update(var_str, opt)
 
- 
-    if interface:
- 
-        if not update_data_package or (update_data_package and user_update):
-            
-            if input_type == "open":
-                v.data[var_str] = p.user_prompt_open(in_1, in_2)
-                
-                update_dpval(var_str, v.data[var_str], opt)
+    update_val = None
+    if not user_update:
+        if not opt:
+            update_val = data_package[var_str]
+        else:
+            update_val = data_package["options"][var_str]
 
-            elif input_type == "loop":
-                
-                v.data[var_str] = []
-                c = 1
+
+    if interface:
+
+        if input_type == "open":
+            v.data[var_str] = p.user_prompt_open(in_1, in_2, (user_update, update_val))
+            update_datapackage_val(var_str, v.data[var_str], opt)
+
+        elif input_type == "loop":
+            v.data[var_str] = []
+            c = 1
+
+            if user_update:
                 while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
                     tmp_loop_obj = {}
                     for i in in_2.keys():
-                        tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i])
+                        tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i], (1, None))
+
+                    v.data[var_str].append(tmp_loop_obj)
+                    c += 1
+            else:
+                for x in range(len(update_val)):
+                    tmp_loop_obj = {}
+                    for i in in_2.keys():
+                        tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i], (0, update_val[x][i]))
 
                     v.data[var_str].append(tmp_loop_obj)
                     c += 1
 
-                update_dpval(var_str, v.data[var_str], opt)
+            update_datapackage_val(var_str, v.data[var_str], opt)
+
+
+
+        # if not update_data_package or user_update:
+            
+        #     if input_type == "open":
+        #         v.data[var_str] = p.user_prompt_open(in_1, in_2)
+        #         update_datapackage_val(var_str, v.data[var_str], opt)
+
+        #     elif input_type == "loop":
+        #         v.data[var_str] = []
+        #         c = 1
+        #         while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
+        #             tmp_loop_obj = {}
+        #             for i in in_2.keys():
+        #                 tmp_loop_obj[i] = p.user_prompt_open(in_1 +" "+str(c)+" "+str(i)+":", in_2[i])
+
+        #             v.data[var_str].append(tmp_loop_obj)
+        #             c += 1
+
+        #         update_datapackage_val(var_str, v.data[var_str], opt)
+
 
 
         # elif update_data_package and not user_update:
-            # v.data[var_str] = data_package[var_str] 
-            # validate anyway - in case validation function changed
-            # force to enter new input if needed
-            # 
+        #     v.data[var_str] = data_package[var_str] 
 
-            # update_dpval(var_str, v.data[var_str], opt)
+        #     # validate anyway - in case validation function changed
+        #     # force to enter new input if needed
+        #     # 
+
+        #     # update_datapackage_val(var_str, v.data[var_str], opt)
+
 
 
     else:
-
         if input_type == "open":
-
             if not var_str in v.data:
                 v.data[var_str] = v.fields[var_str]["default"]
 
@@ -209,13 +233,10 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
             if not valid:
                 quit("Bad automated input " + error)
 
-            update_dpval(var_str, answer, opt)
-
+            update_datapackage_val(var_str, answer, opt)
 
         elif input_type == "loop":
-
-            update_dpval(var_str, v.data[var_str], opt)
-
+            update_datapackage_val(var_str, v.data[var_str], opt)
                  
 
 # --------------------------------------------------
@@ -252,11 +273,10 @@ if generator == "manual":
 # base path
 # get base path
 if interface:
-    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /sciclone/aiddata10/REU/data/path/to/dataset)", v.is_dir)
+    v.data["base"] = p.user_prompt_open("Absolute path to root directory of dataset? (eg: /sciclone/aiddata10/REU/data/path/to/dataset)", v.is_dir, (1, None))
 
     if "REU/data/boundaries" in v.data["base"] and not p.user_prompt_bool("Warning: boundary files will be modified/overwritten/deleted during process. Make sure you have a backup. Continue?"):
         quit("User request - boundary backup.")
-
 
 elif not "base" in v.data:
     quit("No datapackage path given.")
@@ -361,7 +381,7 @@ flist = [
 ]
 
 for f in flist:
-    generic_input(f["type"], update_data_package, f["id"], f["in_1"], f["in_2"])
+    generic_input(f["type"], f["id"], f["in_1"], f["in_2"])
 
 
 # --------------------
@@ -401,26 +421,22 @@ elif data_package["type"] == "boundary":
     # run check on group to prep for group_class selection
     v.run_group_check(data_package['options']['group'])
 
-    # do not recheck if group already set
-    # probably should allow this, currently does not work due to requiring fields set during initial validation
-    if not update_data_package:
         
-        # boundary class
-        # only a single actual may exist for a group
-        if v.is_actual or (update_data_package and data_package["options"]["group_class"] == "actual"):
-            data_package["options"]["group_class"] = "actual"
+    # boundary class
+    # only a single actual may exist for a group
+    if v.is_actual:
+        data_package["options"]["group_class"] = "actual"
+    
+    elif v.actual_exists[data_package["options"]["group"]]:
+        # force sub if actual exists
+        data_package["options"]["group_class"] = "sub"
+    
+    else:
+        generic_input("open", "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
         
-        elif v.actual_exists[data_package["options"]["group"]] or (update_data_package and data_package["options"]["group_class"] == "sub"):
-            # force sub if actual exists
-            data_package["options"]["group_class"] = "sub"
+        if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
+            v.new_boundary = True
         
-        else:
-            generic_input("open", "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
-            
-            if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
-                v.new_boundary = True
-            
-
 
 # --------------------
 # option to review inputs
@@ -432,7 +448,6 @@ if interface and p.user_prompt_bool("Would you like to review your inputs?"):
     # option to quit or continue
     if not p.user_prompt_bool("Continue with these inputs?"):
         quit("User request - rejected inputs.")
-
 
 
 # print data_package
@@ -456,8 +471,6 @@ if update_data_package and interface and not p.user_prompt_bool("Run resource ch
     quit("User request - update completed but without resource run")
 
 
-
-
 # resource utils class instance
 ru = resource_utils()
 
@@ -470,9 +483,8 @@ for root, dirs, files in os.walk(data_package["base"]):
 
         file_check = ru.run_file_check(file, data_package["file_extension"])
 
-        if file_check == True:
+        if file_check == True and not file.endswith('simplified.geojson'):
             ru.file_list.append(file)
-
 
 
 # iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
@@ -509,7 +521,6 @@ for f in ru.file_list:
 
             f_count += 1
 
-
         # exit if basic geo does not match
         if base_geo != geo_ext:
             quit("Raster bounding box does not match")
@@ -545,11 +556,8 @@ for f in ru.file_list:
             f_count += 1
 
 
-
-
         elif data_package["type"] == "boundary" and f_count > 0:     
             quit("Boundaries must be submitted individually.")
-
 
         else:
             # - run something similar to ru.vector_envelope
@@ -581,7 +589,7 @@ for c in range(len(geo_ext)):
 # spatial
 # get generic spatial data for rasters
 # something else for vectors?
-ru.spatial = { 
+ru.spatial = {
                 "type": "Polygon", 
                 "coordinates": [ [
                     geo_ext[0],
@@ -607,46 +615,9 @@ elif update_data_package and data_package["type"] != "boundary" and ru.spatial !
     if interface and not p.user_prompt_bool("The geometry of your dataset does not match the existing geometry, do you wish to continue? (Warning: This dataset will need to be reindexed in all trackers)"):
         quit("User request - dataset geometry change.")
 
+
 # --------------------------------------------------
 # temporal data and resource meta information
-
-
-def run_file_mask(fmask, fname, fbase=0):
-
-    if fbase and fname.startswith(fbase):
-        fname = fname[fname.index(fbase) + len(fbase) + 1:]
-
-    output = {
-        "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y' and x.isdigit()]),
-        "month": "".join([x for x,y in zip(fname, fmask) if y == 'M' and x.isdigit()]),
-        "day": "".join([x for x,y in zip(fname, fmask) if y == 'D' and x.isdigit()])
-    }
-
-    return output
-
-
-def validate_date(date_obj):
-    # year is always required
-    if date_obj["year"] == "":
-        return False, "No year found for data."
-
-    # full 4 digit year required
-    elif len(date_obj["year"]) != 4:
-        return False, "Invalid year."
-
-    # months must always use 2 digits 
-    elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
-        return False, "Invalid month."
-
-    # days of month (day when month is given) must always use 2 digits
-    elif date_obj["month"] != "" and date_obj["day"] != "" and len(date_obj["day"]) != 2:
-        return False, "Invalid day of month."
-
-    # days of year (day when month is not given) must always use 3 digits
-    elif date_obj["month"] == "" and date_obj["day"] != "" and len(date_obj["day"]) != 3:
-        return False, "Invalid day of year."
-
-    return True, None
 
 
 # validate file_mas
@@ -656,52 +627,18 @@ def validate_file_mask(vmask):
     if vmask == "None":
         return True, vmask, None
 
-
     # test file_mask for first file in file_list
-    test_date_str = run_file_mask(vmask, ru.file_list[0], data_package["base"])
-    valid_date = validate_date(test_date_str) 
+    test_date_str = ru.run_file_mask(vmask, ru.file_list[0], data_package["base"])
+    valid_date = ru.validate_date(test_date_str) 
     if valid_date[0] == False:
         return False, None, valid_date[1]
 
     return True, vmask, None
 
 
-def get_date_range(date_obj, drange=0):
-
-    date_type = "None"
-    
-    # year, day of year (7)
-    if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
-        tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
-        tmp_end = tmp_start + relativedelta(days=drange)
-        date_type = "day of year"
-
-    # year, month, day (8)
-    if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
-        tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
-        tmp_end = tmp_start + relativedelta(days=drange)
-        date_type = "year month day"
-
-    # year, month (6)
-    if date_obj["month"] != "" and date_obj["day"] == "":   
-        tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
-        month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
-        tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
-        date_type = "year month"
-
-    # year (4)
-    if date_obj["month"] == "" and date_obj["day"] == "":   
-        tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
-        tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
-        date_type = "year"
-
-    return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
-
-
-
 # file mask identifying temporal attributes in path/file names
 generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
-print data_package["file_mask"]
+# print data_package["file_mask"]
 
 
 if data_package["file_mask"] == "None":
@@ -716,7 +653,7 @@ else:
     # name for temporal data format
     ru.temporal["name"] = "Date Range"
     ru.temporal["format"] = "%Y%m%d"
-    ru.temporal["type"] = get_date_range(run_file_mask(data_package["file_mask"], ru.file_list[0], data_package["base"]))[2]
+    ru.temporal["type"] = ru.get_date_range(ru.run_file_mask(data_package["file_mask"], ru.file_list[0], data_package["base"]))[2]
 
     # day range for each file (eg: MODIS 8 day composites) 
     use_day_range = False
@@ -725,9 +662,6 @@ else:
 
     if use_day_range or "day_range" in v.data:
         generic_input("open", "day_range", "File day range? (Must be integer)", v.day_range)
-
-
-
 
 
 for f in ru.file_list:
@@ -757,19 +691,18 @@ for f in ru.file_list:
         # get unique time range based on dir path / file names
 
         # get data from mask
-        date_str = run_file_mask(data_package["file_mask"], resource_tmp["path"])
+        date_str = ru.run_file_mask(data_package["file_mask"], resource_tmp["path"])
 
-        validate_date_str = validate_date(date_str)
+        validate_date_str = ru.validate_date(date_str)
 
         if not validate_date_str[0]:
             quit(validate_date_str[1])
 
 
         if "day_range" in data_package:
-            range_start, range_end, range_type = get_date_range(date_str, data_package["day_range"])
-
+            range_start, range_end, range_type = ru.get_date_range(date_str, data_package["day_range"])
         else: 
-            range_start, range_end, range_type = get_date_range(date_str)
+            range_start, range_end, range_type = ru.get_date_range(date_str)
 
         # name (unique among this dataset's resources - not same name as dataset)
         resource_tmp["name"] = data_package["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
@@ -795,12 +728,9 @@ for f in ru.file_list:
 
     # update dataset temporal info
     if not ru.temporal["start"] or range_start < ru.temporal["start"]:
-      ru.temporal["start"] = range_start
-
+        ru.temporal["start"] = range_start
     elif not ru.temporal["end"] or range_end > ru.temporal["end"]:
-      ru.temporal["end"] = range_end
-
-
+        ru.temporal["end"] = range_end
 
 
 data_package["temporal"] = ru.temporal
@@ -830,48 +760,4 @@ if core_update_status == 0:
 
 # call/do ckan stuff eventually
 # 
-
-
-# --------------------------------------------------
-
-
-# # build dictionary for mongodb insert
-# mdata = {
-    
-#     # generation info
-#     "datapackage_script": data_package["datapackage_script"],
-#     "datapackage_version": data_package["datapackage_version"],
-#     "datapackage_generator": data_package["datapackage_generator"],
-
-#     # path to parent datapackage dir
-#     "datapackage_path": data_package["base"],
-#     # parent datapackage name (ie: group field)
-#     "datapackage_name": data_package["name"],
-
-
-#     # datapackage
-#     "title": data_package["title"],
-#     "version": data_package["version"],
-#     "licenses": data_package["licenses"],
-#     "citation": data_package["citation"],
-#     "sources": data_package["sources"],
-#     "source_link": data_package["source_link"],
-#     "short": data_package["short"],
-#     "variable_description": data_package["variable_description"],
-#     "type": data_package["type"],
-#     "file_format": data_package["file_format"],
-#     "file_extension": data_package["file_extension"],
-#     "scale": data_package["scale"],
-
-#     # resource spatial
-#     "loc": ru.spatial,
-
-#     # file specific info from resource_tmp
-#     "name": resource_tmp["name"],
-#     "path": resource_tmp["path"],
-#     "bytes": resource_tmp["bytes"],
-#     "start": resource_tmp["start"],
-#     "end": resource_tmp["end"]
-
-# }
 

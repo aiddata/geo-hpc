@@ -81,6 +81,14 @@ class validate():
         self.file_format = val
 
 
+    def load_mongo(self):
+        if not self.use_mongo:
+            self.use_mongo = True
+            self.client = pymongo.MongoClient()
+            self.db = self.client.asdf
+            self.c_data = self.db.data
+
+
     # -------------------------
     # input validation functions
 
@@ -105,11 +113,7 @@ class validate():
         if self.interface and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
+        self.load_mongo()
 
         # check mongodb
         if not "name" in self.data or ("name" in self.data and val != self.data["name"]):
@@ -137,11 +141,7 @@ class validate():
         if self.interface and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
+        self.load_mongo()
 
         # check mongodb
         if not "mini_name" in self.data or ("mini_name" in self.data and val != self.data["mini_name"]):
@@ -158,7 +158,14 @@ class validate():
 
     # each extract type in extract_types
     def license_types(self, val):
-        valx = [x.strip(' ') for x in val.split(",")]
+
+        if isinstance(val, list):
+            valx = [v['id'] for v in val]
+        elif isinstance(val, str):
+            valx = [x.strip(' ') for x in val.split(",")]
+        else:
+            return False, 0, "Invalid input type"
+
 
         if len(valx) == 1 and valx[0] == "":
             return True, [], None
@@ -182,9 +189,17 @@ class validate():
         valid = self.file_format in self.types["file_extensions"].keys() and val in self.types["file_extensions"][self.file_format]
         return valid, val, self.error["file_extension"]
 
+
     # each extract type in extract_types
     def extract_types(self, val):
-        vals = [x.strip(' ') for x in val.split(",")]
+
+        if isinstance(val, list):
+            vals = val
+        elif isinstance(val, str):
+            vals = [x.strip(' ') for x in val.split(",")]
+        else:
+            return False, 0, "Invalid input type"
+
         valid = False not in [x in self.types["extracts"] for x in vals]
         return valid, vals, self.error["extract_types"]
 
@@ -231,11 +246,7 @@ class validate():
             return False, None, "group name can not be \"data\""
 
 
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
+        self.load_mongo()
 
 
         val = str(val)
@@ -270,19 +281,22 @@ class validate():
     # runs check on selected group to determine parameters used in group_check selection
     # parameters: group_exists, actual_exists, is_actual
     def run_group_check(self, group):
+
+        self.load_mongo()
+
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0
        
         self.actual_exists = {}
-        self.actual_exists[val] = False
+        self.actual_exists[group] = False
 
         if exists:
             self.group_exists = True
 
-            search_actual = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1)
-            self.actual_exists[val] =  search_actual.count() > 0
+            search_actual = self.c_data.find({"type": "boundary", "options.group": group, "options.group_class": "actual"}).limit(1)
+            self.actual_exists[group] =  search_actual.count() > 0
 
-            if self.actual_exists[val]:
+            if self.actual_exists[group]:
 
                 # case where updating actual
                 if search_actual[0]["base"] == self.data["base"]:

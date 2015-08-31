@@ -4,6 +4,10 @@ import sys
 import os
 import json
 
+import datetime
+import calendar
+from dateutil.relativedelta import relativedelta
+
 # import shapefile
 # import itertools
 
@@ -39,6 +43,11 @@ class resource_utils():
             return False
 
         return True
+
+
+
+    # --------------------------------------------------
+    # spatial functions
 
 
     # get bounding box
@@ -239,4 +248,80 @@ class resource_utils():
     #         return 1
 
 
+
+    # --------------------------------------------------
+    # temporal functions
+    
+
+    # extract temporal data from file name
+    def run_file_mask(self, fmask, fname, fbase=0):
+
+        if fbase and fname.startswith(fbase):
+            fname = fname[fname.index(fbase) + len(fbase) + 1:]
+
+        output = {
+            "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y' and x.isdigit()]),
+            "month": "".join([x for x,y in zip(fname, fmask) if y == 'M' and x.isdigit()]),
+            "day": "".join([x for x,y in zip(fname, fmask) if y == 'D' and x.isdigit()])
+        }
+
+        return output
+
+
+    # validate a date object
+    def validate_date(self, date_obj):
+        # year is always required
+        if date_obj["year"] == "":
+            return False, "No year found for data."
+
+        # full 4 digit year required
+        elif len(date_obj["year"]) != 4:
+            return False, "Invalid year."
+
+        # months must always use 2 digits 
+        elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
+            return False, "Invalid month."
+
+        # days of month (day when month is given) must always use 2 digits
+        elif date_obj["month"] != "" and date_obj["day"] != "" and len(date_obj["day"]) != 2:
+            return False, "Invalid day of month."
+
+        # days of year (day when month is not given) must always use 3 digits
+        elif date_obj["month"] == "" and date_obj["day"] != "" and len(date_obj["day"]) != 3:
+            return False, "Invalid day of year."
+
+        return True, None
+
+    
+    # generate date range and date type from date object
+    def get_date_range(self, date_obj, drange=0):
+
+        date_type = "None"
         
+        # year, day of year (7)
+        if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
+            tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
+            tmp_end = tmp_start + relativedelta(days=drange)
+            date_type = "day of year"
+
+        # year, month, day (8)
+        if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
+            tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
+            tmp_end = tmp_start + relativedelta(days=drange)
+            date_type = "year month day"
+
+        # year, month (6)
+        if date_obj["month"] != "" and date_obj["day"] == "":   
+            tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
+            month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
+            tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
+            date_type = "year month"
+
+        # year (4)
+        if date_obj["month"] == "" and date_obj["day"] == "":   
+            tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
+            tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
+            date_type = "year"
+
+        return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
+

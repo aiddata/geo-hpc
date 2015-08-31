@@ -41,21 +41,27 @@ class prompts():
 
 
     # open ended user prompt
-    def user_prompt_open(self, question, check):
+    def user_prompt_open(self, question, check, new_val=(0,0) ):
 
         while True:
-            sys.stdout.write(question + " \n> ")
-            raw_answer = raw_input()
 
-            use_answer = self.user_prompt_use_input(value=raw_answer)
+            if not new_val[0]:
+                raw_answer = new_val[1] 
+                use_answer = True
+            else:
+                sys.stdout.write(question + " \n> ")
+                raw_answer = raw_input()
+                use_answer = self.user_prompt_use_input(value=raw_answer)
 
             if use_answer:
                 valid, checked_val, error = check(raw_answer)
                 
                 if not valid:
-                    error = ""
+
                     if error != None:
                         error = "("+error+")"
+                    else:
+                        error = ""
 
                     if not self.user_prompt_bool("Invalid input " + error + "\nUse a new answer [y] or exit [n]?"):
                        quit("No answer given at open prompt.")
