@@ -252,16 +252,16 @@ elif not "base" in v.data:
     quit("No datapackage path given.")
 
 
-# check datapackage.json exists at path 
-if interface and os.path.isfile(v.data["base"]+"/datapackage.json"):
+# check datapackage exists for path 
+dp_exists, data_package = v.datapackage_exists(v.data["base"])
+
+if interface and dp_exists:
+
     # true: update protocol
     clean_data_package = p.user_prompt_bool("Remove outdated fields (if they exist) from existing datapackage?")
 
-    data_package = json.load(open(v.data["base"]+"/datapackage.json", 'r'), object_pairs_hook=OrderedDict)
     data_package = init_datapackage(dp=data_package, update=1, clean=clean_data_package)
     update_data_package = True
-
-    # quit("Datapackage already exists.")
 
 else:
     # false: creation protocol
@@ -349,6 +349,8 @@ flist = [
         "in_2": v.data_type
     }
 ]
+
+print data_package['name']
 
 for f in flist:
     generic_input(f["type"], f["id"], f["in_1"], f["in_2"])

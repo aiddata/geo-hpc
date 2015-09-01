@@ -57,17 +57,17 @@ class validate():
         # current datapackage fields
         self.fields = json.load(open(self.dir_base + "/fields.json", 'r'), object_pairs_hook=OrderedDict)
 
-        # mongo stuff
-        self.use_mongo = False
+        # init mongo
+        self.client = pymongo.MongoClient()
+        self.db = self.client.asdf
+        self.c_data = self.db.data
 
-        self.client = None # pymongo.MongoClient()
-        self.db = None # self.client.asdf
-        self.c_data = None # self.db.data
-
+        # group / group_class variables
         self.group_exists = False
         self.actual_exists = {}
         self.is_actual = False
 
+        # boundary change variables
         self.new_boundary = False
         self.update_geometry = False
 
@@ -75,18 +75,37 @@ class validate():
     # -------------------------
     #  misc functions
 
+    # check if datapackage exists for given base path in mongo
+    # return datapackage if it does
+    def datapackage_exists(self, base):
+
+        search = self.c_data.find({"base": base}).limit(1)
+
+        exists = search.count() > 0       
+
+        datapackage = 0
+        if exists:
+            datapackage = search[0]
+
+        return exists, OrderedDict(datapackage)
+
+
+    # # check if datapackage json exists for given base path
+    # # return datapackage if it does
+    # def datapackage_exists(self, base):
+
+    #     exists = os.path.isfile(base+"/datapackage.json")
+
+    #     datapackage = 0
+    #     if exists:
+    #         datapackage = json.load(open(base+"/datapackage.json", 'r'), object_pairs_hook=OrderedDict)
+
+    #     return exists, datapackage
+
 
     # set file format 
     def update_file_format(self, val):
         self.file_format = val
-
-
-    def load_mongo(self):
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
 
 
     # -------------------------
@@ -113,8 +132,7 @@ class validate():
         if self.interface and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
-        self.load_mongo()
-
+        
         # check mongodb
         if not "name" in self.data or ("name" in self.data and val != self.data["name"]):
             unique_search = self.c_data.find({"name": val}).limit(1)
@@ -141,8 +159,7 @@ class validate():
         if self.interface and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
-        self.load_mongo()
-
+        
         # check mongodb
         if not "mini_name" in self.data or ("mini_name" in self.data and val != self.data["mini_name"]):
             unique_search = self.c_data.find({"mini_name": val}).limit(1)
@@ -245,10 +262,6 @@ class validate():
         if val == "data":
             return False, None, "group name can not be \"data\""
 
-
-        self.load_mongo()
-
-
         val = str(val)
 
         name = self.data["name"]
@@ -267,7 +280,7 @@ class validate():
         elif exists:
             actual_exists = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
 
-            if not actual_exists and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" exists. Do you wish to continue?" ):
+            if not actual_exists and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" does not exist. Do you wish to continue?" ):
                 return False, None, "group did not pass due to user request - existing group actual"
 
         return True, str(val), None
@@ -282,8 +295,7 @@ class validate():
     # parameters: group_exists, actual_exists, is_actual
     def run_group_check(self, group):
 
-        self.load_mongo()
-
+        
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0
        
