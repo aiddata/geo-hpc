@@ -3,7 +3,7 @@
 
 library("rgdal")
 library("raster")
-library("maptools")
+# library("maptools")
 
 
 readIn <- commandArgs(trailingOnly = TRUE)
@@ -11,23 +11,28 @@ readIn <- commandArgs(trailingOnly = TRUE)
 
 # =========================
 
-vector <- readIn[1]
-raster <- readIn[2]
-output <- readIn[3]
-extract_type <- readIn[4]
+vector_path <- readIn[1]
+vector_layer <- readIn[2]
+raster <- readIn[3]
+output <- readIn[4]
+extract_type <- readIn[5]
 
 # =========================
 
 
-r_vector <- readShapePoly(vector)
+# r_vector <- readShapePoly(vector)
+r_vector <- readOGR(vector_path, vector_layer)
 
 r_raster <- raster(raster) 
 
 
 timer <- proc.time()
 
-r_extract <- extract(r_raster, r_vector, fun=mean, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
-# r_extract <- extract(r_raster, r_vector, fun=mean, sp=TRUE, na.rm=TRUE)
+if (extract_type == "mean") {
+    r_extract <- extract(r_raster, r_vector, fun=extract_type, sp=TRUE, weights=TRUE, small=TRUE, na.rm=TRUE)
+} else {
+    r_extract <- extract(r_raster, r_vector, fun=extract_type, sp=TRUE, na.rm=TRUE)
+}
 
 timer <- proc.time() - timer
 

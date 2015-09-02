@@ -7,13 +7,7 @@ import os
 import errno
 import time
 
-# import subprocess as sp
-
-from rpy2.robjects.packages import importr
-from rpy2 import robjects
-
-# import rasterstats as rs
-# import pandas as pd
+from numpy import isnan
 
 
 # inputs from jobscript
@@ -49,6 +43,8 @@ extract_type = sys.argv[9]
 # output folder
 output_base = sys.argv[10]
 
+# extract method
+extract_method = sys.argv[11]
 
 # ==================================================
 
@@ -66,12 +62,13 @@ if not os.path.exists(path_base):
     sys.exit("path_base is not valid ("+ path_base +")")
 
 
+# available extract types and associated identifiers
 extract_options = {
-    "mean": "e"#,
-    # "max": "x",
-    # "sum": "s",
     # "var": "v",
-    # "std": "d"
+    # "std": "d",
+    "sum": "s",
+    "max": "x",
+    "mean": "e"
 }
 
 # validate input extract type
@@ -104,6 +101,51 @@ else:
     sys.exit("invalid vector extension (" + vector_extension + ")")
 
 
+
+# load packages and init for specified extract method
+if extract_method == "rscript":
+    
+    import subprocess as sp
+
+    e_vector = vector_info
+
+elif extract_method == "rpy2":
+
+    from rpy2.robjects.packages import importr
+    from rpy2 import robjects
+
+    # try loading rpy2 packages, open vector file and other init
+    try:
+        # load packages
+        rlib_rgdal = importr("rgdal")
+        rlib_raster = importr("raster")
+
+        # open vector files
+        r_vector = rlib_rgdal.readOGR(vector_info[0], vector_info[1])
+
+        # list of valid extract types with r functions
+        extract_funcs = {
+            "sum": robjects.r.sum,
+            "max": robjects.r.max,
+            "mean": robjects.r.mean
+        }
+
+        e_vector = r_vector
+
+    except:
+        sys.exit("rpy2 initialization failed")
+
+elif extract_method == "python":
+
+    import rasterstats as rs
+
+    e_vector = vector
+
+else:
+    sys.exit("invalid extract method (" + extract_method + ")")
+
+
+
 # creates directories
 def make_dir(path):
     try:
@@ -113,42 +155,27 @@ def make_dir(path):
             raise
 
 
+# run R extract script using subprocess call
+def rscript_extract(vector, raster, output, extract_type):
+    try:  
 
-# # run R extract script using subprocess call
-# def rscript_extract(vector, raster, output, extract_type):
-#     try:  
+        # buildt command for Rscript
+        cmd = "Rscript extract.R " + vector[0] +" "+ vector[1] +" "+ raster +" "+ output +" "+ extract_type
+        print cmd
 
-#         cmd = "Rscript extract.R " + vector +" "+ raster +" "+ output +" "+ extract_type
-#         print cmd
+        # spawn new process for Rscript
+        sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+        print sts
 
-#         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-#         print sts
-
-#     except sp.CalledProcessError as sts_err:                                                                                                   
-#         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
-
-
-
-# try loading rpy2 packages, open vector file and other init
-try:
-    rlib_rgdal = importr("rgdal")
-    rlib_raster = importr("raster")
-
-    r_vector = rlib_rgdal.readOGR(vector_info[0], vector_info[1])
-
-    # list of valid extract types with r functions
-    extract_funcs = {
-        "mean": robjects.r.mean
-    }
-
-except:
-    sys.exit("rpy2 initialization failed")
+    except sp.CalledProcessError as sts_err:                                                                                                   
+        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
 
 # run extract using rpy2
 def rpy2_extract(r_vector, raster, output, extract_type):
 
     try:
+        # open raster
         r_raster = rlib_raster.raster(raster)
 
         # *** need to implement different kwargs based on extract type ***
@@ -158,7 +185,9 @@ def rpy2_extract(r_vector, raster, output, extract_type):
             kwargs = {"fun":extract_funcs[extract_type], "sp":True, "na.rm":True}
 
         Te_start = int(time.time())
+
         robjects.r.assign('r_extract', rlib_raster.extract(r_raster, r_vector, **kwargs))
+
         Te_run = int(time.time() - Te_start)
         print 'extract ('+ output +') completed in '+ str(Te_run) +' seconds'
 
@@ -174,21 +203,45 @@ def rpy2_extract(r_vector, raster, output, extract_type):
         return False, "R extract failed"
 
 
+# run extract user rasterstats
+def python_extract(vector, raster, output, extract_type):
 
-# def python_extract(vector, raster, output, extract_type):
+    try:
+        Te_start = int(time.time())
 
-#     try:
-#         stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True)
-#         out = open(output+".csv", "w")
-#         out.write(rs.utils.stats_to_csv(stats))
+        stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True)
 
-#         return True
+        Te_run = int(time.time() - Te_start)
+        print 'extract ('+ output +') completed in '+ str(Te_run) +' seconds'
 
-#     except:
-#         if os.path.isfile(output+".csv"):
-#             os.remove(output+".csv")
+        for i in stats:
+             i["ad_extract"] = i.pop(extract_type)
+             if isnan(i["ad_extract"]):
+                i["ad_extract"] = "NA"
+        
+        out = open(output+".csv", "w")
+        out.write(rs.utils.stats_to_csv(stats))
 
-#         return False
+        return True
+
+    except:
+        if os.path.isfile(output+".csv"):
+            os.remove(output+".csv")
+
+        return False
+
+
+# run proper extract based on extract method
+def run_extract(in_vector, in_raster, in_output, in_extract_type, in_extract_method):
+    
+    if in_extract_method == "rscript":
+        rscript_extract(in_vector, in_raster, in_output, in_extract_type)
+
+    elif in_extract_method == "rpy2":
+        rpy2_extract(in_vector, in_raster, in_output, in_extract_type)
+
+    elif in_extract_method == "python":
+        python_extract(in_vector, in_raster, in_output, in_extract_type)
 
 
 # ==================================================
@@ -240,14 +293,15 @@ if run_option == "1":
     # output = output_base + "/projects/" + bnd_name + "/extracts/" + data_name + "/extract"
     output = output_dir +"/"+ data_mini +"_"+ "e"
 
-    rscript_extract(vector, raster, output, extract_type)
+    run_extract(e_vector, raster, output, extract_type, extract_method)
+
+    # rscript_extract(vector, raster, output, extract_type)
     # rpy2_extract(r_vector, raster, output, extract_type)
     # python_extract(vector, raster, output, extract_type)
 
 
 # temporal dataset
 else:
-
 
     # year
     if run_option == "2":
@@ -302,8 +356,10 @@ else:
         # output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
         output = output_dir + "/" + data_mini +"_"+ ''.join([str(e) for e in item[0]]) + extract_options[extract_type]
 
+        run_extract(e_vector, raster, output, extract_type, extract_method)
+        
         # rscript_extract(vector, raster, output, extract_type)
-        rpy2_extract(r_vector, raster, output, extract_type)
+        # rpy2_extract(r_vector, raster, output, extract_type)
         # python_extract(vector, raster, output, extract_type)
 
         c += size
@@ -312,11 +368,11 @@ else:
     comm.Barrier()
 
 
-    if rank == 0:
-        T_run = int(time.time() - Ts)
-        T_end = time.localtime()
-        print '\n\n'
-        print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
-        print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
-        print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
+if rank == 0:
+    T_run = int(time.time() - Ts)
+    T_end = time.localtime()
+    print '\n\n'
+    print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
+    print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
+    print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
 

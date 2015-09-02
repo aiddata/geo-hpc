@@ -75,10 +75,15 @@
 # extract outputs will be in <output_base>/extracts/<bnd_name>/cache/<data_name>/<extract_type>/extract.csv
 # set output_base = "/sciclone/aiddata10/REU/extracts"
 
+# extract method
+# (rscript, rpy2, python)
+# set extract_method = "rscript"
 
-set bnd_name = "wb_vfm_matching_ibas"
-set bnd_absolute = "/sciclone/aiddata10/REU/extracts/wb_vfm_matching_ibas/shps/matching_ibas_proj.shp"
+
+set bnd_name = "wb_pc1"
+set bnd_absolute = "/sciclone/aiddata10/REU/extracts/wb_pc1/shps/wb_pc1.geojson"
 set output_base = "/sciclone/aiddata10/REU/extracts"
+set extract_method = "python"
 
 
 # set run_option = 1
@@ -175,4 +180,4 @@ cd $PBS_O_WORKDIR
 
 # mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
 
-mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
+mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base" "$extract_method"
