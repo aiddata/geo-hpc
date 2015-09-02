@@ -144,9 +144,9 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
     update_val = None
     if not user_update:
         if not opt:
-            update_val = data_package[var_str]
+            update_val = v.data[var_str]
         else:
-            update_val = data_package["options"][var_str]
+            update_val = v.data["options"][var_str]
 
 
     # if interface:
@@ -228,6 +228,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "auto":
         quit("Bad inputs.")
 
 
+dp_exists = False
 interface = False
 if generator == "manual":
     interface = True
@@ -248,19 +249,21 @@ if interface:
     if "REU/data/boundaries" in v.data["base"] and not p.user_prompt_bool("Warning: boundary files will be modified/overwritten/deleted during process. Make sure you have a backup. Continue?"):
         quit("User request - boundary backup.")
 
+    # check datapackage exists for path 
+    dp_exists, v.data = v.datapackage_exists(v.data["base"])
+
 elif not "base" in v.data:
     quit("No datapackage path given.")
 
 
-# check datapackage exists for path 
-dp_exists, data_package = v.datapackage_exists(v.data["base"])
+
 
 if interface and dp_exists:
 
     # true: update protocol
     clean_data_package = p.user_prompt_bool("Remove outdated fields (if they exist) from existing datapackage?")
 
-    data_package = init_datapackage(dp=data_package, update=1, clean=clean_data_package)
+    data_package = init_datapackage(dp=v.data, update=1, clean=clean_data_package)
     update_data_package = True
 
 else:
@@ -350,7 +353,7 @@ flist = [
     }
 ]
 
-print data_package['name']
+print v.data
 
 for f in flist:
     generic_input(f["type"], f["id"], f["in_1"], f["in_2"])
