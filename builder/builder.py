@@ -13,18 +13,18 @@ batch_name = "wb_pc1"
 
 project_id = "wb"
 
-node_count = 2
+node_count = 1
 run_hours = 12
 
-# node_type = "xeon" 
-node_type = "xeon"
+# node_type = "xeon"
+node_type = "vortex" 
 
 ppn_default = {
     'xeon': 8,
     'vortex': 12
 }
 
-ppn_override = 0
+ppn_override = 3
 
 if ppn_override > 0:
     ppn = ppn_override
@@ -46,7 +46,7 @@ dset_info = json.load(open(dir_base + '/datasets.json','r'))
 
 
 # specify datasets
-datasets = ["terrestrial_air_temperature_v4.01", "terrestrial_precipitation_v4.01"]
+datasets = ["gpw_v3"]
 
 # all available datasets
 # datasets = dset_info.keys()
