@@ -5,14 +5,13 @@ scripts for preparing, extracting and working with datasets on sciclone
 --------------------------------------------------
 --------------------------------------------------
 
-## generic_extract  
+## extract  
 3rd generation fully integrated extract script which can be used for datasets with any temporal type  
     - includes: year, year month, year day, temporally invariant
 
 
 ## merge  
-merge scripts for use with gen 3 sciclone extract outputs  
-- coming soon
+contains generic merge script (temporally agnostic) for use with gen 3 sciclone extract outputs
 
 
 ## data post
