@@ -14,6 +14,10 @@ scripts for preparing, extracting and working with datasets on sciclone
 contains generic merge script (temporally agnostic) for use with gen 3 sciclone extract outputs
 
 
+## builder (prototype)
+early version of script to automatically create and run jobs for a given selection of datasets
+
+
 ## data post
 postprocessing scripts for working with extract data
 

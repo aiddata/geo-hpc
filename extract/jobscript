@@ -1,7 +1,7 @@
 #!/bin/tcsh
-#PBS -N asg:ge:wb-selv
+#PBS -N asg:ex:wb-dari
 #PBS -l nodes=1:vortex:compute:ppn=1
-#PBS -l walltime=72:00:00
+#PBS -l walltime=02:00:00
 #PBS -j oe
 
 
@@ -86,13 +86,13 @@ set output_base = "/sciclone/aiddata10/REU/extracts"
 set extract_method = "python"
 
 
-# set run_option = 1
-# set data_base = "/sciclone/aiddata10/REU/data"
-# set data_path = "dist_to_all_rivers/world_allrivsCOMP.tif"
-# set data_name = "dist_to_all_rivers"
-# set data_mini = "dari"
-# set file_mask = "None"
-# set extract_type = "mean"
+set run_option = 1
+set data_base = "/sciclone/aiddata10/REU/data/rasters/external/global"
+set data_path = "dist_to_all_rivers/world_allrivsCOMP.tif"
+set data_name = "dist_to_all_rivers"
+set data_mini = "dari"
+set file_mask = "None"
+set extract_type = "mean"
 
 # set run_option = 1
 # set data_base = "/sciclone/aiddata10/REU/data"
@@ -110,14 +110,13 @@ set extract_method = "python"
 # set file_mask = "None"
 # set extract_type = "mean"
 
-
-set run_option = 1
-set data_base = "/sciclone/aiddata10/REU/data"
-set data_path = "srtm_elevation/SRTM_500m.tif"
-set data_name = "srtm_elevation"
-set data_mini = "selv"
-set file_mask = "None"
-set extract_type = "mean"
+# set run_option = 1
+# set data_base = "/sciclone/aiddata10/REU/data"
+# set data_path = "srtm_elevation/SRTM_500m.tif"
+# set data_name = "srtm_elevation"
+# set data_mini = "selv"
+# set file_mask = "None"
+# set extract_type = "mean"
 
 # set run_option = 1
 # set data_base = "/sciclone/aiddata10/REU/data"
@@ -178,6 +177,6 @@ set extract_type = "mean"
 
 cd $PBS_O_WORKDIR
 
-# mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base"
+# mvp2run -m cyclic python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base" $extract_method"
 
 mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py "$run_option" "$bnd_name" "$bnd_absolute" "$data_base" "$data_path" "$data_name" "$data_mini" "$file_mask" "$extract_type" "$output_base" "$extract_method"
