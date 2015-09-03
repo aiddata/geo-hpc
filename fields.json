@@ -36,8 +36,8 @@
         },
 
         "boundary": {
-            "group": {"default": "None"},
-            "group_class": {"default": 0}
+            "group": {"default": ""},
+            "group_class": {"default": "actual"}
         }
     }
 }

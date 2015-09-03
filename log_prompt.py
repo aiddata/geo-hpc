@@ -6,7 +6,7 @@ class prompts():
 
     def __init__(self):
 
-        self.interface = True
+        self.interface = False
 
 
     # prompt to continue function

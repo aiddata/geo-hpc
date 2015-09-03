@@ -139,6 +139,12 @@ def update_datapackage_val(var_str, val, opt=0):
 
 def generic_input(input_type, var_str, in_1, in_2, opt=0):
 
+    if not interface:
+        if not opt and not var_str in v.data:
+            v.data[var_str] = v.fields[var_str]["default"]
+        elif opt and not var_str in v.data['options']:
+            v.data["options"][var_str] = v.fields['options'][v.data['type']][var_str]["default"]
+
     user_update = check_update(var_str, opt)
 
     update_val = None
@@ -149,9 +155,6 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
             update_val = v.data["options"][var_str]
 
 
-    # if interface:
-
-    # >>> 
     if input_type == "open":
         v.data[var_str] = p.user_prompt_open(in_1, in_2, (user_update, update_val))
 
@@ -177,35 +180,7 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
                 c += 1
 
     update_datapackage_val(var_str, v.data[var_str], opt)
-    # >>>
 
-    # else:
-    #     if input_type == "open":
-    #         if not var_str in v.data:
-    #             v.data[var_str] = v.fields[var_str]["default"]
-
-    #         check_result = in_2(v.data[var_str])
-            
-    #         if type(check_result) != type(True) and len(check_result) == 3:
-    #             valid, answer, error = check_result
-    #         else:
-    #             valid = check_result
-    #             answer = v.data[var_str]
-    #             error = None
-
-    #         if error != None:
-    #             error = " ("+error+")"
-    #         else:
-    #             error = ""
-
-    #         if not valid:
-    #             quit("Bad automated input " + error)
-
-    #         update_datapackage_val(var_str, answer, opt)
-
-    #     elif input_type == "loop":
-    #         update_datapackage_val(var_str, v.data[var_str], opt)
-                 
 
 # --------------------------------------------------
 # user inputs
@@ -236,7 +211,6 @@ if generator == "manual":
     p.interface = True
 
 
-
 # --------------------------------------------------
 # prompts
 
@@ -252,10 +226,8 @@ if interface:
     # check datapackage exists for path 
     dp_exists, v.data = v.datapackage_exists(v.data["base"])
 
-elif not "base" in v.data:
-    quit("No datapackage path given.")
-
-
+elif not "base" in v.data or not os.path.isdir(v.data['base']):
+    quit("Invalid or no base directory provided.")
 
 
 if interface and dp_exists:
@@ -353,7 +325,7 @@ flist = [
     }
 ]
 
-print v.data
+# print v.data
 
 for f in flist:
     generic_input(f["type"], f["id"], f["in_1"], f["in_2"])
@@ -461,6 +433,8 @@ for root, dirs, files in os.walk(data_package["base"]):
         if file_check == True and not file.endswith('simplified.geojson'):
             ru.file_list.append(file)
 
+
+print "\nChecking spatial data ("+data_package["file_format"]+")..."
 
 # iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
 f_count = 0
@@ -639,6 +613,7 @@ else:
         generic_input("open", "day_range", "File day range? (Must be integer)", v.day_range)
 
 
+print '\nProcessing resources...'
 for f in ru.file_list:
     print f
 
@@ -717,11 +692,12 @@ data_package["resources"] = ru.resources
 # database update(s) and datapackage output
 
 
-print "\n\n\n"
+print "\nFinal datapackage..."
 print data_package
 
 
 # update mongo
+print "\nWriting datapackage to system..."
 
 core_update_status = update_db.update_core(data_package)
 
@@ -736,3 +712,4 @@ if core_update_status == 0:
 # call/do ckan stuff eventually
 # 
 
+print "\nDone.\n"
