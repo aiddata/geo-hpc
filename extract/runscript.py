@@ -212,29 +212,45 @@ def python_extract(vector, raster, output, extract_type):
 
         stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True)
 
-        Te_run = int(time.time() - Te_start)
-        print 'extract ('+ output +') completed in '+ str(Te_run) +' seconds'
-
-        for i in stats:
-             i["ad_extract"] = i.pop(extract_type)
-             if isnan(i["ad_extract"]):
-                i["ad_extract"] = "NA"
-        
-        out = open(output+".csv", "w")
-        out.write(rs.utils.stats_to_csv(stats))
-
-        return True
-
     except:
+        print "error with python_extract: " + output
+
         if os.path.isfile(output+".csv"):
             os.remove(output+".csv")
 
         return False
 
 
+    # try:
+    for i in stats:
+        i["ad_extract"] = i.pop(extract_type)
+        try:
+            if isnan(i["ad_extract"]):
+                i["ad_extract"] = "NA"
+        except:
+            i["ad_extract"] = "NA"
+
+    
+    out = open(output+".csv", "w")
+    out.write(rs.utils.stats_to_csv(stats))
+
+    # except:
+    #     if os.path.isfile(output+".csv"):
+    #         os.remove(output+".csv")
+
+    #     return False
+
+
+    Te_run = int(time.time() - Te_start)
+    print 'extract ('+ output +') completed in '+ str(Te_run) +' seconds'
+    return True
+
+
 # run proper extract based on extract method
 def run_extract(in_vector, in_raster, in_output, in_extract_type, in_extract_method):
     
+    print "running extract: " + in_output
+
     if in_extract_method == "rscript":
         rscript_extract(in_vector, in_raster, in_output, in_extract_type)
 
@@ -292,7 +308,7 @@ if run_option == "1":
 
     # full path to output file (without file extension)
     # output = output_base + "/projects/" + bnd_name + "/extracts/" + data_name + "/extract"
-    output = output_dir +"/"+ data_mini +"_"+ "e"
+    output = output_dir +"/"+ data_mini +"_"+ extract_options[extract_type]
 
     run_extract(e_vector, raster, output, extract_type, extract_method)
 

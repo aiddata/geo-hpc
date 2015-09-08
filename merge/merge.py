@@ -10,11 +10,14 @@ import pandas as pd
 
 bnd_name = sys.argv[1]
 
-data_name = sys.argv[2]
+data_list = sys.argv[2].split(',')
 
-extract_type = sys.argv[3]
+extract_types = sys.argv[3].split(',')
 
 output = sys.argv[4]
+
+# dataset name list
+# accessibility_map,dist_to_all_rivers,dist_to_big_rivers,dist_to_roads,ndvi_max_mask_lt6k,srtm_elevation,srtm_slope,terrestrial_air_temperature_v4.01,terrestrial_precipitation_v4.01,v4avg_lights_x_pct,gpw_v3
 
 
 # different method for listing years to ignore/accept
@@ -37,20 +40,13 @@ accept = []
 ignore = [str(e) for e in ignore]
 
 
-extract_base = "/sciclone/aiddata10/REU/extracts/"
-
-extract_dir = extract_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
-
+extract_base = "/sciclone/aiddata10/REU/extracts"
 
 # validate inputs by checking directories exist
 if not os.path.isdir(extract_base):
     sys.exit("Directory for extracts does not exist. You may not be connected to sciclone ("+extract_base+")")
 elif not os.path.isdir(extract_base + "/" + bnd_name):
     sys.exit("Directory for specified bnd_name does not exist (bnd_name: "+bnd_name+")")
-elif not os.path.isdir(extract_base + "/" + bnd_name + "/cache/" + data_name):
-    sys.exit("Directory for specified dataset does not exists (data_name: "+data_name+")")
-elif not os.path.isdir(extract_dir):
-    sys.exit("Directory for specified extract type does not exist (extract_type: "+extract_type+")")
 elif not os.path.isdir(os.path.dirname(output)):
     sys.exit("Directory for output file does not exists ("+output+")")
 elif not output.endswith(".csv") or "" in os.path.splitext(os.path.basename(output)):
@@ -59,39 +55,76 @@ elif not output.endswith(".csv") or "" in os.path.splitext(os.path.basename(outp
 
 Ts = int(time.time())
 
-
-# find and sort all relevant extract files
-rlist = [fname for fname in os.listdir(extract_dir) if fname[5:9] not in ignore and os.path.isfile(extract_dir +"/"+ fname) and fname.endswith(".csv")]
-rlist = sorted(rlist)
-
-
-# exit if no extracts found
-if len(rlist) == 0:
-    sys.exit("No extracts found")
-
-
-print "Merging extracts..."
-
 merge = 0
 
-for item in rlist:
 
-    result_csv = extract_dir +"/"+ item
+mlist = [(d_item, e_item) for d_item in data_list for e_item in extract_types]
+
+print mlist
+
+# exit if no extracts found
+if len(mlist) == 0:
+    sys.exit("No extracts found for specified boundary, datasets and extract types")
+
+
+
+for item in mlist:
+
+    data_name = item[0]
+    extract_type = item[1]
+
+    extract_dir = extract_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
+
+    print "Checking extracts for: " + extract_dir
+
+
+    # validate inputs by checking directories exist
+    if not os.path.isdir(extract_base + "/" + bnd_name + "/cache/" + data_name):
+        sys.exit("\tDirectory for specified dataset does not exists (data_name: "+data_name+")")
+    elif not os.path.isdir(extract_dir):
+        # sys.exit("Directory for specified extract type does not exist (extract_type: "+extract_type+")")
+        print "\tWarning: extract type \"" + extract_type + "\" found for " + data_name
+        continue
+
+
+    # find and sort all relevant extract files
+    rlist = [fname for fname in os.listdir(extract_dir) if fname[5:9] not in ignore and os.path.isfile(extract_dir +"/"+ fname) and fname.endswith(".csv")]
+    rlist = sorted(rlist)
+
+
+    # exit if no extracts found
+    if len(rlist) == 0:
+        print "\tWarning: no extracts found for " + data_name + " " + extract_type
+        continue
     
-    result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
-    if not isinstance(merge, pd.DataFrame):
-        merge = result_df.copy(deep=True)
-        merge.rename(columns={"ad_extract": item[:-4]}, inplace=True)
-
-    else:
-        merge[item[:-4]] = result_df["ad_extract"]
-
-merge.to_csv(output, index=False)
+    print "\tMerging extracts: " + data_name + " " + extract_type 
 
 
-print 'Merge completed for ' + bnd_name +', '+ data_name +', '+ extract_type
-print 'Results output to ' + output
+    for item in rlist:
 
-T_run = int(time.time() - Ts)
-print 'Merge Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
+        result_csv = extract_dir +"/"+ item
+        
+        result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+
+        if not isinstance(merge, pd.DataFrame):
+            merge = result_df.copy(deep=True)
+            merge.rename(columns={"ad_extract": item[:-4]}, inplace=True)
+
+        else:
+            merge[item[:-4]] = result_df["ad_extract"]
+
+
+if isinstance(merge, pd.DataFrame):
+
+    merge.to_csv(output, index=False)
+
+    print 'Merge completed for ' + bnd_name +', '+ data_name +', '+ extract_type
+    print 'Results output to ' + output
+
+    T_run = int(time.time() - Ts)
+    print 'Merge Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
+
+else:
+    print 'Warning: no extracts merged'
+

@@ -9,36 +9,18 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 # script_base = "/home/userz/Desktop"
 script_base = "/sciclone/home00/sgoodman/work/extracts/gen3/extract"
 
-batch_name = "wb_pc1"
+batch_name = "moorea"
 
-project_id = "wb"
-
-node_count = 1
-run_hours = 12
-
-# node_type = "xeon"
-node_type = "vortex" 
-
-ppn_default = {
-    'xeon': 8,
-    'vortex': 12
-}
-
-ppn_override = 3
-
-if ppn_override > 0:
-    ppn = ppn_override
-else:
-    ppn = ppn_default[node_type]
+project_id = "tf"
 
 
 # could get this info from asdf instead of manual input
 # with optional override for non-asdf boundaries
 general_info = {
-    'bnd_name': 'wb_pc1',
-    'bnd_absolute': '/sciclone/aiddata10/REU/extracts/wb_pc1/shps/wb_pc1.geojson',
+    'bnd_name': 'moorea',
+    'bnd_absolute': '/sciclone/aiddata10/REU/extracts/moorea/shps/moorea.shp',
     'output_base': '/sciclone/aiddata10/REU/extracts',
-    'extract_method': 'python'
+    'extract_method': 'rpy2'
 }
 
 # could get this info from asdf instead of using json
@@ -46,10 +28,38 @@ dset_info = json.load(open(dir_base + '/datasets.json','r'))
 
 
 # specify datasets
-datasets = ["gpw_v3"]
+datasets = ["dist_to_all_rivers","dist_to_roads","srtm_elevation","srtm_slope","accessibility_map"]
+# datasets = ["gpw_v3"]
+# datasets = ["ndvi_max_mask_lt6k", "v4avg_lights_x_pct", "terrestrial_air_temperature_v4.01", "terrestrial_precipitation_v4.01"]
 
 # all available datasets
 # datasets = dset_info.keys()
+
+
+node_count = 1
+# node_count = 1
+# node_count = 3
+
+
+run_hours = 36
+
+node_type = "xeon"
+# node_type = "vortex" 
+
+ppn_default = {
+    'xeon': 8,
+    'vortex': 12
+}
+
+ppn_override = 1
+# ppn_override = 3
+# ppn_override = 0
+
+if ppn_override > 0:
+    ppn = ppn_override
+else:
+    ppn = ppn_default[node_type]
+
 
 
 # creates batch job output directory

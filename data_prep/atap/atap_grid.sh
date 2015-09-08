@@ -64,11 +64,18 @@ for item in "$base"/"$src"/*;do
 		mkdir -p "$outpath"
 
 		# create raster from vrt
-		gdal_grid -of GTiff -l "tmp" tmp.vrt "$outpath"/"$file"_"$m".tif
+        tmptif="$out"/tmp.tif
+		gdal_grid -of GTiff -l "tmp" "$tmpvrt" "$tmptif"
+        
+        # fix vrt issue
+        out_raster="$outpath"/"$file"_"$m".tif
+        gdalwarp -srcnodata -1 -dstnodata -1 "$tmptif" "$out_raster"
 
 	done;
 
 done;
 
+
 \rm -f "$tmpcsv"
 \rm -f "$tmpvrt"
+\rm -f "$tmptif"
