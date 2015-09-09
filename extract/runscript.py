@@ -210,7 +210,7 @@ def python_extract(vector, raster, output, extract_type):
     try:
         Te_start = int(time.time())
 
-        stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True)
+        stats = rs.zonal_stats(vector, raster, stats=extract_type, copy_properties=True, all_touched=True)
 
     except:
         print "error with python_extract: " + output
@@ -272,17 +272,24 @@ c = rank
 
 
 # different method for listing years to ignore/accept
-# comment / uncomment as needed
+# comment / uncomment "ignore = ..." lines as needed
+# always use 4 digit integers to specify years
 
 # specify ignore
 ignore = []
 
 # ignore range
-ignore = [str(e) for e in range(1900, 1982)]
+ignore = range(1900, 1982)
 
-# specify accept by using exceptions in ignore range
-# accept = []
-# ignore = [str(e) for e in range(1800, 2100) if str(e) not in accept]
+# specify accept by using exceptions in ignore range 
+# (manually adjust range if years fall outside of 1800-2100)
+accept = []
+# ignore = [i in range(1800, 2100) if i not in accept]
+
+
+# convert years to strings
+ignore = [str(e) for e in ignore]
+
 
 
 output_dir =  output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 

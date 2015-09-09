@@ -40,6 +40,7 @@ for item in "$base"/"$src"/*;do
 	# iterate over fields for each month
 	for x in $(seq 3 14);do
 
+
 		# update tmp.vrt with field for current month
 		cat > tmp.vrt <<-EOF
 		<OGRVRTDataSource>
@@ -62,6 +63,8 @@ for item in "$base"/"$src"/*;do
 
 		outpath="$out"/"$year"/
 		mkdir -p "$outpath"
+
+        echo -e "\n"Processing "$year"_"$m"
 
 		# create raster from vrt
         tmptif="$out"/tmp.tif
