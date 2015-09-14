@@ -31,6 +31,7 @@ p = prompts()
 # update mongo class instance
 update_db = update_mongo()
 
+
 # --------------------------------------------------
 # functions
 
@@ -212,7 +213,7 @@ if generator == "manual":
 
 
 # --------------------------------------------------
-# prompts
+# prompts and independent inputs
 
 
 # base path
@@ -253,21 +254,16 @@ if data_package["base"].endswith("/"):
     v.data["base"] = data_package["base"]
 
 
-# --------------------
-# independent inputs
+# dataset type
+generic_input("open", "type", "Type of data in dataset? (" + ', '.join(v.types["data"])+ ")", v.data_type)
 
-flist = [
+
+flist_core = [
     {
         "id": "name",
         "type": "open",
         "in_1": "Dataset name? (must be unique from existing datasets)", 
         "in_2": v.name
-    },
-    {   
-        "id": "mini_name",
-        "type": "open",
-        "in_1": "Dataset mini name? (must be 4 characters and unique from existing datasets)", 
-        "in_2": v.mini_name
     },
     {   
         "id": "title",
@@ -298,7 +294,10 @@ flist = [
         "type": "open",
         "in_1": "Id of license(s) for dataset? (" + ', '.join(v.types["licenses"]) + ") [separate your input with commas]",
         "in_2": v.license_types
-    },
+    }
+]
+
+flist_additional = [
     {   
         "id": "citation",
         "type": "open",
@@ -312,22 +311,28 @@ flist = [
         "in_2": v.string
     },
     {   
-        "id": "variable_description",
+        "id": "mini_name",
         "type": "open",
-        "in_1": "Description of the variable used in this dataset (units, range, etc.)?", 
-        "in_2": v.string
-    },
-    {   
-        "id": "type",
-        "type": "open",
-        "in_1": "Type of data in dataset? (" + ', '.join(v.types["data"])+ ")", 
-        "in_2": v.data_type
+        "in_1": "Dataset mini name? (must be 4 characters and unique from existing datasets)", 
+        "in_2": v.mini_name
     }
 ]
+    
 
 # print v.data
 
-for f in flist:
+if data_package["type"] in ['boundary', 'raster']:
+    for f in flist_core:
+        generic_input(f["type"], f["id"], f["in_1"], f["in_2"])
+elif data_package["type"] == 'release':
+    # get release datapackage
+    # 
+
+    # copy fields
+    # 
+
+
+for f in flist_additional:
     generic_input(f["type"], f["id"], f["in_1"], f["in_2"])
 
 
@@ -337,14 +342,25 @@ for f in flist:
 # file format (raster or vector)
 if data_package["type"] == "raster":
     data_package["file_format"] = "raster"
-else:
+
+elif data_package["type"] == "boundary":
     data_package["file_format"] = "vector"
+
+elif data_package["type"] == "release":
+    data_package["file_format"] = "release"
+
+else:
+    quit("Invalid dataset type")
 
 
 v.update_file_format(data_package["file_format"])
 
-# file extension (validation depends on file format)
-generic_input("open", "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension)
+
+if data_package["file_format"] == "vector" or data_package["file_format"] == "raster":
+    # file extension (validation depends on file format)
+    generic_input("open", "file_extension", "Primary file extension of data in dataset? (" + ', '.join(v.types["file_extensions"][data_package["file_format"]])+ ")", v.file_extension)
+else:
+    data_package["file_extension"] = ""
 
 
 # raster info
@@ -358,6 +374,9 @@ if data_package["type"] == "raster":
 
     # factor
     generic_input("open", "factor", "Dataset multiplication factor? (if needed. defaults to 1 if blank)", v.factor, opt=True)
+
+    # variable description
+    generic_input("open", "variable_description", "Description of the variable used in this dataset (units, range, etc.)?", v.string, opt=True)
 
 
 # boundary info
@@ -383,7 +402,7 @@ elif data_package["type"] == "boundary":
         
         if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
             v.new_boundary = True
-        
+
 
 # --------------------
 # option to review inputs
@@ -422,24 +441,83 @@ if update_data_package and interface and not p.user_prompt_bool("Run resource ch
 ru = resource_utils()
 
 
-# find all files with file_extension in path
-for root, dirs, files in os.walk(data_package["base"]):
-    for file in files:
+if data_package["file_format"] in ['raster', 'vector']:
 
-        file = os.path.join(root, file)
+    # find all files with file_extension in path
+    for root, dirs, files in os.walk(data_package["base"]):
+        for file in files:
 
-        file_check = ru.run_file_check(file, data_package["file_extension"])
+            file = os.path.join(root, file)
 
-        if file_check == True and not file.endswith('simplified.geojson'):
-            ru.file_list.append(file)
+            file_check = ru.run_file_check(file, data_package["file_extension"])
 
+            if file_check == True and not file.endswith('simplified.geojson'):
+                ru.file_list.append(file)
+
+
+# --------------------------------------------------
+# temporal info
+
+# validate file_mas
+def validate_file_mask(vmask):
+
+    # designates temporally invariant dataset
+    if vmask == "None":
+        return True, vmask, None
+
+    # test file_mask for first file in file_list
+    test_date_str = ru.run_file_mask(vmask, ru.file_list[0], data_package["base"])
+    valid_date = ru.validate_date(test_date_str) 
+    if valid_date[0] == False:
+        return False, None, valid_date[1]
+
+    return True, vmask, None
+
+
+# file mask identifying temporal attributes in path/file names
+generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
+# print data_package["file_mask"]
+
+
+if data_package["file_mask"] == "None":
+
+    # temporally invariant dataset
+    ru.temporal["name"] = "Temporally Invariant"
+    ru.temporal["format"] = "None"
+    ru.temporal["type"] = "None"
+
+elif len(ru.file_list) > 0:
+    
+    # name for temporal data format
+    ru.temporal["name"] = "Date Range"
+    ru.temporal["format"] = "%Y%m%d"
+    ru.temporal["type"] = ru.get_date_range(ru.run_file_mask(data_package["file_mask"], ru.file_list[0], data_package["base"]))[2]
+
+    # day range for each file (eg: MODIS 8 day composites) 
+    use_day_range = False
+    if interface:
+        use_day_range = p.user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
+
+    if use_day_range or "day_range" in v.data:
+        generic_input("open", "day_range", "File day range? (Must be integer)", v.day_range)
+
+else:
+    print("Warning: file mask given but no resources were found")
+    ru.temporal["name"] = "Unknown"
+    ru.temporal["format"] = "Unknown"
+    ru.temporal["type"] = "Unknown"
+
+
+# --------------------------------------------------
+# spatial info
 
 print "\nChecking spatial data ("+data_package["file_format"]+")..."
 
-# iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
-f_count = 0
-for f in ru.file_list:
-    if data_package["file_format"] == "raster":
+if data_package["file_format"] == "raster":
+
+    # iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
+    f_count = 0
+    for f in ru.file_list:
 
         # get basic geo info from each file
         geo_ext = ru.raster_envelope(f)
@@ -475,7 +553,11 @@ for f in ru.file_list:
             quit("Raster bounding box does not match")
 
 
-    elif data_package["file_format"] == 'vector':
+elif data_package["file_format"] == 'vector':
+
+    # iterate over files to get bbox and do basic spatial validation (mainly make sure rasters are all same size)
+    f_count = 0
+    for f in ru.file_list:
 
         # boundary datasets can be multiple files (for administrative zones)
         if data_package["type"] == "boundary" and f_count == 0:
@@ -517,10 +599,17 @@ for f in ru.file_list:
             #  geo_ext = ru.vector_list(ru.file_list)
             quit("Only accepting boundary vectors at this time.")
 
-    else:
-        quit("File format error.")
+
+elif data_package["file_format"] == 'release':
+
+    # geo_ext = ru.release_envelope()
+
+else:
+    quit("Invalid file format.")
 
 
+
+# clip extents if they are outside global bounding box
 for c in range(len(geo_ext)):
     if geo_ext[c][0] < -180:
         geo_ext[c][0] = -180 
@@ -566,54 +655,10 @@ elif update_data_package and data_package["type"] != "boundary" and ru.spatial !
 
 
 # --------------------------------------------------
-# temporal data and resource meta information
-
-
-# validate file_mas
-def validate_file_mask(vmask):
-
-    # designates temporally invariant dataset
-    if vmask == "None":
-        return True, vmask, None
-
-    # test file_mask for first file in file_list
-    test_date_str = ru.run_file_mask(vmask, ru.file_list[0], data_package["base"])
-    valid_date = ru.validate_date(test_date_str) 
-    if valid_date[0] == False:
-        return False, None, valid_date[1]
-
-    return True, vmask, None
-
-
-# file mask identifying temporal attributes in path/file names
-generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
-# print data_package["file_mask"]
-
-
-if data_package["file_mask"] == "None":
-
-    # temporally invariant dataset
-    ru.temporal["name"] = "Temporally Invariant"
-    ru.temporal["format"] = "None"
-    ru.temporal["type"] = "None"
-
-else:
-
-    # name for temporal data format
-    ru.temporal["name"] = "Date Range"
-    ru.temporal["format"] = "%Y%m%d"
-    ru.temporal["type"] = ru.get_date_range(ru.run_file_mask(data_package["file_mask"], ru.file_list[0], data_package["base"]))[2]
-
-    # day range for each file (eg: MODIS 8 day composites) 
-    use_day_range = False
-    if interface:
-        use_day_range = p.user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
-
-    if use_day_range or "day_range" in v.data:
-        generic_input("open", "day_range", "File day range? (Must be integer)", v.day_range)
-
+# resource info
 
 print '\nProcessing resources...'
+
 for f in ru.file_list:
     print f
 
@@ -683,6 +728,9 @@ for f in ru.file_list:
         ru.temporal["end"] = range_end
 
 
+# --------------------------------------------------
+# add temporal, spatial and resources info
+
 data_package["temporal"] = ru.temporal
 data_package["spatial"] = ru.spatial
 data_package["resources"] = ru.resources
@@ -690,7 +738,6 @@ data_package["resources"] = ru.resources
 
 # --------------------------------------------------
 # database update(s) and datapackage output
-
 
 print "\nFinal datapackage..."
 print data_package

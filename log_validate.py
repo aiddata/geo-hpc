@@ -31,7 +31,7 @@ class validate():
         # acceptable inputs for various fields (dataset types, vector formats, raster formats, etc.)
         self.types = {
             "licenses": self.licenses.keys(),
-            "data": ['raster', 'polydata', 'document', 'point', 'multipoint', 'boundary'],
+            "data": ['raster', 'boundary', 'release', 'polydata', 'document', 'point', 'multipoint'],
             "file_extensions": {
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']

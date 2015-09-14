@@ -16,7 +16,6 @@
     "sources": {"default": []}, 
     "source_link": {"default": ""},
     "short": {"default": ""},
-    "variable_description": {"default": ""},
     "type": {"default": ""},
     "file_format": {"default": ""},
     "file_extension": {"default": ""}, 
@@ -32,7 +31,8 @@
         "raster": {
             "resolution": {"default": 0},
             "extract_types": {"default": []},
-            "factor": {"default": 1}
+            "factor": {"default": 1},
+            "variable_description": {"default": ""},
         },
 
         "boundary": {
