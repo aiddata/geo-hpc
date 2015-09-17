@@ -1,5 +1,7 @@
 from osgeo import gdal,ogr,osr
+import pandas as pd
 import geopandas as gpd
+from shapely.geometry import Point
 import sys
 import os
 import json
@@ -189,6 +191,42 @@ class resource_utils():
             
     #     geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
     #     return geo_ext
+
+
+    # return a point given a pandas row which includes longitude and latitude
+    # return "None" if valid lon,lat not found
+    def pandas_point_gen(row):
+
+        try:
+            lon = float(row['longitude'])
+            lat = float(row['latitude'])
+            return Point(row['longitude'], row['latitude'])
+        except:
+            return "None"
+
+
+    # return envelope given the path to a csv which includes longitude and latitude fields
+    def release_envelope(self,path):
+
+        if path.endswith('.tsv'):
+            df =  pd.read_csv(path, sep='\t', quotechar='\"')
+        elif path.endswith('.csv'):
+            df = pd.read_csv(path, quotechar='\"')
+        else
+            return 1
+
+        df['geometry'] <- df.apply(pandas_point_gen, axis=1)
+
+        gdf = gpd.GeoDataFrame(df.loc[df.geometry != "None"])
+
+
+        env = gdf.total_bounds
+        
+        # env = (minx, miny, maxx, maxy) 
+        geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
+
+        return geo_ext
+
 
 
     # adds unique id field (ad_id) and outputs geojson (serves as shp to geojson converter)

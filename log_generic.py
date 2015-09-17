@@ -324,12 +324,14 @@ flist_additional = [
 if data_package["type"] in ['boundary', 'raster']:
     for f in flist_core:
         generic_input(f["type"], f["id"], f["in_1"], f["in_2"])
+
 elif data_package["type"] == 'release':
     # get release datapackage
-    # 
+    release_package =  json.load(open(data_package["base"]+'/datapackage.json', 'r'))
 
     # copy fields
-    # 
+    for f in flist_core:
+        data_package[f["id"]] = release_package[f["id"]]
 
 
 for f in flist_additional:
