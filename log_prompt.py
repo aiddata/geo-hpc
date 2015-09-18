@@ -50,6 +50,7 @@ class prompts():
 
         while True:
 
+            print new_val
             if not new_val[0]:
                 raw_answer = new_val[1] 
                 use_answer = True

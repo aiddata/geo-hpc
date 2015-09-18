@@ -83,11 +83,14 @@ class validate():
 
         exists = search.count() > 0       
 
+        print exists
+
         datapackage = 0
         if exists:
-            datapackage = search[0]
+            datapackage = OrderedDict(search[0])
 
-        return exists, OrderedDict(datapackage)
+
+        return exists, datapackage
 
 
     # # check if datapackage json exists for given base path

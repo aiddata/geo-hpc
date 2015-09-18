@@ -51,7 +51,11 @@ def quit(reason):
 
 
 def write_data_package():
-    json.dump(data_package, open(data_package["base"] + "/datapackage.json", 'w'), indent=4)
+    dp_out = data_package
+    print "dp out"
+    print dp_out.keys()
+    # del dp_out['_id']
+    json.dump(dp_out, open(data_package["base"] + "/datapackage.json", 'w'), indent=4)
 
 
 def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
@@ -119,6 +123,13 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
     return dp
 
 
+def update_datapackage_val(var_str, val, opt=0):
+    if not opt:
+        data_package[var_str] = val
+    else:
+        data_package["options"][var_str] = val
+
+
 def check_update(var_str, opt=0):
     if interface and update_data_package:
         if not opt:
@@ -131,29 +142,33 @@ def check_update(var_str, opt=0):
     return False
 
 
-def update_datapackage_val(var_str, val, opt=0):
-    if not opt:
-        data_package[var_str] = val
-    else:
-        data_package["options"][var_str] = val
-
-
 def generic_input(input_type, var_str, in_1, in_2, opt=0):
 
+    # if no value is given for automated input, use default
+    # default value will still have to pass validation later
     if not interface:
         if not opt and not var_str in v.data:
             v.data[var_str] = v.fields[var_str]["default"]
         elif opt and not var_str in v.data['options']:
             v.data["options"][var_str] = v.fields['options'][v.data['type']][var_str]["default"]
 
+    # if interface and datapackage exists, check if user wants to update
+    # defaults to false for new datasets or automated inputs
     user_update = check_update(var_str, opt)
 
+    # set value to run validation on if user chooses not
+    # to update and existing field
     update_val = None
-    if not user_update:
+    if update_data_package and not user_update:
         if not opt:
             update_val = v.data[var_str]
         else:
             update_val = v.data["options"][var_str]
+
+
+    print update_val
+    print update_data_package
+    print user_update
 
 
     if input_type == "open":
@@ -225,7 +240,10 @@ if interface:
         quit("User request - boundary backup.")
 
     # check datapackage exists for path 
-    dp_exists, v.data = v.datapackage_exists(v.data["base"])
+    dp_exists, tmp_data = v.datapackage_exists(v.data["base"])
+
+    if dp_exists:
+        v.data = tmp_data
 
 elif not "base" in v.data or not os.path.isdir(v.data['base']):
     quit("Invalid or no base directory provided.")
@@ -327,7 +345,7 @@ if data_package["type"] in ['boundary', 'raster']:
 
 elif data_package["type"] == 'release':
     # get release datapackage
-    release_package =  json.load(open(data_package["base"]+'/datapackage.json', 'r'))
+    release_package =  json.load(open(data_package["base"]+"/"+os.path.basename(data_package["base"])+'/datapackage.json', 'r'))
 
     # copy fields
     for f in flist_core:
@@ -456,6 +474,10 @@ if data_package["file_format"] in ['raster', 'vector']:
             if file_check == True and not file.endswith('simplified.geojson'):
                 ru.file_list.append(file)
 
+# elif data_package["file_format"] == "release":
+#     ru.file_list.append("datapackage.json")
+
+
 
 # --------------------------------------------------
 # temporal info
@@ -481,7 +503,19 @@ generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D fo
 # print data_package["file_mask"]
 
 
-if data_package["file_mask"] == "None":
+if data_package["file_format"] == 'release':
+
+    # set temporal using release datapackage
+    ru.temporal["name"] = "Date Range"
+    ru.temporal["format"] = "%Y"
+    ru.temporal["type"] = "year"
+    print type(release_package)
+    print release_package
+    ru.temporal["start"] = release_package['temporal'][0]['start']
+    ru.temporal["end"] = release_package['temporal'][0]['end']
+
+
+elif data_package["file_mask"] == "None":
 
     # temporally invariant dataset
     ru.temporal["name"] = "Temporally Invariant"
@@ -604,7 +638,9 @@ elif data_package["file_format"] == 'vector':
 
 elif data_package["file_format"] == 'release':
 
-    # geo_ext = ru.release_envelope()
+    # get extemt
+    geo_ext = ru.release_envelope(data_package['base'] +"/"+ os.path.basename(data_package['base']) + "/data/locations")
+
 
 else:
     quit("Invalid file format.")
@@ -661,79 +697,96 @@ elif update_data_package and data_package["type"] != "boundary" and ru.spatial !
 
 print '\nProcessing resources...'
 
-for f in ru.file_list:
-    print f
+if data_package["file_format"] in ['raster', 'vector']:
 
-    # resources
-    # individual resource info
-    resource_tmp = {}
+    for f in ru.file_list:
+        print f
 
-    # path relative to datapackage.json
-    resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
+        # resources
+        # individual resource info
+        resource_tmp = {}
 
-    # check for reliability geojson
-    # should only be present for rasters generated using mean surface script
-    if data_package["type"] == "raster":
-        resource_tmp["reliability"] = False
-        reliability_file = data_package["base"] +"/"+ resource_tmp["path"][:-len(data_package["file_extension"])] + "geojson"
-        if os.path.isfile(reliability_file):
-            resource_tmp["reliability"] = True
+        # path relative to datapackage.json
+        resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
 
-
-    # file size
-    resource_tmp["bytes"] = os.path.getsize(f)
-
-    if data_package["file_mask"] != "None":
-        # temporal
-        # get unique time range based on dir path / file names
-
-        # get data from mask
-        date_str = ru.run_file_mask(data_package["file_mask"], resource_tmp["path"])
-
-        validate_date_str = ru.validate_date(date_str)
-
-        if not validate_date_str[0]:
-            quit(validate_date_str[1])
+        # check for reliability geojson
+        # should only be present for rasters generated using mean surface script
+        if data_package["type"] == "raster":
+            resource_tmp["reliability"] = False
+            reliability_file = data_package["base"] +"/"+ resource_tmp["path"][:-len(data_package["file_extension"])] + "geojson"
+            if os.path.isfile(reliability_file):
+                resource_tmp["reliability"] = True
 
 
-        if "day_range" in data_package:
-            range_start, range_end, range_type = ru.get_date_range(date_str, data_package["day_range"])
-        else: 
-            range_start, range_end, range_type = ru.get_date_range(date_str)
+        # file size
+        resource_tmp["bytes"] = os.path.getsize(f)
 
-        # name (unique among this dataset's resources - not same name as dataset)
-        resource_tmp["name"] = data_package["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+        if data_package["file_mask"] != "None":
+            # temporal
+            # get unique time range based on dir path / file names
 
-    else:
-        range_start = 10000101
-        range_end = 99991231
+            # get data from mask
+            date_str = ru.run_file_mask(data_package["file_mask"], resource_tmp["path"])
 
-        resource_tmp["name"] = data_package["mini_name"]
+            validate_date_str = ru.validate_date(date_str)
+
+            if not validate_date_str[0]:
+                quit(validate_date_str[1])
 
 
-    # file date range
-    resource_tmp["start"] = range_start
-    resource_tmp["end"] = range_end
+            if "day_range" in data_package:
+                range_start, range_end, range_type = ru.get_date_range(date_str, data_package["day_range"])
+            else: 
+                range_start, range_end, range_type = ru.get_date_range(date_str)
 
-    # reorder resource fields
+            # name (unique among this dataset's resources - not same name as dataset)
+            resource_tmp["name"] = data_package["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+
+        else:
+            range_start = 10000101
+            range_end = 99991231
+
+            resource_tmp["name"] = data_package["mini_name"]
+
+
+        # file date range
+        resource_tmp["start"] = range_start
+        resource_tmp["end"] = range_end
+
+        # reorder resource fields
+        resource_order = ["name", "path", "bytes", "start", "end"]
+        resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
+
+        # update main list
+        ru.resources.append(resource_tmp)
+
+
+        # update dataset temporal info
+        if not ru.temporal["start"] or range_start < ru.temporal["start"]:
+            ru.temporal["start"] = range_start
+        elif not ru.temporal["end"] or range_end > ru.temporal["end"]:
+            ru.temporal["end"] = range_end
+
+
+elif data_package["file_format"] == "release":
+
+    resource_tmp = {
+        "name":data_package['name'],
+        "bytes":0,
+        "path":data_package['base'],
+        "start":ru.temporal['start'],
+        "end":ru.temporal['end']
+    }
+
     resource_order = ["name", "path", "bytes", "start", "end"]
     resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
-
-    # update main list
     ru.resources.append(resource_tmp)
-
-
-    # update dataset temporal info
-    if not ru.temporal["start"] or range_start < ru.temporal["start"]:
-        ru.temporal["start"] = range_start
-    elif not ru.temporal["end"] or range_end > ru.temporal["end"]:
-        ru.temporal["end"] = range_end
 
 
 # --------------------------------------------------
 # add temporal, spatial and resources info
 
-data_package["temporal"] = ru.temporal
+data_package["temporal"] = [ru.temporal]
 data_package["spatial"] = ru.spatial
 data_package["resources"] = ru.resources
 
@@ -757,6 +810,10 @@ if core_update_status == 0:
     # create datapackage
     write_data_package()
 
+
+# if release dataset, create mongodb for dataset
+if data_package['file_format'] == 'release':
+    ru.release_to_mongo(data_package['name'], data_package['base'] +"/"+ os.path.basename(data_package['base']))
 
 # call/do ckan stuff eventually
 # 

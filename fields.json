@@ -32,7 +32,7 @@
             "resolution": {"default": 0},
             "extract_types": {"default": []},
             "factor": {"default": 1},
-            "variable_description": {"default": ""},
+            "variable_description": {"default": ""}
         },
 
         "boundary": {

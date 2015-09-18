@@ -13,6 +13,8 @@ from dateutil.relativedelta import relativedelta
 # import shapefile
 # import itertools
 
+import pymongo
+
 
 class resource_utils():
 
@@ -21,9 +23,7 @@ class resource_utils():
         self.dp = {}
 
         self.file_list = []
-        
-        self.resources = []
-        
+                
         self.temporal = {
             "start": 0,
             "end": 0,
@@ -31,6 +31,8 @@ class resource_utils():
         }
 
         self.spatial = ""
+
+        self.resources = []
 
 
     def update_dp(self):
@@ -41,11 +43,7 @@ class resource_utils():
 
     # checks if file has extension type specified for class instance
     def run_file_check(self, f, ext):
-        if not f.endswith('.' + ext):
-            return False
-
-        return True
-
+        return f.endswith('.' + ext)
 
 
     # --------------------------------------------------
@@ -131,8 +129,6 @@ class resource_utils():
             for x in new:
                 old.append(x)
 
-        else:
-            quit("Invalid polygon envelope.\n")
 
         return old
 
@@ -193,32 +189,29 @@ class resource_utils():
     #     return geo_ext
 
 
-    # return a point given a pandas row which includes longitude and latitude
+    # return a point given a pandas row (or any object) which includes longitude and latitude
     # return "None" if valid lon,lat not found
-    def pandas_point_gen(row):
+    def point_gen(self, item):
 
         try:
-            lon = float(row['longitude'])
-            lat = float(row['latitude'])
-            return Point(row['longitude'], row['latitude'])
+            lon = float(item['longitude'])
+            lat = float(item['latitude'])
+            return Point(lon, lat)
         except:
             return "None"
 
 
     # return envelope given the path to a csv which includes longitude and latitude fields
-    def release_envelope(self,path):
+    def release_envelope(self, path):
 
-        if path.endswith('.tsv'):
-            df =  pd.read_csv(path, sep='\t', quotechar='\"')
-        elif path.endswith('.csv'):
-            df = pd.read_csv(path, quotechar='\"')
-        else
-            return 1
+        df = self.csv_to_pandas(path)
 
-        df['geometry'] <- df.apply(pandas_point_gen, axis=1)
+        if isinstance(df, tuple):
+            return df
+
+        df['geometry'] = df.apply(self.point_gen, axis=1)
 
         gdf = gpd.GeoDataFrame(df.loc[df.geometry != "None"])
-
 
         env = gdf.total_bounds
         
@@ -226,7 +219,6 @@ class resource_utils():
         geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
 
         return geo_ext
-
 
 
     # adds unique id field (ad_id) and outputs geojson (serves as shp to geojson converter)
@@ -248,7 +240,7 @@ class resource_utils():
             return 0
 
         except:
-            return 1
+            return (1, "error generating geojson with ad_id")
 
 
     # # converts shapefile to geojson
@@ -363,3 +355,93 @@ class resource_utils():
 
         return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
 
+
+
+    # --------------------------------------------------
+    # data format transformation functions
+
+    def csv_to_pandas(self, path):
+
+        if path.endswith('.tsv') and os.path.isfile(path):
+            delim = "\t"
+
+        elif os.path.isfile(path+".tsv"):
+            path = path+".tsv"
+            delim = "\t"
+
+        elif path.endswith('.csv') and os.path.isfile(path):
+            delim = ","
+        
+        elif os.path.isfile(path+".csv"):
+            path = path + ".csv"
+            delim = ","
+
+        else:
+            return (1, "could not identify csv type")
+
+
+        try:
+            df =  pd.read_csv(path, sep=delim, quotechar='\"')
+            return df
+        except:
+            return (1, "error reading csv")
+            
+
+    # convert flat tables from release datasets into nested mongo database
+    def release_to_mongo(self, name, path):
+
+        client = pymongo.MongoClient()
+        releases = client.releases
+
+        releases.drop_collection(name)
+        col = releases[name]
+
+        files = ["projects", "locations", 'transactions']
+
+        tables = {}
+        for table in files:
+            file_base = path+"/data/"+table
+
+            if os.path.isfile(file_base+".csv"):
+                tables[table] = pd.read_csv(file_base+".csv", sep=',', quotechar='\"')
+
+            elif os.path.isfile(file_base+".tsv"):
+                tables[table] = pd.read_csv(file_base+".tsv", sep='\t', quotechar='\"')
+
+            else:
+                print "no valid table type found for: " + file_base
+                return 1
+
+            tables[table]["project_id"] = tables[table]["project_id"].astype(str)
+
+
+        # add new data for each project
+        for project_row in tables['projects'].iterrows():
+            
+            project = dict(project_row[1])
+            project_id = project["project_id"]
+
+
+            transaction_match = tables['transactions'].loc[tables['transactions']["project_id"] == project_id]
+
+            if len(transaction_match) > 0:
+                project["transactions"] = [dict(x[1]) for x in transaction_match.iterrows()]
+
+            else:
+                print "No transactions found for project id: " + str(project_id)
+
+
+            location_match = tables['locations'].loc[tables['locations']["project_id"] == project_id]
+                
+            if len(location_match) > 0:
+                project["locations"] = [dict(x[1]) for x in location_match.iterrows()]
+
+            else:
+                print "No locations found for project id: " + str(project_id)
+
+
+            # add to collection
+            col.insert(project)
+
+
+        return 0
