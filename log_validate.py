@@ -155,7 +155,7 @@ class validate():
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
 
         if len(val) != 4:
-            return False, None, "Mini name must be at 4 (valid) chars"
+            return False, None, "Mini name must be at least 4 (valid) chars"
 
         val = val.lower()
         
@@ -164,8 +164,8 @@ class validate():
         
         
         # check mongodb
-        if not "mini_name" in self.data or ("mini_name" in self.data and val != self.data["mini_name"]):
-            unique_search = self.c_data.find({"mini_name": val}).limit(1)
+        if not "mini_name" in self.data['options'] or ("mini_name" in self.data['options'] and val != self.data['options']["mini_name"]):
+            unique_search = self.c_data.find({"options.mini_name": val}).limit(1)
 
             unique = unique_search.count() == 0
 

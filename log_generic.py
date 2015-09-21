@@ -52,9 +52,12 @@ def quit(reason):
 
 def write_data_package():
     dp_out = data_package
-    print "dp out"
-    print dp_out.keys()
-    # del dp_out['_id']
+    # print "dp out"
+    # print dp_out.keys()
+    
+    if "_id" in dp_out.keys():
+        del dp_out['_id']
+
     json.dump(dp_out, open(data_package["base"] + "/datapackage.json", 'w'), indent=4)
 
 
@@ -138,6 +141,8 @@ def check_update(var_str, opt=0):
         else:
             update = p.user_prompt_bool("Update dataset "+var_str+"? (\"" + str(data_package["options"][var_str]) + "\")")
             return update
+    elif interface:
+        return True
     
     return False
 
@@ -165,11 +170,11 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
         else:
             update_val = v.data["options"][var_str]
 
-
+    print ">"
     print update_val
     print update_data_package
     print user_update
-
+    print ">"
 
     if input_type == "open":
         v.data[var_str] = p.user_prompt_open(in_1, in_2, (user_update, update_val))
@@ -242,6 +247,10 @@ if interface:
     # check datapackage exists for path 
     dp_exists, tmp_data = v.datapackage_exists(v.data["base"])
 
+    print "dpexists:"
+    print dp_exists
+    print "--"
+
     if dp_exists:
         v.data = tmp_data
 
@@ -278,38 +287,38 @@ generic_input("open", "type", "Type of data in dataset? (" + ', '.join(v.types["
 
 flist_core = [
     {
-        "id": "name",
         "type": "open",
+        "id": "name",
         "in_1": "Dataset name? (must be unique from existing datasets)", 
         "in_2": v.name
     },
     {   
-        "id": "title",
         "type": "open",
+        "id": "title",
         "in_1": "Dataset title?", 
         "in_2": v.string
     },
     {   
-        "id": "version",
         "type": "open",
+        "id": "version",
         "in_1": "Dataset version?", 
         "in_2": v.string
     },
     {   
-        "id": "sources",
         "type": "loop",
+        "id": "sources",
         "in_1": "Add source", 
         "in_2": {"name": v.string, "web": v.string}
     },
     {   
-        "id": "source_link",
         "type": "open",
+        "id": "source_link",
         "in_1": "Generic link for dataset?", 
         "in_2": v.string
     },
     {   
-        "id": "licenses",
         "type": "open",
+        "id": "licenses",
         "in_1": "Id of license(s) for dataset? (" + ', '.join(v.types["licenses"]) + ") [separate your input with commas]",
         "in_2": v.license_types
     }
@@ -317,26 +326,19 @@ flist_core = [
 
 flist_additional = [
     {   
-        "id": "citation",
         "type": "open",
+        "id": "citation",
         "in_1": "Dataset citation?", 
         "in_2": v.string
     },
     {   
-        "id": "short",
         "type": "open",
+        "id": "short",
         "in_1": "A short description of the dataset?", 
         "in_2": v.string
-    },
-    {   
-        "id": "mini_name",
-        "type": "open",
-        "in_1": "Dataset mini name? (must be 4 characters and unique from existing datasets)", 
-        "in_2": v.mini_name
     }
 ]
     
-
 # print v.data
 
 if data_package["type"] in ['boundary', 'raster']:
@@ -397,6 +399,9 @@ if data_package["type"] == "raster":
 
     # variable description
     generic_input("open", "variable_description", "Description of the variable used in this dataset (units, range, etc.)?", v.string, opt=True)
+
+    # mini name
+    generic_input("open", "mini_name", "Dataset mini name? (must be 4 characters and unique from existing datasets)", v.mini_name, opt=True)
 
 
 # boundary info
@@ -498,9 +503,12 @@ def validate_file_mask(vmask):
     return True, vmask, None
 
 
-# file mask identifying temporal attributes in path/file names
-generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
-# print data_package["file_mask"]
+if data_package["type"] == 'raster':
+    # file mask identifying temporal attributes in path/file names
+    generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
+    # print data_package["file_mask"]
+else:
+    data_package['file_mask'] = ""
 
 
 if data_package["file_format"] == 'release':
@@ -740,13 +748,13 @@ if data_package["file_format"] in ['raster', 'vector']:
                 range_start, range_end, range_type = ru.get_date_range(date_str)
 
             # name (unique among this dataset's resources - not same name as dataset)
-            resource_tmp["name"] = data_package["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+            resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
 
         else:
             range_start = 10000101
             range_end = 99991231
 
-            resource_tmp["name"] = data_package["mini_name"]
+            resource_tmp["name"] = data_package["name"]
 
 
         # file date range
@@ -773,7 +781,7 @@ elif data_package["file_format"] == "release":
     resource_tmp = {
         "name":data_package['name'],
         "bytes":0,
-        "path":data_package['base'],
+        "path":data_package['name'],
         "start":ru.temporal['start'],
         "end":ru.temporal['end']
     }

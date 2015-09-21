@@ -79,3 +79,15 @@ projects folder
 + used for storing project specific data, not extracts
 + separate merge script can be run on extract cache to generate merges as needed which can be output to project folder or other location
 
+
+
+
+adding new release to /sciclone/aiddata/REU/data/releases folder:
+- releases should exist within a folder of identical name
+- eg: release in folder called "countryx_release_v1" should look like .../releases/countryx_release_v1/countryx_release_v1/<contents>
+- cd into .../releases and then run following line in bash:
+    for i in *; do if [[ ! -d $i/$i ]]; then mkdir $i/$i; for j in $i/*; do if [[ $j != $i/$i ]]; then mv $j $i/$i; fi; done; fi; done
+- this will create the structure for all releases in the directory that are newly added (ie: not already properly structured with identical directory)
+- this is necessary because releases already contain a datapackage which would conflict with creating a new datapackage and cause errors while running the upload scripts
+
+
