@@ -569,26 +569,26 @@ if data_package["file_format"] == "raster":
         if f_count == 0:
             base_geo = geo_ext
 
-            # check bbox size
-            xsize = geo_ext[2][0] - geo_ext[1][0]
-            ysize = geo_ext[0][1] - geo_ext[1][1]
-            tsize = abs(xsize * ysize)
+            # # check bbox size
+            # xsize = geo_ext[2][0] - geo_ext[1][0]
+            # ysize = geo_ext[0][1] - geo_ext[1][1]
+            # tsize = abs(xsize * ysize)
 
-            scale = "regional"
-            if tsize >= 32400:
-                scale = "global"
-                # prompt to continue
-                if interface and not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
-                    quit("User request - rejected global bounding box.")
+            # scale = "regional"
+            # if tsize >= 32400:
+            #     scale = "global"
+            #     # prompt to continue
+            #     if interface and not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to clip it into multiple smaller datasets. Do you want to continue?"):
+            #         quit("User request - rejected global bounding box.")
 
-            data_package["scale"] = scale
+            # data_package["scale"] = scale
 
-            # display datset info to user
-            print "Dataset bounding box: ", geo_ext
+            # # display datset info to user
+            # print "Dataset bounding box: ", geo_ext
 
-            # prompt to continue
-            if interface and not p.user_prompt_bool("Continue with this bounding box?"):
-                quit("User request - rejected bounding box.")
+            # # prompt to continue
+            # if interface and not p.user_prompt_bool("Continue with this bounding box?"):
+            #     quit("User request - rejected bounding box.")
 
             f_count += 1
 
@@ -668,6 +668,29 @@ for c in range(len(geo_ext)):
 
     elif geo_ext[c][1] > 90:
         geo_ext[c][1] = 90
+
+
+# display datset info to user
+print "Dataset bounding box: ", geo_ext
+
+# check bbox size
+xsize = geo_ext[2][0] - geo_ext[1][0]
+ysize = geo_ext[0][1] - geo_ext[1][1]
+tsize = abs(xsize * ysize)
+
+scale = "regional"
+if tsize >= 32400:
+    scale = "global"
+    # prompt to continue
+    if interface and not p.user_prompt_bool("This dataset has a bounding box larger than a hemisphere and will be treated as a global dataset. If this is not a global (or near global) dataset you may want to turn it into multiple smaller datasets. Do you want to continue?"):
+        quit("User request - rejected global bounding box.")
+
+data_package["scale"] = scale
+
+# prompt to continue
+if interface and not p.user_prompt_bool("Continue with this bounding box?"):
+    quit("User request - rejected bounding box.")
+
 
 
 # spatial

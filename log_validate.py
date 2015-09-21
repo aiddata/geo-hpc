@@ -148,7 +148,8 @@ class validate():
 
         return True, val, None
 
-
+    # validate mini_name for dataset types which require it 
+    # used for any dataset which will be given to used in extract format (rasters, points, maybe vectors)
     def mini_name(self, val):
 
         val = re.sub(' ', '_', val)

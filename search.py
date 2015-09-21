@@ -70,7 +70,7 @@ for bnd in bnds:
         dset_type = meta['type'] 
 
         result = False
-        if meta['file_format'] == "raster":
+        if meta['file_format'] in ["raster", "release"]:
 
             if bnd_type == "boundary" and dset_type == "raster":
                 # python raster stats extract
@@ -81,6 +81,9 @@ for bnd in bnds:
 
                 if extract[0]['min'] != extract[0]['max']:
                     result = True
+
+            elif bnd_type == "boundary" and dset_type == "release":
+                result = True
 
             else:
                 print "Error - Dataset type not yet supported (skipping dataset).\n"
