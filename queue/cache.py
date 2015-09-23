@@ -204,7 +204,7 @@ class cache():
 
         count = 0
 
-        for name, data in request["data"].iteritems():
+        for name, data in request["d2_data"].iteritems():
 
             for i in data["files"]:
 

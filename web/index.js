@@ -2,6 +2,10 @@ $(document).ready(function(){
 
 	var step, request, tmp_request, data_list, map, countryLayer, is_checkedout;
 
+	var aid_request_limit = 5;
+	var project_count = -1;
+	var location_count = -1;
+
 	// prevents multiple checkouts
 	is_checkedout = false;
 
@@ -11,7 +15,8 @@ $(document).ready(function(){
 	// final output request
 	request = {
 		"boundary": {},
-		"data": {},
+		"d1_data": {},
+		"d2_data": {},
 		"email": "",
 		"counts": {},
 		"total": 0,
@@ -187,15 +192,23 @@ $(document).ready(function(){
 		}
 	});
 
+	$('#data_tabs>div').on('click', function () {
+		$('.data_tab_active').removeClass('data_tab_active');
+		$('.data_section_active').removeClass('data_section_active')
+
+		$(this).addClass('data_tab_active');
+		$('#'+$(this).data('tab')).addClass('data_section_active');
+	})
+
 	// clear all data selections
-	$('#data_clear').click(function () {
+	$('#d2_clear').click(function () {
 		$('#data :checked').each( function () {
 			$(this).attr('checked', false);
 		});
 	});
 
 	// toggle display of datasets
-	$('#data_bot').on('click', '.dataset_icon', function () {
+	$('#d2_bot').on('click', '.dataset_icon', function () {
 		$(this).toggleClass("fa-chevron-down fa-chevron-up");
 		$(this).parent().parent().parent().find('.dataset_body').toggle();
 	});
@@ -205,7 +218,7 @@ $(document).ready(function(){
 	// number extracts = number of extract type * number of files
 	// $('#data').on('change', ':checkbox', function () {
 	$('#data').on('change', 'input', function () {
-		var parent_data = $(this).closest('.data');
+		var parent_data = $(this).closest('.d2_data');
 		var parent_name = parent_data.data("name");
 		var extract_types_length = parent_data.find('.dataset_options :checked').length;
 		var resources_length = parent_data.find('.dataset_temporal :checked').length;
@@ -339,7 +352,11 @@ $(document).ready(function(){
 
 		request["counts"] = {};
 
-		$('#data_bot').empty();
+
+		$('#data_1 select').empty();
+		$('#d1_info span').empty();
+		$('#d1_matches').hide();
+		$('#d2_bot').empty();
 
 		// console.log(request["boundary"]["group"]);
 
@@ -355,120 +372,334 @@ $(document).ready(function(){
 			// store data list in external variable for later reference
 			data_list = result;
 
-			$('#data_summary_available').html(result.length);
+			$('#data_summary_available').html(_.keys(result['d1']).length + _.keys(result['d2']).length);
 			$('#data_summary_selected').html(0);
+			
+			// d1
+			var d1_datasets_html = '<option value="" title="Select a dataset" disabled selected>Select a dataset</option>'
+			_.each(_.values(result['d1']), function(dset){
+				d1_datasets_html += '<option value='+dset['name']+'>'+dset['name']+'</option>'; 
+			})
+			$('#d1_datasets').append(d1_datasets_html)
 
-		    for (var i=0, ix=result.length; i<ix; i++) {
 
-				var data_html = build_data_html(result[i]);
-
-		    	$('#data_bot').append(data_html);
-
-			}
-
-			// $('#data_bot').sortable();
+			// d2
+		    _.each(result['d2'], function(dset) {
+				var data_html = build_d2_html(dset);
+		    	$('#d2_bot').append(data_html);
+			})
+			// $('#d2_bot').sortable();
 
 			sum_counts();
 		});
 
 	}
 
-	// build dataset html for given dataset object
-	function build_data_html(dataset, i) {
+	$('#d1_datasets').on('change', function () {
+		var d1_dataset_name = $(this).val();
+		var d1_dataset_data = data_list['d1'][d1_dataset_name];
 
-			var data_html = '';
+		$('#d1_info_title').html(d1_dataset_data['title']);
+		$('#d1_info_version').html('Version ' + d1_dataset_data['version']);
+		$('#d1_info_short').html(d1_dataset_data['short']);
 
-			// open data div
-    		data_html += '<div class="data" id="' + dataset['name'] + '" data-name="' + dataset['name'] + '" data-base="' + dataset['base'] + '" data-type="' + dataset['type'] + '" data-temporal_type="' + dataset['temporal']['type'] + '">';
-	    	
-    		// dataset header
-	    	data_html += '<div class="dataset_header ui-icon-minusthick">';
+		var d1_sector_html = '<option value="All" title="All" selected>All</option>'
+		_.each(d1_dataset_data['sector_list'], function(item) {
+			d1_sector_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
+		})
+		$('#d1_sectors').html(d1_sector_html);
 
-	    	data_html += '<div>'
-	    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
-	    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] +' - '+ dataset['mini_name'] + ')</div>';
-	    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
-			data_html += '</div>'
-	    	
-	    	data_html += '<div>'
-	    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
-	    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
-	    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
-	    	data_html += '<div class="dataset_h2 dataset_files">Files: <span>' + dataset['resources'].length + '</span></div>';
-	    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
-	    	data_html += '</div>'
+		var d1_donor_html = '<option value="All" title="All" selected>All</option>'
+		_.each(d1_dataset_data['donor_list'], function(item) {
+			d1_donor_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
+		})
+		$('#d1_donors').html(d1_donor_html);
 
-			data_html += '</div>';
+		var d1_year_html = '<option value="All" title="All" selected>All</option>'
+		_.each(d1_dataset_data['year_list'], function(item) {
+			d1_year_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
+		})
+		$('#d1_years').html(d1_year_html);
 
-			// dataset body
-	    	data_html += '<div class="dataset_body">';
+		check_matches();
+
+	})
+
+	$('#d1_bot select').on('change', function () {
+		check_matches();
+	})
+
+	// check how many projects match the current aid filter selection
+	function check_matches() {
+		var filter_selection = get_filter_selection();
+		console.log(filter_selection);
+
+		location_count = -1;
+		mongo_search({call:"filter_count", filter:filter_selection}, function (result, status, error){
+
+			if (error) {
+				console.log(error);
+				return -1
+			}
+
+			console.log(result);
+
+			var count = result
+
+			$('#d1_matches span').html(count['projects'] +" / "+ count['locations']);
+			$('#d1_matches').show();
+
+			location_count = count['locations'];
+
+		});
+	}
 
 
-		    	data_html += '<div class="dataset_meta">';
-			    	data_html += '<div class="dataset_h3">Meta</div>';
+	// enforce valid aid filters
+	// drop additional selections if "All" is selected
+	function filter_check(list) {
+		return  ! _.isArray(list) || list.length == 0 || list.indexOf("All") > -1 ? ['All'] : list
+	}
+
+
+	function get_filter_selection() {
+		var dataset = $('#d1_datasets').val();
+		var sectors = filter_check($('#d1_sectors').val());
+		var donors = filter_check($('#d1_donors').val());
+		var years = filter_check($('#d1_years').val());
+
+		var filter_selection = {
+			"dataset": dataset,
+			"sectors": sectors,
+			"donors": donors,
+			"years": years
+		};
+
+		return filter_selection;
+	}
+
+
+	$('#d1_add').on('click', function () {
+		var filter_selection = get_filter_selection();
+
+		if (location_count > 0 && $('.aid_request').length < aid_request_limit) {
+
+			filter_selection['hash'] = object_to_hash(filter_selection);
+
+			// var selection_html = build_d1_html(filter_selection);
+			// $('#d1_selected').append(selection_html);
+
+		}
+	})
+
+	// uses crypto-js to generate sha1 hash (hex) of json string
+	function object_to_hash(input) {
+		var ordered = {};
+		_.each(_.keys(input).sort(), function (key) {
+	  		ordered[key] = input[key];
+		});
+		var hash = CryptoJS.SHA1(JSON.stringify(ordered));
+		var hash_hex = hash.toString(CryptoJS.enc.Hex)
+		console.log(hash_hex)
+		return hash_hex;
+	}
+
+	// build d1 dataset (aid data, releases) html
+	function build_d1_html(filter_selection) {
+		var data_html = '';
+
+		// open data div
+		data_html += '<div class="data d1_data" id="' + dataset['name'] + '" ' + '" data-type="release">';
+    	
+		// dataset header
+    	data_html += '<div class="dataset_header ui-icon-minusthick">';
+
+    	data_html += '<div>'
+    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
+    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] +' - '+ dataset['options']['mini_name'] + ')</div>';
+    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
+		data_html += '</div>'
+    	
+    	data_html += '<div>'
+    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_files">Files: <span>' + dataset['resources'].length + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
+    	data_html += '</div>'
+
+		data_html += '</div>';
+
+		// dataset body
+    	data_html += '<div class="dataset_body">';
+
+
+	    	data_html += '<div class="dataset_meta">';
+		    	data_html += '<div class="dataset_h3">Meta</div>';
+		    	data_html += '<div class="dataset_h4">';
+		    	data_html += '<div class="dataset_meta_info">Short:<div>'+(dataset['short'] == "" ? "-" : dataset['short'])+'</div></div>';
+		    	data_html += '<div class="dataset_meta_info">Variable Description:<div>'+(dataset['options']['variable_description'] == "" ? "-" : dataset['options']['variable_description'])+'</div></div>';
+
+				if (dataset["type"] == "raster") {
+		    		data_html += '<div class="dataset_meta_info">Resolution:<div>'+(dataset['options']['resolution'] == "" ? "-" : dataset['options']['resolution'])+' degrees</div></div>';
+		    	}
+		    	data_html += '</div>';
+	    	data_html += '</div>';
+
+
+		    // temporary raster check since other types might not have options
+		    // not really necessary but will serve as placeholder/reminder to
+		    // revisit dataset options when we add in other dataset types
+	    	if (dataset["type"] == "raster") {
+
+		    	data_html += '<div class="dataset_options">';
+			    	data_html += '<div class="dataset_h3">Options</div>';
 			    	data_html += '<div class="dataset_h4">';
-			    	data_html += '<div class="dataset_meta_info">Short:<div>'+(dataset['short'] == "" ? "-" : dataset['short'])+'</div></div>';
-			    	data_html += '<div class="dataset_meta_info">Variable Description:<div>'+(dataset['variable_description'] == "" ? "-" : dataset['variable_description'])+'</div></div>';
+		    		// data_html += '';
+			    	if (dataset["type"] == "raster") {
+			    		data_html += '<div class="dataset_opt" data-type="extract_types">Extract Types:';
+			    		data_html += '<div>';
+		    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
+		    		   		// extract type checkbox - select multiple options
+		    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+		    		   		
+		    		   		// extract type radio - select single option
+		    		   		// data_html += '<label><input type="radio" name="'+dataset['name']+'" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
 
-					if (dataset["type"] == "raster") {
-			    		data_html += '<div class="dataset_meta_info">Resolution:<div>'+(dataset['options']['resolution'] == "" ? "-" : dataset['options']['resolution'])+' degrees</div></div>';
+		    		   	}
+			    		data_html += '</div>';
+			    		data_html += '</div>';
 			    	}
 			    	data_html += '</div>';
 		    	data_html += '</div>';
+		    }
 
 
-			    // temporary raster check since other types might not have options
-			    // not really necessary but will serve as placeholder/reminder to
-			    // revisit dataset options when we add in other dataset types
-		    	if (dataset["type"] == "raster") {
+	    	data_html += '<div class="dataset_temporal">';
+		    	data_html += '<div class="dataset_h3">Resources</div>';
+		    	data_html += '<div class="dataset_h4">';
 
-			    	data_html += '<div class="dataset_options">';
-				    	data_html += '<div class="dataset_h3">Options</div>';
-				    	data_html += '<div class="dataset_h4">';
-			    		// data_html += '';
-				    	if (dataset["type"] == "raster") {
-				    		data_html += '<div class="dataset_opt" data-type="extract_types">Extract Types:';
-				    		data_html += '<div>';
-			    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
-			    		   		// extract type checkbox - select multiple options
-			    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
-			    		   		
-			    		   		// extract type radio - select single option
-			    		   		// data_html += '<label><input type="radio" name="'+dataset['name']+'" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
-
-			    		   	}
-				    		data_html += '</div>';
-				    		data_html += '</div>';
-				    	}
-				    	data_html += '</div>';
-			    	data_html += '</div>';
-			    }
-
-
-		    	data_html += '<div class="dataset_temporal">';
-			    	data_html += '<div class="dataset_h3">Temporal</div>';
-			    	data_html += '<div class="dataset_h4">';
-
-    		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
-						data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
-						data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
-						data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
-						if (dataset["type"] == "raster") {
-							data_html += 'data-reliability="'+dataset['resources'][i]["reliability"]+'" '; 
-						}
-						data_html += '>'+dataset['resources'][i]['name']+'</label>';
+		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
+					data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
+					data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
+					data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
+					if (dataset["type"] == "raster") {
+						data_html += 'data-reliability="'+dataset['resources'][i]["reliability"]+'" '; 
 					}
+					data_html += '>'+dataset['resources'][i]['name']+'</label>';
+				}
 
+		    	data_html += '</div>';
+	    	data_html += '</div>';
+
+    	data_html += '</div>';
+
+
+    	// close data div
+    	data_html += '</div>';
+
+			return data_html;
+
+	}
+
+
+	// build d2 dataset (external raster) html for given dataset object
+	function build_d2_html(dataset) {
+
+		var data_html = '';
+
+		// open data div
+		data_html += '<div class="data d2_data" id="' + dataset['name'] + '" data-name="' + dataset['name'] + '" data-base="' + dataset['base'] + '" data-type="' + dataset['type'] + '" data-temporal_type="' + dataset['temporal']['type'] + '">';
+    	
+		// dataset header
+    	data_html += '<div class="dataset_header ui-icon-minusthick">';
+
+    	data_html += '<div>'
+    	data_html += '<div class="dataset_h1 dataset_title">' + dataset['title'] + '</div>';
+    	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] +' - '+ dataset['options']['mini_name'] + ')</div>';
+    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
+		data_html += '</div>'
+    	
+    	data_html += '<div>'
+    	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_step">Step: <span>' + (dataset['temporal']["type"] == "year" ? "yearly" : dataset['temporal']["type"] == "None" ? "N/A" : "Other") + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_files">Files: <span>' + dataset['resources'].length + '</span></div>';
+    	data_html += '<div class="dataset_h2 dataset_toggle"></div>';
+    	data_html += '</div>'
+
+		data_html += '</div>';
+
+		// dataset body
+    	data_html += '<div class="dataset_body">';
+
+
+	    	data_html += '<div class="dataset_meta">';
+		    	data_html += '<div class="dataset_h3">Meta</div>';
+		    	data_html += '<div class="dataset_h4">';
+		    	data_html += '<div class="dataset_meta_info">Short:<div>'+(dataset['short'] == "" ? "-" : dataset['short'])+'</div></div>';
+		    	data_html += '<div class="dataset_meta_info">Variable Description:<div>'+(dataset['options']['variable_description'] == "" ? "-" : dataset['options']['variable_description'])+'</div></div>';
+
+				if (dataset["type"] == "raster") {
+		    		data_html += '<div class="dataset_meta_info">Resolution:<div>'+(dataset['options']['resolution'] == "" ? "-" : dataset['options']['resolution'])+' degrees</div></div>';
+		    	}
+		    	data_html += '</div>';
+	    	data_html += '</div>';
+
+
+		    // temporary raster check since other types might not have options
+		    // not really necessary but will serve as placeholder/reminder to
+		    // revisit dataset options when we add in other dataset types
+	    	if (dataset["type"] == "raster") {
+
+		    	data_html += '<div class="dataset_options">';
+			    	data_html += '<div class="dataset_h3">Options</div>';
+			    	data_html += '<div class="dataset_h4">';
+		    		// data_html += '';
+			    	if (dataset["type"] == "raster") {
+			    		data_html += '<div class="dataset_opt" data-type="extract_types">Extract Types:';
+			    		data_html += '<div>';
+		    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
+		    		   		// extract type checkbox - select multiple options
+		    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+		    		   		
+		    		   		// extract type radio - select single option
+		    		   		// data_html += '<label><input type="radio" name="'+dataset['name']+'" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
+
+		    		   	}
+			    		data_html += '</div>';
+			    		data_html += '</div>';
+			    	}
 			    	data_html += '</div>';
 		    	data_html += '</div>';
+		    }
 
+
+	    	data_html += '<div class="dataset_temporal">';
+		    	data_html += '<div class="dataset_h3">Resources</div>';
+		    	data_html += '<div class="dataset_h4">';
+
+		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
+					data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
+					data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
+					data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
+					if (dataset["type"] == "raster") {
+						data_html += 'data-reliability="'+dataset['resources'][i]["reliability"]+'" '; 
+					}
+					data_html += '>'+dataset['resources'][i]['name']+'</label>';
+				}
+
+		    	data_html += '</div>';
 	    	data_html += '</div>';
 
 
-	    	// close data div
-	    	data_html += '</div>';
-	
-	    	return data_html;
+    	data_html += '</div>';
+
+
+    	// close data div
+    	data_html += '</div>';
+
+    	return data_html;
 	}
 
 
@@ -497,43 +728,50 @@ $(document).ready(function(){
 	}
 
 
-	// build request["data"] object
-	// scans through selected options/resources for all datasets
+	// build request data objects
+	// scans through selected options/resources for all d2 datasets
 	function build_data_request() {
 
 		console.log("build data request");
 
-		request["data"] = {};
+		request["d1_data"] = {};
+		request["d2_data"] = {};
 
 		for (var i=0, ix=_.keys(request["counts"]).length; i<ix; i++) {
 			var key = _.keys(request["counts"])[i]
 			var $dataset = $('#'+key);
 			if (request["counts"][key] > 0) {
-				request["data"][key] = {
-					name: key,
-					title: $dataset.find('.dataset_title').html(),
-					base: $dataset.data("base"),
-					type: $dataset.data("type"),
-					temporal_type: $dataset.data("temporal_type"),
-					options: {},
-					files: []
-				}
 
-				if ($dataset.data("type") == "raster") {
-					request["data"][key]["options"]["extract_types"] = [];
+				if ($dataset.data("type") == "release") {
+					request["d1_data"][key] = {
+
+					}
+
+				} else if ($dataset.data("type") == "raster") {
+					request["d2_data"][key] = {
+						name: key,
+						title: $dataset.find('.dataset_title').html(),
+						base: $dataset.data("base"),
+						type: $dataset.data("type"),
+						temporal_type: $dataset.data("temporal_type"),
+						options: {},
+						files: []
+					}
+
+					request["d2_data"][key]["options"]["extract_types"] = [];
 					$dataset.find('.dataset_opt').each(function () {
 						if ($(this).data("type") == "extract_types") {
 							$(this).find(":checked").each(function (){
-								request["data"][key]["options"]["extract_types"].push($(this).val());
+								request["d2_data"][key]["options"]["extract_types"].push($(this).val());
 							})
 						}
 					})	
+
+					$dataset.find('.dataset_temporal :checked').each(function () {
+						request["d2_data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path"), reliability:$(this).data("reliability")});
+					})	
+
 				}
-
-				$dataset.find('.dataset_temporal :checked').each(function () {
-					request["data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path"), reliability:$(this).data("reliability")});
-				})	
-
 			}
 		}
 		console.log(request)
@@ -548,8 +786,9 @@ $(document).ready(function(){
 		console.log("build checkout summary");
 
 		// summary sentence
+		// *** update to include d1 data
 		$('#co_s1').html(request["total"]);
-		$('#co_s2').html(_.keys(request["data"]).length);
+		$('#co_s2').html(_.keys(request["d2_data"]).length);
 		$('#co_s3').html(request["boundary"]["title"]);
 
 		// boundary
@@ -560,8 +799,9 @@ $(document).ready(function(){
 
 		// datasets
 		var dset_html = '';
-		for (var i=0, ix=_.keys(request["data"]).length; i<ix; i++) {
-			var dset = _.values(request["data"])[i];
+		// d1 data
+		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
+			var dset = _.values(request["d2_data"])[i];
 			dset_html += '<div class="co_dset">';
 
 		    	dset_html += '<table style="width:100%;"><tbody><tr>'
@@ -585,6 +825,8 @@ $(document).ready(function(){
 
 			dset_html += '</div>'; 
 		}
+		// d2 data
+		// 
 		$('#co_datasets').html(dset_html);
 	}
 

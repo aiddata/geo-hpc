@@ -91,23 +91,134 @@ switch ($_POST['call']) {
 		$query = array(
 						'name' => array('$in' => $list), 
 						'temporal.type' => array('$in' => array('year', 'None')),
-						'type' => 'raster'
+						'type' => array('$in' => array('release', 'raster'))
 		);
 
 		$cursor = $col->find($query);
 		$cursor->snapshot();
 
 
-		$output = array();
+		$output = array('d1' => array(), 'd2' => array());
 
 		foreach ($cursor as $doc) {
-		    
-		    $output[] = $doc;
+
+		    if ($doc['type'] == "release") {
+
+
+		    	$doc['year_list'] = array();
+		    	$doc['sector_list'] = array();
+		    	$doc['donor_list'] = array();
+
+
+		    	$doc['year_list'] = range($doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
+
+		    	// load datapackage for sectors/donors
+		    	$rdp = json_decode(file_get_contents($doc['base'].'/'.basename($doc['base']).'/datapackage.json'), true);
+
+
+		    	foreach ($rdp['sectors_names_list'] as $k => $sector_string) {
+		    		foreach (explode('|', $sector_string['name']) as $sector) {
+
+		    			$sector = trim($sector);
+		    			if (!in_array($sector, $doc['sector_list'])) {
+					    	$doc['sector_list'][] = $sector;
+						}
+					}
+		    	}
+				sort($doc['sector_list']);
+
+		    	foreach ($rdp['donors_list'] as $k => $donor_string) {
+		    		foreach (explode('|', $donor_string['name']) as $donor) {
+
+		    			$donor = trim($donor);
+		    			if (!in_array($donor, $doc['donor_list'])) {
+					    	$doc['donor_list'][] = $donor;
+						}
+					}
+		    	}
+
+				sort($doc['donor_list']);
+		    	
+		    	$output['d1'][$doc['name']] = $doc;
+
+		    } else if ($doc['type'] == "raster") {
+		    	$output['d2'][$doc['name']] = $doc;
+
+		    }
 
 		}
 
 		echo json_encode($output);
 		break;
+
+
+	case "filter_count":
+
+		$filter = $_POST['filter'];
+
+		// init mongo
+		$m = new MongoClient();
+		$db = $m->selectDB('releases');
+		$col = $db->selectCollection($filter['dataset']);
+
+
+
+		$regex_map = function($value) {
+		    return new MongoRegex("/.*" . $value . ".*/");
+		};
+
+
+		// get number of projects (filter)
+		$project_query = array();
+
+		if (!in_array("All", $filter['sectors'])) {
+			$project_query['ad_sector_names'] = array('$in' => array_map($regex_map, $filter['sectors']));
+		}
+
+		if (!in_array("All", $filter['donors'])) {
+			$project_query['donors'] = array('$in' => array_map($regex_map, $filter['donors']));
+		}
+
+		if (!in_array("All", $filter['years'])) {
+			$project_query['transactions.transaction_year'] = array('$in' => array_map('intval', $filter['years']));
+		}
+
+
+		$project_cursor = $col->find($project_query);
+		// $project_cursor->snapshot();
+
+		$projects = $project_cursor->count();
+
+
+
+
+		// get number of locations (filter non geocoded + filter geocoded with locations unwind)
+
+		$location_query_1 = $project_query;
+		$location_query_1['is_geocoded'] = 0;
+
+		$location_cursor_1 = $col->find($location_query_1);
+		$location_count_1 = $location_cursor_1->count();
+
+
+		$location_query_2 = $project_query;
+		$location_query_2['is_geocoded'] = 1;
+
+		$location_aggregate = array();
+		$location_aggregate[] = array('$match' => $location_query_2);
+		$location_aggregate[] = array('$project' => array("project_id"=>1, 'locations'=>1));
+		$location_aggregate[] = array('$unwind' => '$locations');
+
+		$location_cursor_2 = $col->aggregate($location_aggregate);
+		$location_count_2 = count($location_cursor_2["result"]);
+
+
+
+		$locations = $location_count_1 + $location_count_2;
+		$output = array("projects" => $projects, "locations" => $locations, "location_count_1" => $location_count_1, "location_count_2" => $location_count_2 );
+
+		echo json_encode($output);
+		break;		
 
 }
 

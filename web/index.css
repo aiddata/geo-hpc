@@ -1,5 +1,5 @@
 body {
-    min-width: 900px;
+    min-width: 1000px;
     background: rgb(245,245,245)
 }
 label {
@@ -17,7 +17,15 @@ input:checkbox, input:radio {
     top: -3px;
     *overflow: hidden;
 }
-
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+/*-----------------------------------------------------------------------*/
 #header {
     width: 100%;
 }
@@ -113,7 +121,7 @@ input:checkbox, input:radio {
                 position: relative;
                 top: 10px;
             }
-
+/*-----------------------------------------------------------------------*/
 #main {
     width: 100%;
     background: rgb(245,245,245);
@@ -126,7 +134,7 @@ input:checkbox, input:radio {
         width: 80%; 
         margin: 0px 10%;
     }
-
+/*-----------------------------------------------------------------------*/
     #boundary {}
 
         #boundary>div {
@@ -172,10 +180,10 @@ input:checkbox, input:radio {
             position: relative;
             left: -50px;
         }
-
+/*-----------------------------------------------------------------------*/
     #data {}
 
-        #data_top {
+        #data_info {
             position: relative;
             width: 100%;
             height: 100px;
@@ -191,12 +199,12 @@ input:checkbox, input:radio {
 
             #data_bnd {
                 position: absolute;
-                left: 2.50%;
+                left: 5%;
             }
 
             #data_summary {
                 position: absolute;
-                right: 2.50%;
+                right: 5%;
             }
 
             #data_top>div>div {
@@ -204,95 +212,194 @@ input:checkbox, input:radio {
                 padding-top: 10px;
             }
 
-        #data_mid {
-            margin-top: 50px;
-            margin-bottom: 20px;
-        }
-            #data_mid>button {
-                float: right;
-            }
-
-        #data_bot {
-            position: relative;
-            width:100%;
+        #data_tabs {
+            margin-top: 40px;
+            border-bottom: 1px solid black
         }
 
-            .dataset_header {
-                position: relative;
-                height: 50px;
-                width: 100%;
-                margin-top: 10px;
+            #data_tabs>div {
+                display:inline-block;
+                width:200px;
                 background: rgb(200,200,200);
+                border: 1px solid black;
+                border-bottom: 0;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+                text-align: center;
+                font-size: 24px;
+                cursor: pointer;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
 
-                .dataset_header>div {
-                    height:50%;
+            .data_tab_active {
+                background: rgb(100,100,100) !important;
+                color: white;
+            }
+
+        .data_section {
+            display:none;
+            margin-top: 40px;
+
+        }
+
+        .data_section_active {
+            display: block;
+        }
+/*-----------------------------------------------------------------------*/
+        #data_1 {}
+
+            #d1_filter {}
+
+                #d1_top {
+                    margin-bottom: 20px;
                 }
 
- 
-                    .dataset_icon {
-                        position: absolute;
-                        top: 0;
-                        right: 0;
-                        display:inline-block;
-                        font-size: 20px;
-                        line-height: 30px;
-                        background-color:black;
-                        color:white;
-                        width: 30px;
-                        height: 30px;
-                        text-align: center;
-                        vertical-align: bottom;
-                        cursor: pointer;
-                    }
-
-                    .dataset_header>div>div {
+                    #d1_top>* {
                         display: inline-block;
-                        line-height: 25px;
                     }
 
-                    .dataset_h1 {
-                        margin-left: 25px;
+                    #d1_top_right {
+                        float: right;
                     }
-
-                    .dataset_h2 {
-                        width: 25%;
-                        text-align: center;
+                    #d1_top_right>* {
+                        display: inline-block;
                     }
-
-                    .dataset_title {
-                        font-weight: bold;
+                    #d1_matches {
+                        line-height: 26px;
+                        padding-right: 25px;
+                        float:left;
+                        display:none;
                     }
+                    #d1_add {}
 
-            .dataset_body {
-                display: none;
-                min-height: 100px;
-                background: rgb(200,200,200);
-                padding-bottom: 10px
-            }
-                .dataset_body>div {
-                    padding: 10px 20px;
-                    margin: 0 20px 20px;
-                    border: 1px solid black;
+                #d1_bot {}
+
+                    #d1_bot>div {
+                        display: inline-block;
+                        /*width:25%;*/
+                        float:left;
+                    }
+                        #d1_bot>div>select {
+                            width: 95%;
+                        }
+
+                    #d1_c1 {
+                        width:32.5%;
+                    }
+                    #d1_c2 {
+                        width:32.5%;
+                    }
+                    #d1_c3 {
+                        width:12.5%;
+                    }
+                    #d1_c4 {
+                        width:22.5%;
+                        text-align: right;
+                    }
+            #d1_selected {}
+
+                .aid_request {
+
                 }
-                    .dataset_h3 {
-                        font-weight: bold;
+/*-----------------------------------------------------------------------*/
+        #data_2 {}
+
+            #d2_top {
+                margin-bottom: 20px;
+            }
+                #d2_top>button {
+                    float: right;
+                }
+
+            #d2_bot {
+                position: relative;
+                width:100%;
+            }
+
+/*-----------------------------------------------------------------------*/
+                .dataset_header {
+                    position: relative;
+                    height: 50px;
+                    width: 100%;
+                    margin-top: 10px;
+                    background: rgb(200,200,200);
+                }
+
+                    .dataset_header>div {
+                        height:50%;
                     }
-                    .dataset_h4 {
-                        font-style: italic;
+
+     
+                        .dataset_icon {
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+                            display:inline-block;
+                            font-size: 20px;
+                            line-height: 30px;
+                            background-color:black;
+                            color:white;
+                            width: 30px;
+                            height: 30px;
+                            text-align: center;
+                            vertical-align: bottom;
+                            cursor: pointer;
+                        }
+
+                        .dataset_header>div>div {
+                            display: inline-block;
+                            line-height: 25px;
+                        }
+
+                        .dataset_h1 {
+                            margin-left: 25px;
+                        }
+
+                        .dataset_h2 {
+                            width: 25%;
+                            text-align: center;
+                        }
+
+                        .dataset_title {
+                            font-weight: bold;
+                        }
+
+                .dataset_body {
+                    display: none;
+                    min-height: 100px;
+                    background: rgb(200,200,200);
+                    padding-bottom: 10px
+                }
+                    .dataset_body>div {
                         padding: 10px 20px;
+                        margin: 0 20px 20px;
+                        border: 1px solid black;
                     }
-                        .dataset_opt>div, .dataset_meta_info>div {
-                            font-style: normal;
-                            padding-left: 20px;
-                            padding-bottom: 5px;
+                        .dataset_h3 {
+                            font-weight: bold;
                         }
-                        .dataset_h4 label {
-                            padding: 0px 20px;
+                        .dataset_h4 {
+                            font-style: italic;
+                            padding: 10px 20px;
                         }
-                            .dataset_h4 input {
-                                margin: 0px 5px;
+                            .dataset_opt>div, .dataset_meta_info>div {
+                                font-style: normal;
+                                padding-left: 20px;
+                                padding-bottom: 5px;
                             }
+                            .dataset_h4 label {
+                                padding: 0px 20px;
+                            }
+                                .dataset_h4 input {
+                                    margin: 0px 5px;
+                                }
+    
+/*-----------------------------------------------------------------------*/
     #checkout {}
 
         #co_top {

@@ -63,9 +63,9 @@
         </div>
 
         <div id="data" class="content" style="display:none;">
-            <div id="data_top">
+            <div id="data_info">
                 <div id="data_bnd">
-                    <span>Boundary Info</span>
+                    <span><b>Boundary Info</b></span>
                     <div>
                         <div id="data_bnd_title"></div>
                         <div id="data_bnd_short"></div>
@@ -73,18 +73,93 @@
                     </div>
                 </div>
                 <div id="data_summary">
-                    <span>Data Summary</span>
+                    <span><b>Data Summary</b></span>
                     <div>
                         <div>Datasets Available: <span id="data_summary_available">#</span></div>
                         <div>Items Selected: <span id="data_summary_selected">#</span></div>
                     </div>
                 </div>    
             </div>
-            <div id="data_mid">
-                <span>Available Data:</span>
-                <button id="data_clear">Clear All</span>
+
+            <div id="data_tabs">
+                <div data-tab="data_1" class="data_tab_active">Aid Data</div>
+                <div data-tab="data_2">External Data</div>
+                <div data-tab="data_3">Additional Data</div>
             </div>
-            <div id="data_bot"></div>
+
+            
+            <div id="data_1" class="data_section data_section_active">
+                <div id="d1_filter">
+
+                    <div id="d1_top">
+                        <div>
+                            Available Datasets:
+                            <select id="d1_datasets"></select>
+                        </div>
+
+                        <div id="d1_top_right">
+                            <div id="d1_matches">
+                                Matching Project / Locations:
+                                <span></span>
+                            </div>
+
+                            <button id="d1_add">Add Selection</button>
+
+                        </div>
+                    </div>
+
+                    <div id="d1_bot">
+                        <div id="d1_c1">
+                            Sectors<br>
+                            <select id="d1_sectors" multiple size=10></select>
+                        </div>
+                        
+                        <div id="d1_c2">
+                            Donors<br>
+                            <select id="d1_donors" multiple size=10></select>
+                        </div>
+                        
+                        <div id="d1_c3">
+                            Years<br>
+                            <select id="d1_years" multiple size=10></select>
+                        </div>
+                        
+                        <div id="d1_c4">
+                            <br>
+                            <div id="d1_info">
+
+                                <b><span id="d1_info_title"></span></b>
+                                <br>
+                                <i><span id="d1_info_version"></span></i>
+
+                                <br><br>
+                                <span id="d1_info_short"></span>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                
+                <div id="d1_selected">
+                    
+                </div>
+            </div>
+
+
+            <div id="data_2" class="data_section">
+                <div id="d2_top">
+                    <span>Available Data:</span>
+                    <button id="d2_clear">Clear All</span>
+                </div>
+                <div id="d2_bot"></div>
+            </div>
+                    
+            <div id="data_3" class="data_section">
+                Coming soon...
+            </div>
+
         </div>
 
         <div id="checkout" class="content" style="display:none;">
@@ -136,6 +211,7 @@
     <!-- // <script src="/aiddata/libs/spin.min.js"></script>     -->
     <!-- // <script src="/aiddata/libs/simple_statistics.js"></script> -->
     <!-- // <script src="/aiddata/libs/URI.js"></script> -->
+    <script src="/DET/libs/crypto-js-sha1.js"></script>
 
     <script src="index.js"></script>
 
