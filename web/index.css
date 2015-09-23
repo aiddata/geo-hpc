@@ -277,7 +277,9 @@ input:checkbox, input:radio {
                     }
                     #d1_add {}
 
-                #d1_bot {}
+                #d1_bot {
+
+                }
 
                     #d1_bot>div {
                         display: inline-block;
@@ -301,11 +303,21 @@ input:checkbox, input:radio {
                         width:22.5%;
                         text-align: right;
                     }
-            #d1_selected {}
+            #d1_selected {
+                clear: both;
+            }
 
                 .aid_request {
 
                 }
+                #data_1 .dataset_header {
+                    position: relative;
+                    height: 30px;
+                    width: 100%;
+                    margin-top: 10px;
+                    background: rgb(200,200,200);
+                }
+
 /*-----------------------------------------------------------------------*/
         #data_2 {}
 
@@ -320,7 +332,17 @@ input:checkbox, input:radio {
                 position: relative;
                 width:100%;
             }
+                #data_2 .dataset_header {
+                    position: relative;
+                    height: 50px;
+                    width: 100%;
+                    margin-top: 10px;
+                    background: rgb(200,200,200);
+                }
 
+                    #data_2 .dataset_header>div {
+                        height:50%;
+                    }
 /*-----------------------------------------------------------------------*/
                 .dataset_header {
                     position: relative;
