@@ -380,36 +380,6 @@ $(document).ready(function(){
 			html += '</div>'; 
 		}
 
-
-
-		// for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
-
-		// 	var dset = _.values(request["d2_data"])[i];
-
-		// 	html += '<br><br><div class="rs_dset">';
-
-		//     	html += '<table style="width:100%;"><tbody><tr>'
-		// 	    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['title'] + '</span> ('+dset['name']+') </td>';
-		// 	    	html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
-		// 	    	html += '<td style="width:20%;">Items: <span>' + (dset['type'] == "raster" ? dset['files'].length * dset['options']['extract_types'].length : dset['files'].length) + '</span></td>';
-		//     	html += '</tr>';
-
-		//     	if (dset['type'] == "raster") {
-		//     		html += '<tr><td>Extract Types Selected: ' + dset['options']['extract_types'].join(', ') + '</td></tr>';
-		//     	}
-
-		//     	html += '<tr><td>Files: ';
-		//     	for (var j=0, jx=dset['files'].length; j<jx; j++) {
-		//     		html += j>0 ? ', ' : '';
-		//     		html += dset['files'][j]['name'];
-		//     	}
-
-		//     	html += '</td></tr>';
-		//     	html += '</tbody></table>';
-
-		// 	html += '</div>'; 
-		// }
-
 		html += '</div>';
 
 		return html;
