@@ -304,14 +304,21 @@ $(document).ready(function(){
 	function build_request_summary(request) {
 		console.log("build_request_summary");
 
+		var tmp_d1_datasets = [];
+		_.each(request['d1_data'], function (x) {
+			if (tmp_d1_datasets.indexOf(x['dataset']) == -1) {
+				tmp_d1_datasets.push(x['dataset']);
+			}
+		})
+
 		var html = '';
 
 		// summary sentence
 		html += '<div class="rs_summary">';
 			html += '<div class="rs_s1">Total items: ' + request["total"] + '</div>';
-			html += '<div class="rs_s2">Datasets: ' + _.keys(request["data"]).length + '</div>';
+			html += '<div class="rs_s2">Datasets: ' + (tmp_d1_datasets.length + _.keys(request["d2_data"]).length) + '</div>';
 			html += '<div class="rs_s3">Boundary: ' + request["boundary"]["title"] + '</div>';
-		html += '</div>';
+		html += '</div><br>';
 
 		// boundary
 		var bnd = request["boundary"];
@@ -319,16 +326,37 @@ $(document).ready(function(){
 			html += '<div class="rs_bnd_title">' + bnd['title'] + " ("+bnd['group']+" : "+ bnd['name'] +")" +'</div>';
 			html += '<div class="rs_bnd_short">' + bnd['short'] + '<div>';
 			html += '<div class="rs_bnd_link">' + bnd['source_link'] + '<div>';
-		html += '</div';
+		html += '</div><br>';
 
 		// datasets
-		html += '<div class"=rs_datasets">Datasets';
+		html += '<div class"=rs_datasets">Datasets<br>';
 
-		for (var i=0, ix=_.keys(request["data"]).length; i<ix; i++) {
+		// d1 data
+		for (var i=0, ix=_.keys(request["d1_data"]).length; i<ix; i++) {
+			var dset = _.values(request["d1_data"])[i];
+			html += '<br><div class="rs_dset">';
 
-			var dset = _.values(request["data"])[i];
+		    	html += '<table style="width:100%;"><tbody><tr>'
+			    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+dset['hash'].substr(0,7)+'...) </td>';
+			    	html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
+			    	html += '<td style="width:20%;">Items: <span>1</span></td>';
+		    	html += '</tr>';
 
-			html += '<div class="rs_dset">';
+
+		    	html += '<tr><td><b>Sectors: </b>' + dset['sectors'].join(', ');
+		    	html += '<tr><td><b>Donors: </b>' + dset['donors'].join(', ');
+		    	html += '<tr><td><b>Years: </b>' + dset['years'].join(', ');
+
+		    	html += '</td></tr>';
+		    	html += '</tbody></table>';
+
+			html += '</div>'; 
+		} 
+
+		// d2 data
+		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
+			var dset = _.values(request["d2_data"])[i];
+			html += '<br><div class="rs_dset">';
 
 		    	html += '<table style="width:100%;"><tbody><tr>'
 			    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['title'] + '</span> ('+dset['name']+') </td>';
@@ -337,10 +365,10 @@ $(document).ready(function(){
 		    	html += '</tr>';
 
 		    	if (dset['type'] == "raster") {
-		    		html += '<tr><td>Extract Types Selected: ' + dset['options']['extract_types'].join(', ') + '</td></tr>';
+		    		html += '<tr><td><b>Extract Types Selected: </b>' + dset['options']['extract_types'].join(', ') + '</td></tr>';
 		    	}
 
-		    	html += '<tr><td>Files: ';
+		    	html += '<tr><td><b>Files: </b>';
 		    	for (var j=0, jx=dset['files'].length; j<jx; j++) {
 		    		html += j>0 ? ', ' : '';
 		    		html += dset['files'][j]['name'];
@@ -351,6 +379,36 @@ $(document).ready(function(){
 
 			html += '</div>'; 
 		}
+
+
+
+		// for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
+
+		// 	var dset = _.values(request["d2_data"])[i];
+
+		// 	html += '<br><br><div class="rs_dset">';
+
+		//     	html += '<table style="width:100%;"><tbody><tr>'
+		// 	    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['title'] + '</span> ('+dset['name']+') </td>';
+		// 	    	html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
+		// 	    	html += '<td style="width:20%;">Items: <span>' + (dset['type'] == "raster" ? dset['files'].length * dset['options']['extract_types'].length : dset['files'].length) + '</span></td>';
+		//     	html += '</tr>';
+
+		//     	if (dset['type'] == "raster") {
+		//     		html += '<tr><td>Extract Types Selected: ' + dset['options']['extract_types'].join(', ') + '</td></tr>';
+		//     	}
+
+		//     	html += '<tr><td>Files: ';
+		//     	for (var j=0, jx=dset['files'].length; j<jx; j++) {
+		//     		html += j>0 ? ', ' : '';
+		//     		html += dset['files'][j]['name'];
+		//     	}
+
+		//     	html += '</td></tr>';
+		//     	html += '</tbody></table>';
+
+		// 	html += '</div>'; 
+		// }
 
 		html += '</div>';
 
