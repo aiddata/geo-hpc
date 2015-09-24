@@ -153,7 +153,7 @@ class doc():
 
 
         # datasets
-        for dset in self.request['data'].values():
+        for dset in self.request['d2_data'].values():
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
@@ -188,10 +188,8 @@ class doc():
 
             ['Title', meta['title']],
             ['Name', meta['name']],
-            ['Mini Name', meta['mini_name']],
             ['Version', meta['version']],
             ['Short', meta['short']],
-            ['Variable Description', meta['variable_description']],
             ['Source Link', meta['source_link']],
 
             ['Type', meta['type']],
@@ -235,6 +233,8 @@ class doc():
             data.append(['Group Class', meta['options']['group_class']])
 
         elif item_type == 'raster':
+            data.append(['Mini Name', meta['options']['mini_name']])
+            data.append(['Variable Description', meta['options']['variable_description']])
             data.append(['Resolution', meta['options']['resolution']])
             data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
             data.append(['Factor', meta['options']['factor']])
@@ -268,7 +268,7 @@ class doc():
 
 
         # full dataset meta
-        for dset in self.request['data'].values():
+        for dset in self.request['d2_data'].values():
             
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'
