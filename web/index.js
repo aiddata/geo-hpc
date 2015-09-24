@@ -572,7 +572,7 @@ $(document).ready(function(){
 	    	data_html += '<div class="dataset_body">';
 
 		    	data_html += '<div class="dataset_meta">';
-			    	data_html += '<div><i>'+filter_selection['projects']+' Projects with '+filter_selection['projects']+' Locations</i></div><br>';
+			    	data_html += '<div><i>'+filter_selection['projects']+' Projects with '+filter_selection['locations']+' Locations</i></div><br>';
 
 			    	data_html += '<div class="dataset_h3">Selection Filter</div>';
 			    	data_html += '<div class="dataset_h4">';
