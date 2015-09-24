@@ -278,6 +278,9 @@ input:checkbox, input:radio {
                     #d1_add {}
 
                 #d1_bot {
+                    overflow: hidden;
+                    clear: both;
+                    margin-bottom: 20px;
 
                 }
 
@@ -303,19 +306,23 @@ input:checkbox, input:radio {
                         width:22.5%;
                         text-align: right;
                     }
+
             #d1_selected {
                 clear: both;
             }
 
-                .aid_request {
-
-                }
                 #data_1 .dataset_header {
                     position: relative;
                     height: 30px;
                     width: 100%;
                     margin-top: 10px;
                     background: rgb(200,200,200);
+                }
+
+                .d1_remove {
+                    position: absolute;
+                    right:50px;
+                    top:2px;
                 }
 
 /*-----------------------------------------------------------------------*/
@@ -395,7 +402,8 @@ input:checkbox, input:radio {
                     display: none;
                     min-height: 100px;
                     background: rgb(200,200,200);
-                    padding-bottom: 10px
+                    padding-top: 5px;
+                    padding-bottom: 5px;
                 }
                     .dataset_body>div {
                         padding: 10px 20px;

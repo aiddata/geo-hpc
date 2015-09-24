@@ -99,7 +99,7 @@
 
                         <div id="d1_top_right">
                             <div id="d1_matches">
-                                Matching Project / Locations:
+                                <i>Matches: </i>
                                 <span></span>
                             </div>
 
@@ -142,6 +142,7 @@
 
                 </div>
                 
+                Currently Selected:
                 <div id="d1_selected">
                     
                 </div>

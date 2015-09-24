@@ -1,10 +1,12 @@
 $(document).ready(function(){
 
-	var step, request, tmp_request, data_list, map, countryLayer, is_checkedout;
+	var step, request, tmp_request, data_list, map, countryLayer, is_checkedout, total_data_limit;
 
-	var aid_request_limit, project_count, location_count;
+	total_data_limit = 10;
+
+	var d1_data_limit, project_count, location_count;
 	
-	aid_request_limit = 5;
+	d1_data_limit = 5;
 	project_count = -1;
 	location_count = -1;
 
@@ -194,6 +196,7 @@ $(document).ready(function(){
 		}
 	});
 
+
 	$('#data_tabs>div').on('click', function () {
 		$('.data_tab_active').removeClass('data_tab_active');
 		$('.data_section_active').removeClass('data_section_active')
@@ -202,12 +205,6 @@ $(document).ready(function(){
 		$('#'+$(this).data('tab')).addClass('data_section_active');
 	})
 
-	// clear all data selections
-	$('#d2_clear').click(function () {
-		$('#data :checked').each( function () {
-			$(this).attr('checked', false);
-		});
-	});
 
 	// toggle display of datasets
 	$('#data').on('click', '.dataset_icon', function () {
@@ -215,11 +212,100 @@ $(document).ready(function(){
 		$(this).parent().parent().parent().find('.dataset_body').toggle();
 	});
 
+
+	// d1 dataset selection
+	$('#d1_datasets').on('change', function () {
+		var d1_dataset_name = $(this).val();
+		var d1_dataset_data = data_list['d1'][d1_dataset_name];
+
+		$('#d1_info_title').html(d1_dataset_data['title']);
+		$('#d1_info_version').html('Version ' + d1_dataset_data['version']);
+		$('#d1_info_short').html(d1_dataset_data['short']);
+
+		var d1_sector_html = '<option value="All" title="All" selected>All</option>'
+		_.each(d1_dataset_data['sector_list'], function(item) {
+			d1_sector_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
+		})
+		$('#d1_sectors').html(d1_sector_html);
+
+		var d1_donor_html = '<option value="All" title="All" selected>All</option>'
+		_.each(d1_dataset_data['donor_list'], function(item) {
+			d1_donor_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
+		})
+		$('#d1_donors').html(d1_donor_html);
+
+		var d1_year_html = '<option value="All" title="All" selected>All</option>'
+		_.each(d1_dataset_data['year_list'], function(item) {
+			d1_year_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
+		})
+		$('#d1_years').html(d1_year_html);
+
+		check_matches();
+
+	})
+
+	// d1 filter options change
+	$('#d1_bot select').on('change', function () {
+		check_matches();
+	})
+
+	// d1 add selected filter
+	$('#d1_add').on('click', function () {
+		var filter_selection;
+
+		filter_selection = get_filter_selection();
+
+		tmp_hash = object_to_hash(filter_selection);
+
+		if (location_count == 0 ) {
+			console.log("no locations found matching selection")
+		} else if ($('.d1_data').length > d1_data_limit) {
+			console.log("you have reached the maximum number of selections ("+d1_data_limit+")")
+
+		} else if ($('#'+tmp_hash).length != 0) {
+			console.log("already selected")
+
+		} else {
+
+			filter_selection['hash'] = tmp_hash;
+			filter_selection['projects'] = project_count;
+			filter_selection['locations'] = location_count;
+			filter_selection['type'] = "release";
+
+			request['d1_data'][filter_selection['hash']] = filter_selection;
+	
+			var selection_html = build_d1_html(filter_selection);
+			$('#d1_selected').append(selection_html);
+
+			request["counts"][tmp_hash] = 1;
+			sum_counts();
+
+		}
+	})
+
+	// d1 remove selected filter
+	$('#data_1').on('click', '.d1_remove', function () {
+		$parent_selection = $(this).closest('.d1_data');
+		var hash = $parent_selection.attr('id'); 
+		delete request['d1_data'][hash];
+		delete request["counts"][hash];
+		sum_counts();
+		$parent_selection.remove();
+	})
+
+
+	// clear all data selections
+	$('#d2_clear').click(function () {
+		$('#data :checked').each( function () {
+			$(this).attr('checked', false);
+		});
+	});
+
 	// when checkbox changes for a dataset
 	// recalculate the number of extracts being request for dataset
 	// number extracts = number of extract type * number of files
 	// $('#data').on('change', ':checkbox', function () {
-	$('#data').on('change', 'input', function () {
+	$('#d2_bot').on('change', 'input', function () {
 		var parent_data = $(this).closest('.d2_data');
 		var parent_name = parent_data.data("name");
 		var extract_types_length = parent_data.find('.dataset_options :checked').length;
@@ -247,6 +333,7 @@ $(document).ready(function(){
 			submit_request();
 		}
 	});
+
 
 	// ajax to search.php for mongo related calls
 	function mongo_search(data, callback) {
@@ -396,72 +483,38 @@ $(document).ready(function(){
 
 	}
 
-	$('#d1_datasets').on('change', function () {
-		var d1_dataset_name = $(this).val();
-		var d1_dataset_data = data_list['d1'][d1_dataset_name];
-
-		$('#d1_info_title').html(d1_dataset_data['title']);
-		$('#d1_info_version').html('Version ' + d1_dataset_data['version']);
-		$('#d1_info_short').html(d1_dataset_data['short']);
-
-		var d1_sector_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['sector_list'], function(item) {
-			d1_sector_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
-		})
-		$('#d1_sectors').html(d1_sector_html);
-
-		var d1_donor_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['donor_list'], function(item) {
-			d1_donor_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
-		})
-		$('#d1_donors').html(d1_donor_html);
-
-		var d1_year_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['year_list'], function(item) {
-			d1_year_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
-		})
-		$('#d1_years').html(d1_year_html);
-
-		check_matches();
-
-	})
-
-	$('#d1_bot select').on('change', function () {
-		check_matches();
-	})
 
 	// check how many projects match the current aid filter selection
 	function check_matches() {
 		var filter_selection = get_filter_selection();
 		console.log(filter_selection);
 
+		project_count = -1
 		location_count = -1;
 		mongo_search({call:"filter_count", filter:filter_selection}, function (result, status, error){
 
 			if (error) {
 				console.log(error);
-				return -1
+				return 1
 			}
 
 			console.log(result);
 
 			var count = result
-
-			$('#d1_matches span').html(count['projects'] +" / "+ count['locations']);
+			$('#d1_matches span').html('<i>'+count['projects']+' Projects with '+count['locations']+' Locations</i>');
 			$('#d1_matches').show();
 
+			project_count = count['projects'];
 			location_count = count['locations'];
 
 		});
 	}
-
 
 	// enforce valid aid filters
 	// drop additional selections if "All" is selected
 	function filter_check(list) {
 		return  ! _.isArray(list) || list.length == 0 || list.indexOf("All") > -1 ? ['All'] : list
 	}
-
 
 	function get_filter_selection() {
 		
@@ -481,32 +534,6 @@ $(document).ready(function(){
 
 		return filter_selection;
 	}
-
-
-	$('#d1_add').on('click', function () {
-		var filter_selection;
-
-		filter_selection = get_filter_selection();
-
-		if (location_count > 0 && $('.d1_data').length < aid_request_limit) {
-
-			filter_selection['hash'] = object_to_hash(filter_selection);
-			filter_selection['projects'] = project_count;
-			filter_selection['locations'] = location_count;
-
-			request['d1_data'][filter_selection['hash']] = filter_selection;
-	
-			var selection_html = build_d1_html(filter_selection);
-			$('#d1_selected').append(selection_html);
-
-		}
-	})
-
-
-	$('.d1_remove').on('click', function () {
-		
-	})
-
 
 	// uses crypto-js to generate sha1 hash (hex) of json string
 	function object_to_hash(input) {
@@ -534,7 +561,8 @@ $(document).ready(function(){
 
 		    	data_html += '<div>'
 			    	data_html += '<div class="dataset_h1 dataset_title">' + filter_selection['dataset'] + '</div>';
-			    	data_html += '<div class="dataset_h1 dataset_name" title="'+filter_selection['hash'].substr(0,7)+'...">(' + filter_selection['hash'] + ')</div>';
+			    	data_html += '<div class="dataset_h1 dataset_name" title="'+filter_selection['hash']+'...">(' + filter_selection['hash'].substr(0,7) + ')</div>';
+			    	data_html += '<button class="d1_remove">Remove</button>';
 			    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
 				data_html += '</div>'
 		    	
@@ -544,6 +572,8 @@ $(document).ready(function(){
 	    	data_html += '<div class="dataset_body">';
 
 		    	data_html += '<div class="dataset_meta">';
+			    	data_html += '<div><i>'+filter_selection['projects']+' Projects with '+filter_selection['projects']+' Locations</i></div><br>';
+
 			    	data_html += '<div class="dataset_h3">Selection Filter</div>';
 			    	data_html += '<div class="dataset_h4">';
 			    	data_html += '<div class="dataset_meta_info">Sectors:<div>'+filter_selection['sectors']+'</div></div>';
@@ -673,7 +703,7 @@ $(document).ready(function(){
 		$('#data_summary_selected').html(request["total"]);
 
 		request["data_valid"] = false;
-		if (request["total"] > 0 && request["total"] < 10) {
+		if (request["total"] > 0 && request["total"] < total_data_limit) {
 			$('#next button').show();
 			message("Click the \"Next\" button to continue");
 			request["data_valid"] = true;			
@@ -693,7 +723,7 @@ $(document).ready(function(){
 
 		console.log("build data request");
 
-		request["d1_data"] = {};
+		// request["d1_data"] = {};
 		request["d2_data"] = {};
 
 		for (var i=0, ix=_.keys(request["counts"]).length; i<ix; i++) {
@@ -702,9 +732,9 @@ $(document).ready(function(){
 			if (request["counts"][key] > 0) {
 
 				if ($dataset.data("type") == "release") {
-					request["d1_data"][key] = {
+					// request["d1_data"][key] = {
 
-					}
+					// }
 
 				} else if ($dataset.data("type") == "raster") {
 					request["d2_data"][key] = {
@@ -744,10 +774,17 @@ $(document).ready(function(){
 	function build_summary() {
 		console.log("build checkout summary");
 
+		var tmp_d1_datasets = [];
+		_.each(request['d1_data'], function (x) {
+			if (tmp_d1_datasets.indexOf(x['dataset']) == -1) {
+				tmp_d1_datasets.push(x['dataset']);
+			}
+		})
+
 		// summary sentence
 		// *** update to include d1 data
 		$('#co_s1').html(request["total"]);
-		$('#co_s2').html(_.keys(request["d2_data"]).length);
+		$('#co_s2').html(tmp_d1_datasets.length + _.keys(request["d2_data"]).length);
 		$('#co_s3').html(request["boundary"]["title"]);
 
 		// boundary
@@ -758,7 +795,30 @@ $(document).ready(function(){
 
 		// datasets
 		var dset_html = '';
+
 		// d1 data
+		for (var i=0, ix=_.keys(request["d1_data"]).length; i<ix; i++) {
+			var dset = _.values(request["d1_data"])[i];
+			dset_html += '<div class="co_dset">';
+
+		    	dset_html += '<table style="width:100%;"><tbody><tr>'
+			    	dset_html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+dset['hash'].substr(0,7)+'...) </td>';
+			    	dset_html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
+			    	dset_html += '<td style="width:20%;">Items: <span>1</span></td>';
+		    	dset_html += '</tr>';
+
+
+		    	dset_html += '<tr><td><b>Sectors: </b>' + dset['sectors'].join(', ');
+		    	dset_html += '<tr><td><b>Donors: </b>' + dset['donors'].join(', ');
+		    	dset_html += '<tr><td><b>Years: </b>' + dset['years'].join(', ');
+
+		    	dset_html += '</td></tr>';
+		    	dset_html += '</tbody></table>';
+
+			dset_html += '</div>'; 
+		} 
+
+		// d2 data
 		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
 			var dset = _.values(request["d2_data"])[i];
 			dset_html += '<div class="co_dset">';
@@ -770,10 +830,10 @@ $(document).ready(function(){
 		    	dset_html += '</tr>';
 
 		    	if (dset['type'] == "raster") {
-		    		dset_html += '<tr><td>Extract Types Selected: ' + dset['options']['extract_types'].join(', ') + '</td></tr>';
+		    		dset_html += '<tr><td><b>Extract Types Selected: </b>' + dset['options']['extract_types'].join(', ') + '</td></tr>';
 		    	}
 
-		    	dset_html += '<tr><td>Files: ';
+		    	dset_html += '<tr><td><b>Files: </b>';
 		    	for (var j=0, jx=dset['files'].length; j<jx; j++) {
 		    		dset_html += j>0 ? ', ' : '';
 		    		dset_html += dset['files'][j]['name'];
@@ -784,10 +844,10 @@ $(document).ready(function(){
 
 			dset_html += '</div>'; 
 		}
-		// d2 data
-		// 
+
 		$('#co_datasets').html(dset_html);
 	}
+
 
 	// basic email validation
 	// source: http://stackoverflow.com/questions/46155/validate-email-address-in-javascript
