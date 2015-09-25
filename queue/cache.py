@@ -196,6 +196,13 @@ class cache():
     #     return False
 
 
+    # created a combined data object for extracts
+    # from both d1_data and d2_data
+    def build_data_object(self, request):
+        print "build data object"
+
+
+
     # check entire request object for cache
     def check_request(self, request, extract=False):
         print "check_request"
@@ -203,6 +210,28 @@ class cache():
         self.init_boundary(request["boundary"]["path"])
 
         count = 0
+
+        
+        msr_request = False
+
+        # only generate msr jobs during prep
+        if extract == False:
+            for name, data in request['d1_data'].iteritems():
+                       
+                print name
+
+                # check if msr for request exists
+                # 
+
+                # if it does not exists
+                    # msr_request = True
+                    # generate msr job file
+                    # add msr job to msr queue folder on sciclone
+
+                # if it does exist
+                    # generate new item for d2 data to treat it like normal extract using sum with reliability calcs
+
+
 
         for name, data in request["d2_data"].iteritems():
 
@@ -269,7 +298,8 @@ class cache():
                         count += 1
 
 
-        return True, count
+                    return True, cou
+        nt, msr_request
 
 
     # merge extracts when all are completed

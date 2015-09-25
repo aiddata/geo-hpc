@@ -28,8 +28,7 @@ print '\n------------------------------------------------'
 print 'Prep Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
-# run given a request_id via input
-# does not run extract
+# run given a request_id via input (does not run extract)
 if len(sys.argv) == 2:
     request_id = sys.argv[1]
 
@@ -66,7 +65,7 @@ queue.send_email("aiddatatest2@gmail.com", request_obj["email"], "AidData Data E
 
 # check results for cached data
 # run missing extracts if run_extract is True
-cr_status, cr_count = cache.check_request(request_obj, False)
+cr_status, cr_count, cr_msr = cache.check_request(request_obj, False)
 
 if not cr_status:
     queue.quit("Error while checking request cache")

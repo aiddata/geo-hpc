@@ -29,7 +29,6 @@ print 'Processing Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
 # run given a request_id via input
-# does not run extract
 if len(sys.argv) == 2:
     request_id = sys.argv[1]
 
@@ -62,7 +61,7 @@ us = queue.update_status(request_id, 3)
 
 # check results for cached data
 # run missing extracts if run_extract is True
-cr_status, cr_count = cache.check_request(request_obj, True)
+cr_status, cr_count, cr_msr = cache.check_request(request_obj, True)
 
 
 if not cr_status:
