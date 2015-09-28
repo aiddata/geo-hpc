@@ -7,10 +7,6 @@ import pymongo
 import pandas as pd 
 import geopandas as gpd
 
-# import subprocess as sp
-
-from rpy2.robjects.packages import importr
-from rpy2 import robjects
 
 
 class cache():
@@ -19,23 +15,15 @@ class cache():
         # connect to mongodb
         self.client = pymongo.MongoClient()
         self.db = self.client.det
-        self.c_cache = self.db.cache
-        
-        self.rlib_rgdal = importr("rgdal")
-        self.rlib_raster = importr("raster")
+
+        self.c_extracts = self.db.extracts
+        self.c_msr = self.db.msr        
 
         self.extract_options = {
             "mean": "e",
             "max": "x",
             "sum": "s"
 
-        }
-
-        # list of valid extract types with r functions
-        self.extract_funcs = {
-            "mean": robjects.r.mean,
-            "max": robjects.r.max,
-            "sum": robjects.r.sum
         }
 
         self.merge_list = []
@@ -50,38 +38,14 @@ class cache():
                 raise
 
 
-    # initialize boundary using rpy2
-    def init_boundary(self, boundary):
+    # check if cache for extract exists
+    def check_cache(self, boundary, raster, extract_type, reliability, output):
+        print "check_cache"
 
-        try:
-            boundary_dirname = os.path.dirname(boundary)
-            boundary_filename, boundary_extension = os.path.splitext(os.path.basename(boundary))
-
-            # break boundary down into path and layer
-            # different for shapefiles and geojsons
-            if boundary_extension == ".geojson":
-                boundary_info = (boundary, "OGRGeoJSON")
-
-            elif boundary_extension == ".shp":
-                boundary_info = (boundary_dirname, boundary_filename)
-
-            self.r_boundary = self.rlib_rgdal.readOGR(boundary_info[0], boundary_info[1])
-            
-            return True
-
-        except:
-            return False
-
-
-    # check for cache given boundary, raster and extract type
-    def check_individual(self, boundary, raster, extract_type, reliability, output):
-
-        print "check individual"
-
-        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability}
+        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability, "status": 1}
 
         # check db
-        db_exists = self.c_cache.find(check_data).count() > 0
+        db_exists = self.c_extracts.find(check_data).count() > 0
 
         if db_exists:
 
@@ -98,7 +62,7 @@ class cache():
 
             else:
                 # remove from db
-                self.c_cache.delete_one(check_data)
+                self.c_extracts.delete_one(check_data)
                 return False
 
         else:
@@ -106,130 +70,29 @@ class cache():
     
 
 
-    # run extract using rpy2
-    def rpy2_extract(self, raster, output, extract_type):
-        print "rpy2_extract"
-    # try:
-        r_raster = self.rlib_raster.raster(raster)
-
-        # *** need to implement different kwargs based on extract type ***
-        if extract_type == "mean":
-            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "na.rm":True, "weights":True, "small":True}
-        else:
-            kwargs = {"fun":self.extract_funcs[extract_type], "sp":True, "na.rm":True}
-
-        robjects.r.assign('r_extract', self.rlib_raster.extract(r_raster, self.r_boundary, **kwargs))
-
-        robjects.r.assign('r_output', output)
-
-        robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
-        robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
-        
-        return True, None
-
-    # except:
-    #     return False, "R extract failed"
-
-
-    # use subprocess to run Rscript
-    # def script_extract(self, boundary, raster, output, extract_type):
-
-    #     try:
-    #         cmd = "Rscript " + os.path.dirname(__file__) + "/extract.R " + boundary +" "+ raster +" "+ output +" "+ extract_type
-    #         print cmd
-
-    #         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-    #         print sts
-
-    #         return True
-
-    #     except:
-    #         return False
-
-
-
-    # reliability calcs for extract
-    # intersect for every single boundary that intersects with unique ones from geojson
-    # sum for each intersect
-    def run_reliability(self, boundary, reliability_geojson, output):
-        print "run_reliability"
-    # try: 
-
-        # extract boundary geo dataframe
-        bnd_df = gpd.GeoDataFrame.from_file(boundary)
-
-        # mean surface unique polygon dataframe
-        rel_df = gpd.GeoDataFrame.from_file(reliability_geojson)
-
-
-        # result of mean surface extracted to boundary
-        df = pd.DataFrame.from_csv(output)
-
-        # index to merge with bnd_df
-        # df['ad_id'] = bnd_df['ad_id']
-
-        # init max column
-        df['max'] = 0 *len(df)
-
-        # iterate over shapes in boundary dataframe
-        for row_raw in bnd_df.iterrows():
-
-            row = row_raw[1]
-            geom = row['geometry']
-            # id field common to both dfs
-            unique_id = row['ad_id']
-            rel_df['intersect'] = rel_df['geometry'].intersects(geom)
-            tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
-            
-            df.loc[df['ad_id'] == unique_id, 'max'] = tmp_series[True]
-            
-
-        # calculate reliability statistic
-        df["ad_extract"] = df['ad_extract']/df['max']
-
-        # output to reliability csv
-        df.to_csv(output[:-5]+"r.csv")
-
-        return True
-
-    # except:
-    #     return False
-
-
-    # created a combined data object for extracts
-    # from both d1_data and d2_data
-    def build_data_object(self, request):
-        print "build data object"
-
-
 
     # check entire request object for cache
     def check_request(self, request, extract=False):
         print "check_request"
 
-        self.init_boundary(request["boundary"]["path"])
 
         count = 0
 
-        
-        msr_request = False
 
-        # only generate msr jobs during prep
-        if extract == False:
-            for name, data in request['d1_data'].iteritems():
-                       
-                print name
+        for name, data in request['d1_data'].iteritems():
+                   
+            print name
 
-                # check if msr for request exists
-                # 
+            # check if msr for request exists
+            # 
 
-                # if it does not exists
-                    # msr_request = True
-                    # generate msr job file
-                    # add msr job to msr queue folder on sciclone
+            # if it does not exists
+                # msr_request = True
+                # generate msr job file
+                # add msr job to msr queue folder on sciclone
 
-                # if it does exist
-                    # generate new item for d2 data to treat it like normal extract using sum with reliability calcs
+            # if it does exist
+                # generate new item for d2 data to treat it like normal extract using sum with reliability calcs
 
 
 
@@ -262,7 +125,7 @@ class cache():
 
 
                     # check if cache exists
-                    exists = self.check_individual(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
+                    exists = self.check_cache(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
 
                     if not exists and extract:
                         print "running extracts"
@@ -292,7 +155,7 @@ class cache():
                             "reliability": is_reliability_raster
                         }
 
-                        self.c_cache.replace_one(cache_data, cache_data, upsert=True)
+                        self.c_extracts.replace_one(cache_data, cache_data, upsert=True)
 
                     elif not exists:
                         count += 1

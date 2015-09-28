@@ -40,10 +40,15 @@ if len(sys.argv) == 2:
         sys.exit("Error while checking request id")
     elif not ci_return:
         sys.exit("Request with id does not exist")
+
+    request_objects = {}
+    request_objects[request_id] = request_obj
+
 else:
-    # get next request in queue based on priority and submit time
-    # returns status of search, request id if search succeeds, and request data
-    gn_status, request_id, request_obj = queue.get_next(1)
+    # get list of requests in queue (status: 0) based on priority and submit time
+    # returns status of search and request data objecft
+
+    gn_status, request_objects = queue.get_next(0, 0)
 
     if not gn_status:
        sys.exit("Error while searching for next request in queue")
@@ -51,27 +56,36 @@ else:
        sys.exit("Processing queue is empty")
 
 
-print 'Request id: ' + request_id
+
+for i in request_objects.keys():
+    request_id = request_objects.keys()[i]
+    request_obj = request_objects[request_id]
+
+    print 'Request id: ' + request_id
 
 
-# update status to being processed 
-# (without running extracts: 2, with runnning extracts: 3)
-us = queue.update_status(request_id, 3)
+    # update status to being processed 
+    # (without running extracts: 2, with runnning extracts: 3)
+    us = queue.update_status(request_id, 3)
 
 
-# check results for cached data
-# run missing extracts if run_extract is True
-cr_status, cr_count, cr_msr = cache.check_request(request_obj, True)
+    # check results for cached data
+    # run missing extracts if run_extract is True
+    cr_status, cr_count = cache.check_request(request_obj, True)
 
 
-if not cr_status:
-    queue.quit("Error while checking request cache")
+    if not cr_status:
+        queue.quit("Error while checking request cache")
 
+    # if extracts are cached then build output
+    if cr_count == 0:
+        print "finishing request"
+        # merge results and generate documentation
+        queue.build_output(request_id, True)
 
+    else:
+        print "request not ready"
 
-# merge and generate documentation
-print "finishing request"
-
-queue.build_output(request_id, True)
-
+        # update status 0 (ready for processing)
+        us = queue.update_status(request_id, 0)
 

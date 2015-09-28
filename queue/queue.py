@@ -20,11 +20,16 @@ class queue():
         self.db = self.client.det
         self.c_queue = self.db.queue
 
+        self.c_extracts = self.db.extracts
+        self.c_msr = self.db.msr
+
         self.cache = 0
         self.doc = 0
 
-        self.request_id = 0
-        self.request_obj = 0
+        # self.request_id = 0
+        # self.request_obj = 0
+
+        self.request_objects = {}
 
 
     # exit function used for errors
@@ -41,8 +46,10 @@ class queue():
             search = self.c_queue.find({"_id":ObjectId(rid)})
             exists = search.count()
 
-            self.request_id = rid
-            self.request_obj = search[0]
+            # self.request_id = rid
+            # self.request_obj = search[0]
+
+            self.request_objects[rid] = search[0]
 
             return 1, exists, search[0]
 
@@ -53,21 +60,28 @@ class queue():
     # get id of next job in queue
     # based on priority and submit_time
     # factor how many extracts need to be processed into queue order (?)
-    def get_next(self, status):
+    def get_next(self, status, limit):
         
         try:
             # find all status 1 jobs and sort by priority then submit_time
             sort = self.c_queue.find({"status":status}).sort([("priority", -1), ("submit_time", 1)])
+
             if sort.count() > 0:
-                rid = str(sort[0]["_id"])
-                self.request_id = rid
-                self.request_obj = sort[0]
-                return 1, rid, sort[0]
+
+                if limit == 0 or limit > sort.count():
+                    limit = sort.count()
+
+                for i in range(limit):
+                    rid = str(sort[i]["_id"])
+                    self.request_objects[rid] = sort[i]
+
+                return 1, self.request_objects
+
             else:
-                return 1, None, None
+                return 1, None
 
         except:
-            return 0, None, None
+            return 0, None
 
 
     # update status of request
@@ -86,7 +100,7 @@ class queue():
             updates["process_time"] = ctime
             self.request_obj["process_time"] = ctime
 
-        elif status == 0:
+        elif status == 1:
             updates["complete_time"] = ctime
             self.request_obj["complete_time"] = ctime
 
@@ -161,7 +175,7 @@ class queue():
             us = self.update_status(request_id, 3)
 
         # update status 0 (done)
-        us = self.update_status(request_id, 0)
+        us = self.update_status(request_id, 1)
 
 
         # generate documentation
@@ -181,4 +195,91 @@ class queue():
         self.send_email("aiddatatest2@gmail.com", self.request_obj["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
 
 
+# ---------------------------------------------------------------------------
 
+
+
+
+    # 1) check if extract exists in extract queue
+    #    run redundancy check on actual extract file and delete extract queue entry if file is missing
+    #    also check for reliability calc if field is specified
+    # 2) check if extract is completed, waiting to be run, or encountered an error
+    def exists_in_extract_queue(self, boundary, raster, extract_type, reliability, csv_path):
+        print "exists_in_extract_queue"
+        
+        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability}
+
+        # check db
+        search = self.c_cache.find(check_data)
+
+        db_exists = search.count() > 0
+
+        valid_db_exists = False
+        valid_completed_exists = False
+
+        if db_exists:
+
+            if search[0]['status'] == 0:
+                valid_db_exists = True
+
+            elif search[0]['status'] == 1:
+                # check file
+                extract_exists = os.path.isfile(csv_path)
+
+                reliability_path = csv_path[:-5] + "r.csv"
+
+                if extract_exists and (not reliability or (reliability and os.path.isfile(reliability_path))):
+                    valid_db_exists = True
+                    valid_completed_exists = True
+
+                else:
+                    # remove from db
+                    self.c_cache.delete_one(check_data)
+
+            else:
+                valid_db_exists = True
+                valid_completed_exists = "Error"
+
+
+        return valid_db_exists, valid_completed_exists
+
+
+    # 1) check if msr exists in msr tracker
+    #    run redundancy check on actual msr raster file and delete msr tracker entry if file is missing
+    # 2) check if msr is completed, waiting to be run, or encountered an error
+    def exists_in_msr_tracker(self, dataset_name, filter_hash, raster_path):
+        print "exists_in_msr_tracker"
+        
+        check_data = {"dataset": dataset_name, "hash": filter_hash}
+
+        # check db
+        search = self.c_msr.find(check_data)
+
+        db_exists = search.count() > 0
+
+        valid_db_exists = False
+        valid_completed_exists = False
+
+        if db_exists:
+
+            if search[0]['status'] == 0:
+                valid_db_exists = True
+
+            elif search[0]['status'] == 1:
+                # check file
+                msr_exists = os.path.isfile(raster_path)
+
+                if msr_exists:
+                    valid_db_exists = True
+                    valid_completed_exists = True
+
+                else:
+                    # remove from db
+                    self.c_msr.delete_one(check_data)
+
+            else:
+                valid_db_exists = True
+                valid_completed_exists = "Error"
+
+
+        return valid_db_exists, valid_completed_exists
