@@ -18,6 +18,7 @@ class queue():
     def __init__(self):
         self.client = pymongo.MongoClient()
         self.db = self.client.det
+        
         self.c_queue = self.db.queue
 
         self.c_extracts = self.db.extracts
@@ -195,91 +196,3 @@ class queue():
         self.send_email("aiddatatest2@gmail.com", self.request_obj["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
 
 
-# ---------------------------------------------------------------------------
-
-
-
-
-    # 1) check if extract exists in extract queue
-    #    run redundancy check on actual extract file and delete extract queue entry if file is missing
-    #    also check for reliability calc if field is specified
-    # 2) check if extract is completed, waiting to be run, or encountered an error
-    def exists_in_extract_queue(self, boundary, raster, extract_type, reliability, csv_path):
-        print "exists_in_extract_queue"
-        
-        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability}
-
-        # check db
-        search = self.c_cache.find(check_data)
-
-        db_exists = search.count() > 0
-
-        valid_db_exists = False
-        valid_completed_exists = False
-
-        if db_exists:
-
-            if search[0]['status'] == 0:
-                valid_db_exists = True
-
-            elif search[0]['status'] == 1:
-                # check file
-                extract_exists = os.path.isfile(csv_path)
-
-                reliability_path = csv_path[:-5] + "r.csv"
-
-                if extract_exists and (not reliability or (reliability and os.path.isfile(reliability_path))):
-                    valid_db_exists = True
-                    valid_completed_exists = True
-
-                else:
-                    # remove from db
-                    self.c_cache.delete_one(check_data)
-
-            else:
-                valid_db_exists = True
-                valid_completed_exists = "Error"
-
-
-        return valid_db_exists, valid_completed_exists
-
-
-    # 1) check if msr exists in msr tracker
-    #    run redundancy check on actual msr raster file and delete msr tracker entry if file is missing
-    # 2) check if msr is completed, waiting to be run, or encountered an error
-    def exists_in_msr_tracker(self, dataset_name, filter_hash, raster_path):
-        print "exists_in_msr_tracker"
-        
-        check_data = {"dataset": dataset_name, "hash": filter_hash}
-
-        # check db
-        search = self.c_msr.find(check_data)
-
-        db_exists = search.count() > 0
-
-        valid_db_exists = False
-        valid_completed_exists = False
-
-        if db_exists:
-
-            if search[0]['status'] == 0:
-                valid_db_exists = True
-
-            elif search[0]['status'] == 1:
-                # check file
-                msr_exists = os.path.isfile(raster_path)
-
-                if msr_exists:
-                    valid_db_exists = True
-                    valid_completed_exists = True
-
-                else:
-                    # remove from db
-                    self.c_msr.delete_one(check_data)
-
-            else:
-                valid_db_exists = True
-                valid_completed_exists = "Error"
-
-
-        return valid_db_exists, valid_completed_exists

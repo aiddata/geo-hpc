@@ -61,6 +61,46 @@ except:
     return False
 
 
+
+print "running extracts"
+# run extract
+
+# re_status = self.script_extract(request["boundary"]["path"], raster_path, extract_output, extract_type)
+re_status = self.rpy2_extract(raster_path, extract_output, extract_type)
+
+# return False if extract fails
+if not re_status:
+    return False, 0
+
+# run reliability calcs if needed
+elif is_reliability_raster:
+    raster_parent = os.path.dirname(raster_path)
+    rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/unique.geojson", extract_output)
+
+    # return False if reliability calc fails
+    if not rr_status:
+        return False, 0
+
+# update cache db
+cache_data = {
+    "boundary": request["boundary"]["name"], 
+    "raster": df_name, 
+    "extract_type": extract_type, 
+    "reliability": is_reliability_raster
+}
+
+self.c_extracts.replace_one(cache_data, cache_data, upsert=True)
+
+
+
+# creates directories
+def make_dir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
 # run extract using rpy2
 def rpy2_extract(raster, output, extract_type):
     print "rpy2_extract"
@@ -78,12 +118,15 @@ def rpy2_extract(raster, output, extract_type):
     robjects.r.assign('r_output', output)
 
     robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
+    make_dir(os.path.dirname(base_output))
+
     robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
     
     return True, None
 
 # except:
 #     return False, "R extract failed"
+
 
 
 # use subprocess to run Rscript

@@ -38,65 +38,42 @@ class cache():
                 raise
 
 
-    # check if cache for extract exists
-    def check_cache(self, boundary, raster, extract_type, reliability, output):
-        print "check_cache"
-
-        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability, "status": 1}
-
-        # check db
-        db_exists = self.c_extracts.find(check_data).count() > 0
-
-        if db_exists:
-
-            # check file
-            extract_path = output
-            extract_exists = os.path.isfile(extract_path)
-
-            if reliability:
-                reliability_path = output[:-5] + "r.csv"
-                reliability_exists = os.path.isfile(reliability_path)
-
-            if (reliability and extract_exists and reliability_exists) or (not reliability and extract_exists):
-                return True
-
-            else:
-                # remove from db
-                self.c_extracts.delete_one(check_data)
-                return False
-
-        else:
-            return False
-    
 
 
 
-    # check entire request object for cache
-    def check_request(self, request, extract=False):
-        print "check_request"
+
+    # generate merge list for request
+    def generate_merge_list(self, request):
+        print "generate_merge_list"
+
+        tmp_merge_list =  []
+
+        boundary_path = request['boundary']['path']
 
 
-        count = 0
-
-
-        for name, data in request['d1_data'].iteritems():
-                   
+        for name, data in request['d1_data'].iteritems():                   
             print name
 
-            # check if msr for request exists
-            # 
+            msr_raster_path = ''
+            msr_extract_output = ''
+            msr_field = ''
 
-            # if it does not exists
-                # msr_request = True
-                # generate msr job file
-                # add msr job to msr queue folder on sciclone
-
-            # if it does exist
-                # generate new item for d2 data to treat it like normal extract using sum with reliability calcs
-
+            tmp_merge_item = {
+                'boundary': boundary_path,
+                'raster': msr_raster_path,
+                'extract': 'sum',
+                'reliability': True,
+                'field': msr_field,
+                'output': msr_extract_output,
+                'type': 'raster',
+                'source': 'd1_data'
+            }
+            
+            tmp_merge_list.append(tmp_merge_item)
 
 
         for name, data in request["d2_data"].iteritems():
+            print name
 
             for i in data["files"]:
 
@@ -116,58 +93,121 @@ class cache():
                     # output file string without file type identifier or file extension
                     base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
                     extract_output = base_output + self.extract_options[extract_type] + ".csv"
-                    self.make_dir(os.path.dirname(base_output))
+                    
 
-                    self.merge_list.append(extract_output)
+                    tmp_merge_item = {
+                        'boundary': boundary_path,
+                        'raster': raster_path,
+                        'extract': extract_type,
+                        'reliability': is_reliability_raster,
+                        'field': os.path.basename(extract_output),
+                        'output': extract_output,
+                        'type': 'raster',
+                        'source': 'd2_data'
+                    }
 
-                    if is_reliability_raster:
-                        self.merge_list.append(base_output + "r.csv")
-
-
-                    # check if cache exists
-                    exists = self.check_cache(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
-
-                    if not exists and extract:
-                        print "running extracts"
-                        # run extract
-                        
-                        # re_status = self.script_extract(request["boundary"]["path"], raster_path, extract_output, extract_type)
-                        re_status = self.rpy2_extract(raster_path, extract_output, extract_type)
-
-                        # return False if extract fails
-                        if not re_status:
-                            return False, 0
-
-                        # run reliability calcs if needed
-                        elif is_reliability_raster:
-                            raster_parent = os.path.dirname(raster_path)
-                            rr_status = self.run_reliability(request["boundary"]["path"], raster_parent+"/unique.geojson", extract_output)
-
-                            # return False if reliability calc fails
-                            if not rr_status:
-                                return False, 0
-
-                        # update cache db
-                        cache_data = {
-                            "boundary": request["boundary"]["name"], 
-                            "raster": df_name, 
-                            "extract_type": extract_type, 
-                            "reliability": is_reliability_raster
-                        }
-
-                        self.c_extracts.replace_one(cache_data, cache_data, upsert=True)
-
-                    elif not exists:
-                        count += 1
+                    tmp_merge_list.append(tmp_merge_item)
 
 
-                    return True, cou
-        nt, msr_request
+        self.merge_list = tmp_merge_list
+
+        return len(merge_list)
+
+
+
+
+
+    # check entire request object for cache
+    def check_request(self, request, extract=False):
+        print "check_request"
+
+        extract_count = 0
+        msr_count = 0
+
+
+        for name, data in request['d1_data'].iteritems():                   
+            print name
+
+            # check if msr exists
+            # msr_exists, msr_completed = self.msr_exists()
+
+            # if msr_exists:
+                # check if extract for msr exists    
+                # extract_exists, extract_completed = self.extract_exists()
+                # 
+
+                # if not extract_exists:
+                    # add to extract queue
+                    # 
+
+                    # extract_count += 1
+
+            # else:
+                # add to msr tracker
+                # 
+
+                # extract_count += 1
+                # msr_count +=1
+
+            # add to merge list
+            # 
+
+
+        for name, data in request["d2_data"].iteritems():
+            print name
+
+            for i in data["files"]:
+
+                df_name = i["name"]
+                raster_path = data["base"] +"/"+ i["path"]
+                is_reliability_raster = i["reliability"]
+
+                for extract_type in data["options"]["extract_types"]:
+
+                    # core basename for output file 
+                    # does not include file type identifier (...e.ext for extracts and ...r.ext for reliability) or file extension
+                    if data["temporal_type"] == "None":
+                        output_name = df_name + "_"
+                    else:
+                        output_name = df_name
+
+                    # output file string without file type identifier or file extension
+                    base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
+                    extract_output = base_output + self.extract_options[extract_type] + ".csv"
+                    
+
+                    # check if extract exists
+                    # extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
+
+                    # if not extract_exists:
+                        # add to extract queue
+                        # 
+
+                        # extract_count += 1
+
+
+                    # add to merge list
+                    # 
+
+        return extract_count, msr_count
+
+
+
+# ---------------------------------------------------------------------------
+
 
 
     # merge extracts when all are completed
     def merge(self, rid, request):
         print "merge"
+
+        # generate list of csv files to merge (including relability calcs)
+        csv_merge_list = []
+        for item in self.merge_list:
+            csv_merge_list.append(item['output'])
+            if item['reliability']:
+                csv_merge_list.append(item['output'][:-5]+"r.csv")
+
 
         merged_df = 0
 
@@ -175,7 +215,7 @@ class cache():
     # try:
 
         # for each result file that should exist for request (extracts and reliability)
-        for result_csv in self.merge_list:
+        for result_csv in csv_merge_list:
 
             # make sure file exists
             if os.path.isfile(result_csv):
@@ -219,3 +259,92 @@ class cache():
     # except:
     #     return False, "error writing merged dataframe"           
 
+
+
+# ---------------------------------------------------------------------------
+
+
+
+    # 1) check if extract exists in extract queue
+    #    run redundancy check on actual extract file and delete extract queue entry if file is missing
+    #    also check for reliability calc if field is specified
+    # 2) check if extract is completed, waiting to be run, or encountered an error
+    def extract_exists(self, boundary, raster, extract_type, reliability, csv_path):
+        print "exists_in_extract_queue"
+        
+        check_data = {"boundary": boundary, "raster": raster, "extract_type": extract_type, "reliability": reliability}
+
+        # check db
+        search = self.c_extracts.find(check_data)
+
+        db_exists = search.count() > 0
+
+        valid_db_exists = False
+        valid_completed_exists = False
+
+        if db_exists:
+
+            if search[0]['status'] == 0:
+                valid_db_exists = True
+
+            elif search[0]['status'] == 1:
+                # check file
+                extract_exists = os.path.isfile(csv_path)
+
+                reliability_path = csv_path[:-5] + "r.csv"
+
+                if extract_exists and (not reliability or (reliability and os.path.isfile(reliability_path))):
+                    valid_db_exists = True
+                    valid_completed_exists = True
+
+                else:
+                    # remove from db
+                    self.c_extracts.delete_one(check_data)
+
+            else:
+                valid_db_exists = True
+                valid_completed_exists = "Error"
+
+
+        return valid_db_exists, valid_completed_exists
+
+
+    # 1) check if msr exists in msr tracker
+    #    run redundancy check on actual msr raster file and delete msr tracker entry if file is missing
+    # 2) check if msr is completed, waiting to be run, or encountered an error
+    def msr_exists(self, dataset_name, filter_hash, raster_path):
+        print "exists_in_msr_tracker"
+        
+        check_data = {"dataset": dataset_name, "hash": filter_hash}
+
+        # check db
+        search = self.c_msr.find(check_data)
+
+        db_exists = search.count() > 0
+
+        valid_db_exists = False
+        valid_completed_exists = False
+
+        if db_exists:
+
+            if search[0]['status'] == 0:
+                valid_db_exists = True
+
+            elif search[0]['status'] == 1:
+                # check file
+                msr_exists = os.path.isfile(raster_path)
+
+                if msr_exists:
+                    valid_db_exists = True
+                    valid_completed_exists = True
+
+                else:
+                    # remove from db
+                    self.c_msr.delete_one(check_data)
+
+            else:
+                valid_db_exists = True
+                valid_completed_exists = "Error"
+
+
+        return valid_db_exists, valid_completed_exists
