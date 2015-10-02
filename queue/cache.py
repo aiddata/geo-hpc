@@ -2,6 +2,7 @@
 
 import os
 import errno
+import time
 
 import pymongo
 import pandas as pd 
@@ -42,76 +43,76 @@ class cache():
 
 
 
-    # generate merge list for request
-    def generate_merge_list(self, request):
-        print "generate_merge_list"
+    # # generate merge list for request
+    # def generate_merge_list(self, request):
+    #     print "generate_merge_list"
 
-        tmp_merge_list =  []
+    #     tmp_merge_list =  []
 
-        boundary_path = request['boundary']['path']
+    #     boundary_path = request['boundary']['path']
 
 
-        for name, data in request['d1_data'].iteritems():                   
-            print name
+    #     for name, data in request['d1_data'].iteritems():                   
+    #         print name
 
-            msr_raster_path = ''
-            msr_extract_output = ''
-            msr_field = ''
+    #         msr_raster_path = ''
+    #         msr_extract_output = ''
+    #         msr_field = ''
 
-            tmp_merge_item = {
-                'boundary': boundary_path,
-                'raster': msr_raster_path,
-                'extract': 'sum',
-                'reliability': True,
-                'field': msr_field,
-                'output': msr_extract_output,
-                'type': 'raster',
-                'source': 'd1_data'
-            }
+    #         tmp_merge_item = {
+    #             'boundary': boundary_path,
+    #             'raster': msr_raster_path,
+    #             'extract': 'sum',
+    #             'reliability': True,
+    #             'field': msr_field,
+    #             'output': msr_extract_output,
+    #             'type': 'raster',
+    #             'source': 'd1_data'
+    #         }
             
-            tmp_merge_list.append(tmp_merge_item)
+    #         tmp_merge_list.append(tmp_merge_item)
 
 
-        for name, data in request["d2_data"].iteritems():
-            print name
+    #     for name, data in request["d2_data"].iteritems():
+    #         print name
 
-            for i in data["files"]:
+    #         for i in data["files"]:
 
-                df_name = i["name"]
-                raster_path = data["base"] +"/"+ i["path"]
-                is_reliability_raster = i["reliability"]
+    #             df_name = i["name"]
+    #             raster_path = data["base"] +"/"+ i["path"]
+    #             is_reliability_raster = i["reliability"]
 
-                for extract_type in data["options"]["extract_types"]:
+    #             for extract_type in data["options"]["extract_types"]:
 
-                    # core basename for output file 
-                    # does not include file type identifier (...e.ext for extracts and ...r.ext for reliability) or file extension
-                    if data["temporal_type"] == "None":
-                        output_name = df_name + "_"
-                    else:
-                        output_name = df_name
+    #                 # core basename for output file 
+    #                 # does not include file type identifier (...e.ext for extracts and ...r.ext for reliability) or file extension
+    #                 if data["temporal_type"] == "None":
+    #                     output_name = df_name + "_"
+    #                 else:
+    #                     output_name = df_name
 
-                    # output file string without file type identifier or file extension
-                    base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
-                    extract_output = base_output + self.extract_options[extract_type] + ".csv"
+    #                 # output file string without file type identifier or file extension
+    #                 base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
+    #                 extract_output = base_output + self.extract_options[extract_type] + ".csv"
                     
 
-                    tmp_merge_item = {
-                        'boundary': boundary_path,
-                        'raster': raster_path,
-                        'extract': extract_type,
-                        'reliability': is_reliability_raster,
-                        'field': os.path.basename(extract_output),
-                        'output': extract_output,
-                        'type': 'raster',
-                        'source': 'd2_data'
-                    }
+    #                 tmp_merge_item = {
+    #                     'boundary': boundary_path,
+    #                     'raster': raster_path,
+    #                     'extract': extract_type,
+    #                     'reliability': is_reliability_raster,
+    #                     'field': os.path.basename(extract_output),
+    #                     'output': extract_output,
+    #                     'type': 'raster',
+    #                     'source': 'd2_data'
+    #                 }
 
-                    tmp_merge_list.append(tmp_merge_item)
+    #                 tmp_merge_list.append(tmp_merge_item)
 
 
-        self.merge_list = tmp_merge_list
+    #     self.merge_list = tmp_merge_list
 
-        return len(merge_list)
+    #     return len(merge_list)
 
 
 
@@ -124,30 +125,33 @@ class cache():
         extract_count = 0
         msr_count = 0
 
-
         for name, data in request['d1_data'].iteritems():                   
             print name
 
-            # check if msr exists
-            # msr_exists, msr_completed = self.msr_exists()
+            # check if msr exists in tracker and is completed
+            msr_exists, msr_completed = self.msr_exists()
 
-            # if msr_exists:
-                # check if extract for msr exists    
-                # extract_exists, extract_completed = self.extract_exists()
-                # 
+            if msr_completed:
+                
+                # check if extract for msr exists in queue and is completed  
+                extract_exists, extract_completed = self.extract_exists()
+                
+                if not extract_completed:
+                    extract_count += 1
 
-                # if not extract_exists:
-                    # add to extract queue
-                    # 
+                    if not extract_exists:
+                        # add to extract queue
+                        add_to_extract_queue(stuff)
 
-                    # extract_count += 1
+            else:
 
-            # else:
-                # add to msr tracker
-                # 
+                msr_count += 1
+                extract_count += 1
 
-                # extract_count += 1
-                # msr_count +=1
+                if not msr_exists:
+                    # add to msr tracker
+                    add_to_msr_tracker(stuff)
+
 
             # add to merge list
             # 
@@ -176,93 +180,65 @@ class cache():
                     extract_output = base_output + self.extract_options[extract_type] + ".csv"
                     
 
-                    # check if extract exists
-                    # extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
+                    # check if extract exists in queue and is completed
+                    extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
 
-                    # if not extract_exists:
-                        # add to extract queue
-                        # 
+                    # incremenet count if extract is not completed (whether it exists in queue or not)
+                    if not extract_completed:
+                        extract_count += 1
 
-                        # extract_count += 1
+                        # add to extract queue if it does not already exist in queue
+                        if not extract_exists:
+                            add_to_extract_queue(stuff)
 
 
                     # add to merge list
                     # 
 
+
         return extract_count, msr_count
 
 
-
-# ---------------------------------------------------------------------------
-
-
-
-    # merge extracts when all are completed
-    def merge(self, rid, request):
-        print "merge"
-
-        # generate list of csv files to merge (including relability calcs)
-        csv_merge_list = []
-        for item in self.merge_list:
-            csv_merge_list.append(item['output'])
-            if item['reliability']:
-                csv_merge_list.append(item['output'][:-5]+"r.csv")
-
-
-        merged_df = 0
-
-        # created merged dataframe from results
-    # try:
-
-        # for each result file that should exist for request (extracts and reliability)
-        for result_csv in csv_merge_list:
-
-            # make sure file exists
-            if os.path.isfile(result_csv):
-
-                # get field name from file
-                result_field =  os.path.splitext(os.path.basename(result_csv))[0]
-
-                # load csv into dataframe
-                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
-
-                # check if merged df exists
-                if not isinstance(merged_df, pd.DataFrame):
-                    # if merged df does not exists initialize it 
-                    # init merged df using full csv                    
-                    merged_df = result_df.copy(deep=True)
-                    # change extract column name to file name
-                    merged_df.rename(columns={"ad_extract": result_field}, inplace=True)
-
-                else:
-                    # if merge df exists add data to it
-                    # add only extract column to merged df
-                    # with column name = new extract file name
-                    merged_df[result_field] = result_df["ad_extract"]
-
-    # except:
-        # return False, "error building merged dataframe"
-
-
-        # output merged dataframe to csv
-    # try:
-        merged_output = "/sciclone/aiddata10/REU/det/results/"+rid+"/results.csv"
-
-        # generate output folder for merged df using request id
-        self.make_dir(os.path.dirname(merged_output))
-
-        # write merged df to csv
-        merged_df.to_csv(merged_output, index=False)
+    # add extract item to det->extracts mongodb collection    
+    def add_to_extract_queue(raster, boundary, reliability, extract_type):
+        print "add_to_extract_queue"
         
-        return True, None
-    
-    # except:
-    #     return False, "error writing merged dataframe"           
+        ctime = int(time.time())     
+
+        insert = {
+            'raster': raster,
+            'boundary': boundary,
+            'reliability': reliability,
+            'extract_type': extract_type,
+
+            'status': 0,
+            'priority': 0,
+            'submit_time': ctime,
+            'update_time': ctime       
+        }
+
+        # 
 
 
+    # add msr item to det->msr mongodb collection
+    def add_to_msr_tracker(selection):
+        print "add_to_msr_tracker"
+        
+        ctime = int(time.time())     
 
-# ---------------------------------------------------------------------------
+        insert = {
+            'dataset': selection['dataset'],
+            'hash': selection['hash'],
+            'filter': selection,
+            'resolution': 0.05,
 
+            'status': 0,
+            'priority': 0,
+            'submit_time': ctime,
+            'update_time': ctime
+        }
+
+        # 
 
 
     # 1) check if extract exists in extract queue
@@ -348,3 +324,74 @@ class cache():
 
 
         return valid_db_exists, valid_completed_exists
+
+
+
+# ---------------------------------------------------------------------------
+
+
+
+    # merge extracts when all are completed
+    def merge(self, rid, request):
+        print "merge"
+
+        # generate list of csv files to merge (including relability calcs)
+        csv_merge_list = []
+        for item in self.merge_list:
+            csv_merge_list.append(item['output'])
+            if item['reliability']:
+                csv_merge_list.append(item['output'][:-5]+"r.csv")
+
+
+        merged_df = 0
+
+        # created merged dataframe from results
+    # try:
+
+        # for each result file that should exist for request (extracts and reliability)
+        for result_csv in csv_merge_list:
+
+            # make sure file exists
+            if os.path.isfile(result_csv):
+
+                # get field name from file
+                result_field =  os.path.splitext(os.path.basename(result_csv))[0]
+
+                # load csv into dataframe
+                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+
+                # check if merged df exists
+                if not isinstance(merged_df, pd.DataFrame):
+                    # if merged df does not exists initialize it 
+                    # init merged df using full csv                    
+                    merged_df = result_df.copy(deep=True)
+                    # change extract column name to file name
+                    merged_df.rename(columns={"ad_extract": result_field}, inplace=True)
+
+                else:
+                    # if merge df exists add data to it
+                    # add only extract column to merged df
+                    # with column name = new extract file name
+                    merged_df[result_field] = result_df["ad_extract"]
+
+    # except:
+        # return False, "error building merged dataframe"
+
+
+        # output merged dataframe to csv
+    # try:
+        merged_output = "/sciclone/aiddata10/REU/det/results/"+rid+"/results.csv"
+
+        # generate output folder for merged df using request id
+        self.make_dir(os.path.dirname(merged_output))
+
+        # write merged df to csv
+        merged_df.to_csv(merged_output, index=False)
+        
+        return True, None
+    
+    # except:
+    #     return False, "error writing merged dataframe"           
+
+
+

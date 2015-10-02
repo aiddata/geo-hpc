@@ -466,7 +466,7 @@ $(document).ready(function(){
 			// d1
 			var d1_datasets_html = '<option value="" title="Select a dataset" disabled selected>Select a dataset</option>'
 			_.each(_.values(result['d1']), function(dset){
-				d1_datasets_html += '<option value='+dset['name']+'>'+dset['name']+'</option>'; 
+				d1_datasets_html += '<option value='+dset['name']+'>'+dset['title']+' - Version '+dset['version']+'</option>'; 
 			})
 			$('#d1_datasets').append(d1_datasets_html)
 

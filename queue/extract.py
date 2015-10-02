@@ -4,6 +4,7 @@
 
 import os
 import errno
+import time
 
 import pymongo
 import pandas as pd 
@@ -87,6 +88,8 @@ cache_data = {
     "raster": df_name, 
     "extract_type": extract_type, 
     "reliability": is_reliability_raster
+    # 'status': 1,
+    # 'complete_time': int(time.time()),
 }
 
 self.c_extracts.replace_one(cache_data, cache_data, upsert=True)
