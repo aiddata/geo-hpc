@@ -71,14 +71,14 @@ for i in request_objects.keys():
 
     # check results for cached data
     # run missing extracts if run_extract is True
-    cr_status, cr_count = cache.check_request(request_obj, True)
+    cr_status, cr_extract_count, cr_msr_count = cache.check_request(request_id, request_obj, True)
 
 
     if not cr_status:
-        queue.quit("Error while checking request cache")
+        queue.quit(request_id, -2, "Error while checking request cache")
 
     # if extracts are cached then build output
-    if cr_count == 0:
+    if cr_extract_count == 0:
         print "finishing request"
         # merge results and generate documentation
         queue.build_output(request_id, True)

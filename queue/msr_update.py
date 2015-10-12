@@ -14,35 +14,46 @@ if len(sys.argv) > 1:
 	force = sys.argv[1]
 
 
-# if force; 
+# search for active job(s) in msr_tracker (should only be 1 at a time normally, but could potentially be multiple due to force flag)
+# active_count, active_jobs = 
+
+# if force or active_count == 0:
 	# core()
 
-# elif not force:
-	# search for active job(s) in msr_tracker (should only be 1 at a time normally, but could potentially be multiple due to force flag)
-	# for each active job:
+# else:
+	# for job in active_jobs:
+		
 		# check if there is an output for active job (location based on some deterministic path using hash or something)
+		# 
 
 		# if no output 
 				# redundancy check - see if there is any output from qstat command
+				# 
 				# if qstat has text
 					# job is running so exit script
+					#
 				# else
 					# set request in tracker to specific error status
+					#
+					# run next
 					# core()
 
-		# else
+		# else:
 			# check status in output file (done vs error vs other?)
+			#
+			
 			# if error status
 				# move jobscript and output to error folder 
+				#
 				# (maybe send me some notification or update log?)
+				#
 
 			# elif if done status
 				# move jobscript and output to completed folder (different from folder for actual job outputs) 
-				# run core
-
-
-
-
+				#
+			
+			# get next
+			# core()
 
 
 

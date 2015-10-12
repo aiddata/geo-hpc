@@ -96,14 +96,14 @@ class queue():
 
         if status == 2:
             updates["prep_time"] = ctime
-            self.request_obj["prep_time"] = ctime
+            self.request_objects[rid]["prep_time"] = ctime
         elif status == 3:
             updates["process_time"] = ctime
-            self.request_obj["process_time"] = ctime
+            self.request_objects[rid]["process_time"] = ctime
 
         elif status == 1:
             updates["complete_time"] = ctime
-            self.request_obj["complete_time"] = ctime
+            self.request_objects[rid]["complete_time"] = ctime
 
 
         try:
@@ -164,23 +164,23 @@ class queue():
     def build_output(self, request_id, run_extract):
         
         # merge cached results if all are available
-        merge_status = self.cache.merge(request_id, self.request_obj)
+        merge_status = self.cache.merge(request_id, self.request_objects[request_id])
 
         # handle merge error
         if not merge_status[0]:
-            self.quit(merge_status[1])
+            self.quit(request_id, -2, merge_status[1])
 
 
         # add processed time
         if not run_extract:
             us = self.update_status(request_id, 3)
 
-        # update status 0 (done)
+        # update status 1 (done)
         us = self.update_status(request_id, 1)
 
 
         # generate documentation
-        self.doc.request = self.request_obj
+        self.doc.request = self.request_objects[request_id]
         print self.doc.request
 
         bd_status = self.doc.build_doc(request_id)
@@ -193,6 +193,6 @@ class queue():
 
         # send final email
         c_message = "Your data extraction request (" + request_id + ") has completed. The results are available via devlabs.aiddata.wm.edu/DET/status/#"+request_id
-        self.send_email("aiddatatest2@gmail.com", self.request_obj["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
+        self.send_email("aiddatatest2@gmail.com", self.request_objects[request_id]["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
 
 

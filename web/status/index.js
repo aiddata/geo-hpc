@@ -24,8 +24,8 @@ $(document).ready(function(){
 	var status = {
 		"-2":["error", 0],
 		"-1":["preprocessing queue", "submit_time"],
-		"0":["completed", "complete_time"],
-		"1":["processing queue", "prep_time"],
+		"0":["processing queue", "prep_time"],
+		"1":["completed", "complete_time"],
 		"2":["preprocessing", "prep_time"],
 		"3":["processing", "process_time"]
 	};
@@ -280,7 +280,7 @@ $(document).ready(function(){
 		$('#request_header').html(rh_html);
 
 		var rd_html = '';
-		if (request['status'] == 0) {
+		if (request['status'] == 1) {
 			// check if request is finished 
 			// update request download if it is
 			rd_html = '<div><a href="../results/'+request['_id']['$id']+'.zip">Download</a></div>';

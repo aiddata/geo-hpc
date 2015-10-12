@@ -543,6 +543,7 @@ $(document).ready(function(){
 		_.each(_.keys(input).sort(), function (key) {
 	  		ordered[key] = input[key];
 		});
+		console.log(JSON.stringify(ordered))
 		hash = CryptoJS.SHA1(JSON.stringify(ordered));
 		hash_hex = hash.toString(CryptoJS.enc.Hex)
 		console.log(hash_hex)
