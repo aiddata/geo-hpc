@@ -49,14 +49,15 @@ class cache():
         for name, data in request['d1_data'].iteritems():                   
             print name
 
+            msr_extract_type = "sum"
+            msr_extract_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data['dataset']+"_"+data['hash'] +"/"+msr_extract_type+"/"+ data['dataset']+"_"+data['hash'] +"_"+self.extract_options[msr_extract_type]+".csv"    
+
             # check if msr exists in tracker and is completed
             msr_exists, msr_completed = self.msr_exists(data['dataset'], data['hash'])
 
             if msr_completed:
                 
                 # check if extract for msr exists in queue and is completed  
-                msr_extract_type = "sum"
-                msr_extract_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data['dataset']+"_"+data['hash'] +"/"+msr_extract_type+"/"+ data['dataset']+"_"+data['hash'] +"_"+self.extract_options[msr_extract_type]+".csv"
                 extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], data['dataset']+"_"+data['hash'], msr_extract_type, True, msr_extract_output)
                 
                 if not extract_completed:
@@ -103,7 +104,6 @@ class cache():
                     base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
                     extract_output = base_output + self.extract_options[extract_type] + ".csv"
                     
-
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
 
@@ -186,6 +186,7 @@ class cache():
         valid_completed = False
 
         if db_exists:
+            print search[0] 
 
             if search[0]['status'] == 0:
                 valid_exists = True

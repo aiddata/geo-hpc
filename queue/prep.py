@@ -46,16 +46,17 @@ else:
     # returns status of search and request data objecft
 
     gn_status, request_objects = queue.get_next(-1, 1)
-    request_id = request_objects.keys()[0]
-    request_obj = request_objects[request_id]
 
     if not gn_status:
        sys.exit("Error while searching for next request in queue")
-    elif request_id == None:
+    elif request_objects == None:
        sys.exit("Prep queue is empty")
 
+    request_id = request_objects.keys()[0]
+    request_obj = request_objects[request_id]
 
-print 'Request id: ' + request_id
+
+print '\nRequest id: ' + request_id
 
 
 # update status to being processed 

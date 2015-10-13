@@ -26,7 +26,6 @@ client = pymongo.MongoClient()
 
 c_asdf = client.asdf.data
 c_extracts = client.det.extracts
-c_msr = client.det.msr          
 
 
 
@@ -64,10 +63,9 @@ def update_status(rid, status):
     ctime = int(time.time())
 
     updates = {
-        "status": long(status)
+        "status": long(status),
+        "update_time": ctime
     }
-
-    updates["update_time"] = ctime
     
     # try:
         # # update request document
@@ -196,9 +194,12 @@ gn_status, gn_item = get_next(0, 1)
 
 if not gn_status:
     sys.exit("Error while searching for next request in extract queue")
-elif gn_item != None:
-    rid = gn_item[0]
-    request = gn_item[1]
+elif gn_item == None:
+    sys.exit("Extract queue is empty")
+
+
+rid = gn_item[0]
+request = gn_item[1]
 
 
 print request

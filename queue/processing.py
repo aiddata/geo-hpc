@@ -52,16 +52,16 @@ else:
 
     if not gn_status:
        sys.exit("Error while searching for next request in queue")
-    elif request_id == None:
+    elif request_objects == None:
        sys.exit("Processing queue is empty")
 
 
 
-for i in request_objects.keys():
-    request_id = request_objects.keys()[i]
+for request_id in request_objects.keys():
+
     request_obj = request_objects[request_id]
 
-    print 'Request id: ' + request_id
+    print '\nRequest id: ' + request_id
 
 
     # update status to being processed 
