@@ -21,7 +21,7 @@ c_msr = client.det.msr
 # input flag to ignore whether an existing job has finished
 force = 0
 if len(sys.argv) > 1:
-	force = sys.argv[1]
+    force = sys.argv[1]
 
 
 
@@ -40,7 +40,7 @@ def get_next(status, limit):
 
     try:
         # find all status 1 jobs and sort by priority then submit_time
-        sort = self.c_msr.find({"status":status}).sort([("priority", -1), ("submit_time", 1)])
+        sort = c_msr.find({"status":status}).sort([("priority", -1), ("submit_time", 1)])
 
         if sort.count() > 0:
 
@@ -81,81 +81,97 @@ def update_status(rid, status):
 
 # prepare options for request
 def build_json(active_base, request):
-	print "build_json"
-	
-	try:
-		# find path to release root
-		release_path = c_asdf.find('something')
+    print "build_json"
+ 
+    try:
+        # find path to release root
+        release_source = c_asdf.find({'name':request['dataset']})
+        release_path = release_source[0]['base']
 
-		# request path
-		json_path = active_base +'/request.json'
-		 
-		# add release and request path to request object
-		request['release_path'] = release_path 
-		request['request_path'] = json_path
-		json_output = json.dumps(request)
 
-		# write json
-		json_file = open(json_path, 'w')
-		json_file.write(json_output)
+        # request path
+        json_path = active_base +'/request.json'
+        
+        # add release and request path to request object
+        request['release_path'] = release_path 
+        request['request_path'] = json_path
 
-		# return json path
-		return 0, request
+        tmp_request = request
+        if "_id" in tmp_request.keys():
+            tmp_request['_id'] = str(tmp_request['_id'])
 
-	except:
-		return 1, None
+        json_output = json.dumps(tmp_request)
+
+
+        # # write json
+        json_file = open(json_path, 'w')
+        json_file.write(json_output)
+
+        # return json path
+        return 0, request
+
+    except:
+        return 1, None
 
 
 # build jobscript text based on options
 def build_jobscript(active_base, request):
-	print "build_jobscript"
+    print "build_jobscript"
 
-	try:
-		jobscript_output = ''
+    try:
+        jobscript_output = ''
 
-		jobscript_output += '#!/bin/tcsh' + '\n'
-		jobscript_output += '#PBS -N ad:det-msr:' + request['hash'][0:7] + '\n'
-		jobscript_output += '#PBS -l nodes=6:vortex:compute:ppn=12' + '\n'
-		jobscript_output += '#PBS -l walltime=180:00:00' + '\n'
-		jobscript_output += '#PBS -j oe' + '\n'
+        job_options = {
+            'prename': 'ad:det-msr',
+            'nodes': 6,
+            'ppn': 12,
+            'nodespec': 'vortex:compute',
+            'walltime': '1:00:00'
+        }
 
-		jobscript_output += 'set request_path = ' + request['request_path'] + '\n'
-		jobscript_output += 'set resolution = ' + request['resolution'] + '\n'
+        jobscript_output += '#!/bin/tcsh' + '\n'
+        jobscript_output += '#PBS -N ' +job_options['prename'] +':'+ request['hash'][0:7] + '\n'
+        jobscript_output += '#PBS -l nodes=' + str(job_options['nodes']) +':'+ job_options['nodespec'] +':ppn='+ str(job_options['ppn']) + '\n'
+        jobscript_output += '#PBS -l walltime=' + job_options['walltime'] + '\n'
+        jobscript_output += '#PBS -j oe' + '\n'
 
-		jobscript_output += 'cd $PBS_O_WORKDIR' + '\n'
-		jobscript_output += 'mvp2run -m cyclic python-mpi /sciclone/aiddata10/REU/msr/scripts/runscript.py "$request_path" "$resolution" ' + '\n\n'
+        jobscript_output += 'set request_path = ' + request['request_path'] + '\n'
+        jobscript_output += 'set resolution = ' + str(request['resolution']) + '\n'
 
-		jobscript_path = active_base +'/jobscript'
-		jobscript_file = open(jobscript_path, 'w')
-		jobscript_file.write(jobscript_output)
+        jobscript_output += 'cd $PBS_O_WORKDIR' + '\n'
+        jobscript_output += 'mvp2run -m cyclic python-mpi /sciclone/aiddata10/REU/msr/scripts/runscript.py "$request_path" "$resolution" ' + '\n\n'
 
-		return 0, jobscript_path
+        jobscript_path = active_base +'/jobscript'
+        jobscript_file = open(jobscript_path, 'w')
+        jobscript_file.write(jobscript_output)
 
-	except:
-		return 1, None
+        return 0, jobscript_path
+
+    except:
+        return 1, None
 
 
 # submit jobscript with qsub
-def submit_job(something):
-	print "submit_job"
+def submit_job(active_base):
+    print "submit_job"
 
-	try: 
-		# set/get working directory
-		# ???
-		
-		cmd = "ssh sgoodman@hurricane.sciclone.wm.edu 'cd " + something + "; qsub " + something + "'"
-		print cmd
+    try: 
+        
+        cmd = "ssh sgoodman@hurricane.sciclone.wm.edu 'cd " + active_base + "; qsub jobscript'"
+        print cmd
 
         # run command
         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+
+        print sts.split('.')[0]
         print sts
 
-        return 0, 'job id number???'
+        return 0, sts.split('.')[0]
 
     except sp.CalledProcessError as sts_err:                                                                                                   
         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
-		return 1, None
+        return 1, None
 
 
 
@@ -163,41 +179,61 @@ def submit_job(something):
 
 
 def run_core():
-	print "run_core"
+    print "run_core"
 
-	gn_status, gn_item = get_next(0, 1)
+    gn_status, gn_item = get_next(0, 1)
 
-	if not gn_status:
-	    sys.exit("Error while searching for next request in extract queue")
-	elif gn_item == None:
-	    sys.exit("MSR tracker is empty")
+    print gn_item
 
-	rid = gn_item[0]
-	request = gn_item[1]
+    if not gn_status:
+        sys.exit("Error while searching for next request in extract queue")
+    elif gn_item == None:
+        # sys.exit("No new jobs found in MSR Tracker)")
+        print "No new jobs found in MSR Tracker)"
+        return -1
 
-	# make active dir
-	working_dir =  '/sciclone/aiddata10/REU/msr/active/' + request['dataset'] +'_'+ request['hash']
-	make_dir(working_dir)
+    rid = gn_item.keys()[0]
+    request = gn_item[rid]
+
+    # make active dir
+    working_dir =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
 
 
-	# prepare options for json
-	json_status, tmp_request = build_json(working_dir, request)
+    make_dir(working_dir)
 
-	if json_status == 0:
-		# build request jobscript
-		jobscript_status, jobscript_path = build_jobscript(working_dir, tmp_request)
 
-		if jobscript_status == 0:
-			# submit job
-			submit_job(jobscript_path)
-		else:
-			# add specific error status to job request in msr tracker
-			# 
+    # prepare options for json
+    json_status, tmp_request = build_json(working_dir, request)
 
-	else:
-		# add specific error status to job request in msr tracker
-		# 
+    run_core_status = 0
+    if json_status == 0:
+        # build request jobscript
+        jobscript_status, jobscript_path = build_jobscript(working_dir, tmp_request)
 
+        if jobscript_status == 0:
+            # submit job
+            print 'sub'
+            sub_status, sub_id = submit_job(working_dir)
+
+            if sub_status == 0:
+                # add active status to request
+                update_status(rid, 2)
+            else:
+                # add specific error status to job request in msr tracker
+                print 'e1'
+                run_core_status = 1
+
+        else:
+            # add specific error status to job request in msr tracker
+            print 'e2'
+            run_core_status = 2
+
+    else:
+        # add specific error status to job request in msr tracker
+        print 'e3'
+        run_core_status = 3
+
+    return run_core_status
 
 
 
@@ -206,60 +242,65 @@ def run_core():
 active_check_status, active_jobs = get_next(2, 0)
 active_count = 0
 if not active_check_status:
-    sys.exit("Error while searching for next request in extract queue")
+    sys.exit("Error while searching for next request in MSR Tracker")
 elif active_jobs != None:
-	active_count = len(active_jobs.keys())
+    # set active count if active jobs were found (otherwise just continue)
+    active_count = len(active_jobs.keys())
+
 
 
 if force or active_count == 0:
-	run_core()
-
-else:
-	for job in active_jobs.keys():
-		
-		# check if there is an output for active job (location based on some deterministic path using hash or something)
-		oe_status, oe_output = 
-
-		if oe_status != 0:
-		    sys.exit("Error while searching for oe_output")
+    rc_status = run_core()
 
 
-		if oe_output == None: 
-				# redundancy check - see if there is any output from qstat command
-				qstat_status, qstat_text = 
-				if qstat_status != 0:
-				    sys.exit("Error while searching for qstat text")
+
+if active_count > 0
+  for job in active_jobs.keys():
+        print "active: " + job
+
+#       # check if there is an output for active job (location based on some deterministic path using hash or something)
+#       oe_status, oe_output = 
+
+#       if oe_status != 0:
+#           sys.exit("Error while searching for oe_output")
 
 
-				if qstat_text != '':
-					# job is running so exit script
-					#
+#       if oe_output == None: 
+#               # redundancy check - see if there is any output from qstat command
+#               qstat_status, qstat_text = 
+#               if qstat_status != 0:
+#                   sys.exit("Error while searching for qstat text")
 
-				else
-					# set request in tracker to specific error status
-					#
 
-					# run next
-					run_core()
+#               if qstat_text != '':
+#                   # job is running so exit script
+#                   #
 
-		else:
-			# check status in output file (done vs error vs other?)
-			oe_output_status = oe_output['status']
-			
-			if oe_output_status < 0:
-				# move jobscript and output to error folder 
-				#
-				
-				# (maybe send me some notification or update log?)
-				#
+#               else
+#                   # set request in tracker to specific error status
+#                   #
 
-			elif oe_output_status == 1:
-				# move jobscript and output to completed folder (different from folder for actual job outputs) 
-				#
-			
-			# get next
-			run_core()
+#                   # run next
+#                   rc_status = run_core()
 
-		
+#       else:
+#           # check status in output file (done vs error vs other?)
+#           oe_output_status = oe_output['status']
+            
+#           if oe_output_status < 0:
+#               # move jobscript and output to error folder 
+#               #
 
+#               # (maybe send me some notification or update log?)
+#               #
+
+#           elif oe_output_status == 1:
+#               # move jobscript and output to completed folder (different from folder for actual job outputs) 
+#               #
+            
+#           # get next
+#           rc_status = run_core()
+
+        
+print("~!")
 
