@@ -270,7 +270,12 @@ except:
 
 
 extract_type = request['extract_type']
-extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data['name'] +'/'+ extract_type +'/'+ request['raster'] + extract_options[extract_type] + '.csv'
+extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data['name'] +'/'+ extract_type +'/'+ request['raster'] 
+
+if request['raster'] == raster_data['options']['mini_name']:
+    extract_output += '_'
+
+extract_output += extract_options[extract_type] + '.csv'
 
 print raster_path
 print boundary_path

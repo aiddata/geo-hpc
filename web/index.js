@@ -65,7 +65,7 @@ $(document).ready(function(){
 	    		bnd_html += '<option value="' + item['name'] + '" '
 	    		bnd_html += 'data-name="' + item['name'] + '" '
 	    		bnd_html += 'data-path="'+ path + '" '
-	    		bnd_html += 'data-short="'+ item['short'].replace(/\"/g, "'")  + '" '
+	    		bnd_html += 'data-description="'+ item['description'].replace(/\"/g, "'")  + '" '
 	    		bnd_html += 'data-title="'+ item['title'].replace(/\"/g, "'")  + '" '
 	    		bnd_html += 'data-source_link="'+ item['source_link'].replace(/\"/g, "'")  +'" '
 	    		bnd_html += 'data-group="'+grp+'">' + item['name'] + '</option>';
@@ -165,7 +165,7 @@ $(document).ready(function(){
 
 		var sel = $(this).find('option:selected');
 		$('#bnd_title, #data_bnd_title').html(sel.data('title') + " ("+sel.data('group')+" : "+ sel.data('name') +")");
-		$('#bnd_short, #data_bnd_short').html(sel.data('short'));
+		$('#bnd_description, #data_bnd_description').html(sel.data('description'));
 		$('#bnd_link, #data_bnd_link').html(sel.data('source_link'));
 
 		var file = sel.data('path');
@@ -220,7 +220,7 @@ $(document).ready(function(){
 
 		$('#d1_info_title').html(d1_dataset_data['title']);
 		$('#d1_info_version').html('Version ' + d1_dataset_data['version']);
-		$('#d1_info_short').html(d1_dataset_data['short']);
+		$('#d1_info_description').html(d1_dataset_data['description']);
 
 		var d1_sector_html = '<option value="All" title="All" selected>All</option>'
 		_.each(d1_dataset_data['sector_list'], function(item) {
@@ -627,7 +627,7 @@ $(document).ready(function(){
 	    	data_html += '<div class="dataset_meta">';
 		    	data_html += '<div class="dataset_h3">Meta</div>';
 		    	data_html += '<div class="dataset_h4">';
-		    	data_html += '<div class="dataset_meta_info">Short:<div>'+(dataset['short'] == "" ? "-" : dataset['short'])+'</div></div>';
+		    	data_html += '<div class="dataset_meta_info">description:<div>'+(dataset['description'] == "" ? "-" : dataset['description'])+'</div></div>';
 		    	data_html += '<div class="dataset_meta_info">Variable Description:<div>'+(dataset['options']['variable_description'] == "" ? "-" : dataset['options']['variable_description'])+'</div></div>';
 
 				if (dataset["type"] == "raster") {
@@ -791,7 +791,7 @@ $(document).ready(function(){
 		// boundary
 		var sel = request["boundary"];
 		$('#co_bnd_title').html(sel['title'] + " ("+sel['group']+" : "+ sel['name'] +")");
-		$('#co_bnd_short').html(sel['short']);
+		$('#co_bnd_description').html(sel['description']);
 		$('#co_bnd_link').html(sel['source_link']);
 
 		// datasets

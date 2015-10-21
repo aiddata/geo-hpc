@@ -142,7 +142,7 @@ class doc():
         self.Story.append(Spacer(1, 0.05*inch))
 
         data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
-                ['Description',  self.request['boundary']['short']],
+                ['Description',  self.request['boundary']['description']],
                 ['Source Link',  self.request['boundary']['source_link']]]
 
         t = Table(data)
@@ -189,7 +189,7 @@ class doc():
             ['Title', meta['title']],
             ['Name', meta['name']],
             ['Version', meta['version']],
-            ['Short', meta['short']],
+            ['Description', meta['description']],
             ['Source Link', meta['source_link']],
 
             ['Type', meta['type']],

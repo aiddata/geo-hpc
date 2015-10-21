@@ -17,7 +17,7 @@ switch ($_POST['call']) {
 		$fields = array(
 			'name' => true, 
 			'title' => true,
-			'short' => true,
+			'description' => true,
 			'source_link' => true,
 			'options.group' => true,
 			'options.group_class' => true,
@@ -105,40 +105,81 @@ switch ($_POST['call']) {
 		    if ($doc['type'] == "release") {
 
 
-		    	$doc['year_list'] = array();
-		    	$doc['sector_list'] = array();
-		    	$doc['donor_list'] = array();
+		    	// $doc['year_list'] = array();
+		    	// $doc['sector_list'] = array();
+		    	// $doc['donor_list'] = array();
 
 
 		    	$doc['year_list'] = range($doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
 
-		    	// load datapackage for sectors/donors
-		    	$rdp = json_decode(file_get_contents($doc['base'].'/'.basename($doc['base']).'/datapackage.json'), true);
+
+				$db_releases = $m->selectDB('releases');
+				$col_releases = $db_releases->$doc['name'];
+
+				// $testhandle = fopen("/var/www/html/DET/test.csv", "w");
+				// fwrite( $testhandle, json_encode($col_releases->find()) );
 
 
-		    	foreach ($rdp['sectors_names_list'] as $k => $sector_string) {
-		    		foreach (explode('|', $sector_string['name']) as $sector) {
-
-		    			$sector = trim($sector);
-		    			if (!in_array($sector, $doc['sector_list'])) {
-					    	$doc['sector_list'][] = $sector;
+				$sectors = $col_releases->distinct('ad_sector_names');
+				// $doc['sector_list'] = json_encode($sectors);
+				for ($i=0; $i<count($sectors);$i++) {
+					if (strpos($sectors[$i], "|") !== false) {
+						$new = explode("|", $sectors[$i]);
+						$sectors[$i] = array_shift($new);
+						foreach ($new as $item) {
+							$sectors[] = $item;
 						}
 					}
-		    	}
+				}
+				// $doc['sector_list'] = sort(array_unique($sectors));
+				$doc['sector_list'] = array_unique($sectors);
 				sort($doc['sector_list']);
 
-		    	foreach ($rdp['donors_list'] as $k => $donor_string) {
-		    		foreach (explode('|', $donor_string['name']) as $donor) {
-
-		    			$donor = trim($donor);
-		    			if (!in_array($donor, $doc['donor_list'])) {
-					    	$doc['donor_list'][] = $donor;
+				$donors = $col_releases->distinct('donors');
+				// $doc['donor_list'] = $donors;
+				for ($i=0; $i<count($donors);$i++) {
+					if (strpos($donors[$i], "|") !== false) {
+						$new = explode("|", $donors[$i]);
+						$donors[$i] = array_shift($new);
+						foreach ($new as $item) {
+							$donors[] = $item;
 						}
 					}
-		    	}
-
+				}
+				// $doc['donor_list'] = sort(array_unique($donors));
+				$doc['donor_list'] = array_unique($donors);
 				sort($doc['donor_list']);
+
+
+		  //   	// load datapackage for sectors/donors
+		  //   	$rdp = json_decode(file_get_contents($doc['base'].'/'.basename($doc['base']).'/datapackage.json'), true);
+
+		  //   	foreach ($rdp['sectors_names_list'] as $k => $sector_string) {
+		  //   		foreach (explode('|', $sector_string['name']) as $sector) {
+
+		  //   			$sector = trim($sector);
+		  //   			if (!in_array($sector, $doc['sector_list'])) {
+				// 	    	$doc['sector_list'][] = $sector;
+				// 		}
+				// 	}
+		  //   	}
+				// sort($doc['sector_list']);
+
+		  //   	foreach ($rdp['donors_list'] as $k => $donor_string) {
+		  //   		foreach (explode('|', $donor_string['name']) as $donor) {
+
+		  //   			$donor = trim($donor);
+		  //   			if (!in_array($donor, $doc['donor_list'])) {
+				// 	    	$doc['donor_list'][] = $donor;
+				// 		}
+				// 	}
+		  //   	}
+				// sort($doc['donor_list']);
 		    	
+
+
+
+
 		    	$output['d1'][$doc['name']] = $doc;
 
 		    } else if ($doc['type'] == "raster") {

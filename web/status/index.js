@@ -324,7 +324,7 @@ $(document).ready(function(){
 		var bnd = request["boundary"];
 		html += '<div class="rs_boundary">Boundary';
 			html += '<div class="rs_bnd_title">' + bnd['title'] + " ("+bnd['group']+" : "+ bnd['name'] +")" +'</div>';
-			html += '<div class="rs_bnd_short">' + bnd['short'] + '<div>';
+			html += '<div class="rs_bnd_description">' + bnd['description'] + '<div>';
 			html += '<div class="rs_bnd_link">' + bnd['source_link'] + '<div>';
 		html += '</div><br>';
 
