@@ -100,7 +100,7 @@ def build_json(active_base, request):
         if "_id" in tmp_request.keys():
             tmp_request['_id'] = str(tmp_request['_id'])
 
-        json_output = json.dumps(tmp_request)
+        json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
 
 
         # # write json
@@ -136,10 +136,9 @@ def build_jobscript(active_base, request):
         jobscript_output += '#PBS -j oe' + '\n'
 
         jobscript_output += 'set request_path = ' + request['request_path'] + '\n'
-        jobscript_output += 'set resolution = ' + str(request['resolution']) + '\n'
 
         jobscript_output += 'cd $PBS_O_WORKDIR' + '\n'
-        jobscript_output += 'mvp2run -m cyclic python-mpi /sciclone/aiddata10/REU/msr/scripts/runscript.py "$request_path" "$resolution" ' + '\n\n'
+        jobscript_output += 'mvp2run -m cyclic python-mpi /sciclone/aiddata10/REU/msr/scripts/runscript.py "$request_path" ' + '\n\n'
 
         jobscript_path = active_base +'/jobscript'
         jobscript_file = open(jobscript_path, 'w')
@@ -254,7 +253,7 @@ if force or active_count == 0:
 
 
 
-if active_count > 0
+if active_count > 0:
   for job in active_jobs.keys():
         print "active: " + job
 
