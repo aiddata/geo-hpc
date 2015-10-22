@@ -32,6 +32,7 @@ from functools import partial
 from shapely.ops import transform
 import geopandas as gpd
 
+
 # ====================================================================================================
 # ====================================================================================================
 # general init
@@ -44,7 +45,50 @@ rank = comm.Get_rank()
 status = MPI.Status()
 
 # absolute path to script directory
-dir_base = os.path.dirname(os.path.abspath(__file__))
+dir_file = os.path.dirname(os.path.abspath(__file__))
+
+
+# --------------------------------------------------
+
+
+# creates directories
+def make_dir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+# add information to msr log
+def log(msg):
+    msg = str(msg)
+    # 
+
+
+# quit msr job, manage error reporting, cleanup/move request files
+def quit(msg):
+
+    e_request_basename = os.path.basename(request_path)
+
+    if e_request_basename == '':
+        e_request_basename = 'unknown'
+
+    e_request_basename_split = os.path.splitext(e_request_basename)
+
+    error_dir = e_request_basename_split[0] +"_"+ str(Ts) 
+
+    # make error dir
+    # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
+    # make_dir()
+
+    if os.path.isfile(request_path):
+        # move request to error_dir
+        # 
+
+    # add error file to error_dir
+    # 
+
+    sys.exit(msg)
 
 
 # ====================================================================================================
@@ -53,88 +97,68 @@ dir_base = os.path.dirname(os.path.abspath(__file__))
 
 
 run_stage = "beta"
-run_version_str = "008"
+run_version_str = "009"
 run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
 Ts = int(time.time())
-random_id = '{0:05d}'.format(int(random.random() * 10**5))
-Rid = "msr_" + str(Ts) +"_"+ random_id
-
-# Rid = "msr_" + str(Ts) +"_"+ "56789"
+# random_id = '{0:05d}'.format(int(random.random() * 10**5))
+# Rid = str(Ts) +"_"+ random_id
 
 
 # --------------------------------------------------
 # input arguments
 
-# python /path/to/runscript.py nepal NPL 0.1 10
-arg = sys.argv
-
-try:
-    # country = "nepal"
-    # data_version = "1.1"
-    # pixel_size = 0.1
-    # sector = "Agriculture"
-
-    country = sys.argv[1]
-    data_version = sys.argv[2]
-    pixel_size = float(sys.argv[3])
-    # raw_filter = sys.argv[4]
-    sector = sys.argv[4]
-
-except:
-    sys.exit("invalid inputs")
+if len(sys.argv) != 2:
+    quit('invalid number of inputs: ' + ', '.join(sys.argv))
 
 
 # --------------------------------------------------
-# validate country and data_version
+# validate request and dataset
 
-abbrvs = {
-    "drc": "COD",
-    "honduras": "HND",
-    "iraq": "IRQ",
-    "nepal": "NPL",
-    "nigeria": "NGA",
-    "senegal": "SEN",
-    "timor-leste": "TLS",
-    "uganda": "UGA"
-}
+request_path = sys.argv[1]
 
-if country not in abbrvs.keys() or not os.path.isdir(dir_base+"/countries/"+country):
-    sys.exit("invalid country: " + country)
+if os.path.isfile(request_path):
+    try:
+        request = json.load(open(request_path, 'r'))
+
+    except:
+        quit("invalid json: " + request_path)
+
+else:
+    quit("json file does not exists: " + request_path)
+
+
+abbrvs = json.load(open(dir_file + '/dataset_geometry_lookup.json', 'r'))
+
+dataset_id = request['dataset'].split('_')[0]
+
+if dataset_id not in abbrvs.keys() or not os.path.isdir(request['path']):
+    quit("invalid dataset: " + dataset)
 
 abbr = abbrvs[country]
 
-
-version_path =  dir_base+"/countries/"+country+"/versions/"+country+"_"+data_version
-
-if not os.path.isdir(version_path):
-    sys.exit("invalid data_version: " + data_version)
 
 
 # --------------------------------------------------
 # validate pixel size
 
+if not 'resolution' in request:
+    quit("missing pixel size input from request")
+
+try:
+    pixel_size = float(request['resolution']])
+except:
+    quit("invalid pixel size input: "+str(request['resolution']))
+
+
 # check for valid pixel size
 # examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
 if (1/pixel_size) != int(1/pixel_size):
-    sys.exit("invalid pixel size: "+str(pixel_size))
+    quit("invalid pixel size: "+str(pixel_size))
 
 # pixel size inverse
 psi = 1/pixel_size
-
-
-# --------------------------------------------------
-# validate and build filter options
-
-# filter_type = "all"
-# filters_type = "specfic"
-
-# filters = {
-#     "ad_sector_names": {
-#         "Agriculture": 0
-#     }
-# }
 
 
 # --------------------------------------------------
@@ -216,38 +240,17 @@ lookup = {
 }
 
 
-# --------------------------------------------------
-# file paths
-
-# dir_country = dir_base+"/outputs/"+country
-# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
-
-dir_country = dir_base+"/data/"+country
-dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_id+"_"+str(pixel_size)
-dir_outputs = dir_chain+"/outputs"
-dir_working = dir_outputs+"/"+str(Rid)
-
-
 # ====================================================================================================
 # ====================================================================================================
 # functions
 
 
 def json_hash(hash_obj):
-    hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False)
+    hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
     hash_builder = hashlib.md5()
     hash_builder.update(hash_json)
     hash_md5 = hash_builder.hexdigest()
     return hash_md5
-
-
-# creates directories
-def make_dir(path):
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
 
 
 # --------------------------------------------------
@@ -267,8 +270,8 @@ def getCSV(path):
 # requires a field name to merge on and list of required fields
 def getData(path, merge_id, field_ids, only_geo):
 
-    amp_path = path+"/projects.tsv"
-    loc_path = path+"/locations.tsv"
+    amp_path = path+"/projects.csv"
+    loc_path = path+"/locations.csv"
 
     # make sure files exist
     # 
@@ -451,14 +454,45 @@ def geomVal(agg_type, code_1, code_2, lon, lat):
 
 
 # --------------------------------------------------
+# file paths
+
+output_base = "/sciclone/aiddata/REU/data/rasters/internal/msr"
+output_dataset = output_base +"/"+ request['dataset']
+
+if request['type'] == 'auto':
+    request_hash = request['hash']
+else:
+    request_hash_object = {
+        'dataset':request['dataset'],
+        'donors':request['filters']['donors'],
+        'sectors':request['filters']['sectors'],
+        'years':request['filters']['years']
+    }
+    request_hash = json_hash(request_hash_object)
+
+
+dir_working = output_dataset +"/"+ request_hash
+
+
+# dir_country = dir_file+"/outputs/"+country
+# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
+
+
+# dir_country = dir_file+"/data/"+country
+# dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_id+"_"+str(pixel_size)
+# dir_outputs = dir_chain+"/outputs"
+# dir_working = dir_outputs+"/"+str(Rid)
+
+
+# --------------------------------------------------
 # load shapefiles
 
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
-adm_paths.append(dir_base+"/countries/"+country+"/shps/"+abbr+"_adm0.shp")
-adm_paths.append(dir_base+"/countries/"+country+"/shps/"+abbr+"_adm1.shp")
-adm_paths.append(dir_base+"/countries/"+country+"/shps/"+abbr+"_adm2.shp")
+adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm0.shp")
+adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm1.shp")
+adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
 
 # get adm0 bounding box
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
@@ -502,7 +536,8 @@ for r in rows:
 # --------------------------------------------------
 # load project data
 
-dir_data = dir_base+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
+# dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
+dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
 
 merged = getData(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
 
@@ -541,25 +576,17 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 # filters
 
 
-# filters_json = json.dumps(filters, sort_keys = True, ensure_ascii=False)
-# filters_md5 = hashlib.md5()
-# filters_md5.update(filters_json)
-# filters_hash = filters_md5.hexdigest()
+filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['filters']['sectors']))) & (merged['donors'].str.contains('|'.join(request['filters']['donors'])))].copy(deep=True)
 
-# generate filters hash
-# filters_hash = json_hash(filters)
 
-if sector != "All":
-    # apply filters to project data
-    filtered = merged.loc[merged.ad_sector_names == sector].copy(deep=True)
-else:
-    filtered = deepcopy(merged)
+
+filtered = deepcopy(merged)
 
 
 # !!! potential issue !!!
 #
 # - filters which remove only some locations from a project will skew aid splits
-# - moved original project location count to before filters so that it can be used to
+# - * moved original project location count to before filters so that it can be used to
 #   compare the count of project locations before filter to count after and generate
 #   placeholder random values for the locations that were filtered out
 # - method: recheck project location count and create placeholder random value if locations are missing
@@ -959,16 +986,12 @@ if rank == 0:
     add_json("run_version",run_version)
     add_json("run_id",run_id)
     add_json("Ts",Ts)
-    add_json("Rid",Rid)
+    # add_json("Rid",Rid)
 
-    add_json("country",country)
+    add_json("dataset",request['dataset'])
     add_json("abbr",abbr)
-    add_json("data_version",data_version)
     add_json("pixel_size",pixel_size)
 
-    add_json("sector",sector)
-
-    # add_json("filters_type",filters_type)
     # add_json("filters",filters)
     # add_json("filters_hash",filters_hash)
 
@@ -978,6 +1001,7 @@ if rank == 0:
     add_json("only_geocoded",only_geocoded)
     add_json("not_geocoded",not_geocoded)
     add_json("code_field_1",code_field_1)
+    add_json("code_field_2",code_field_2)
     add_json("agg_types",agg_types)
     add_json("lookup",lookup)
 
@@ -998,7 +1022,7 @@ if rank == 0:
     add_json("T_total",T_total)
 
     # put json in msr/json/mongo/ready folder
-    json_out = dir_base+'/json/mongo/ready/'+str(Rid)+'.json'
+    json_out = dir_file+'/json/mongo/ready/'+str(Rid)+'.json'
     make_dir(os.path.dirname(json_out))
     json_handle1 = open(json_out, 'w')
     json.dump(mops, json_handle1, sort_keys = True, indent = 4, ensure_ascii=False)
