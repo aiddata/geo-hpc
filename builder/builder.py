@@ -6,25 +6,32 @@ import subprocess as sp
 
 dir_base = os.path.dirname(os.path.abspath(__file__))
 
+# could get this info from asdf instead of using json
+dset_info = json.load(open(dir_base + '/datasets.json','r'))
+
 # script_base = "/home/userz/Desktop"
 script_base = "/sciclone/home00/sgoodman/work/extracts/gen3/extract"
 
-batch_name = "moorea"
 
-project_id = "tf"
+# --------------------------------------------------
 
+batch_name = "liberia"
+
+project_id = "lbr"
 
 # could get this info from asdf instead of manual input
 # with optional override for non-asdf boundaries
 general_info = {
-    'bnd_name': 'moorea',
-    'bnd_absolute': '/sciclone/aiddata10/REU/extracts/moorea/shps/moorea.shp',
+    'bnd_name': 'liberia_districts_rev',
+    'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/Liberia_districts_rev.shp',
+    # 'bnd_name': 'liberia_clan_areas_rev',
+    # 'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/Liberia_clan_areas_rev.shp',
+    # 'bnd_name': 'liberia_grid',
+    # 'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/Liberia_grid.shp',
+
     'output_base': '/sciclone/aiddata10/REU/extracts',
     'extract_method': 'rpy2'
 }
-
-# could get this info from asdf instead of using json
-dset_info = json.load(open(dir_base + '/datasets.json','r'))
 
 
 # specify datasets
@@ -46,14 +53,18 @@ run_hours = 36
 node_type = "xeon"
 # node_type = "vortex" 
 
+ppn_override = 1
+# ppn_override = 3
+# ppn_override = 0
+
+# --------------------------------------------------
+
+
 ppn_default = {
     'xeon': 8,
     'vortex': 12
 }
 
-ppn_override = 1
-# ppn_override = 3
-# ppn_override = 0
 
 if ppn_override > 0:
     ppn = ppn_override
@@ -127,7 +138,8 @@ for dset in datasets:
 
     output = '\n'.join(lines)
 
-    out_file = script_base +"/"+ batch_name +"/"+ inputs['data_mini'] +"_jobscript"
+    job_name = general_info['bnd_name'] +'_'+ inputs['data_mini'] + '_jobscript'
+    out_file = script_base +'/'+ batch_name +'/'+ job_name
     open(out_file, 'w').write(output)
 
 
@@ -136,7 +148,7 @@ for dset in datasets:
     # os.chdir(script_base)
 
     print os.getcwd()
-    qsub(inputs['data_mini'] +"_jobscript")
+    qsub(job_name)
 
     # move jobscript to batch folder once job has been queued
     #    

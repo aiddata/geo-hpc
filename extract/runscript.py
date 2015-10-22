@@ -69,6 +69,7 @@ extract_options = {
     # "std": "d",
     "sum": "s",
     "max": "x",
+    # "min": "m",
     "mean": "e"
 }
 
