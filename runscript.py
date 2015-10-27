@@ -20,7 +20,7 @@ import random
 import math
 
 import json
-import hashlib
+# import hashlib
 
 import numpy as np
 import pandas as pd
@@ -32,6 +32,7 @@ from functools import partial
 from shapely.ops import transform
 import geopandas as gpd
 
+import itertools
 
 # ====================================================================================================
 # ====================================================================================================
@@ -81,7 +82,7 @@ def quit(msg):
     # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
     # make_dir()
 
-    if os.path.isfile(request_path):
+    # if os.path.isfile(request_path):
         # move request to error_dir
         # 
 
@@ -96,14 +97,8 @@ def quit(msg):
 # inputs and variables
 
 
-run_stage = "beta"
-run_version_str = "009"
-run_version = int(run_version_str)
-run_id = run_stage[0:1] + run_version_str
-
+# full script start time
 Ts = int(time.time())
-# random_id = '{0:05d}'.format(int(random.random() * 10**5))
-# Rid = str(Ts) +"_"+ random_id
 
 
 # --------------------------------------------------
@@ -116,9 +111,12 @@ if len(sys.argv) != 2:
 # --------------------------------------------------
 # validate request and dataset
 
+# request path passed via python call from jobscript
 request_path = sys.argv[1]
 
+# make sure request file exists
 if os.path.isfile(request_path):
+    # make sure request is valid json and can be loaded
     try:
         request = json.load(open(request_path, 'r'))
 
@@ -128,28 +126,48 @@ if os.path.isfile(request_path):
 else:
     quit("json file does not exists: " + request_path)
 
-
+# load dataset to iso3 crosswalk json
 abbrvs = json.load(open(dir_file + '/dataset_geometry_lookup.json', 'r'))
 
+# get dataset crosswalk id from request
 dataset_id = request['dataset'].split('_')[0]
 
-if dataset_id not in abbrvs.keys() or not os.path.isdir(request['path']):
-    quit("invalid dataset: " + dataset)
+# make sure dataset crosswalk id is in crosswalk json
+if dataset_id not in abbrvs.keys():
+    quit("no shp crosswalk for dataset: " + dataset_id)
 
-abbr = abbrvs[country]
+# make sure dataset path given in request exists
+if not os.path.isdir(request['release_path']):
+    quit("release path specified not found: " + request['release_path'])
 
+abbr = abbrvs[dataset_id]
+
+
+# --------------------------------------------------
+# version info stuff
+
+msr_type = request['options']['type']
+msr_version = request['options']['version']
+
+run_stage = "beta"
+run_version_str = "009"
+run_version = int(run_version_str)
+run_id = run_stage[0:1] + run_version_str
+
+# random_id = '{0:05d}'.format(int(random.random() * 10**5))
+# Rid = str(Ts) +"_"+ random_id
 
 
 # --------------------------------------------------
 # validate pixel size
 
-if not 'resolution' in request:
+if not 'resolution' in request['options']:
     quit("missing pixel size input from request")
 
 try:
-    pixel_size = float(request['resolution']])
+    pixel_size = float(request['options']['resolution'])
 except:
-    quit("invalid pixel size input: "+str(request['resolution']))
+    quit("invalid pixel size input: "+str(request['options']['resolution']))
 
 
 # check for valid pixel size
@@ -212,6 +230,7 @@ agg_types = ["point", "buffer", "adm"]
 
 # precision and feature code values (uses default if feature code not listed)
 # buffer values in meters
+# for adm0 / country boundary  make sure to use type "country" instead of "adm" with data "0"
 lookup = {
     "1": {
         "default":{"type":"point","data":0}
@@ -229,13 +248,13 @@ lookup = {
         "default":{"type":"buffer","data":25000}
     },
     "6": {
-        "default":{"type":"adm","data":"0"}
+        "default":{"type":"country","data":0}
     },
     "7": {
-        "default":{"type":"adm","data":"0"}
+        "default":{"type":"country","data":0}
     },
     "8": {
-        "default":{"type":"adm","data":"0"}
+        "default":{"type":"country","data":0}
     }
 }
 
@@ -245,12 +264,12 @@ lookup = {
 # functions
 
 
-def json_hash(hash_obj):
-    hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
-    hash_builder = hashlib.md5()
-    hash_builder.update(hash_json)
-    hash_md5 = hash_builder.hexdigest()
-    return hash_md5
+# def json_hash(hash_obj):
+#     hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
+#     hash_builder = hashlib.md5()
+#     hash_builder.update(hash_json)
+#     hash_md5 = hash_builder.hexdigest()
+#     return hash_md5
 
 
 # --------------------------------------------------
@@ -456,22 +475,25 @@ def geomVal(agg_type, code_1, code_2, lon, lat):
 # --------------------------------------------------
 # file paths
 
-output_base = "/sciclone/aiddata/REU/data/rasters/internal/msr"
-output_dataset = output_base +"/"+ request['dataset']
-
-if request['type'] == 'auto':
-    request_hash = request['hash']
-else:
-    request_hash_object = {
-        'dataset':request['dataset'],
-        'donors':request['filters']['donors'],
-        'sectors':request['filters']['sectors'],
-        'years':request['filters']['years']
-    }
-    request_hash = json_hash(request_hash_object)
+dir_working = os.path.dirname(request_path)
 
 
-dir_working = output_dataset +"/"+ request_hash
+# output_base = "/sciclone/aiddata10/REU/data/rasters/internal/msr"
+# output_dataset = output_base +"/"+ request['dataset']
+
+# # if request['type'] == 'auto':
+# if 'hash' in request:
+#     request_hash = request['hash']
+# else:
+#     request_hash_object = {
+#         'dataset':request['dataset'],
+#         'donors':request['options']['donors'],
+#         'sectors':request['options']['sectors'],
+#         'years':request['options']['years']
+#     }
+#     request_hash = json_hash(request_hash_object)
+
+# dir_working = output_dataset +"_"+ request_hash
 
 
 # dir_country = dir_file+"/outputs/"+country
@@ -519,18 +541,67 @@ gb = 0.5
 cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
 rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
 
+
 # print cols
 # print rows
 
 # init grid reference object
-gref = {}
-idx = 0
-for r in rows:
-    gref[str(r)] = {}
-    for c in cols:
-        # build grid reference object
-        gref[str(r)][str(c)] = idx
-        idx += 1
+
+
+
+grid_product = list(itertools.product(cols, rows))
+grid_gdf = gpd.GeoDataFrame()
+grid_gdf['within'] = [0] * len(grid_product)
+grid_gdf['geometry'] = grid_product
+grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
+
+grid_gdf['lat'] = grid_gdf.apply(lambda z: z['geometry'].y, axis=1)
+grid_gdf['lon'] = grid_gdf.apply(lambda z: z['geometry'].x, axis=1)
+
+grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
+grid_gdf.set_index('index', inplace=True)
+
+grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
+
+adm0_count = sum(grid_gdf['within'])
+
+grid_gdf['value'] = 0
+
+grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
+
+
+
+
+
+# gref = {}
+# idx = 0
+
+# adm0_gref = {}
+# adm0_count = 0
+
+# for r in rows:
+#     gref[str(r)] = {}
+#     adm0_gref[str(r)] = {}
+
+#     for c in cols:
+#         # build grid reference object
+#         gref[str(r)][str(c)] = idx
+#         idx += 1
+
+
+#         # check if point is within geom
+#         adm0_point = Point(c,r)
+#         adm0_within = adm0_point.within(adm0)
+
+
+#         if adm0_within:
+#             adm0_gref[str(r)][str(c)] = idx
+#             adm0_count += 1
+#         else:
+#             adm0_gref[str(r)][str(c)] = "None"
+
+
+
 
 
 # --------------------------------------------------
@@ -575,15 +646,26 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 # --------------------------------------------------
 # filters
 
+# filter years
+# 
 
-filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['filters']['sectors']))) & (merged['donors'].str.contains('|'.join(request['filters']['donors'])))].copy(deep=True)
+# prep donor/sector filters if using 'All'
+if request['options']['donors'] == ['All']:
+    request['options']['donors'] = []
+
+if request['options']['sectors'] == ['All']:
+    request['options']['sectors'] = []
+
+# filter sectors and donors
+filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
 
 
+# no filter - placeholder
+# filtered = deepcopy(merged)
 
-filtered = deepcopy(merged)
 
-
-# !!! potential issue !!!
+# !!! potential issue !!! 
+# 2015-22-10 : i think this is outdated since there is no more random aid
 #
 # - filters which remove only some locations from a project will skew aid splits
 # - * moved original project location count to before filters so that it can be used to
@@ -597,8 +679,8 @@ filtered = deepcopy(merged)
 # assign geometries
 
 # add geom columns
-filtered["agg_type"] = ["None"] * len(filtered)
-filtered["agg_geom"] = ["None"] * len(filtered)
+filtered["agg_type"] = pd.Series(["None"] * len(filtered))
+filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
 
 filtered.agg_type = filtered.apply(lambda x: geomType(x[is_geocoded], x[code_field_1], x[code_field_2]), axis=1)
 filtered.agg_geom = filtered.apply(lambda x: geomVal(x.agg_type, x[code_field_1], x[code_field_2], x.longitude, x.latitude), axis=1)
@@ -780,7 +862,7 @@ if rank == 0:
         # write asc file
         sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
         asc_sum_mean_surf_str = asc + sum_mean_surf_str
-        fout_sum_mean_surf = open(dir_working+"/mean_surf.asc", "w")
+        fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
         fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
     else:
@@ -803,7 +885,18 @@ else:
             # ==================================================
             # WORKER STUFF
 
-            mean_surf = np.zeros((int(idx+1),), dtype=np.int)
+
+            tmp_grid_gdf = grid_gdf.copy(deep=True)
+            tmp_grid_gdf['value'] = 0
+
+            def map_to_grid(geom, val):
+                if val != 0:
+                    tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(geom.y * psi) / psi, round(geom.x * psi) / psi), 'value'] += val
+
+
+            # mean_surf = np.zeros((int(idx+1),), dtype=np.int)
+
+
 
             # poly grid pixel size and poly grid pixel size inverse
             # poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
@@ -813,8 +906,25 @@ else:
             pg_data = i_m.loc[task]
             pg_type = pg_data.agg_type
 
+            print(str(rank) + 'running pg_type: ' + pg_type)
 
-            if (pg_type != "point" and pg_type in agg_types) or pg_type == "country":
+            if pg_type == "country":
+                
+                print("rank " + str(rank) +" " +pg_type+ " : adm0 bounds length vals within map")
+
+                tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['split_dollars_pp'] / adm0_count)
+
+
+                # for r in rows:
+                #     for c in cols:
+                #         if adm0_gref[str(r)][str(c)] != "None":
+                #             # round new grid points to old grid points and update old grid
+                #             gref_id = gref[str(r)][str(c)]
+                #             mean_surf[gref_id] += pg_data['split_dollars_pp'] / adm0_count
+
+
+
+            elif pg_type != "point" and pg_type in agg_types:
 
                 # for each row generate grid based on bounding box of geometry
 
@@ -829,51 +939,120 @@ else:
                 pg_cols = np.arange(pg_minx, pg_maxx+pg_pixel_size*0.5, pg_pixel_size)
                 pg_rows = np.arange(pg_maxy, pg_miny-pg_pixel_size*0.5, -1*pg_pixel_size)
 
+                print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
+
+
                 # evenly split the aid for that row (i_m['split_dollars_pp'] field) among new grid points
 
-                # full poly grid reference object and count
-                pg_gref = {}
-                pg_idx = 0
-
-                # poly grid points within actual geom and count
-                # pg_in = {}
-                pg_count = 0
-
-                for r in pg_rows:
-                    pg_gref[str(r)] = {}
-
-                    for c in pg_cols:
-                        pg_idx += 1
-
-                        # check if point is within geom
-                        pg_point = Point(c,r)
-                        pg_within = pg_point.within(pg_geom)
-
-                        if pg_within:
-                            pg_gref[str(r)][str(c)] = pg_idx
-                            pg_count += 1
-                        else:
-                            pg_gref[str(r)][str(c)] = "None"
+                tmp_product = list(itertools.product(pg_cols, pg_rows))
+                tmp_gdf = gpd.GeoDataFrame()
+                tmp_gdf['within'] = [0] * len(tmp_product)
+                tmp_gdf['geometry'] = tmp_product
+                tmp_gdf['geometry'] = tmp_gdf.apply(lambda z: Point(z.geometry), axis=1)
+                
+                tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: round(z.geometry.y * psi) / psi, axis=1)
+                tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: round(z.geometry.x * psi) / psi, axis=1)
 
 
-                # init grid reference object
-                for r in pg_rows:
-                    for c in pg_cols:
-                        if pg_gref[str(r)][str(c)] != "None":
-                            # round new grid points to old grid points and update old grid
-                            gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
-                            mean_surf[gref_id] += pg_data['split_dollars_pp'] / pg_count
+                print("rank " + str(rank) +" length :" +str(len(tmp_product)))
+
+
+                Tsx = time.time()
+                tmp_gdf['within'] = tmp_gdf['geometry'].within(pg_geom)
+                Tsxz = time.time() - Tsx
+                print("rank " + str(rank) +" " +pg_type+ " within took " + str(Tsxz))
+
+
+                Tsx = time.time()
+                pg_count = sum(tmp_gdf['within'])
+                tmp_gdf['value'] = 0
+                tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['split_dollars_pp'] / pg_count)
+                Tsxz = time.time() - Tsx
+                print("rank " + str(rank) +" " +pg_type+ " vals took " + str(Tsxz))
+
+
+                Tsx = time.time()
+                # tmp_gdf.sort(['ref_lat','ref_lon'], ascending=[False, True], inplace=True)
+                aggregated_total = tmp_gdf.groupby(['ref_lat','ref_lon'])['value'].sum()
+                
+                agg_df = aggregated_total.reset_index()
+
+                agg_df['index'] = agg_df.apply(lambda z: str(z.ref_lon) +'_'+ str(z.ref_lat), axis=1)
+                agg_df.set_index('index', inplace=True)
+
+                tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
+                print("rank " + str(rank) +" " +pg_type+ " map took " + str(Tsxz))
+
+                # Tsx = time.time()
+                # tmp_gdf.apply(lambda x: map_to_grid(x.geometry, x.value), axis=1)
+                # Tsxz = time.time() - Tsx
+                # print("rank " + str(rank) +" " +pg_type+ " map took " + str(Tsxz))
+
+
+
+
+                # # full poly grid reference object and count
+                # pg_gref = {}
+                # pg_idx = 0
+
+                # # poly grid points within actual geom and count
+                # # pg_in = {}
+                # pg_count = 0
+
+
+                # for r in pg_rows:
+                #     pg_gref[str(r)] = {}
+
+                #     for c in pg_cols:
+                #         pg_idx += 1
+
+                #         Tsx = time.time()
+
+                #         # check if point is within geom
+                #         pg_point = Point(c,r)
+                #         pg_within = pg_point.within(pg_geom)
+
+                #         Tsxz = time.time() - Tsx
+                #         print("rank " + str(rank) + " point/within took " + str(Tsxz))
+
+                #         if pg_within:
+                #             pg_gref[str(r)][str(c)] = pg_idx
+                #             pg_count += 1
+                #         else:
+                #             pg_gref[str(r)][str(c)] = "None"
+
+
+                # # init grid reference object
+                # for r in pg_rows:
+                #     for c in pg_cols:
+                #         if pg_gref[str(r)][str(c)] != "None":
+                #             # round new grid points to old grid points and update old grid
+                #             gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
+                #             mean_surf[gref_id] += pg_data['split_dollars_pp'] / pg_count
+
+
+
+
 
 
             elif pg_type == "point":
 
+                print("rank " + str(rank) +" " +pg_type+ " : point bounds length vals within map")
+
                 # round new grid points to old grid points and update old grid
-                gref_id = gref[str(round(pg_data.latitude * psi) / psi)][str(round(pg_data.longitude * psi) / psi)]
-                mean_surf[gref_id] += pg_data['split_dollars_pp']
+
+                tmp_point = Point(round(pg_data.latitude * psi) / psi, round(pg_data.longitude * psi) / psi)
+                tmp_value = pg_data['split_dollars_pp']
+                map_to_grid(tmp_point, tmp_value)
+
+                # gref_id = gref[str(round(pg_data.latitude * psi) / psi)][str(round(pg_data.longitude * psi) / psi)]
+                # mean_surf[gref_id] += pg_data['split_dollars_pp']
 
 
             # --------------------------------------------------
             # send np arrays back to master
+
+            mean_surf = np.array(tmp_grid_gdf['value'])
 
             comm.send(mean_surf, dest=0, tag=tags.DONE)
 
@@ -1022,11 +1201,11 @@ if rank == 0:
     add_json("T_total",T_total)
 
     # put json in msr/json/mongo/ready folder
-    json_out = dir_file+'/json/mongo/ready/'+str(Rid)+'.json'
-    make_dir(os.path.dirname(json_out))
+    json_out = dir_working+'/output.json'
+    # make_dir(os.path.dirname(json_out))
     json_handle1 = open(json_out, 'w')
     json.dump(mops, json_handle1, sort_keys = True, indent = 4, ensure_ascii=False)
 
     # store json with outputs as meta
-    json_handle2 = open(dir_working+'/'+str(Rid)+'.json',"w")
-    json.dump(mops, json_handle2, sort_keys = True, indent = 4, ensure_ascii=False)
+    # json_handle2 = open(dir_working+'/'+str(Rid)+'.json',"w")
+    # json.dump(mops, json_handle2, sort_keys = True, indent = 4, ensure_ascii=False)
