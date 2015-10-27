@@ -337,7 +337,7 @@ $(document).ready(function(){
 			html += '<br><div class="rs_dset">';
 
 		    	html += '<table style="width:100%;"><tbody><tr>'
-			    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+dset['hash'].substr(0,7)+'...) </td>';
+			    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+_.keys(request["d1_data"])[i].substr(0,7)+'...) </td>';
 			    	html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
 			    	html += '<td style="width:20%;">Items: <span>1</span></td>';
 		    	html += '</tr>';

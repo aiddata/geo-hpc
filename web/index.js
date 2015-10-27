@@ -255,29 +255,32 @@ $(document).ready(function(){
 
 		filter_selection = get_filter_selection();
 
-		tmp_hash = object_to_hash(filter_selection);
+		tmp_partial_hash = object_to_hash(filter_selection);
 
 		if (location_count == 0 ) {
 			console.log("no locations found matching selection")
 		} else if ($('.d1_data').length > d1_data_limit) {
 			console.log("you have reached the maximum number of selections ("+d1_data_limit+")")
 
-		} else if ($('#'+tmp_hash).length != 0) {
+		} else if ($('#'+tmp_partial_hash).length != 0) {
 			console.log("already selected")
 
 		} else {
 
-			filter_selection['hash'] = tmp_hash;
-			filter_selection['projects'] = project_count;
-			filter_selection['locations'] = location_count;
+			time_stamp = Date.now();
+
+			// filter_selection['hash'] = tmp_partial_hash;
+			// filter_selection['projects'] = project_count;
+			// filter_selection['locations'] = location_count;
+
 			filter_selection['type'] = "release";
 
-			request['d1_data'][filter_selection['hash']] = filter_selection;
+			request['d1_data'][tmp_partial_hash] = filter_selection;
 	
-			var selection_html = build_d1_html(filter_selection);
+			var selection_html = build_d1_html(filter_selection, project_count, location_count, time_stamp, tmp_partial_hash);
 			$('#d1_selected').append(selection_html);
 
-			request["counts"][tmp_hash] = 1;
+			request["counts"][tmp_partial_hash] = 1;
 			sum_counts();
 
 		}
@@ -551,18 +554,18 @@ $(document).ready(function(){
 	}
 
 	// build d1 dataset (aid data, releases) html
-	function build_d1_html(filter_selection) {
+	function build_d1_html(filter_selection, project_count, location_count, time_stamp, partial_hash) {
 		var data_html = '';
 
 		// open data div
-		data_html += '<div class="data d1_data" id="' + filter_selection['hash'] + '" ' + '" data-type="release">';
+		data_html += '<div class="data d1_data" id="' + partial_hash + '" ' + '" data-type="release">';
     	
 			// dataset header
 	    	data_html += '<div class="dataset_header ui-icon-minusthick">';
 
 		    	data_html += '<div>'
 			    	data_html += '<div class="dataset_h1 dataset_title">' + filter_selection['dataset'] + '</div>';
-			    	data_html += '<div class="dataset_h1 dataset_name" title="'+filter_selection['hash']+'...">(' + filter_selection['hash'].substr(0,7) + ')</div>';
+			    	data_html += '<div class="dataset_h1 dataset_name">(' + partial_hash.substr(0,7)+ '...) '+Date(time_stamp)+'</div>';
 			    	data_html += '<button class="d1_remove">Remove</button>';
 			    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
 				data_html += '</div>'
@@ -573,7 +576,7 @@ $(document).ready(function(){
 	    	data_html += '<div class="dataset_body">';
 
 		    	data_html += '<div class="dataset_meta">';
-			    	data_html += '<div><i>'+filter_selection['projects']+' Projects with '+filter_selection['locations']+' Locations</i></div><br>';
+			    	data_html += '<div><i>'+project_count+' Projects with '+location_count+' Locations</i></div><br>';
 
 			    	data_html += '<div class="dataset_h3">Selection Filter</div>';
 			    	data_html += '<div class="dataset_h4">';
@@ -799,11 +802,12 @@ $(document).ready(function(){
 
 		// d1 data
 		for (var i=0, ix=_.keys(request["d1_data"]).length; i<ix; i++) {
+			
 			var dset = _.values(request["d1_data"])[i];
 			dset_html += '<div class="co_dset">';
 
 		    	dset_html += '<table style="width:100%;"><tbody><tr>'
-			    	dset_html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+dset['hash'].substr(0,7)+'...) </td>';
+			    	dset_html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+_.keys(request["d1_data"])[i].substr(0,7)+'...) </td>';
 			    	dset_html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
 			    	dset_html += '<td style="width:20%;">Items: <span>1</span></td>';
 		    	dset_html += '</tr>';

@@ -110,7 +110,14 @@ switch ($_POST['call']) {
 		    	// $doc['donor_list'] = array();
 
 
-		    	$doc['year_list'] = range($doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
+		    	// get years from datapackage
+		    	// $doc['year_list'] = range($doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
+
+		    	// placeholder for no year selection (only 'All')
+				$doc['year_list'] = [];
+
+				// get years based on min transaction_first and max transaction_last
+				// 
 
 
 				$db_releases = $m->selectDB('releases');

@@ -5,6 +5,8 @@ import errno
 import time
 import json
 
+import hashlib
+
 import pymongo
 import pandas as pd 
 import geopandas as gpd
@@ -28,6 +30,9 @@ class cache():
 
         self.merge_lists = {}
 
+        self.msr_resolution = 0.05
+        self.msr_version = 0.1
+
 
     # creates directories
     def make_dir(self, path):
@@ -36,6 +41,14 @@ class cache():
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
+
+
+    def json_sha1_hash(self, hash_obj):
+        hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
+        hash_builder = hashlib.sha1()
+        hash_builder.update(hash_json)
+        hash_sha1 = hash_builder.hexdigest()
+        return hash_sha1
 
 
     # check entire request object for cache
@@ -49,23 +62,29 @@ class cache():
         for name, data in request['d1_data'].iteritems():                   
             print name
 
+            data['resolution'] = self.msr_resolution
+            data['version'] = self.msr_version
+
+            # get hash
+            data_hash = self.json_sha1_hash(data)
+
             msr_extract_type = "sum"
-            msr_extract_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data['dataset']+"_"+data['hash'] +"/"+msr_extract_type+"/"+ data['dataset']+"_"+data['hash'] +"_"+self.extract_options[msr_extract_type]+".csv"    
+            msr_extract_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data['dataset']+"_"+data_hash +"/"+msr_extract_type+"/"+ data['dataset']+"_"+data_hash +"_"+self.extract_options[msr_extract_type]+".csv"    
 
             # check if msr exists in tracker and is completed
-            msr_exists, msr_completed = self.msr_exists(data['dataset'], data['hash'])
+            msr_exists, msr_completed = self.msr_exists(data['dataset'], data_hash)
 
             if msr_completed:
                 
                 # check if extract for msr exists in queue and is completed  
-                extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], data['dataset']+"_"+data['hash'], msr_extract_type, True, msr_extract_output)
+                extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], data['dataset']+"_"+data_hash, msr_extract_type, True, msr_extract_output)
                 
                 if not extract_completed:
                     extract_count += 1
 
                     if not extract_exists:
                         # add to extract queue
-                        self.add_to_extract_queue(request["boundary"]["name"], data['dataset']+"_"+data['hash'], True, msr_extract_type, "msr")
+                        self.add_to_extract_queue(request["boundary"]["name"], data['dataset']+"_"+data_hash, True, msr_extract_type, "msr")
 
             else:
 
@@ -74,7 +93,7 @@ class cache():
 
                 if not msr_exists:
                     # add to msr tracker
-                    self.add_to_msr_tracker(data)
+                    self.add_to_msr_tracker(data, data_hash)
 
 
             # add to merge list
@@ -148,17 +167,19 @@ class cache():
 
 
     # add msr item to det->msr mongodb collection
-    def add_to_msr_tracker(self, selection):
+    def add_to_msr_tracker(self, selection, msr_hash):
         print "add_to_msr_tracker"
         
         ctime = int(time.time())     
 
         insert = {
-            'dataset': selection['dataset'],
-            'hash': selection['hash'],
-            'filter': selection,
-            'resolution': 0.05,
+            'hash': msr_hash,
 
+            'dataset': selection['dataset'],
+            'options': selection,
+            # 'resolution': 0.05,
+
+            'job': [],
             'status': 0,
             'priority': 0,
             'submit_time': ctime,
@@ -216,10 +237,10 @@ class cache():
     # 1) check if msr exists in msr tracker
     #    run redundancy check on actual msr raster file and delete msr tracker entry if file is missing
     # 2) check if msr is completed, waiting to be run, or encountered an error
-    def msr_exists(self, dataset_name, filter_hash):
+    def msr_exists(self, dataset_name, msr_hash):
         print "exists_in_msr_tracker"
         
-        check_data = {"dataset": dataset_name, "hash": filter_hash}
+        check_data = {"dataset": dataset_name, "hash": msr_hash}
 
         # check db
         search = self.c_msr.find(check_data)
@@ -236,7 +257,7 @@ class cache():
 
             elif search[0]['status'] == 1:
                 # check file
-                raster_path = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + dataset_name +'/'+ filter_hash +'/raster.asc'
+                raster_path = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + dataset_name +'/'+ msr_hash +'/raster.asc'
                 msr_exists = os.path.isfile(raster_path)
 
                 if msr_exists:

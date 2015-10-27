@@ -123,9 +123,9 @@ def build_jobscript(active_base, request):
 
         job_options = {
             'prename': 'ad:det-msr',
-            'nodes': 6,
-            'ppn': 12,
-            'nodespec': 'vortex:compute',
+            'nodes': 3,
+            'ppn': 8,
+            'nodespec': 'xeon:compute',
             'walltime': '1:00:00'
         }
 
@@ -138,7 +138,14 @@ def build_jobscript(active_base, request):
         jobscript_output += 'set request_path = ' + request['request_path'] + '\n'
 
         jobscript_output += 'cd $PBS_O_WORKDIR' + '\n'
+        
+
+        # mvapich2
         jobscript_output += 'mvp2run -m cyclic python-mpi /sciclone/aiddata10/REU/msr/scripts/runscript.py "$request_path" ' + '\n\n'
+
+        # openmpi
+        # jobscript_output += 'mpirun --mca mpi_warn_on_fork 0 -np ' + str(job_options['nodes'] * job_options['ppn']) + ' python-mpi ./runscript.py "$request_path" ' + '\n\n'
+
 
         jobscript_path = active_base +'/jobscript'
         jobscript_file = open(jobscript_path, 'w')
@@ -187,8 +194,8 @@ def run_core():
     if not gn_status:
         sys.exit("Error while searching for next request in extract queue")
     elif gn_item == None:
-        # sys.exit("No new jobs found in MSR Tracker)")
-        print "No new jobs found in MSR Tracker)"
+        # sys.exit("No new jobs found in MSR Tracker")
+        print "No new jobs found in MSR Tracker"
         return -1
 
     rid = gn_item.keys()[0]
@@ -217,6 +224,11 @@ def run_core():
             if sub_status == 0:
                 # add active status to request
                 update_status(rid, 2)
+
+                # add job id to msr doc
+                c_msr.update({"_id": ObjectId(rid)}, {"$push": {'job': sub_id}})
+
+
             else:
                 # add specific error status to job request in msr tracker
                 print 'e1'
@@ -252,53 +264,102 @@ if force or active_count == 0:
     rc_status = run_core()
 
 
+def get_msr_oe(rid, request):
+    print "get_msr_oe"
+
+    request_dir =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
+    msr_oe_file = request_dir + '/output.json'
+    
+    if os.path.isfile(msr_oe_file):
+        try:
+            msr_oe_json = json.load(open(msr_oe_file, 'r'))
+            msr_oe_status = msr_oe_json['status']
+            return True, msr_oe_status
+        except:
+            return True, None
+
+    else:
+        return False, None
+
+
+    
+
+def get_hpc_oe(rid, request):
+    print "get_hpc_oe"
+
+    request_dir =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
+    hpc_oe_file = request_dir + '/ad:det-msr:' + substr(request['hash'], 0, 7) +'.o'+ str(max(map(int, request['job'])))
+
+    if os.path.isfile(hpc_oe_file):
+        return True
+    else:
+        return False
+            
+
+
 
 if active_count > 0:
-  for job in active_jobs.keys():
+    for job in active_jobs.keys():
         print "active: " + job
 
-#       # check if there is an output for active job (location based on some deterministic path using hash or something)
-#       oe_status, oe_output = 
-
-#       if oe_status != 0:
-#           sys.exit("Error while searching for oe_output")
+        # check if there is an output json for active job 
+        # and if there is a valid output, check status
+        msr_oe_exists, msr_oe_status = get_msr_oe(job, active_jobs[job])
 
 
-#       if oe_output == None: 
-#               # redundancy check - see if there is any output from qstat command
-#               qstat_status, qstat_text = 
-#               if qstat_status != 0:
-#                   sys.exit("Error while searching for qstat text")
+        # # msr finished properly with valid json output
+        # if msr_oe_exists and msr_oe_status != None:
 
+        #     # msr finished without errors
+        #     if msr_oe_status == 0:
+        #         print msr_oe_status
+        #         # move jobscript and output to completed folder (different from folder for actual job outputs) 
+        #         #
 
-#               if qstat_text != '':
-#                   # job is running so exit script
-#                   #
+        #         # update msr tracker status
+        #         # 
 
-#               else
-#                   # set request in tracker to specific error status
-#                   #
+        #     # msr finished with errors
+        #     else:
+        #         print msr_oe_status
+        #         # move jobscript and output to error folder 
+        #         #
 
-#                   # run next
-#                   rc_status = run_core()
-
-#       else:
-#           # check status in output file (done vs error vs other?)
-#           oe_output_status = oe_output['status']
+        #         # (maybe send me some notification or update log?)
+        #         #
             
-#           if oe_output_status < 0:
-#               # move jobscript and output to error folder 
-#               #
 
-#               # (maybe send me some notification or update log?)
-#               #
+        #     if ?:
+        #         # get next
+        #         rc_status = run_core()
 
-#           elif oe_output_status == 1:
-#               # move jobscript and output to completed folder (different from folder for actual job outputs) 
-#               #
+
+
+        # # msr finished properly but without valid json output
+        # elif msr_oe_exists:
+
+
+        # # msr is still running or did not finish properly
+        # else:
+
+        #     # check if there is any output from hpc job
+        #     hpc_oe_exists = get_hpc_oe(job, active_jobs[job]) 
+
             
-#           # get next
-#           rc_status = run_core()
+        #     # job did not finish properly
+        #     if hpc_oe_exists:
+
+        #             # set request in tracker to specific error status
+        #             #
+
+        #             if ?:
+        #                 # run next
+        #                 rc_status = run_core()
+
+        #     # job is still running (skip / exit)
+        #     else:
+        #         print "job is running"
+
 
         
 print("~!")
