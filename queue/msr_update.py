@@ -4,6 +4,7 @@ import os
 import errno
 import time
 import json
+import shutil
 
 import pymongo
 from bson.objectid import ObjectId
@@ -21,7 +22,7 @@ c_msr = client.det.msr
 # input flag to ignore whether an existing job has finished
 force = 0
 if len(sys.argv) > 1:
-    force = sys.argv[1]
+    force = int(sys.argv[1])
 
 
 
@@ -264,6 +265,8 @@ if force or active_count == 0:
     rc_status = run_core()
 
 
+
+
 def get_msr_oe(rid, request):
     print "get_msr_oe"
 
@@ -288,7 +291,7 @@ def get_hpc_oe(rid, request):
     print "get_hpc_oe"
 
     request_dir =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
-    hpc_oe_file = request_dir + '/ad:det-msr:' + substr(request['hash'], 0, 7) +'.o'+ str(max(map(int, request['job'])))
+    hpc_oe_file = request_dir + '/ad:det-msr:' + request['hash'][0:7] +'.o'+ str(max(map(int, request['job'])))
 
     if os.path.isfile(hpc_oe_file):
         return True
@@ -307,58 +310,84 @@ if active_count > 0:
         msr_oe_exists, msr_oe_status = get_msr_oe(job, active_jobs[job])
 
 
-        # # msr finished properly with valid json output
-        # if msr_oe_exists and msr_oe_status != None:
+        # msr finished properly with valid json output
+        if msr_oe_exists and msr_oe_status != None:
 
-        #     # msr finished without errors
-        #     if msr_oe_status == 0:
-        #         print msr_oe_status
-        #         # move jobscript and output to completed folder (different from folder for actual job outputs) 
-        #         #
+            # msr finished without errors
+            if msr_oe_status == 0:
+                print "msr oe status good: " + str(msr_oe_status)
 
-        #         # update msr tracker status
-        #         # 
+                msr_active_dir =  '/sciclone/aiddata10/REU/msr/queue/active/' + active_jobs[job]['dataset'] +'_'+ active_jobs[job]['hash']
 
-        #     # msr finished with errors
-        #     else:
-        #         print msr_oe_status
-        #         # move jobscript and output to error folder 
-        #         #
+                # move entire dir for job from msr queue "active" dir to "done" dir  
+                msr_done_dir = msr_active_dir.replace('/active/', '/done/')
 
-        #         # (maybe send me some notification or update log?)
-        #         #
+                if os.path.isdir(msr_done_dir):
+                    shutil.rmtree(msr_done_dir)
+
+                shutil.move(msr_active_dir, msr_done_dir)
+
+
+                # make msr data dir and move raster.asc, unique.geojson, output.json there
+                msr_data_dir = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + active_jobs[job]['dataset'] +'/'+ active_jobs[job]['hash']
+                make_dir(msr_data_dir)
+
+                msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
+                for f in msr_data_files:
+                    msr_data_file = msr_done_dir +'/'+ f
+
+                    # if os.path.isfile(msr_data_dst_file):
+                        # os.remove(msr_data_dst_file)
+
+                    shutil.copy(msr_data_file, msr_data_dir)
+                    os.remove(msr_data_file)
+
+                # update msr tracker status
+                update_status(job, 1) 
+
+                sys.exit('2@@@!')
+
+            # msr finished with errors
+            else:
+                print "msr oe status bad: " + str(msr_oe_status)
+                # move jobscript and output to error folder 
+                #
+
+                # (maybe send me some notification or update log?)
+                #
             
 
-        #     if ?:
-        #         # get next
-        #         rc_status = run_core()
+            # if ?:
+            #     # get next
+            #     rc_status = run_core()
 
 
 
-        # # msr finished properly but without valid json output
-        # elif msr_oe_exists:
+        # msr finished but without valid json output
+        elif msr_oe_exists:
+            print "bad json"
 
+        # msr is still running or did not finish properly
+        else:
 
-        # # msr is still running or did not finish properly
-        # else:
-
-        #     # check if there is any output from hpc job
-        #     hpc_oe_exists = get_hpc_oe(job, active_jobs[job]) 
+            # check if there is any output from hpc job
+            hpc_oe_exists = get_hpc_oe(job, active_jobs[job]) 
 
             
-        #     # job did not finish properly
-        #     if hpc_oe_exists:
+            # job did not finish properly
+            if hpc_oe_exists:
 
-        #             # set request in tracker to specific error status
-        #             #
+                    print "hpc output exists"
+                    # set request in tracker to specific error status
+                    #
 
-        #             if ?:
-        #                 # run next
-        #                 rc_status = run_core()
+                    # if ?:
+                    #     # run next
+                    #     rc_status = run_core()
 
-        #     # job is still running (skip / exit)
-        #     else:
-        #         print "job is running"
+            # job is still running (skip / exit)
+            else:
+                print "job is running"
 
 
         

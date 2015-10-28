@@ -207,7 +207,8 @@ print request
 us_proc = update_status(rid, 2)
 
 
-
+# --------------------------------------------------
+# boundary
 
 # lookup boundary path in asdf
 boundary_data = c_asdf.find({'name': request['boundary']})[0]
@@ -217,38 +218,8 @@ boundary_data = c_asdf.find({'name': request['boundary']})[0]
 boundary_path = boundary_data['base'] +'/'+ boundary_data['resources'][0]['path']
 
 
-
-# lookup raster path
-
-if not 'classification' in request.keys() or request['classification'] == 'external':
-
-    print request['raster'].split('_')
-    raster_data = c_asdf.find({'options.mini_name': request['raster'].split('_')[0]})[0]
-    print raster_data
-
-
-    raster_path = ''
-    for i in raster_data['resources']:
-        if request['raster'] == i['name']:
-            raster_path = raster_data['base'] +'/'+ i['path']
-
-elif request['classification'] == 'msr':
-
-    split_index = request['raster'].rindex('_')
-    raster_data = (request['raster'][:split_index], request['raster'][split_index+1:])
-    raster_path = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + raster_data[0] +'/'+ raster_data[1] + '/raster.asc'
-
-else:
-    us_error = update_status(rid, -1)
-
-
-
 # check boundary exists
 # 
-
-# check raster exists
-# 
-
 
 # initialize boundary using rpy2
 try:
@@ -269,13 +240,58 @@ except:
     us_error = update_status(rid, -1)
 
 
+
+# --------------------------------------------------
+# raster
+
 extract_type = request['extract_type']
-extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data['name'] +'/'+ extract_type +'/'+ request['raster'] 
 
-if request['raster'] == raster_data['options']['mini_name']:
-    extract_output += '_'
+# lookup raster path
 
-extract_output += extract_options[extract_type] + '.csv'
+if not 'classification' in request.keys() or request['classification'] == 'external':
+
+    print request['raster'].split('_')
+    raster_data = c_asdf.find({'options.mini_name': request['raster'].split('_')[0]})[0]
+    print raster_data
+
+
+    raster_path = ''
+    for i in raster_data['resources']:
+        if request['raster'] == i['name']:
+            raster_path = raster_data['base'] +'/'+ i['path']
+
+    # build output file path
+    extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data['name'] +'/'+ extract_type +'/'+ request['raster'] 
+
+    if request['raster'] == raster_data['options']['mini_name']:
+        extract_output += '_'
+
+    extract_output += extract_options[extract_type] + '.csv'
+
+
+elif request['classification'] == 'msr':
+
+    split_index = request['raster'].rindex('_')
+    raster_data = (request['raster'][:split_index], request['raster'][split_index+1:])
+    raster_path = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + raster_data[0] +'/'+ raster_data[1] + '/raster.asc'
+
+    # build output file path
+    extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data[0] +'/'+ extract_type +'/'+ raster_data[1] + '_s.csv'
+
+
+else:
+    us_error = update_status(rid, -1)
+
+
+
+# check raster exists
+# 
+
+
+
+
+# --------------------------------------------------
+# run
 
 print raster_path
 print boundary_path

@@ -59,7 +59,13 @@ class cache():
         extract_count = 0
         msr_count = 0
 
-        for name, data in request['d1_data'].iteritems():                   
+        msr_field_id = 1
+
+        for name in sorted(request['d1_data'].keys()):
+            data = request['d1_data'][name]  
+
+        # for name, data in request['d1_data'].iteritems():  
+
             print name
 
             data['resolution'] = self.msr_resolution
@@ -69,7 +75,7 @@ class cache():
             data_hash = self.json_sha1_hash(data)
 
             msr_extract_type = "sum"
-            msr_extract_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data['dataset']+"_"+data_hash +"/"+msr_extract_type+"/"+ data['dataset']+"_"+data_hash +"_"+self.extract_options[msr_extract_type]+".csv"    
+            msr_extract_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data['dataset'] +"/"+ msr_extract_type +"/"+ data_hash +"_"+self.extract_options[msr_extract_type] +".csv"    
 
             # check if msr exists in tracker and is completed
             msr_exists, msr_completed = self.msr_exists(data['dataset'], data_hash)
@@ -97,8 +103,10 @@ class cache():
 
 
             # add to merge list
-            self.merge_lists[rid].append(msr_extract_output)
-            self.merge_lists[rid].append(msr_extract_output[:-5]+"r.csv")
+            self.merge_lists[rid].append(('d1_data', msr_extract_output, msr_field_id))
+            self.merge_lists[rid].append(('d1_data', msr_extract_output[:-5]+"r.csv", msr_field_id))
+
+            msr_field_id += 1
 
 
         for name, data in request["d2_data"].iteritems():
@@ -136,9 +144,9 @@ class cache():
 
 
                     # add to merge list
-                    self.merge_lists[rid].append(extract_output)
+                    self.merge_lists[rid].append(('d2_data', extract_output, None))
                     if is_reliability_raster:
-                        self.merge_lists[rid].append(extract_output[:-5]+"r.csv")
+                        self.merge_lists[rid].append(('d2_data', extract_output[:-5]+"r.csv", None))
 
 
         return 1, extract_count, msr_count
@@ -295,17 +303,39 @@ class cache():
 
         merged_df = 0
 
+        # used to track dynamically generated field names 
+        # so corresponding extract and reliability have consistent names
+        merge_log = {}
+
         # created merged dataframe from results
     # try:
 
         # for each result file that should exist for request (extracts and reliability)
-        for result_csv in self.merge_lists[rid]:
+        for merge_item in self.merge_lists[rid]:
+            merge_class, result_csv, dynamic_merge_count = merge_item
 
             # make sure file exists
             if os.path.isfile(result_csv):
 
-                # get field name from file
-                result_field =  os.path.splitext(os.path.basename(result_csv))[0]
+                if merge_class == 'd2_data':
+                    # get field name from file
+                    result_field =  os.path.splitext(os.path.basename(result_csv))[0]
+
+                elif merge_class == 'd1_data':
+
+                    csv_basename = os.path.splitext(os.path.basename(result_csv))[0]
+                    
+                    merge_log_name = csv_basename[:-2]
+
+                    if not merge_log_name in merge_log.keys():
+
+                        dynamic_merge_string = '{0:03d}'.format(dynamic_merge_count)
+
+                        merge_log[merge_log_name] = 'ad_msr' + dynamic_merge_string
+
+
+                    result_field = merge_log[merge_log_name] + csv_basename[-1:]
+
 
                 # load csv into dataframe
                 result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)

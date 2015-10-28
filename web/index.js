@@ -273,7 +273,7 @@ $(document).ready(function(){
 			// filter_selection['projects'] = project_count;
 			// filter_selection['locations'] = location_count;
 
-			filter_selection['type'] = "release";
+			// filter_selection['type'] = "release";
 
 			request['d1_data'][tmp_partial_hash] = filter_selection;
 	
@@ -532,7 +532,8 @@ $(document).ready(function(){
 			"dataset": dataset,
 			"sectors": sectors,
 			"donors": donors,
-			"years": years
+			"years": years,
+			"type": "release"
 		};
 
 		return filter_selection;
