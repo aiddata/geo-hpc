@@ -660,6 +660,37 @@ if request['options']['sectors'] == ['All']:
 filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
 
 
+
+def adjust_aid(raw_aid, project_sectors_string, project_donors_string, filter_sectors_list, filter_donors_list):
+
+    project_sectors_list = project_sectors_string.split('|')
+    project_donors_list = project_donors_string.split('|')
+
+    if filter_sectors_list == []:
+        sectors_match = project_sectors_list
+    else:
+        sectors_match = [match for match in project_sectors_list if match in filter_sectors_list]
+
+    if filter_donors_list == []:
+        donors_match = project_donors_list
+    else:  
+        donors_match = [match for match in project_donors_list if match in filter_donors_list]
+
+    # ratio = float(len(sectors_match) * len(donors_match)) / float(len(project_sectors_list) * len(project_donors_list))
+
+    # remove duplicates? - could be duplicates from project strings
+    ratio = (len(set(sectors_match)) * len(set(donors_match))) / (len(set(project_sectors_list)) * len(set(project_donors_list)))
+
+    adjusted_aid = ratio * float(raw_aid)
+
+    return adjusted_aid
+
+
+
+# adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
+filtered['adjusted_aid'] = filtered.apply(lambda z: adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
+
+
 # no filter - placeholder
 # filtered = deepcopy(merged)
 
@@ -912,7 +943,7 @@ else:
                 
                 print("rank " + str(rank) +" " +pg_type+ " : adm0 bounds length vals within map")
 
-                tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['split_dollars_pp'] / adm0_count)
+                tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
 
 
                 # for r in rows:
@@ -920,7 +951,7 @@ else:
                 #         if adm0_gref[str(r)][str(c)] != "None":
                 #             # round new grid points to old grid points and update old grid
                 #             gref_id = gref[str(r)][str(c)]
-                #             mean_surf[gref_id] += pg_data['split_dollars_pp'] / adm0_count
+                #             mean_surf[gref_id] += pg_data['adjusted_aid'] / adm0_count
 
 
 
@@ -942,7 +973,7 @@ else:
                 print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
 
 
-                # evenly split the aid for that row (i_m['split_dollars_pp'] field) among new grid points
+                # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
 
                 tmp_product = list(itertools.product(pg_cols, pg_rows))
                 tmp_gdf = gpd.GeoDataFrame()
@@ -966,7 +997,7 @@ else:
                 Tsx = time.time()
                 pg_count = sum(tmp_gdf['within'])
                 tmp_gdf['value'] = 0
-                tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['split_dollars_pp'] / pg_count)
+                tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count)
                 Tsxz = time.time() - Tsx
                 print("rank " + str(rank) +" " +pg_type+ " vals took " + str(Tsxz))
 
@@ -1028,7 +1059,7 @@ else:
                 #         if pg_gref[str(r)][str(c)] != "None":
                 #             # round new grid points to old grid points and update old grid
                 #             gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
-                #             mean_surf[gref_id] += pg_data['split_dollars_pp'] / pg_count
+                #             mean_surf[gref_id] += pg_data['adjusted_aid'] / pg_count
 
 
 
@@ -1042,11 +1073,11 @@ else:
                 # round new grid points to old grid points and update old grid
 
                 tmp_point = Point(round(pg_data.latitude * psi) / psi, round(pg_data.longitude * psi) / psi)
-                tmp_value = pg_data['split_dollars_pp']
+                tmp_value = pg_data['adjusted_aid']
                 map_to_grid(tmp_point, tmp_value)
 
                 # gref_id = gref[str(round(pg_data.latitude * psi) / psi)][str(round(pg_data.longitude * psi) / psi)]
-                # mean_surf[gref_id] += pg_data['split_dollars_pp']
+                # mean_surf[gref_id] += pg_data['adjusted_aid']
 
 
             # --------------------------------------------------
@@ -1103,7 +1134,7 @@ if rank == 0:
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
     # assuming even split of total project dollars is "max" dollars that project location could receive
-    geo_df["dollars"] = i_m["split_dollars_pp"]
+    geo_df["dollars"] = i_m["adjusted_aid"]
     # geometry for each project location
     geo_df["geometry"] = gpd.GeoSeries(i_m["agg_geom"])
     # string version of geometry used to determine duplicates
@@ -1199,6 +1230,9 @@ if rank == 0:
     add_json("T_surf",T_surf)
     add_json("T_unique",T_unique)
     add_json("T_total",T_total)
+
+    add_json("status",0)
+
 
     # put json in msr/json/mongo/ready folder
     json_out = dir_working+'/output.json'
