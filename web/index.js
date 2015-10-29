@@ -504,7 +504,7 @@ $(document).ready(function(){
 			console.log(result);
 
 			var count = result
-			$('#d1_matches span').html('<i>'+count['projects']+' Projects with '+count['locations']+' Locations</i>');
+			$('#d1_matches span').html('<i><span style="font-weight:bold;color:red">'+count['projects']+'</span> Projects with <span style="font-weight:bold;color:red">'+count['locations']+'</span> Locations</i>');
 			$('#d1_matches').show();
 
 			project_count = count['projects'];
@@ -577,7 +577,7 @@ $(document).ready(function(){
 	    	data_html += '<div class="dataset_body">';
 
 		    	data_html += '<div class="dataset_meta">';
-			    	data_html += '<div><i>'+project_count+' Projects with '+location_count+' Locations</i></div><br>';
+			    	data_html += '<div><i><span style="font-weight:bold;color:red">'+project_count+'</span> Projects with <span style="font-weight:bold;color:red">'+location_count+'</span> Locations</i></div><br>';
 
 			    	data_html += '<div class="dataset_h3">Selection Filter</div>';
 			    	data_html += '<div class="dataset_h4">';

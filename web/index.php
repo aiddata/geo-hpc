@@ -84,7 +84,7 @@
             <div id="data_tabs">
                 <div data-tab="data_1" class="data_tab_active">Aid Data</div>
                 <div data-tab="data_2">External Data</div>
-                <div data-tab="data_3">Additional Data</div>
+                <!-- <div data-tab="data_3">Additional Data</div> -->
             </div>
 
             
