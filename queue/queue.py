@@ -18,13 +18,19 @@ class queue():
     def __init__(self):
         self.client = pymongo.MongoClient()
         self.db = self.client.det
+        
         self.c_queue = self.db.queue
+
+        self.c_extracts = self.db.extracts
+        self.c_msr = self.db.msr
 
         self.cache = 0
         self.doc = 0
 
-        self.request_id = 0
-        self.request_obj = 0
+        # self.request_id = 0
+        # self.request_obj = 0
+
+        self.request_objects = {}
 
 
     # exit function used for errors
@@ -41,8 +47,10 @@ class queue():
             search = self.c_queue.find({"_id":ObjectId(rid)})
             exists = search.count()
 
-            self.request_id = rid
-            self.request_obj = search[0]
+            # self.request_id = rid
+            # self.request_obj = search[0]
+
+            self.request_objects[rid] = search[0]
 
             return 1, exists, search[0]
 
@@ -53,21 +61,28 @@ class queue():
     # get id of next job in queue
     # based on priority and submit_time
     # factor how many extracts need to be processed into queue order (?)
-    def get_next(self, status):
+    def get_next(self, status, limit):
         
         try:
             # find all status 1 jobs and sort by priority then submit_time
             sort = self.c_queue.find({"status":status}).sort([("priority", -1), ("submit_time", 1)])
+
             if sort.count() > 0:
-                rid = str(sort[0]["_id"])
-                self.request_id = rid
-                self.request_obj = sort[0]
-                return 1, rid, sort[0]
+
+                if limit == 0 or limit > sort.count():
+                    limit = sort.count()
+
+                for i in range(limit):
+                    rid = str(sort[i]["_id"])
+                    self.request_objects[rid] = sort[i]
+
+                return 1, self.request_objects
+
             else:
-                return 1, None, None
+                return 1, None
 
         except:
-            return 0, None, None
+            return 0, None
 
 
     # update status of request
@@ -81,14 +96,14 @@ class queue():
 
         if status == 2:
             updates["prep_time"] = ctime
-            self.request_obj["prep_time"] = ctime
+            self.request_objects[rid]["prep_time"] = ctime
         elif status == 3:
             updates["process_time"] = ctime
-            self.request_obj["process_time"] = ctime
+            self.request_objects[rid]["process_time"] = ctime
 
-        elif status == 0:
+        elif status == 1:
             updates["complete_time"] = ctime
-            self.request_obj["complete_time"] = ctime
+            self.request_objects[rid]["complete_time"] = ctime
 
 
         try:
@@ -149,23 +164,23 @@ class queue():
     def build_output(self, request_id, run_extract):
         
         # merge cached results if all are available
-        merge_status = self.cache.merge(request_id, self.request_obj)
+        merge_status = self.cache.merge(request_id, self.request_objects[request_id])
 
         # handle merge error
         if not merge_status[0]:
-            self.quit(merge_status[1])
+            self.quit(request_id, -2, merge_status[1])
 
 
         # add processed time
         if not run_extract:
             us = self.update_status(request_id, 3)
 
-        # update status 0 (done)
-        us = self.update_status(request_id, 0)
+        # update status 1 (done)
+        us = self.update_status(request_id, 1)
 
 
         # generate documentation
-        self.doc.request = self.request_obj
+        self.doc.request = self.request_objects[request_id]
         print self.doc.request
 
         bd_status = self.doc.build_doc(request_id)
@@ -178,7 +193,6 @@ class queue():
 
         # send final email
         c_message = "Your data extraction request (" + request_id + ") has completed. The results are available via devlabs.aiddata.wm.edu/DET/status/#"+request_id
-        self.send_email("aiddatatest2@gmail.com", self.request_obj["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
-
+        self.send_email("aiddatatest2@gmail.com", self.request_objects[request_id]["email"], "AidData Data Extraction Tool Request Completed ("+request_id+")", c_message)
 
 

@@ -56,7 +56,7 @@
             </div>
             <div id="bnd_info">
                 <div id="bnd_title"></div>
-                <div id="bnd_short"></div>
+                <div id="bnd_description"></div>
                 <div id="bnd_link"></div>
                 <button id="bnd_lock" style="display:none;" data-locked="false">Select</button>
             </div>
@@ -68,7 +68,7 @@
                     <span><b>Boundary Info</b></span>
                     <div>
                         <div id="data_bnd_title"></div>
-                        <div id="data_bnd_short"></div>
+                        <div id="data_bnd_description"></div>
                         <div id="data_bnd_link"></div>
                     </div>
                 </div>
@@ -133,7 +133,7 @@
                                 <i><span id="d1_info_version"></span></i>
 
                                 <br><br>
-                                <span id="d1_info_short"></span>
+                                <span id="d1_info_description"></span>
 
                             </div>
                         </div>
@@ -184,7 +184,7 @@
                 Boundary
                 <div id="co_boundary">
                     <div id="co_bnd_title"></div>
-                    <div id="co_bnd_short"></div>
+                    <div id="co_bnd_description"></div>
                     <div id="co_bnd_link"></div>
                 </div>
                 <br>

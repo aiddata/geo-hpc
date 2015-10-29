@@ -142,7 +142,7 @@ class doc():
         self.Story.append(Spacer(1, 0.05*inch))
 
         data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
-                ['Description',  self.request['boundary']['short']],
+                ['Description',  self.request['boundary']['description']],
                 ['Source Link',  self.request['boundary']['source_link']]]
 
         t = Table(data)
@@ -151,8 +151,36 @@ class doc():
         self.Story.append(t)
         self.Story.append(Spacer(1, 0.1*inch))
 
-
         # datasets
+
+        msr_field_id = 1
+        for i in sorted(self.request['d1_data'].keys()):
+        # for dset in self.request['d1_data'].values():
+            dset = self.request['d1_data'][i]
+
+            ptext = '<i>Dataset - '+dset['dataset']+'</i>'
+            self.Story.append(Paragraph(ptext, self.styles['Normal']))
+            self.Story.append(Spacer(1, 0.05*inch))
+
+            data = [['Dataset ',dset['dataset']],
+                    ['Type', dset['type']],
+                    ['Donors', ', '.join(dset['donors'])],
+                    ['Sectors', ', '.join(dset['sectors'])],
+                    ['Years', ', '.join(dset['years'])],
+                    ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
+                    ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
+                    ]
+
+            t = Table(data)
+            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+                                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+
+            self.Story.append(t)
+            self.Story.append(Spacer(1, 0.1*inch))
+
+            msr_field_id += 1
+
+
         for dset in self.request['d2_data'].values():
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'
@@ -189,7 +217,7 @@ class doc():
             ['Title', meta['title']],
             ['Name', meta['name']],
             ['Version', meta['version']],
-            ['Short', meta['short']],
+            ['Description', meta['description']],
             ['Source Link', meta['source_link']],
 
             ['Type', meta['type']],
@@ -268,6 +296,28 @@ class doc():
 
 
         # full dataset meta
+
+        d1_meta_log = []
+        for dset in self.request['d1_data'].values():
+            
+            if dset['dataset'] not in d1_meta_log:
+                d1_meta_log.append(dset['dataset'])
+
+                ptext = '<i>Dataset - '+dset['dataset']+'</i>'
+                self.Story.append(Paragraph(ptext, self.styles['Normal']))
+                self.Story.append(Spacer(1, 0.05*inch))
+
+                # build dataset meta table array
+                data = self.build_meta(dset['dataset'], dset['type'])
+
+                t = Table(data)
+                t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+                                      ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+
+                self.Story.append(t)
+                self.Story.append(Spacer(1, 0.1*inch))
+
+
         for dset in self.request['d2_data'].values():
             
 
@@ -275,11 +325,8 @@ class doc():
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
-
-
             # build dataset meta table array
             data = self.build_meta(dset['name'], dset['type'])
-
 
             t = Table(data)
             t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
