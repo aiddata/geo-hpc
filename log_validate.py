@@ -31,12 +31,12 @@ class validate():
         # acceptable inputs for various fields (dataset types, vector formats, raster formats, etc.)
         self.types = {
             "licenses": self.licenses.keys(),
-            "data": ['raster', 'polydata', 'document', 'point', 'multipoint', 'boundary'],
+            "data": ['raster', 'boundary', 'release', 'polydata', 'document', 'point', 'multipoint'],
             "file_extensions": {
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
             },
-            "extracts": ['mean', 'max'],
+            "extracts": ['mean', 'max', 'sum'],
             "group_class": ['actual', 'sub']
         }
 
@@ -57,21 +57,53 @@ class validate():
         # current datapackage fields
         self.fields = json.load(open(self.dir_base + "/fields.json", 'r'), object_pairs_hook=OrderedDict)
 
-        # mongo stuff
-        self.use_mongo = False
+        # init mongo
+        self.client = pymongo.MongoClient()
+        self.db = self.client.asdf
+        self.c_data = self.db.data
 
-        self.client = None # pymongo.MongoClient()
-        self.db = None # self.client.asdf
-        self.c_data = None # self.db.data
-
-        self.new_boundary = False
-        self.update_geometry = False
+        # group / group_class variables
+        self.group_exists = False
         self.actual_exists = {}
         self.is_actual = False
-        self.group_exists = False
+
+        # boundary change variables
+        self.new_boundary = False
+        self.update_geometry = False
+
 
     # -------------------------
     #  misc functions
+
+    # check if datapackage exists for given base path in mongo
+    # return datapackage if it does
+    def datapackage_exists(self, base):
+
+        search = self.c_data.find({"base": base}).limit(1)
+
+        exists = search.count() > 0       
+
+        print exists
+
+        datapackage = 0
+        if exists:
+            datapackage = OrderedDict(search[0])
+
+
+        return exists, datapackage
+
+
+    # # check if datapackage json exists for given base path
+    # # return datapackage if it does
+    # def datapackage_exists(self, base):
+
+    #     exists = os.path.isfile(base+"/datapackage.json")
+
+    #     datapackage = 0
+    #     if exists:
+    #         datapackage = json.load(open(base+"/datapackage.json", 'r'), object_pairs_hook=OrderedDict)
+
+    #     return exists, datapackage
 
 
     # set file format 
@@ -103,12 +135,7 @@ class validate():
         if self.interface and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
-
+        
         # check mongodb
         if not "name" in self.data or ("name" in self.data and val != self.data["name"]):
             unique_search = self.c_data.find({"name": val}).limit(1)
@@ -121,29 +148,25 @@ class validate():
 
         return True, val, None
 
-
+    # validate mini_name for dataset types which require it 
+    # used for any dataset which will be given to used in extract format (rasters, points, maybe vectors)
     def mini_name(self, val):
 
         val = re.sub(' ', '_', val)
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
 
         if len(val) != 4:
-            return False, None, "Mini name must be at 4 (valid) chars"
+            return False, None, "Mini name must be at least 4 (valid) chars"
 
         val = val.lower()
         
         if self.interface and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
-
+        
         # check mongodb
-        if not "mini_name" in self.data or ("mini_name" in self.data and val != self.data["mini_name"]):
-            unique_search = self.c_data.find({"mini_name": val}).limit(1)
+        if not "mini_name" in self.data['options'] or ("mini_name" in self.data['options'] and val != self.data['options']["mini_name"]):
+            unique_search = self.c_data.find({"options.mini_name": val}).limit(1)
 
             unique = unique_search.count() == 0
 
@@ -156,7 +179,14 @@ class validate():
 
     # each extract type in extract_types
     def license_types(self, val):
-        valx = [x.strip(' ') for x in val.split(",")]
+
+        if isinstance(val, list):
+            valx = [v['id'] for v in val]
+        elif isinstance(val, str):
+            valx = [x.strip(' ') for x in val.split(",")]
+        else:
+            return False, 0, "Invalid input type"
+
 
         if len(valx) == 1 and valx[0] == "":
             return True, [], None
@@ -180,9 +210,17 @@ class validate():
         valid = self.file_format in self.types["file_extensions"].keys() and val in self.types["file_extensions"][self.file_format]
         return valid, val, self.error["file_extension"]
 
+
     # each extract type in extract_types
     def extract_types(self, val):
-        vals = [x.strip(' ') for x in val.split(",")]
+
+        if isinstance(val, list):
+            vals = val
+        elif isinstance(val, str):
+            vals = [x.strip(' ') for x in val.split(",")]
+        else:
+            return False, 0, "Invalid input type"
+
         valid = False not in [x in self.types["extracts"] for x in vals]
         return valid, vals, self.error["extract_types"]
 
@@ -220,11 +258,6 @@ class validate():
             return False, None, self.error["string"]
 
 
-    # boundary group_class
-    def group_class(self, val):
-        return val in self.types["group_class"], val, self.error["group_class"]
-
-
     # boundary group
     def group(self, val):
 
@@ -232,14 +265,6 @@ class validate():
         # cannot have tracker database with same name
         if val == "data":
             return False, None, "group name can not be \"data\""
-
-
-        if not self.use_mongo:
-            self.use_mongo = True
-            self.client = pymongo.MongoClient()
-            self.db = self.client.asdf
-            self.c_data = self.db.data
-
 
         val = str(val)
 
@@ -252,56 +277,44 @@ class validate():
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
        
-        self.actual_exists = {}
-        self.actual_exists[val] = False
-
+        # if script is in auto mode then it assumes you want to continue with group name and with existing actual
         if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does NOT exist. Are you sure you want to create it?" ):
             return False, None, "group did not pass due to user request - new group"
         
         elif exists:
+            actual_exists = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
+
+            if not actual_exists and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" does not exist. Do you wish to continue?" ):
+                return False, None, "group did not pass due to user request - existing group actual"
+
+        return True, str(val), None
+
+
+    # boundary group_class
+    def group_class(self, val):
+        return val in self.types["group_class"], val, self.error["group_class"]
+
+
+    # runs check on selected group to determine parameters used in group_check selection
+    # parameters: group_exists, actual_exists, is_actual
+    def run_group_check(self, group):
+
+        
+        # check if boundary with group exists
+        exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0
+       
+        self.actual_exists = {}
+        self.actual_exists[group] = False
+
+        if exists:
             self.group_exists = True
 
-            search_actual = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1)
-            self.actual_exists[val] =  search_actual.count() > 0
+            search_actual = self.c_data.find({"type": "boundary", "options.group": group, "options.group_class": "actual"}).limit(1)
+            self.actual_exists[group] =  search_actual.count() > 0
 
-            if self.actual_exists[val]:
-                tmp_str = "already exists"
+            if self.actual_exists[group]:
 
                 # case where updating actual
                 if search_actual[0]["base"] == self.data["base"]:
                     self.is_actual = True
-                    return True, str(val), None
-
-            else:
-                tmp_str = "does NOT exist"
-
-            if not self.actual_exists[val] and self.interface and not p.user_prompt_bool("The actual boundary for group \""+val+"\" "+tmp_str+". Do you wish to continue?" ):
-                return False, None, "group did not pass due to user request - existing group"
             
-
-        return True, str(val), None
-
-    
-        # # check if group is 3 capital letters (ISO3)
-        # if len(val) == 3 and val.isupper():
-        #     # check if name == group_adm0
-        #     if name == val + "_adm0":
-        #         return True, str(val), None
-        #     else:
-        #         # check if boundary with group exists
-        #         exists = c_data.find({"type": "boundary", "group": val}).limit(1)
-        #         if len(exists) > 0:
-        #             return True, str(val), None
-        #         else: 
-        #             return False, None, "country group (adm0 dataset) must exist before adding"
-
-        # else:
-        #     if val == name:
-        #         return True, str(val), None
-        #     else:
-        #         exists = c_data.find({"type": "boundary", "group": val}).limit(1)
-        #         if len(exists) > 0:
-        #             return True, str(val), None
-        #         else:
-        #             return False, None, "group does not match name or existing group"
-

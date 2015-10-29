@@ -1,5 +1,7 @@
+import os
 from copy import deepcopy
 import pymongo
+import pandas as pd
 
 
 # update database(s)
@@ -18,20 +20,22 @@ class update_mongo():
     def __init__(self):
         # connect to mongodb
         self.client = pymongo.MongoClient()
-        self.db = self.client.asdf
+        self.asdf = self.client.asdf
 
-        if not "data" in self.db.collection_names():
-            self.c_data = self.db.data
+        if not "data" in self.asdf.collection_names():
+            self.c_data = self.asdf.data
 
             self.c_data.create_index("base", unique=True)
             self.c_data.create_index("name", unique=True)
             self.c_data.create_index([("spatial", pymongo.GEOSPHERE)])
 
         else:
-            self.c_data = self.db.data
+            self.c_data = self.asdf.data
         
 
-        # self.c_tmp = self.db.tmp
+        self.releases = self.client.releases
+
+        # self.c_tmp = self.asdf.tmp
 
 
     # update main database 
@@ -66,21 +70,26 @@ class update_mongo():
             # drop boundary tracker if geometry has changed
             if update_geometry:
                 print "update existing boundary with new geom"
-                self.db.drop_collection(in_data["options"]["group"])
+                self.asdf.drop_collection(in_data["options"]["group"])
 
 
             if new_boundary or update_geometry:
                 # if dataset is boundary and a group actual
                 # create new boundary tracker collection
-                c_bnd = self.db[in_data["options"]["group"]]
+                c_bnd = self.asdf[in_data["options"]["group"]]
                 c_bnd.create_index("name", unique=True)
                 # c_bnd.create_index("base", unique=True)
                 c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
                 # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
                 dsets = self.c_data.find({"type": {"$ne": "boundary"}})
-                for dset in dsets:
-                    dset['status'] = -1
+                for full_dset in dsets:
+                    dset = {
+                        'name': full_dset["name"],
+                        'spatial': full_dset["spatial"],
+                        'scale': full_data["scale"],
+                        'status': -1
+                    }
                     c_bnd.insert(dset)
 
         elif in_data["type"] != "boundary":
@@ -90,16 +99,17 @@ class update_mongo():
                 # add dataset to each boundary collection with "unprocessed" flag
                 
                 dset = {
-                    name: in_data["name"],
-                    spatial: in_data["spatial"],
-                    status: -1
+                    'name': in_data["name"],
+                    'spatial': in_data["spatial"],
+                    'scale': in_data["scale"],
+                    'status': -1
                 }
 
                 bnds = self.c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
                 for bnd in bnds:
-                    c_bnd = self.db[bnd["options"]["group"]]
+                    c_bnd = self.asdf[bnd["options"]["group"]]
                     # c_bnd.insert(dset)
-                    c_bnd.replace_one({"base": dset["base"]}, dset, upsert=True)
+                    c_bnd.replace_one({"name": dset["name"]}, dset, upsert=True)
 
 
         return 0
@@ -137,7 +147,6 @@ class update_mongo():
 
 
 
-
         # # check insert and notify user
 
         # vn = c_data.find({"name": in_data["name"]})
@@ -151,6 +160,5 @@ class update_mongo():
         # else:
         #     # print "Success - Item successfully inserted into database.\n"
         #     return 0
-
 
 

@@ -1,11 +1,19 @@
 from osgeo import gdal,ogr,osr
+import pandas as pd
 import geopandas as gpd
+from shapely.geometry import Point
 import sys
 import os
 import json
 
+import datetime
+import calendar
+from dateutil.relativedelta import relativedelta
+
 # import shapefile
 # import itertools
+
+import pymongo
 
 
 class resource_utils():
@@ -15,9 +23,7 @@ class resource_utils():
         self.dp = {}
 
         self.file_list = []
-        
-        self.resources = []
-        
+                
         self.temporal = {
             "start": 0,
             "end": 0,
@@ -25,6 +31,8 @@ class resource_utils():
         }
 
         self.spatial = ""
+
+        self.resources = []
 
 
     def update_dp(self):
@@ -35,10 +43,11 @@ class resource_utils():
 
     # checks if file has extension type specified for class instance
     def run_file_check(self, f, ext):
-        if not f.endswith('.' + ext):
-            return False
+        return f.endswith('.' + ext)
 
-        return True
+
+    # --------------------------------------------------
+    # spatial functions
 
 
     # get bounding box
@@ -120,8 +129,6 @@ class resource_utils():
             for x in new:
                 old.append(x)
 
-        else:
-            quit("Invalid polygon envelope.\n")
 
         return old
 
@@ -182,6 +189,38 @@ class resource_utils():
     #     return geo_ext
 
 
+    # return a point given a pandas row (or any object) which includes longitude and latitude
+    # return "None" if valid lon,lat not found
+    def point_gen(self, item):
+
+        try:
+            lon = float(item['longitude'])
+            lat = float(item['latitude'])
+            return Point(lon, lat)
+        except:
+            return "None"
+
+
+    # return envelope given the path to a csv which includes longitude and latitude fields
+    def release_envelope(self, path):
+
+        df = self.csv_to_pandas(path)
+
+        if isinstance(df, tuple):
+            return df
+
+        df['geometry'] = df.apply(self.point_gen, axis=1)
+
+        gdf = gpd.GeoDataFrame(df.loc[df.geometry != "None"])
+
+        env = gdf.total_bounds
+        
+        # env = (minx, miny, maxx, maxy) 
+        geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
+
+        return geo_ext
+
+
     # adds unique id field (ad_id) and outputs geojson (serves as shp to geojson converter)
     def add_ad_id(self, path):
 
@@ -193,10 +232,15 @@ class resource_utils():
             geo_file = open(os.path.splitext(path)[0] + ".geojson", "w")
             json.dump(json.loads(geo_json), geo_file, indent = 4)
 
+            # create simplified geojson for use with leaflet web map
+            geo_df['geometry'] = geo_df['geometry'].simplify(0.01)
+            json.dump(json.loads(geo_df.to_json()), open(os.path.dirname(path)+"/simplified.geojson", "w"), indent=4)
+
+
             return 0
 
         except:
-            return 1
+            return (1, "error generating geojson with ad_id")
 
 
     # # converts shapefile to geojson
@@ -234,4 +278,170 @@ class resource_utils():
     #         return 1
 
 
+
+    # --------------------------------------------------
+    # temporal functions
+    
+
+    # extract temporal data from file name
+    def run_file_mask(self, fmask, fname, fbase=0):
+
+        if fbase and fname.startswith(fbase):
+            fname = fname[fname.index(fbase) + len(fbase) + 1:]
+
+        output = {
+            "year": "".join([x for x,y in zip(fname, fmask) if y == 'Y' and x.isdigit()]),
+            "month": "".join([x for x,y in zip(fname, fmask) if y == 'M' and x.isdigit()]),
+            "day": "".join([x for x,y in zip(fname, fmask) if y == 'D' and x.isdigit()])
+        }
+
+        return output
+
+
+    # validate a date object
+    def validate_date(self, date_obj):
+        # year is always required
+        if date_obj["year"] == "":
+            return False, "No year found for data."
+
+        # full 4 digit year required
+        elif len(date_obj["year"]) != 4:
+            return False, "Invalid year."
+
+        # months must always use 2 digits 
+        elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
+            return False, "Invalid month."
+
+        # days of month (day when month is given) must always use 2 digits
+        elif date_obj["month"] != "" and date_obj["day"] != "" and len(date_obj["day"]) != 2:
+            return False, "Invalid day of month."
+
+        # days of year (day when month is not given) must always use 3 digits
+        elif date_obj["month"] == "" and date_obj["day"] != "" and len(date_obj["day"]) != 3:
+            return False, "Invalid day of year."
+
+        return True, None
+
+    
+    # generate date range and date type from date object
+    def get_date_range(self, date_obj, drange=0):
+
+        date_type = "None"
         
+        # year, day of year (7)
+        if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
+            tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
+            tmp_end = tmp_start + relativedelta(days=drange)
+            date_type = "day of year"
+
+        # year, month, day (8)
+        if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
+            tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
+            tmp_end = tmp_start + relativedelta(days=drange)
+            date_type = "year month day"
+
+        # year, month (6)
+        if date_obj["month"] != "" and date_obj["day"] == "":   
+            tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
+            month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
+            tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
+            date_type = "year month"
+
+        # year (4)
+        if date_obj["month"] == "" and date_obj["day"] == "":   
+            tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
+            tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
+            date_type = "year"
+
+        return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
+
+
+
+    # --------------------------------------------------
+    # data format transformation functions
+
+    def csv_to_pandas(self, path):
+
+        if path.endswith('.tsv') and os.path.isfile(path):
+            delim = "\t"
+
+        elif os.path.isfile(path+".tsv"):
+            path = path+".tsv"
+            delim = "\t"
+
+        elif path.endswith('.csv') and os.path.isfile(path):
+            delim = ","
+        
+        elif os.path.isfile(path+".csv"):
+            path = path + ".csv"
+            delim = ","
+
+        else:
+            return (1, "could not identify csv type")
+
+
+        try:
+            df =  pd.read_csv(path, sep=delim, quotechar='\"')
+            return df
+        except:
+            return (1, "error reading csv")
+            
+
+    # convert flat tables from release datasets into nested mongo database
+    def release_to_mongo(self, name, path):
+
+        client = pymongo.MongoClient()
+        releases = client.releases
+
+        releases.drop_collection(name)
+        col = releases[name]
+
+        files = ["projects", "locations", 'transactions']
+
+        tables = {}
+        for table in files:
+            file_base = path+"/data/"+table
+
+            if os.path.isfile(file_base+".csv"):
+                tables[table] = pd.read_csv(file_base+".csv", sep=',', quotechar='\"')
+
+            elif os.path.isfile(file_base+".tsv"):
+                tables[table] = pd.read_csv(file_base+".tsv", sep='\t', quotechar='\"')
+
+            else:
+                print "no valid table type found for: " + file_base
+                return 1
+
+            tables[table]["project_id"] = tables[table]["project_id"].astype(str)
+
+
+        # add new data for each project
+        for project_row in tables['projects'].iterrows():
+            
+            project = dict(project_row[1])
+            project_id = project["project_id"]
+
+
+            transaction_match = tables['transactions'].loc[tables['transactions']["project_id"] == project_id]
+
+            if len(transaction_match) > 0:
+                project["transactions"] = [dict(x[1]) for x in transaction_match.iterrows()]
+
+            else:
+                print "No transactions found for project id: " + str(project_id)
+
+
+            location_match = tables['locations'].loc[tables['locations']["project_id"] == project_id]
+                
+            if len(location_match) > 0:
+                project["locations"] = [dict(x[1]) for x in location_match.iterrows()]
+
+            else:
+                print "No locations found for project id: " + str(project_id)
+
+
+            # add to collection
+            col.insert(project)
+
+
+        return 0
