@@ -242,7 +242,8 @@ $(document).ready(function(){
 
 		var html = '';
 
-		for (var i=0, ix=result.length; i<ix; i++) {
+		// for (var i=0, ix=result.length; i<ix; i++) {
+		for (var i=result.length-1, ix=0; i>=ix; i--) {
 
 			var r = result[i];
 

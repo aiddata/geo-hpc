@@ -80,6 +80,8 @@ class cache():
             # check if msr exists in tracker and is completed
             msr_exists, msr_completed = self.msr_exists(data['dataset'], data_hash)
 
+            print "MSR STATE:" + str(msr_completed)
+
             if msr_completed:
                 
                 # check if extract for msr exists in queue and is completed  
@@ -217,7 +219,7 @@ class cache():
         if db_exists:
             print search[0] 
 
-            if search[0]['status'] == 0:
+            if search[0]['status'] in [0,2,3]:
                 valid_exists = True
 
             elif search[0]['status'] == 1:
@@ -260,7 +262,7 @@ class cache():
 
         if db_exists:
 
-            if search[0]['status'] == 0:
+            if search[0]['status'] in [0,2]:
                 valid_exists = True
 
             elif search[0]['status'] == 1:

@@ -12,6 +12,13 @@ from bson.objectid import ObjectId
 import subprocess as sp
 
 
+sys.stdout = sys.stderr = open(os.path.dirname(os.path.abspath(__file__)) +'/processing.log', 'a')
+
+print '\n------------------------------------------------'
+print 'MSR Script'
+print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
+
+
 # connect to mongodb
 client = pymongo.MongoClient()
 
@@ -24,6 +31,8 @@ force = 0
 if len(sys.argv) > 1:
     force = int(sys.argv[1])
 
+
+# --------------------------------------------------
 
 
 # creates directories
@@ -181,10 +190,6 @@ def submit_job(active_base):
         return 1, None
 
 
-
-
-
-
 def run_core():
     print "run_core"
 
@@ -197,7 +202,7 @@ def run_core():
     elif gn_item == None:
         # sys.exit("No new jobs found in MSR Tracker")
         print "No new jobs found in MSR Tracker"
-        return -1
+        return -1, 0
 
     rid = gn_item.keys()[0]
     request = gn_item[rid]
@@ -205,9 +210,7 @@ def run_core():
     # make active dir
     working_dir =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
 
-
     make_dir(working_dir)
-
 
     # prepare options for json
     json_status, tmp_request = build_json(working_dir, request)
@@ -232,39 +235,20 @@ def run_core():
 
             else:
                 # add specific error status to job request in msr tracker
-                print 'e1'
-                run_core_status = 1
+                print 'e3'
+                run_core_status = -3
 
         else:
             # add specific error status to job request in msr tracker
             print 'e2'
-            run_core_status = 2
+            run_core_status = -2
 
     else:
         # add specific error status to job request in msr tracker
-        print 'e3'
-        run_core_status = 3
+        print 'e1'
+        run_core_status = -1
 
-    return run_core_status
-
-
-
-# search for active job(s) in msr_tracker (should only be 1 at a time normally, but could potentially be multiple due to force flag)
-# active_count, active_jobs = 
-active_check_status, active_jobs = get_next(2, 0)
-active_count = 0
-if not active_check_status:
-    sys.exit("Error while searching for next request in MSR Tracker")
-elif active_jobs != None:
-    # set active count if active jobs were found (otherwise just continue)
-    active_count = len(active_jobs.keys())
-
-
-
-if force or active_count == 0:
-    rc_status = run_core()
-
-
+    return rid, run_core_status
 
 
 def get_msr_oe(rid, request):
@@ -285,8 +269,6 @@ def get_msr_oe(rid, request):
         return False, None
 
 
-    
-
 def get_hpc_oe(rid, request):
     print "get_hpc_oe"
 
@@ -297,13 +279,32 @@ def get_hpc_oe(rid, request):
         return True
     else:
         return False
-            
 
+
+# --------------------------------------------------
+
+
+# search for active job(s) in msr_tracker (should only be 1 at a time normally, but could potentially be multiple due to force flag)
+# active_count, active_jobs = 
+active_check_status, active_jobs = get_next(2, 0)
+active_count = 0
+if not active_check_status:
+    sys.exit("Error while searching for next request in MSR Tracker")
+elif active_jobs != None:
+    # set active count if active jobs were found (otherwise just continue)
+    active_count = len(active_jobs.keys())
+
+
+if force or active_count == 0:
+    rc_rid, rc_status = run_core()
+    if rc_status != 0:
+        update_status(rc_rid, rc_status) 
 
 
 if active_count > 0:
     for job in active_jobs.keys():
         print "active: " + job
+        run_active_status = 0
 
         # check if there is an output json for active job 
         # and if there is a valid output, check status
@@ -345,11 +346,12 @@ if active_count > 0:
                 # update msr tracker status
                 update_status(job, 1) 
 
-                sys.exit('2@@@!')
 
             # msr finished with errors
             else:
-                print "msr oe status bad: " + str(msr_oe_status)
+                print "e6 - msr oe status bad: " + str(msr_oe_status)
+                update_status(job, -6) 
+
                 # move jobscript and output to error folder 
                 #
 
@@ -365,8 +367,9 @@ if active_count > 0:
 
         # msr finished but without valid json output
         elif msr_oe_exists:
-            print "bad json"
-
+            print "e5 - bad json"
+            update_status(job, -5) 
+        
         # msr is still running or did not finish properly
         else:
 
@@ -377,9 +380,9 @@ if active_count > 0:
             # job did not finish properly
             if hpc_oe_exists:
 
-                    print "hpc output exists"
+                    print "e4 - hpc output exists"
                     # set request in tracker to specific error status
-                    #
+                    update_status(job, -4) 
 
                     # if ?:
                     #     # run next
@@ -391,5 +394,5 @@ if active_count > 0:
 
 
         
-print("~!")
+print("end msr_update.py")
 

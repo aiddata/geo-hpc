@@ -20,6 +20,11 @@ from rpy2.robjects.packages import importr
 from rpy2 import robjects
 
 
+sys.stdout = sys.stderr = open(os.path.dirname(os.path.abspath(__file__)) +'/processing.log', 'a')
+
+print '\n------------------------------------------------'
+print 'Extract Script'
+print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
 # connect to mongodb
 client = pymongo.MongoClient()

@@ -269,7 +269,8 @@ class doc():
             data.append(['Factor', meta['options']['factor']])
         
         elif item_type == 'release':
-            download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' + meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
+            download_link = 'http://aiddata.org/geocoded-datasets'
+            # download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' #+ meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
             data.append(['Download Link', download_link])
 
 
