@@ -15,7 +15,7 @@
     "citation": {"default": ""},
     "sources": {"default": []}, 
     "source_link": {"default": ""},
-    "short": {"default": ""},
+    "description": {"default": ""},
     "type": {"default": ""},
     "file_format": {"default": ""},
     "file_extension": {"default": ""}, 

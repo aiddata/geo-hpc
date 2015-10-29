@@ -321,6 +321,12 @@ flist_core = [
         "id": "licenses",
         "in_1": "Id of license(s) for dataset? (" + ', '.join(v.types["licenses"]) + ") [separate your input with commas]",
         "in_2": v.license_types
+    },
+    {   
+        "type": "open",
+        "id": "description",
+        "in_1": "A short description of the dataset?", 
+        "in_2": v.string
     }
 ]
 
@@ -329,12 +335,6 @@ flist_additional = [
         "type": "open",
         "id": "citation",
         "in_1": "Dataset citation?", 
-        "in_2": v.string
-    },
-    {   
-        "type": "open",
-        "id": "short",
-        "in_1": "A short description of the dataset?", 
         "in_2": v.string
     }
 ]
@@ -817,7 +817,7 @@ elif data_package["file_format"] == "release":
 # --------------------------------------------------
 # add temporal, spatial and resources info
 
-data_package["temporal"] = [ru.temporal]
+data_package["temporal"] = ru.temporal
 data_package["spatial"] = ru.spatial
 data_package["resources"] = ru.resources
 
