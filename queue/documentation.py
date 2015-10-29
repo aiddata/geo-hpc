@@ -256,6 +256,7 @@ class doc():
         data.append(['Date Updated', meta['date_updated']])
 
 
+
         if item_type == 'boundary':
             data.append(['Group', meta['options']['group']])
             data.append(['Group Class', meta['options']['group_class']])
@@ -266,6 +267,10 @@ class doc():
             data.append(['Resolution', meta['options']['resolution']])
             data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
             data.append(['Factor', meta['options']['factor']])
+        
+        elif item_type == 'release':
+            download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' + meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
+            data.append(['Download Link', download_link])
 
 
         return data

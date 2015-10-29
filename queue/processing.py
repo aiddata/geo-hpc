@@ -90,4 +90,3 @@ for request_id in request_objects.keys():
         us = queue.update_status(request_id, 0)
 
 
-    sys.exit("!@!#@#!@!#@@#")
