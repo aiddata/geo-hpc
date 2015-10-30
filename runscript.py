@@ -676,10 +676,10 @@ def adjust_aid(raw_aid, project_sectors_string, project_donors_string, filter_se
     else:  
         donors_match = [match for match in project_donors_list if match in filter_donors_list]
 
-    # ratio = float(len(sectors_match) * len(donors_match)) / float(len(project_sectors_list) * len(project_donors_list))
+    ratio = float(len(sectors_match) * len(donors_match)) / float(len(project_sectors_list) * len(project_donors_list))
 
     # remove duplicates? - could be duplicates from project strings
-    ratio = (len(set(sectors_match)) * len(set(donors_match))) / (len(set(project_sectors_list)) * len(set(project_donors_list)))
+    # ratio = (len(set(sectors_match)) * len(set(donors_match))) / (len(set(project_sectors_list)) * len(set(project_donors_list)))
 
     adjusted_aid = ratio * float(raw_aid)
 
