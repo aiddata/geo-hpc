@@ -212,6 +212,8 @@ switch ($_POST['call']) {
 
 
 		$regex_map = function($value) {
+			$value = str_replace('(', '\(', $value);
+			$value = str_replace(')', '\)', $value);
 		    return new MongoRegex("/.*" . $value . ".*/");
 		};
 
