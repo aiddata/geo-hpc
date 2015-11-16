@@ -73,7 +73,7 @@ class update_mongo():
                 self.asdf.drop_collection(in_data["options"]["group"])
 
 
-            if new_boundary or update_geometry:
+            if new_boundary or update_geometry or in_data["options"]["group"] not in self.asdf.collection_names():
                 # if dataset is boundary and a group actual
                 # create new boundary tracker collection
                 c_bnd = self.asdf[in_data["options"]["group"]]

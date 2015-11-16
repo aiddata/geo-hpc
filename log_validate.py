@@ -161,12 +161,12 @@ class validate():
 
         val = val.lower()
         
-        if self.interface and not p.user_prompt_use_input(value=val):
+        if self.interface and self.user_update and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
         
         # check mongodb
-        if not "mini_name" in self.data['options'] or ("mini_name" in self.data['options'] and val != self.data['options']["mini_name"]):
+        if not 'options' in self.data or not "mini_name" in self.data['options'] or ("mini_name" in self.data['options'] and val != self.data['options']["mini_name"]):
             unique_search = self.c_data.find({"options.mini_name": val}).limit(1)
 
             unique = unique_search.count() == 0
