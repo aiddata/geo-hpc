@@ -159,12 +159,12 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
 
     # if interface and datapackage exists, check if user wants to update
     # defaults to false for new datasets or automated inputs
-    user_update = check_update(var_str, opt)
+    v.user_update = check_update(var_str, opt)
 
     # set value to run validation on if user chooses not
     # to update and existing field
     update_val = None
-    if update_data_package and not user_update:
+    if update_data_package and not v.user_update:
         if not opt:
             update_val = v.data[var_str]
         else:
@@ -173,17 +173,17 @@ def generic_input(input_type, var_str, in_1, in_2, opt=0):
     print ">"
     print update_val
     print update_data_package
-    print user_update
+    print v.user_update
     print ">"
 
     if input_type == "open":
-        v.data[var_str] = p.user_prompt_open(in_1, in_2, (user_update, update_val))
+        v.data[var_str] = p.user_prompt_open(in_1, in_2, (v.user_update, update_val))
 
     elif input_type == "loop":
         v.data[var_str] = []
         c = 1
 
-        if user_update:
+        if v.user_update:
             while p.user_prompt_bool(in_1 +" #"+str(c)+"?"):
                 tmp_loop_obj = {}
                 for i in in_2.keys():
@@ -508,7 +508,7 @@ if data_package["type"] == 'raster':
     generic_input("open", "file_mask", "File mask? Use Y for year, M for month, D for day (include full path relative to base) [use \"None\" for temporally invariant data]\nExample: YYYY/MM/xxxx.xxxxxxDD.xxxxx.xxx", validate_file_mask)
     # print data_package["file_mask"]
 else:
-    data_package['file_mask'] = ""
+    data_package["file_mask"] = "None"
 
 
 if data_package["file_format"] == 'release':

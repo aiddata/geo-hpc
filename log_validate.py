@@ -15,6 +15,7 @@ class validate():
     def __init__(self):
 
         self.interface = False
+        self.user_update = True
 
         # store prompt inputs
         self.data = {}
@@ -132,7 +133,7 @@ class validate():
 
         val = val.lower()
         
-        if self.interface and not p.user_prompt_use_input(value=val):
+        if self.interface and self.user_update and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
         
         

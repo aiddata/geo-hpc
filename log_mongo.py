@@ -87,7 +87,7 @@ class update_mongo():
                     dset = {
                         'name': full_dset["name"],
                         'spatial': full_dset["spatial"],
-                        'scale': full_data["scale"],
+                        'scale': full_dset["scale"],
                         'status': -1
                     }
                     c_bnd.insert(dset)
