@@ -6,10 +6,22 @@
 # ====================================================================================================
 # ====================================================================================================
 
-
 from __future__ import print_function
 
-from mpi4py import MPI
+try:
+    from mpi4py import MPI
+
+    # mpi info
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    status = MPI.Status()
+
+    run_mpi = True
+
+except:
+    run_mpi = False
+
 
 import os
 import sys
@@ -34,22 +46,10 @@ import geopandas as gpd
 
 import itertools
 
+
 # ====================================================================================================
 # ====================================================================================================
-# general init
-
-
-# mpi info
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-status = MPI.Status()
-
-# absolute path to script directory
-dir_file = os.path.dirname(os.path.abspath(__file__))
-
-
-# --------------------------------------------------
+# general functions
 
 
 # creates directories
@@ -59,6 +59,7 @@ def make_dir(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
+
 
 # add information to msr log
 def log(msg):
@@ -94,25 +95,28 @@ def quit(msg):
 
 # ====================================================================================================
 # ====================================================================================================
-# inputs and variables
+# init, inputs and variables
 
+
+if len(sys.argv) != 2:
+    quit('invalid number of inputs: ' + ', '.join(sys.argv))
+
+# request path passed via python call from jobscript
+request_path = sys.argv[1]
+
+
+# --------------------------------------------------
+
+
+# absolute path to script directory
+dir_file = os.path.dirname(os.path.abspath(__file__))
 
 # full script start time
 Ts = int(time.time())
 
 
 # --------------------------------------------------
-# input arguments
-
-if len(sys.argv) != 2:
-    quit('invalid number of inputs: ' + ', '.join(sys.argv))
-
-
-# --------------------------------------------------
 # validate request and dataset
-
-# request path passed via python call from jobscript
-request_path = sys.argv[1]
 
 # make sure request file exists
 if os.path.isfile(request_path):
@@ -200,6 +204,12 @@ only_geocoded = False
 # vars that may be added as some type of input
 # used by functions
 
+
+# fields name associated with values in lookup dict
+code_field_1 = "precision_code"
+code_field_2 = "location_type_code"
+
+
 # agg_type definition for non geocoded projects
 # either allocated at country level ("country") or ignored ("None")
 not_geocoded = "country"
@@ -207,10 +217,6 @@ not_geocoded = "country"
 if only_geocoded:
     not_geocoded = "None"
 
-
-# fields name associated with values in lookup dict
-code_field_1 = "precision_code"
-code_field_2 = "location_type_code"
 
 # aggregation types used in lookup dict
 agg_types = ["point", "buffer", "adm"]
@@ -228,33 +234,34 @@ agg_types = ["point", "buffer", "adm"]
 #     "8": {"type":"adm","data":"0"}
 # }
 
+
 # precision and feature code values (uses default if feature code not listed)
 # buffer values in meters
 # for adm0 / country boundary  make sure to use type "country" instead of "adm" with data "0"
 lookup = {
     "1": {
-        "default":{"type":"point","data":0}
+        "default": {"type": "point", "data": 0}
     },
     "2": {
-        "default":{"type":"buffer","data":25000}
+        "default": {"type": "buffer", "data": 25000}
     },
     "3": {
-        "default":{"type":"adm","data":"2"}
+        "default": {"type": "adm", "data": "2"}
     },
     "4": {
-        "default":{"type":"adm","data":"1"}
+        "default": {"type": "adm", "data": "1"}
     },
     "5": {
-        "default":{"type":"buffer","data":25000}
+        "default": {"type": "buffer", "data": 25000}
     },
     "6": {
-        "default":{"type":"country","data":0}
+        "default": {"type": "country", "data": 0}
     },
     "7": {
-        "default":{"type":"country","data":0}
+        "default": {"type": "country", "data": 0}
     },
     "8": {
-        "default":{"type":"country","data":0}
+        "default": {"type": "country", "data": 0}
     }
 }
 
@@ -262,6 +269,7 @@ lookup = {
 # ====================================================================================================
 # ====================================================================================================
 # functions
+print("functions")
 
 
 # def json_hash(hash_obj):
@@ -397,6 +405,7 @@ def getGeom(code_1, code_2, lon, lat):
         else:
             tmp_lookup = lookup[code_1]["default"]
 
+        print(tmp_lookup["type"])
 
         if tmp_lookup["type"] == "point":
             return tmp_pnt
@@ -525,6 +534,7 @@ adm0 = shape(adm_shps[0][0])
 
 # --------------------------------------------------
 # create point grid for country
+print("adm0")
 
 # country bounding box
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = adm0.bounds
@@ -537,10 +547,15 @@ gb = 0.5
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*gb)/gb, math.floor(adm0_miny*gb)/gb, math.ceil(adm0_maxx*gb)/gb, math.ceil(adm0_maxy*gb)/gb)
 # print( (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) )
 
+
 # generate arrays of new grid x and y values
 cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
 rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
 
+sig = 10 ** len(str(pixel_size)[str(pixel_size).index('.')+1:])
+
+cols = [round(i * sig) / sig for i in cols]
+rows = [round(i * sig) / sig for i in rows]
 
 # print cols
 # print rows
@@ -548,8 +563,10 @@ rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
 # init grid reference object
 
 
+print("grid")
 
 grid_product = list(itertools.product(cols, rows))
+
 grid_gdf = gpd.GeoDataFrame()
 grid_gdf['within'] = [0] * len(grid_product)
 grid_gdf['geometry'] = grid_product
@@ -568,9 +585,6 @@ adm0_count = sum(grid_gdf['within'])
 grid_gdf['value'] = 0
 
 grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
-
-
-
 
 
 # gref = {}
@@ -606,6 +620,7 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 
 # --------------------------------------------------
 # load project data
+print("merge")
 
 # dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
@@ -615,6 +630,7 @@ merged = getData(dir_data, "project_id", (code_field_1, code_field_2, "project_l
 
 # --------------------------------------------------
 # misc data prep
+print("prep")
 
 # create copy of merged project data
 # i_m = deepcopy(merged)
@@ -645,33 +661,39 @@ merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
 
 # --------------------------------------------------
 # filters
+print("filter")
 
 # filter years
 # 
 
-# prep donor/sector filters if using 'All'
-if request['options']['donors'] == ['All']:
-    request['options']['donors'] = []
-
-if request['options']['sectors'] == ['All']:
-    request['options']['sectors'] = []
-
 # filter sectors and donors
-filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
+if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
+    filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))].copy(deep=True)
+
+elif request['options']['donors'] != ['All'] and request['options']['sectors'] == ['All']:
+    filtered = merged.loc[merged['donors'].str.contains('|'.join(request['options']['donors']))].copy(deep=True)
+
+elif request['options']['donors'] != ['All'] and request['options']['sectors'] != ['All']:
+    filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
+
+else:
+    filtered = merged.copy(deep=True)
+ 
 
 
+print("adjust")
 
 def adjust_aid(raw_aid, project_sectors_string, project_donors_string, filter_sectors_list, filter_donors_list):
 
     project_sectors_list = project_sectors_string.split('|')
     project_donors_list = project_donors_string.split('|')
 
-    if filter_sectors_list == []:
+    if filter_sectors_list == ['All']:
         sectors_match = project_sectors_list
     else:
         sectors_match = [match for match in project_sectors_list if match in filter_sectors_list]
 
-    if filter_donors_list == []:
+    if filter_donors_list == ['All']:
         donors_match = project_donors_list
     else:  
         donors_match = [match for match in project_donors_list if match in filter_donors_list]
@@ -708,6 +730,7 @@ filtered['adjusted_aid'] = filtered.apply(lambda z: adjust_aid(z.split_dollars_p
 
 # --------------------------------------------------
 # assign geometries
+print("geom")
 
 # add geom columns
 filtered["agg_type"] = pd.Series(["None"] * len(filtered))
@@ -715,7 +738,6 @@ filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
 
 filtered.agg_type = filtered.apply(lambda x: geomType(x[is_geocoded], x[code_field_1], x[code_field_2]), axis=1)
 filtered.agg_geom = filtered.apply(lambda x: geomVal(x.agg_type, x[code_field_1], x[code_field_2], x.longitude, x.latitude), axis=1)
-
 i_m = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
 
 
@@ -728,6 +750,8 @@ i_m = i_m.set_index('index')
 # ====================================================================================================
 # ====================================================================================================
 # master init
+
+print("masterinit")
 
 
 if rank == 0:
@@ -941,7 +965,7 @@ else:
 
             if pg_type == "country":
                 
-                print("rank " + str(rank) +" " +pg_type+ " : adm0 bounds length vals within map")
+                # print("rank " + str(rank) +" " +pg_type+ " : adm0 bounds length vals within map")
 
                 tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
 
@@ -970,7 +994,13 @@ else:
                 pg_cols = np.arange(pg_minx, pg_maxx+pg_pixel_size*0.5, pg_pixel_size)
                 pg_rows = np.arange(pg_maxy, pg_miny-pg_pixel_size*0.5, -1*pg_pixel_size)
 
-                print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
+
+                pg_sig = 10 ** len(str(pg_pixel_size)[str(pg_pixel_size).index('.')+1:])
+
+                pg_cols = [round(i * pg_sig) / pg_sig for i in pg_cols]
+                pg_rows = [round(i * pg_sig) / pg_sig for i in pg_rows]
+
+                # print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
 
 
                 # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
@@ -985,24 +1015,24 @@ else:
                 tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: round(z.geometry.x * psi) / psi, axis=1)
 
 
-                print("rank " + str(rank) +" length :" +str(len(tmp_product)))
+                # print("rank " + str(rank) +" length :" +str(len(tmp_product)))
 
 
-                Tsx = time.time()
+                # Tsx = time.time()
                 tmp_gdf['within'] = tmp_gdf['geometry'].within(pg_geom)
-                Tsxz = time.time() - Tsx
-                print("rank " + str(rank) +" " +pg_type+ " within took " + str(Tsxz))
+                # Tsxz = time.time() - Tsx
+                # print("rank " + str(rank) +" " +pg_type+ " within took " + str(Tsxz))
 
 
-                Tsx = time.time()
+                # Tsx = time.time()
                 pg_count = sum(tmp_gdf['within'])
                 tmp_gdf['value'] = 0
                 tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count)
-                Tsxz = time.time() - Tsx
-                print("rank " + str(rank) +" " +pg_type+ " vals took " + str(Tsxz))
+                # Tsxz = time.time() - Tsx
+                # print("rank " + str(rank) +" " +pg_type+ " vals took " + str(Tsxz))
 
 
-                Tsx = time.time()
+                # Tsx = time.time()
                 # tmp_gdf.sort(['ref_lat','ref_lon'], ascending=[False, True], inplace=True)
                 aggregated_total = tmp_gdf.groupby(['ref_lat','ref_lon'])['value'].sum()
                 
@@ -1011,8 +1041,37 @@ else:
                 agg_df['index'] = agg_df.apply(lambda z: str(z.ref_lon) +'_'+ str(z.ref_lat), axis=1)
                 agg_df.set_index('index', inplace=True)
 
-                tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
-                print("rank " + str(rank) +" " +pg_type+ " map took " + str(Tsxz))
+
+                try:
+                    tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
+
+                except:
+                    for i in agg_df.index:
+                        print('bad index iters')
+                        print(i)
+                        print(i in tmp_grid_gdf.index)
+
+
+
+                # try:
+                #     tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
+
+                # except:
+
+                #     print("!!!!!!!!!!!!!!!!!!!!!!!!!1111111")
+                #     print("rank " + str(rank) +" adm0 bounds : minx=" +str(adm0_minx) +" , maxx=" +str(adm0_maxx)+" , miny=" +str(adm0_miny)+" , maxy=" +str(adm0_maxy))
+                #     print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
+
+                #     print(pg_data.project_location_id)
+                #     print(list(agg_df.index))
+                #     # print()
+                #     # print
+                #     print("!!!!!!!!!!!!!!!!!!!!!!!!!1111111")
+
+
+
+
+                # print("rank " + str(rank) +" " +pg_type+ " map took " + str(Tsxz))
 
                 # Tsx = time.time()
                 # tmp_gdf.apply(lambda x: map_to_grid(x.geometry, x.value), axis=1)
@@ -1068,7 +1127,7 @@ else:
 
             elif pg_type == "point":
 
-                print("rank " + str(rank) +" " +pg_type+ " : point bounds length vals within map")
+                # print("rank " + str(rank) +" " +pg_type+ " : point bounds length vals within map")
 
                 # round new grid points to old grid points and update old grid
 
