@@ -82,7 +82,7 @@ class cache():
 
             print "MSR STATE:" + str(msr_completed)
 
-            if msr_completed:
+            if msr_completed == True:
                 
                 # check if extract for msr exists in queue and is completed  
                 extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], data['dataset']+"_"+data_hash, msr_extract_type, True, msr_extract_output)
@@ -137,7 +137,7 @@ class cache():
                     extract_exists, extract_completed = self.extract_exists(request["boundary"]["name"], df_name, extract_type, is_reliability_raster, extract_output)
 
                     # incremenet count if extract is not completed (whether it exists in queue or not)
-                    if not extract_completed:
+                    if extract_completed != True:
                         extract_count += 1
 
                         # add to extract queue if it does not already exist in queue

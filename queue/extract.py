@@ -313,7 +313,7 @@ if not re_status:
     us_error = update_status(rid, -1)
 
 # run reliability calcs if needed
-elif request['reliability']:
+elif request['reliability'] ==  True:
     raster_parent = os.path.dirname(raster_path)
     rr_status = run_reliability(boundary_path, raster_parent+"/unique.geojson", extract_output)
 
@@ -325,7 +325,8 @@ elif request['reliability']:
 
 us_done = update_status(rid, 1)
 
-
+print us_done
+print "extract done"
 
 
 

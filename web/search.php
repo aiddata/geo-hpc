@@ -12,7 +12,7 @@ switch ($_POST['call']) {
 		$col = $db->selectCollection('data');
 
 
-		$query = array('type' => 'boundary');
+		$query = array('type' => 'boundary', 'active' => 1);
 
 		$fields = array(
 			'name' => true, 
