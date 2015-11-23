@@ -444,7 +444,10 @@ $(document).ready(function(){
 
 		request["counts"] = {};
 
+		request['d1_data'] = {};
+
 		$('#data_1 select').empty();
+		$('#d1_selected').empty();
 		$('#d1_info span').empty();
 		$('#d1_matches').hide();
 		$('#d2_bot').empty();
