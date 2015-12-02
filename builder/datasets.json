@@ -71,6 +71,15 @@
         "file_mask": "YYYY.tif",
         "extract_type": "mean"
     },
+    "ltdr_yearly_ndvi_mean": {
+        "run_option": 2,
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global",
+        "data_path": "ltdr_yearly/ndvi_mean",
+        "data_name": "ltdr_yearly_ndvi_mean",
+        "data_mini": "lnye",
+        "file_mask": "YYYY.tif",
+        "extract_type": "mean"
+    },
     "v4avg_lights_x_pct": {
         "run_option": 2,
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global",

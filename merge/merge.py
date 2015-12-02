@@ -32,8 +32,8 @@ ignore = []
 
 # specify accept by using exceptions in ignore range 
 # (manually adjust range if years fall outside of 1800-2100)
-accept = []
-# ignore = [i in range(1800, 2100) if i not in accept]
+# accept = [2000]
+# ignore = [i for i in range(1800, 2100) if i not in accept]
 
 
 # convert years to strings
@@ -41,6 +41,8 @@ ignore = [str(e) for e in ignore]
 
 
 extract_base = "/sciclone/aiddata10/REU/extracts"
+# extract_base = "/sciclone/aiddata10/REU/projects"
+
 
 # validate inputs by checking directories exist
 if not os.path.isdir(extract_base):

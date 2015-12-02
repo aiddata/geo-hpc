@@ -15,37 +15,28 @@ script_base = "/sciclone/home00/sgoodman/work/extracts/gen3/extract"
 
 # --------------------------------------------------
 
-batch_name = "liberia"
+batch_name = "kfw_10k_sample"
+project_id = "kfw10k"
 
-project_id = "lbr"
+# batch_name = "liberia_dhs"
+# project_id = "lbr-dhs"
+
 
 # could get this info from asdf instead of manual input
 # with optional override for non-asdf boundaries
 general_info = {
-    'bnd_name': 'liberia_districts_rev',
-    'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/Liberia_districts_rev.shp',
-    # 'bnd_name': 'liberia_clan_areas_rev',
-    # 'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/Liberia_clan_areas_rev.shp',
-    # 'bnd_name': 'liberia_grid',
-    # 'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/Liberia_grid.shp',
+    'bnd_name': 'kfw_10k_sample',
+    'bnd_absolute': '/sciclone/aiddata10/REU/projects/kfw_10k_sample/shps/kfw_10k_sample.shp',
+    
+    # 'bnd_name': 'liberia_rural_dhs_buffers',
+    # 'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/liberia_rural_dhs_buffers.shp',
+
+    # 'bnd_name': 'liberia_urban_dhs_buffers',
+    # 'bnd_absolute': '/sciclone/aiddata10/REU/projects/liberia/shps/liberia_urban_dhs_buffers.shp',
 
     'output_base': '/sciclone/aiddata10/REU/extracts',
     'extract_method': 'rpy2'
 }
-
-
-# specify datasets
-datasets = ["dist_to_all_rivers","dist_to_roads","srtm_elevation","srtm_slope","accessibility_map"]
-# datasets = ["gpw_v3"]
-# datasets = ["ndvi_max_mask_lt6k", "v4avg_lights_x_pct", "terrestrial_air_temperature_v4.01", "terrestrial_precipitation_v4.01"]
-
-# all available datasets
-# datasets = dset_info.keys()
-
-
-node_count = 1
-# node_count = 1
-# node_count = 3
 
 
 run_hours = 36
@@ -53,9 +44,25 @@ run_hours = 36
 node_type = "xeon"
 # node_type = "vortex" 
 
-ppn_override = 1
+
+# specify datasets
+# datasets = ["dist_to_all_rivers","dist_to_roads","srtm_elevation","srtm_slope","accessibility_map"]
+# node_count = 1
+# ppn_override = 1
+
+# datasets = ["gpw_v3"]
+# node_count = 1
 # ppn_override = 3
-# ppn_override = 0
+
+datasets = ["ndvi_max_mask_lt6k", "v4avg_lights_x_pct", "terrestrial_air_temperature_v4.01", "terrestrial_precipitation_v4.01"]
+node_count = 3
+ppn_override = 0
+
+
+
+# all available datasets
+# datasets = dset_info.keys()
+
 
 # --------------------------------------------------
 
