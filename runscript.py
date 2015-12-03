@@ -1,7 +1,19 @@
-#
-# runscript.py
-#
+'''
+runscript.py
 
+Summary:
+Mean surface raster generation script for use on MPI configured system with mpi4py
+
+Inputs:
+- called via jobscript (shell script)shell
+- request.json
+
+Data:
+- research release
+- shapefiles
+- dataset_geometry_lookup.json
+
+'''
 
 # ====================================================================================================
 # ====================================================================================================
@@ -331,7 +343,7 @@ def get_data(path, merge_id, field_ids, only_geo):
 # --------------------------------------------------
 
 
-# defin tags enum
+# define tags enum
 def enum(*sequential, **named):
     # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
     enums = dict(zip(sequential, range(len(sequential))), **named)
@@ -607,6 +619,8 @@ adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 # define country shape
 adm0 = shape(adm_shps[0][0])
 
+adm0_prep = prep(adm0)
+
 
 # --------------------------------------------------
 # create point grid for country
@@ -648,7 +662,10 @@ grid_gdf['lon'] = grid_gdf.apply(lambda z: z['geometry'].x, axis=1)
 grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
 grid_gdf.set_index('index', inplace=True)
 
-grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
+
+# grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
+grid_gdf['within'] = [adm0_prep.contains(i) for i in grid_gdf['geometry']]
+
 
 adm0_count = sum(grid_gdf['within'])
 
