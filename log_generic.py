@@ -771,13 +771,21 @@ if data_package["file_format"] in ['raster', 'vector']:
                 range_start, range_end, range_type = ru.get_date_range(date_str)
 
             # name (unique among this dataset's resources - not same name as dataset)
-            resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+            if data_package["file_format"] == 'raster':
+                resource_tmp["name"] = data_package["options"]["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+
+            else:
+                resource_tmp["name"] = data_package["options"]["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
 
         else:
             range_start = 10000101
             range_end = 99991231
 
-            resource_tmp["name"] = data_package["name"]
+            if data_package["file_format"] == 'raster':
+                resource_tmp["name"] = data_package["options"]["mini_name"]
+
+            else:
+                resource_tmp["name"] = data_package["options"]["mini_name"]
 
 
         # file date range
@@ -785,7 +793,7 @@ if data_package["file_format"] in ['raster', 'vector']:
         resource_tmp["end"] = range_end
 
         # reorder resource fields
-        resource_order = ["name", "path", "bytes", "start", "end"]
+        resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
         resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 
         # update main list
@@ -806,10 +814,11 @@ elif data_package["file_format"] == "release":
         "bytes":0,
         "path":data_package['name'],
         "start":ru.temporal['start'],
-        "end":ru.temporal['end']
+        "end":ru.temporal['end'],
+        "reliability": False
     }
 
-    resource_order = ["name", "path", "bytes", "start", "end"]
+    resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
     resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
     ru.resources.append(resource_tmp)
 
@@ -821,6 +830,9 @@ data_package["temporal"] = ru.temporal
 data_package["spatial"] = ru.spatial
 data_package["resources"] = ru.resources
 
+
+# print data_package["resources"]
+# sys.exit("!@#!@#!@")
 
 # --------------------------------------------------
 # database update(s) and datapackage output
