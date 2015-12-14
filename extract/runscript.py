@@ -285,7 +285,7 @@ ignore = range(1900, 1982)
 # specify accept by using exceptions in ignore range 
 # (manually adjust range if years fall outside of 1800-2100)
 accept = []
-# ignore = [i in range(1800, 2100) if i not in accept]
+# ignore = [i for i in range(1800, 2100) if i not in accept]
 
 
 # convert years to strings
