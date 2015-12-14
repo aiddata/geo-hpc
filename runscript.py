@@ -64,8 +64,14 @@ from shapely.prepared import prep
 # general functions
 
 
-# creates directories
 def make_dir(path):
+    """Make directory. 
+
+    Args:
+        path (str): absolute path for directory
+
+    Raise error if error other than directory exists occurs.
+    """
     try:
         os.makedirs(path)
     except OSError as exception:
@@ -73,15 +79,24 @@ def make_dir(path):
             raise
 
 
-# add information to msr log
 def log(msg):
+    """Add message to msr log.
+
+    Args:
+        msg (str): message to add to log
+    """
     msg = str(msg)
     # 
 
 
-# quit msr job, manage error reporting, cleanup/move request files
 def quit(msg):
+    """Quit msr job.
+    
+    Args:
+        msg (str): message to add to log upon exiting
 
+    Function also manages error reporting and cleans up / moves request files.
+    """
     e_request_basename = os.path.basename(request_path)
 
     if e_request_basename == '':
@@ -294,8 +309,18 @@ lookup = {
 # --------------------------------------------------
 
 
-# check csv delim and return if valid type
 def get_csv(path):
+    """Read csv from file.
+
+    Args:
+        path (str): absolute path for file
+    Returns:
+        Pandas dataframe
+
+
+    Check file extension and if valid,
+    read the csv using the relevant sep field.
+    """
     if path.endswith('.tsv'):
         return pd.read_csv(path, sep='\t', quotechar='\"', na_values='', keep_default_na=False)
     elif path.endswith('.csv'):
@@ -307,7 +332,16 @@ def get_csv(path):
 # get project and location data in path directory
 # requires a field name to merge on and list of required fields
 def get_data(path, merge_id, field_ids, only_geo):
+    """Retrieves and merges data from project and location tables.
 
+    Args:
+        path (str): absolute path to directory where project and location tables exist
+        merge_id (str): field to merge on
+        field_ids ([str, ...]): list of fields to verify exist in merged dataframe
+        only_geo (bool): whether to use right merge (true) or left (false)
+    Returns:
+        merged dataframe containing project and location data
+    """
     amp_path = path+"/projects.csv"
     loc_path = path+"/locations.csv"
 
@@ -343,8 +377,8 @@ def get_data(path, merge_id, field_ids, only_geo):
 # --------------------------------------------------
 
 
-# define tags enum
 def enum(*sequential, **named):
+    """Generate an enum type object."""
     # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
@@ -386,6 +420,15 @@ def get_geom_type(is_geo, code_1, code_2):
 # finds shape in set of polygons which arbitrary polygon is within
 # returns 0 if item is not within any of the shapes
 def get_shape_within(item, polys):
+    """Find shape in set of shapes which another given shape is within.
+
+    Args:
+        item (shape): shape object
+        polys ([shape, ...]): list of shapes
+    Returns:
+        If shape is found in polys which item is within, return shape.
+        If not shape is found, return 0.
+    """
     c = 0
     for shp in polys:
         tmp_shp = shape(shp)
@@ -395,9 +438,18 @@ def get_shape_within(item, polys):
     return c
 
 
-# checks if arbitrary polygon is within country (adm0) polygon
+# check if arbitrary polygon is within country (adm0) polygon
 # depends on adm0
 def is_in_country(shp):
+    """Check if arbitrary polygon is within country (adm0) polygon.
+
+    Args:
+        shp (shape):
+    Returns:
+        Bool whether shp is in adm0 shape.
+
+    Depends on adm0 shape being defined in environment.
+    """
     return shp.within(adm0)
 
 
@@ -556,9 +608,18 @@ def geom_to_grid_colrows(geom, step, rounded=True, no_multi=False):
     return tmp_cols, tmp_rows
 
 
-# convert "negative" zero values caused by rounding
-# binary floating point values that were below zero
+
 def positive_zero(val):
+    """Convert "negative" zero values to +0.0
+
+    Args:
+        val: number (should be float, but not checked)
+    Returns:
+        If val equals zero return +0.0 to make sure val was not a "negative" zero,
+        otherwise return val.
+
+    Needed as a result of how binary floating point works.
+    """
     if val == 0:
         return +0.0
     else:
