@@ -63,6 +63,12 @@ from shapely.prepared import prep
 # ====================================================================================================
 # general functions
 
+def enum(*sequential, **named):
+    """Generate an enum type object."""
+    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
+
 
 def make_dir(path):
     """Make directory. 
@@ -248,18 +254,6 @@ if only_geocoded:
 # aggregation types used in lookup dict
 agg_types = ["point", "buffer", "adm"]
 
-# # precision code field values
-# # buffer values in meters
-# lookup = {
-#     "1": {"type":"point","data":0},
-#     "2": {"type":"buffer","data":25000},
-#     "3": {"type":"adm","data":"2"},
-#     "4": {"type":"adm","data":"1"},
-#     "5": {"type":"buffer","data":25000},
-#     "6": {"type":"adm","data":"0"},
-#     "7": {"type":"adm","data":"0"},
-#     "8": {"type":"adm","data":"0"}
-# }
 
 
 # precision and feature code values (uses default if feature code not listed)
@@ -293,338 +287,6 @@ lookup = {
 }
 
 
-# ====================================================================================================
-# ====================================================================================================
-# functions
-
-
-# def json_hash(hash_obj):
-#     hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
-#     hash_builder = hashlib.md5()
-#     hash_builder.update(hash_json)
-#     hash_md5 = hash_builder.hexdigest()
-#     return hash_md5
-
-
-# --------------------------------------------------
-
-
-def get_csv(path):
-    """Read csv from file.
-
-    Args:
-        path (str): absolute path for file
-    Returns:
-        Pandas dataframe
-
-
-    Check file extension and if valid,
-    read the csv using the relevant sep field.
-    """
-    if path.endswith('.tsv'):
-        return pd.read_csv(path, sep='\t', quotechar='\"', na_values='', keep_default_na=False)
-    elif path.endswith('.csv'):
-        return pd.read_csv(path, quotechar='\"', na_values='', keep_default_na=False)
-    else:
-        sys.exit('get_csv - file extension not recognized.\n')
-
-
-# get project and location data in path directory
-# requires a field name to merge on and list of required fields
-def get_data(path, merge_id, field_ids, only_geo):
-    """Retrieves and merges data from project and location tables.
-
-    Args:
-        path (str): absolute path to directory where project and location tables exist
-        merge_id (str): field to merge on
-        field_ids ([str, ...]): list of fields to verify exist in merged dataframe
-        only_geo (bool): whether to use right merge (true) or inner (false)
-    Returns:
-        merged dataframe containing project and location data
-    """
-    amp_path = path+"/projects.csv"
-    loc_path = path+"/locations.csv"
-
-    # make sure files exist
-    # 
-
-    # read input csv files into memory
-    amp = get_csv(amp_path)
-    loc = get_csv(loc_path)
-
-    if not merge_id in amp or not merge_id in loc:
-        sys.exit("get_data - merge field not found in amp or loc files")
-
-    amp[merge_id] = amp[merge_id].astype(str)
-    loc[merge_id] = loc[merge_id].astype(str)
-
-    # create projectdata by merging amp and location files by project_id
-    if only_geo:
-        tmp_merged = amp.merge(loc, on=merge_id)
-    else:
-        tmp_merged = amp.merge(loc, on=merge_id, how="left")
-
-    if not "longitude" in tmp_merged or not "latitude" in tmp_merged:
-        sys.exit("get_data - latitude and longitude fields not found")
-
-    for field_id in field_ids:
-        if not field_id in tmp_merged:
-            sys.exit("get_data - required code field not found")
-
-    return tmp_merged
-
-
-# --------------------------------------------------
-
-
-def enum(*sequential, **named):
-    """Generate an enum type object."""
-    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
-    enums = dict(zip(sequential, range(len(sequential))), **named)
-    return type('Enum', (), enums)
-
-
-# gets geometry type based on lookup table
-# depends on lookup and not_geocoded
-def get_geom_type(is_geo, code_1, code_2):
-
-    try:
-        is_geo = int(is_geo)
-        code_1 = str(int(code_1))
-        code_2 = str(code_2)
-
-        if is_geo == 1:
-            if code_1 in lookup:
-                if code_2 in lookup[code_1]:
-                    tmp_type = lookup[code_1][code_2]["type"]
-                    return tmp_type
-                else:
-                    tmp_type = lookup[code_1]["default"]["type"]
-                    return tmp_type
-            else:
-                print("lookup code_1 not recognized: " + code_1)
-                return "None"
-
-        elif is_geo == 0:
-            return not_geocoded
-
-        else:
-            print("is_geocoded integer code not recognized: " + str(is_geo))
-            return "None"
-
-    except:
-        return not_geocoded
-
-
-
-# finds shape in set of polygons which arbitrary polygon is within
-# returns 0 if item is not within any of the shapes
-def get_shape_within(item, polys):
-    """Find shape in set of shapes which another given shape is within.
-
-    Args:
-        item (shape): shape object
-        polys ([shape, ...]): list of shapes
-    Returns:
-        If shape is found in polys which item is within, return shape.
-        If not shape is found, return 0.
-    """
-    c = 0
-    for shp in polys:
-        tmp_shp = shape(shp)
-        if item.within(tmp_shp):
-            return tmp_shp
-
-    return c
-
-
-# check if arbitrary polygon is within country (adm0) polygon
-# depends on adm0
-def is_in_country(shp):
-    """Check if arbitrary polygon is within country (adm0) polygon.
-
-    Args:
-        shp (shape):
-    Returns:
-        Bool whether shp is in adm0 shape.
-
-    Depends on adm0 shape being defined in environment.
-    """
-    return shp.within(adm0)
-
-
-# build geometry for point based on code
-# depends on lookup and adm0
-def get_geom(code_1, code_2, lon, lat):
-    tmp_pnt = Point(lon, lat)
-
-    if not is_in_country(tmp_pnt):
-        print("point not in country")
-        return 0
-
-    else:
-        if code_2 in lookup[code_1]:
-            tmp_lookup = lookup[code_1][code_2]
-        else:
-            tmp_lookup = lookup[code_1]["default"]
-
-        # print(tmp_lookup["type"])
-
-        if tmp_lookup["type"] == "point":
-            return tmp_pnt
-
-        elif tmp_lookup["type"] == "buffer":
-            try:
-                # get buffer size (meters)
-                tmp_int = float(tmp_lookup["data"])
-
-                # reproject point
-                proj_utm = pyproj.Proj('+proj=utm +zone=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ')
-                proj_wgs = pyproj.Proj(init="epsg:4326")
-
-                utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm, tmp_pnt.x, tmp_pnt.y)
-                utm_pnt_act = Point(utm_pnt_raw)
-
-                # create buffer in meters
-                utm_buffer = utm_pnt_act.buffer(tmp_int)
-
-                # reproject back
-                buffer_proj = partial(pyproj.transform, proj_utm, proj_wgs)
-                tmp_buffer = transform(buffer_proj, utm_buffer)
-
-                # clip buffer if it extends outside country
-                if is_in_country(tmp_buffer):
-                    return tmp_buffer
-                else:
-                    return tmp_buffer.intersection(adm0)
-
-            except:
-                print("buffer value could not be converted to float")
-                return 0
-
-        elif tmp_lookup["type"] == "adm":
-            try:
-                tmp_int = int(tmp_lookup["data"])
-                return get_shape_within(tmp_pnt, adm_shps[tmp_int])
-
-            except:
-                print("adm value could not be converted to int")
-                return 0
-
-        else:
-            print("geom object type not recognized")
-            return 0
-
-
-# returns geometry for point
-# depends on agg_types and adm0
-def get_geom_val(agg_type, code_1, code_2, lon, lat):
-    if agg_type in agg_types:
-
-        code_1 = str(int(code_1))
-        code_2 = str(code_2)
-
-        tmp_geom = get_geom(code_1, code_2, lon, lat)
-
-        if tmp_geom != 0:
-            return tmp_geom
-
-        return "None"
-
-    elif agg_type == "country":
-
-        return adm0
-
-    else:
-        print("agg_type not recognized: " + str(agg_type))
-        return "None"
-
-
-# adjusts given aid value based on % of sectors/donors 
-# selected via filter vs all associated with project 
-def adjust_aid(raw_aid, project_sectors_string, project_donors_string, filter_sectors_list, filter_donors_list):
-
-    project_sectors_list = project_sectors_string.split('|')
-    project_donors_list = project_donors_string.split('|')
-
-    if filter_sectors_list == ['All']:
-        sectors_match = project_sectors_list
-    else:
-        sectors_match = [match for match in project_sectors_list if match in filter_sectors_list]
-
-    if filter_donors_list == ['All']:
-        donors_match = project_donors_list
-    else:  
-        donors_match = [match for match in project_donors_list if match in filter_donors_list]
-
-    ratio = float(len(sectors_match) * len(donors_match)) / float(len(project_sectors_list) * len(project_donors_list))
-
-    # remove duplicates? - could be duplicates from project strings
-    # ratio = (len(set(sectors_match)) * len(set(donors_match))) / (len(set(project_sectors_list)) * len(set(project_donors_list)))
-
-    adjusted_aid = ratio * float(raw_aid)
-
-    return adjusted_aid
-
-
-# convert polygon to two separate lists of 
-# longitude and latitude based on geometry 
-# bounds and a given increment step
-def geom_to_grid_colrows(geom, step, rounded=True, no_multi=False):
-
-    # check if geom is polygon
-    if geom != Polygon:
-        try:
-            # make polygon if needed and possible
-            geom = shape(geom)
-
-            # if no_multi == True and geom != Polygon:
-            #     return 2
-
-        except:
-            # cannot convert geom to polygon
-            return 1
-
-
-    # poly grid pixel size and poly grid pixel size inverse
-    # poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
-    tmp_pixel_size = step
-    tmp_psi = 1/tmp_pixel_size
-
-    (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = geom.bounds
-
-    (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = (math.floor(tmp_minx*tmp_psi)/tmp_psi, math.floor(tmp_miny*tmp_psi)/tmp_psi, math.ceil(tmp_maxx*tmp_psi)/tmp_psi, math.ceil(tmp_maxy*tmp_psi)/tmp_psi)
-
-    tmp_cols = np.arange(tmp_minx, tmp_maxx+tmp_pixel_size*0.5, tmp_pixel_size)
-    tmp_rows = np.arange(tmp_miny, tmp_maxy+tmp_pixel_size*0.5, tmp_pixel_size)
-
-    if rounded == True:
-        tmp_sig = 10 ** len(str(tmp_pixel_size)[str(tmp_pixel_size).index('.')+1:])
-
-        tmp_cols = [round(i * tmp_sig) / tmp_sig for i in tmp_cols]
-        tmp_rows = [round(i * tmp_sig) / tmp_sig for i in tmp_rows]
-
-
-    return tmp_cols, tmp_rows
-
-
-
-def positive_zero(val):
-    """Convert "negative" zero values to +0.0
-
-    Args:
-        val: number (should be float, but not checked)
-    Returns:
-        If val equals zero return +0.0 to make sure val was not a "negative" zero,
-        otherwise return val.
-
-    Needed as a result of how binary floating point works.
-    """
-    if val == 0:
-        return +0.0
-    else:
-        return val
-
 
 # ====================================================================================================
 # ====================================================================================================
@@ -635,33 +297,6 @@ def positive_zero(val):
 
 dir_working = os.path.dirname(request_path)
 
-
-# output_base = "/sciclone/aiddata10/REU/data/rasters/internal/msr"
-# output_dataset = output_base +"/"+ request['dataset']
-
-# # if request['type'] == 'auto':
-# if 'hash' in request:
-#     request_hash = request['hash']
-# else:
-#     request_hash_object = {
-#         'dataset':request['dataset'],
-#         'donors':request['options']['donors'],
-#         'sectors':request['options']['sectors'],
-#         'years':request['options']['years']
-#     }
-#     request_hash = json_hash(request_hash_object)
-
-# dir_working = output_dataset +"_"+ request_hash
-
-
-# dir_country = dir_file+"/outputs/"+country
-# dir_working = dir_country+"/"+country+"_"+str(pixel_size)+"_"+str(iterations)+"_"+str(int(Ts))
-
-
-# dir_country = dir_file+"/data/"+country
-# dir_chain = dir_country+"/"+country+"_"+str(data_version)+"_"+run_id+"_"+str(pixel_size)
-# dir_outputs = dir_chain+"/outputs"
-# dir_working = dir_outputs+"/"+str(Rid)
 
 
 # --------------------------------------------------
@@ -678,25 +313,22 @@ adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 
 # define country shape
-adm0 = shape(adm_shps[0][0])
+adm0 = prep(shape(adm_shps[0][0]))
 
-adm0_prep = prep(adm0)
 
 
 # --------------------------------------------------
 # create point grid for country
 
+
 # country bounding box
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = adm0.bounds
-# print( (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) )
 
 # grid_buffer
 gb = 0.5
 
 # bounding box rounded to pixel size (always increases bounding box size, never decreases)
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*gb)/gb, math.floor(adm0_miny*gb)/gb, math.ceil(adm0_maxx*gb)/gb, math.ceil(adm0_maxy*gb)/gb)
-# print( (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) )
-
 
 # generate arrays of new grid x and y values
 cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
@@ -706,6 +338,7 @@ sig = 10 ** len(str(pixel_size)[str(pixel_size).index('.')+1:])
 
 cols = [round(i * sig) / sig for i in cols]
 rows = [round(i * sig) / sig for i in rows]
+
 
 
 # init grid reference object
@@ -725,7 +358,7 @@ grid_gdf.set_index('index', inplace=True)
 
 
 # grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
-grid_gdf['within'] = [adm0_prep.contains(i) for i in grid_gdf['geometry']]
+grid_gdf['within'] = [adm0.contains(i) for i in grid_gdf['geometry']]
 
 
 adm0_count = sum(grid_gdf['within'])
@@ -734,33 +367,6 @@ grid_gdf['value'] = 0
 
 grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 
-
-# gref = {}
-# idx = 0
-
-# adm0_gref = {}
-# adm0_count = 0
-
-# for r in rows:
-#     gref[str(r)] = {}
-#     adm0_gref[str(r)] = {}
-
-#     for c in cols:
-#         # build grid reference object
-#         gref[str(r)][str(c)] = idx
-#         idx += 1
-
-
-#         # check if point is within geom
-#         adm0_point = Point(c,r)
-#         adm0_within = adm0_point.within(adm0)
-
-
-#         if adm0_within:
-#             adm0_gref[str(r)][str(c)] = idx
-#             adm0_count += 1
-#         else:
-#             adm0_gref[str(r)][str(c)] = "None"
 
 
 
@@ -772,7 +378,7 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 # dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
 
-merged = get_data(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
+merged = merge_data(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
 
 
 # --------------------------------------------------
@@ -831,20 +437,6 @@ else:
 filtered['adjusted_aid'] = filtered.apply(lambda z: adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
 
 
-# no filter - placeholder
-# filtered = deepcopy(merged)
-
-
-# !!! potential issue !!! 
-# 2015-22-10 : i think this is outdated since there is no more random aid
-#
-# - filters which remove only some locations from a project will skew aid splits
-# - * moved original project location count to before filters so that it can be used to
-#   compare the count of project locations before filter to count after and generate
-#   placeholder random values for the locations that were filtered out
-# - method: recheck project location count and create placeholder random value if locations are missing
-# - will need to rebuild how random num column is added. probaby can use apply with a new function
-
 
 # --------------------------------------------------
 # assign geometries
@@ -874,29 +466,6 @@ i_m = i_m.set_index('index')
 
 if rank == 0:
     
-    print("masterinit")
-
-    # --------------------------------------------------
-    # initialize results file output
-
-    # results_str = "Mean Surface Rasters Output File\t "
-
-    # results_str += "\nstart time\t" + str(Ts)
-    # results_str += "\ncountry\t" + str(country)
-    # results_str += "\nabbr\t" + str(abbr)
-    # results_str += "\npixel_size\t" + str(pixel_size)
-    # results_str += "\nnodata\t" + str(nodata)
-    # results_str += "\naid_field\t" + str(aid_field)
-    # results_str += "\ncode_field_1\t" + str(code_field_1)
-    # results_str += "\ncountry bounds\t" + str((adm0_minx, adm0_miny, adm0_maxx, adm0_maxy))
-
-    # results_str += "\nrows\t" + str(len(rows))
-    # results_str += "\ncolumns\t" + str(len(cols))
-    # results_str += "\nlocations\t" + str(len(i_m))
-
-    # results_str += "\nfilters\t" + str(filters)
-
-
     # --------------------------------------------------
     # initialize asc file output
 
@@ -1087,12 +656,6 @@ else:
                 tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
 
 
-                # for r in rows:
-                #     for c in cols:
-                #         if adm0_gref[str(r)][str(c)] != "None":
-                #             # round new grid points to old grid points and update old grid
-                #             gref_id = gref[str(r)][str(c)]
-                #             mean_surf[gref_id] += pg_data['adjusted_aid'] / adm0_count
 
 
 
@@ -1130,14 +693,6 @@ else:
                     pg_rows = set(pg_rows)
 
 
-                    # x_cols, x_rows = geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=True)
-
-                    # print('MULTIPOLYGON - ('+ str(pg_data['project_location_id']) +')  ' +str(len(pg_cols)) + ' -- ' + str(len(pg_rows)) + ' -- ' + str(len(x_cols)) + ' -- ' + str(len(x_rows)))
-                    # print(pg_cols)
-                    # print(pg_rows)
-                    # print(x_cols)
-                    # print(x_rows)
-
 
                 else:
                 
@@ -1145,24 +700,6 @@ else:
 
 
 
-                # -------------------------
-                # old
-
-                # sub_grid_factor = 0.1
-                # pg_pixel_size = pixel_size * sub_grid_factor
-                # pg_psi = 1/pg_pixel_size
-                # (pg_minx, pg_miny, pg_maxx, pg_maxy) = pg_geom.bounds
-                # (pg_minx, pg_miny, pg_maxx, pg_maxy) = (math.floor(pg_minx*pg_psi)/pg_psi, math.floor(pg_miny*pg_psi)/pg_psi, math.ceil(pg_maxx*pg_psi)/pg_psi, math.ceil(pg_maxy*pg_psi)/pg_psi)
-                # pg_cols = np.arange(pg_minx, pg_maxx+pg_pixel_size*0.5, pg_pixel_size)
-                # pg_rows = np.arange(pg_maxy, pg_miny-pg_pixel_size*0.5, -1*pg_pixel_size)
-                # print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
-
-                # pg_sig = 10 ** len(str(pg_pixel_size)[str(pg_pixel_size).index('.')+1:])
-
-                # pg_cols = [round(i * pg_sig) / pg_sig for i in pg_cols]
-                # pg_rows = [round(i * pg_sig) / pg_sig for i in pg_rows]
-
-                # -------------------------
 
 
 
@@ -1221,79 +758,6 @@ else:
                         print('bad index iters')
                         print(i)
                         print(i in tmp_grid_gdf.index)
-
-
-
-                # try:
-                #     tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
-
-                # except:
-
-                #     print("!!!!!!!!!!!!!!!!!!!!!!!!!1111111")
-                #     print("rank " + str(rank) +" adm0 bounds : minx=" +str(adm0_minx) +" , maxx=" +str(adm0_maxx)+" , miny=" +str(adm0_miny)+" , maxy=" +str(adm0_maxy))
-                #     print("rank " + str(rank) +" bounds : minx=" +str(pg_minx) +" , maxx=" +str(pg_maxx)+" , miny=" +str(pg_miny)+" , maxy=" +str(pg_maxy))
-
-                #     print(pg_data.project_location_id)
-                #     print(list(agg_df.index))
-                #     # print()
-                #     # print
-                #     print("!!!!!!!!!!!!!!!!!!!!!!!!!1111111")
-
-
-
-
-                # print("rank " + str(rank) +" " +pg_type+ " map took " + str(Tsxz))
-
-                # Tsx = time.time()
-                # tmp_gdf.apply(lambda x: map_to_grid(x.geometry, x.value), axis=1)
-                # Tsxz = time.time() - Tsx
-                # print("rank " + str(rank) +" " +pg_type+ " map took " + str(Tsxz))
-
-
-
-
-                # # full poly grid reference object and count
-                # pg_gref = {}
-                # pg_idx = 0
-
-                # # poly grid points within actual geom and count
-                # # pg_in = {}
-                # pg_count = 0
-
-
-                # for r in pg_rows:
-                #     pg_gref[str(r)] = {}
-
-                #     for c in pg_cols:
-                #         pg_idx += 1
-
-                #         Tsx = time.time()
-
-                #         # check if point is within geom
-                #         pg_point = Point(c,r)
-                #         pg_within = pg_point.within(pg_geom)
-
-                #         Tsxz = time.time() - Tsx
-                #         print("rank " + str(rank) + " point/within took " + str(Tsxz))
-
-                #         if pg_within:
-                #             pg_gref[str(r)][str(c)] = pg_idx
-                #             pg_count += 1
-                #         else:
-                #             pg_gref[str(r)][str(c)] = "None"
-
-
-                # # init grid reference object
-                # for r in pg_rows:
-                #     for c in pg_cols:
-                #         if pg_gref[str(r)][str(c)] != "None":
-                #             # round new grid points to old grid points and update old grid
-                #             gref_id = gref[str(round(r * psi) / psi)][str(round(c * psi) / psi)]
-                #             mean_surf[gref_id] += pg_data['adjusted_aid'] / pg_count
-
-
-
-
 
 
             elif pg_type == "point":
