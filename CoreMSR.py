@@ -143,6 +143,11 @@ class CoreMSR():
         Setter will validate pixel size and set attribute. 
         Also calculates psi (pixel size inverse) and sets attribute.
         """
+        try:
+            value = float(value)
+        except:
+            sys.exit("pixel size given could not be converted to float: "+str(value))
+
         # check for valid pixel size
         # examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
         if (1/value) != int(1/value):
@@ -273,7 +278,6 @@ class CoreMSR():
         Returns:
             shape for geometry identified by lookup table
 
-
         """
         try:
             is_geo = int(is_geo)
@@ -304,8 +308,6 @@ class CoreMSR():
 
 
 
-    # finds shape in set of polygons which arbitrary polygon is within
-    # returns 0 if shp is not within any of the shapes
     def get_shape_within(self, shp, polys):
         """Find shape in set of shapes which another given shape is within.
 
@@ -324,8 +326,6 @@ class CoreMSR():
         return 0
 
 
-    # check if arbitrary polygon is within country (adm0) polygon
-    # depends on adm0
     def is_in_country(self, shp):
         """Check if arbitrary polygon is within country (adm0) polygon.
 
@@ -337,10 +337,10 @@ class CoreMSR():
         Depends on adm0 shape being defined in environment.
         """
 
-        if isinstance(adm0, type(prep(Point(0,0)))):
+        if isinstance(self.adm0, type(prep(Point(0,0)))):
             sys.exit("invalid adm0 found")
 
-        return adm0.contains(shp)
+        return self.adm0.contains(shp)
 
 
     # build geometry for point based on code
@@ -410,10 +410,10 @@ class CoreMSR():
 
     # returns geometry for point
     # depends on agg_types and adm0
-    def get_geom_val(agg_type, code_1, code_2, lon, lat):
+    def get_geom_val(self, agg_type, code_1, code_2, lon, lat):
         """
         """
-        if agg_type in agg_types:
+        if agg_type in self.agg_types:
 
             code_1 = str(int(code_1))
             code_2 = str(code_2)
@@ -427,7 +427,7 @@ class CoreMSR():
 
         elif agg_type == "country":
 
-            return adm0
+            return self.adm0
 
         else:
             print("agg_type not recognized: " + str(agg_type))
@@ -435,7 +435,7 @@ class CoreMSR():
 
 
 
-    def adjust_aid(raw_aid, project_sectors_string, project_donors_string, filter_sectors_list, filter_donors_list):
+    def adjust_aid(self, raw_aid, project_sectors_string, project_donors_string, filter_sectors_list, filter_donors_list):
         """Adjusts given aid value based on percentage of sectors/donors in filter vs project.
 
         Args:

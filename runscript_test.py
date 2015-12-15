@@ -59,6 +59,9 @@ import geopandas as gpd
 import itertools
 from shapely.prepared import prep
 
+from CoreMSR import CoreMSR
+
+
 # ====================================================================================================
 # ====================================================================================================
 # general functions
@@ -130,6 +133,9 @@ def quit(msg):
 # ====================================================================================================
 # init, inputs and variables
 
+# create instance of CoreMSR class
+core = CoreMSR()
+
 
 if len(sys.argv) != 2:
     quit('invalid number of inputs: ' + ', '.join(sys.argv))
@@ -196,95 +202,13 @@ run_id = run_stage[0:1] + run_version_str
 
 
 # --------------------------------------------------
-# validate pixel size
+# set pixel size
 
 if not 'resolution' in request['options']:
     quit("missing pixel size input from request")
 
-try:
-    pixel_size = float(request['options']['resolution'])
-except:
-    quit("invalid pixel size input: "+str(request['options']['resolution']))
 
-
-# check for valid pixel size
-# examples of valid pixel sizes: 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
-if (1/pixel_size) != int(1/pixel_size):
-    quit("invalid pixel size: "+str(pixel_size))
-
-# pixel size inverse
-psi = 1/pixel_size
-
-
-# --------------------------------------------------
-# vars to potentially be added as inputs
-# not used by functions
-
-# nodata value for output raster
-nodata = -9999
-
-# field name for aid values
-aid_field = "total_commitments"
-
-# boolean field identifying if project is geocoded
-is_geocoded = "is_geocoded"
-
-# when True, only use geocoded data
-only_geocoded = False
-
-
-# --------------------------------------------------
-# vars that may be added as some type of input
-# used by functions
-
-
-# fields name associated with values in lookup dict
-code_field_1 = "precision_code"
-code_field_2 = "location_type_code"
-
-
-# agg_type definition for non geocoded projects
-# either allocated at country level ("country") or ignored ("None")
-not_geocoded = "country"
-
-if only_geocoded:
-    not_geocoded = "None"
-
-
-# aggregation types used in lookup dict
-agg_types = ["point", "buffer", "adm"]
-
-
-
-# precision and feature code values (uses default if feature code not listed)
-# buffer values in meters
-# for adm0 / country boundary  make sure to use type "country" instead of "adm" with data "0"
-lookup = {
-    "1": {
-        "default": {"type": "point", "data": 0}
-    },
-    "2": {
-        "default": {"type": "buffer", "data": 25000}
-    },
-    "3": {
-        "default": {"type": "adm", "data": "2"}
-    },
-    "4": {
-        "default": {"type": "adm", "data": "1"}
-    },
-    "5": {
-        "default": {"type": "buffer", "data": 25000}
-    },
-    "6": {
-        "default": {"type": "country", "data": 0}
-    },
-    "7": {
-        "default": {"type": "country", "data": 0}
-    },
-    "8": {
-        "default": {"type": "country", "data": 0}
-    }
-}
+core.set_pixel_size(request['options']['resolution'])
 
 
 
@@ -313,7 +237,8 @@ adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
 adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 
 # define country shape
-adm0 = prep(shape(adm_shps[0][0]))
+tmp_adm0 = shape(adm_shps[0][0])
+core.set_adm0(prep(tmp_adm0))
 
 
 
@@ -322,7 +247,7 @@ adm0 = prep(shape(adm_shps[0][0]))
 
 
 # country bounding box
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = adm0.bounds
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = tmp_adm0.bounds
 
 # grid_buffer
 gb = 0.5
@@ -358,7 +283,7 @@ grid_gdf.set_index('index', inplace=True)
 
 
 # grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
-grid_gdf['within'] = [adm0.contains(i) for i in grid_gdf['geometry']]
+grid_gdf['within'] = [core.adm0.contains(i) for i in grid_gdf['geometry']]
 
 
 adm0_count = sum(grid_gdf['within'])
@@ -370,15 +295,13 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 
 
 
-
-
 # --------------------------------------------------
 # load project data
 
 # dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
 
-merged = merge_data(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
+merged = core.merge_data(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
 
 
 # --------------------------------------------------
@@ -434,7 +357,7 @@ else:
 
 
 # adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
-filtered['adjusted_aid'] = filtered.apply(lambda z: adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
+filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
 
 
 
@@ -448,8 +371,8 @@ if rank == 0:
 filtered["agg_type"] = pd.Series(["None"] * len(filtered))
 filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
 
-filtered.agg_type = filtered.apply(lambda x: get_geom_type(x[is_geocoded], x[code_field_1], x[code_field_2]), axis=1)
-filtered.agg_geom = filtered.apply(lambda x: get_geom_val(x.agg_type, x[code_field_1], x[code_field_2], x.longitude, x.latitude), axis=1)
+filtered.agg_type = filtered.apply(lambda x: core.get_geom_type(x[is_geocoded], x[code_field_1], x[code_field_2]), axis=1)
+filtered.agg_geom = filtered.apply(lambda x: core.get_geom_val(x.agg_type, x[code_field_1], x[code_field_2], x.longitude, x.latitude), axis=1)
 i_m = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
 
 
@@ -683,7 +606,7 @@ else:
 
                     for pg_geom_part in pg_geom:
 
-                        tmp_pg_cols, tmp_pg_rows = geom_to_grid_colrows(pg_geom_part, pg_pixel_size, rounded=True, no_multi=True)
+                        tmp_pg_cols, tmp_pg_rows = core.geom_to_grid_colrows(pg_geom_part, pg_pixel_size, rounded=True, no_multi=True)
 
                         pg_cols = np.append(pg_cols, tmp_pg_cols)
                         pg_rows = np.append(pg_rows, tmp_pg_rows)
@@ -696,7 +619,7 @@ else:
 
                 else:
                 
-                    pg_cols, pg_rows = geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
+                    pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
 
 
 
@@ -713,8 +636,8 @@ else:
                 
 
                 # round to reference grid points and fix -0.0
-                tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: positive_zero(round(z.geometry.y * psi) / psi), axis=1)
-                tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: positive_zero(round(z.geometry.x * psi) / psi), axis=1)
+                tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * psi) / psi), axis=1)
+                tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.x * psi) / psi), axis=1)
 
 
 
