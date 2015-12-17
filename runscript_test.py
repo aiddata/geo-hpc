@@ -44,7 +44,6 @@ import random
 import math
 
 import json
-# import hashlib
 
 import numpy as np
 import pandas as pd
@@ -193,7 +192,7 @@ msr_type = request['options']['type']
 msr_version = request['options']['version']
 
 run_stage = "beta"
-run_version_str = "009"
+run_version_str = "010"
 run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
@@ -233,12 +232,12 @@ adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm0.shp")
 adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm1.shp")
 adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
 
-# get adm0 bounding box
-adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
+# build list of adm shape lists
+core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 
 # define country shape
-tmp_adm0 = shape(adm_shps[0][0])
-core.set_adm0(prep(tmp_adm0))
+tmp_adm0 = shape(core.adm_shps[0][0])
+core.set_adm0(tmp_adm0)
 
 
 
@@ -247,7 +246,7 @@ core.set_adm0(prep(tmp_adm0))
 
 
 # country bounding box
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = tmp_adm0.bounds
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.adm0.bounds
 
 # grid_buffer
 gb = 0.5
@@ -256,10 +255,10 @@ gb = 0.5
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*gb)/gb, math.floor(adm0_miny*gb)/gb, math.ceil(adm0_maxx*gb)/gb, math.ceil(adm0_maxy*gb)/gb)
 
 # generate arrays of new grid x and y values
-cols = np.arange(adm0_minx, adm0_maxx+pixel_size*0.5, pixel_size)
-rows = np.arange(adm0_maxy, adm0_miny-pixel_size*0.5, -1*pixel_size)
+cols = np.arange(adm0_minx, adm0_maxx+core.pixel_size*0.5, core.pixel_size)
+rows = np.arange(adm0_maxy, adm0_miny-core.pixel_size*0.5, -1*core.pixel_size)
 
-sig = 10 ** len(str(pixel_size)[str(pixel_size).index('.')+1:])
+sig = 10 ** len(str(core.pixel_size)[str(core.pixel_size).index('.')+1:])
 
 cols = [round(i * sig) / sig for i in cols]
 rows = [round(i * sig) / sig for i in rows]
@@ -283,7 +282,7 @@ grid_gdf.set_index('index', inplace=True)
 
 
 # grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
-grid_gdf['within'] = [core.adm0.contains(i) for i in grid_gdf['geometry']]
+grid_gdf['within'] = [core.prep_adm0.contains(i) for i in grid_gdf['geometry']]
 
 
 adm0_count = sum(grid_gdf['within'])
@@ -294,21 +293,18 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 
 
 
-
 # --------------------------------------------------
 # load project data
 
 # dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
 
-merged = core.merge_data(dir_data, "project_id", (code_field_1, code_field_2, "project_location_id"), only_geocoded)
+merged = core.merge_data(dir_data, "project_id", (core.code_field_1, core.code_field_2, "project_location_id"), core.only_geocoded)
 
 
 # --------------------------------------------------
 # misc data prep
 
-# create copy of merged project data
-# i_m = deepcopy(merged)
 
 # get location count for each project
 merged['ones'] = (pd.Series(np.ones(len(merged)))).values
@@ -330,8 +326,8 @@ df_location_count['project_id'] = df_location_count.index
 merged = merged.merge(df_location_count, on='project_id')
 
 # aid field value split evenly across all project locations based on location count
-merged[aid_field].fillna(0, inplace=True)
-merged['split_dollars_pp'] = (merged[aid_field] / merged.location_count)
+merged[core.aid_field].fillna(0, inplace=True)
+merged['split_dollars_pp'] = (merged[core.aid_field] / merged.location_count)
 
 
 # --------------------------------------------------
@@ -371,8 +367,8 @@ if rank == 0:
 filtered["agg_type"] = pd.Series(["None"] * len(filtered))
 filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
 
-filtered.agg_type = filtered.apply(lambda x: core.get_geom_type(x[is_geocoded], x[code_field_1], x[code_field_2]), axis=1)
-filtered.agg_geom = filtered.apply(lambda x: core.get_geom_val(x.agg_type, x[code_field_1], x[code_field_2], x.longitude, x.latitude), axis=1)
+filtered.agg_type = filtered.apply(lambda x: core.get_geom_type(x[core.is_geocoded], x[core.code_field_1], x[core.code_field_2]), axis=1)
+filtered.agg_geom = filtered.apply(lambda x: core.get_geom_val(str(x.agg_type), str(int(x[core.code_field_1])), str(x[core.code_field_2]), x.longitude, x.latitude), axis=1)
 i_m = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
 
 
@@ -396,14 +392,14 @@ if rank == 0:
     asc += "NCOLS " + str(len(cols)) + "\n"
     asc += "NROWS " + str(len(rows)) + "\n"
 
-    # asc += "XLLCORNER " + str(adm0_minx-pixel_size*0.5) + "\n"
-    # asc += "YLLCORNER " + str(adm0_miny-pixel_size*0.5) + "\n"
+    # asc += "XLLCORNER " + str(adm0_minx-core.pixel_size*0.5) + "\n"
+    # asc += "YLLCORNER " + str(adm0_miny-core.pixel_size*0.5) + "\n"
 
     asc += "XLLCENTER " + str(adm0_minx) + "\n"
     asc += "YLLCENTER " + str(adm0_miny) + "\n"
 
-    asc += "CELLSIZE " + str(pixel_size) + "\n"
-    asc += "NODATA_VALUE " + str(nodata) + "\n"
+    asc += "CELLSIZE " + str(core.pixel_size) + "\n"
+    asc += "NODATA_VALUE " + str(core.nodata) + "\n"
 
 
     # --------------------------------------------------
@@ -418,7 +414,6 @@ if rank == 0:
     time_init = time.time()
     T_init = int(time_init - Ts)
 
-    # results_str += "\nInit Runtime\t" + str(T_init//60) +'m '+ str(int(T_init%60)) +'s'
     print('\tInit Runtime: ' + str(T_init//60) +'m '+ str(int(T_init%60)) +'s')
 
 
@@ -447,8 +442,6 @@ sum_mean_surf = 0
 # ====================================================================================================
 # generate mean surface raster
 # mpi comms structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
-
-
 
 
 if rank == 0:
@@ -560,7 +553,7 @@ else:
 
             def map_to_grid(geom, val):
                 if val != 0:
-                    tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(geom.y * psi) / psi, round(geom.x * psi) / psi), 'value'] += val
+                    tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(geom.y * core.psi) / core.psi, round(geom.x * core.psi) / core.psi), 'value'] += val
 
 
             # mean_surf = np.zeros((int(idx+1),), dtype=np.int)
@@ -580,12 +573,9 @@ else:
 
 
 
-
-
-            elif pg_type != "point" and pg_type in agg_types:
+            elif pg_type != "point" and pg_type in core.agg_types:
 
                 # for each row generate grid based on bounding box of geometry
-
 
 
                 pg_geom = pg_data.agg_geom
@@ -595,7 +585,7 @@ else:
                 # relative to output grid size
                 # sub grid res = output grid res * sub_grid_factor
                 sub_grid_factor = 0.1
-                pg_pixel_size = pixel_size * sub_grid_factor
+                pg_pixel_size = core.pixel_size * sub_grid_factor
 
 
                 if pg_geom.geom_type == 'MultiPolygon':
@@ -624,8 +614,6 @@ else:
 
 
 
-
-
                 # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
 
                 tmp_product = list(itertools.product(pg_cols, pg_rows))
@@ -636,8 +624,8 @@ else:
                 
 
                 # round to reference grid points and fix -0.0
-                tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * psi) / psi), axis=1)
-                tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.x * psi) / psi), axis=1)
+                tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * core.psi) / core.psi), axis=1)
+                tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.x * core.psi) / core.psi), axis=1)
 
 
 
@@ -689,7 +677,7 @@ else:
 
                 # round new grid points to old grid points and update old grid
 
-                tmp_point = Point(round(pg_data.latitude * psi) / psi, round(pg_data.longitude * psi) / psi)
+                tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, round(pg_data.longitude * core.psi) / core.psi)
                 tmp_value = pg_data['adjusted_aid']
                 map_to_grid(tmp_point, tmp_value)
 
@@ -729,8 +717,6 @@ if rank == 0:
 
     time_surf = time.time()
     T_surf = int(time_surf - time_init)
-
-    # results_str += "\nSurf Runtime\t" + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s'
 
     print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
 
@@ -817,20 +803,20 @@ if rank == 0:
 
     add_to_json("dataset",request['dataset'])
     add_to_json("abbr",abbr)
-    add_to_json("pixel_size",pixel_size)
+    add_to_json("pixel_size",core.pixel_size)
 
     # add_to_json("filters",filters)
     # add_to_json("filters_hash",filters_hash)
 
-    add_to_json("nodata",nodata)
-    add_to_json("aid_field",aid_field)
-    add_to_json("is_geocoded",is_geocoded)
-    add_to_json("only_geocoded",only_geocoded)
-    add_to_json("not_geocoded",not_geocoded)
-    add_to_json("code_field_1",code_field_1)
-    add_to_json("code_field_2",code_field_2)
-    add_to_json("agg_types",agg_types)
-    add_to_json("lookup",lookup)
+    add_to_json("nodata",core.nodata)
+    add_to_json("aid_field",core.aid_field)
+    add_to_json("is_geocoded",core.is_geocoded)
+    add_to_json("only_geocoded",core.only_geocoded)
+    add_to_json("not_geocoded",core.not_geocoded)
+    add_to_json("code_field_1",core.code_field_1)
+    add_to_json("code_field_2",core.code_field_2)
+    add_to_json("agg_types",core.agg_types)
+    add_to_json("lookup",core.lookup)
 
     add_to_json("dir_working",dir_working)
     # add_to_json("path of surf file used",)
@@ -860,3 +846,4 @@ if rank == 0:
     # store json with outputs as meta
     # json_handle2 = open(dir_working+'/'+str(Rid)+'.json',"w")
     # json.dump(mops, json_handle2, sort_keys = True, indent = 4, ensure_ascii=False)
+
