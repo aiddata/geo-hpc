@@ -3,23 +3,18 @@ from __future__ import print_function
 
 import sys
 import math
-
 import numpy as np
 import pandas as pd
-from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
-
 import pyproj
 from functools import partial
+from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
 from shapely.ops import transform
-
 from shapely.prepared import prep
 
 
 # functions for generating user prompts
 class CoreMSR():
-    """class summary...
-
-    class documentation...
+    """Core variables and functions used by mean-surface-rasters runscript.
 
     Attributes:
         pixel_size (float): pixel size
@@ -54,7 +49,7 @@ class CoreMSR():
 
         self.pixel_size = 0.05
 
-        self.psi = 1/pixel_size
+        self.psi = 1/self.pixel_size
 
 
         # --------------------------------------------------
@@ -352,10 +347,10 @@ class CoreMSR():
             return 0
 
         else:
-            if code_2 in lookup[code_1]:
-                tmp_lookup = lookup[code_1][code_2]
+            if code_2 in self.lookup[code_1]:
+                tmp_lookup = self.lookup[code_1][code_2]
             else:
-                tmp_lookup = lookup[code_1]["default"]
+                tmp_lookup = self.lookup[code_1]["default"]
 
             # print(tmp_lookup["type"])
 
@@ -382,10 +377,10 @@ class CoreMSR():
                     tmp_buffer = transform(buffer_proj, utm_buffer)
 
                     # clip buffer if it extends outside country
-                    if is_in_country(tmp_buffer):
+                    if self.is_in_country(tmp_buffer):
                         return tmp_buffer
                     else:
-                        return tmp_buffer.intersection(adm0)
+                        return tmp_buffer.intersection(self.adm0)
 
                 except:
                     print("buffer value could not be converted to float")
@@ -423,6 +418,9 @@ class CoreMSR():
         Unrecognized types return None.
         """
         if agg_type in self.agg_types:
+
+            code_1 = str(int(code_1))
+            code_2 = str(code_2)
 
             tmp_geom = self.get_geom(code_1, code_2, lon, lat)
 
@@ -527,7 +525,7 @@ class CoreMSR():
         return tmp_cols, tmp_rows
 
 
-    def positive_zero(val):
+    def positive_zero(self, val):
         """Convert "negative" zero values to +0.0
 
         Args:
