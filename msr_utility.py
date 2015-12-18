@@ -37,6 +37,7 @@ class CoreMSR():
         adm_shps : list containing adm shape lists for each adm level (indexed by adm level #)
         adm0 : shapely shape representing coarsest spatial unit
         prep_adm0 : prepared shapely shape of adm0 for faster spatial functions
+        utm_zone : utm zone to use for dataset
 
         All attributes except adm0 have default values built into __init__.
         Any attributes may be updated but be sure to use setter functions when available as they will 
@@ -114,6 +115,8 @@ class CoreMSR():
         self.adm_shps = 0
         self.adm0 = 0
         self.prep_adm0 = 0
+
+        self.utm_zone = "45"
 
 
     def set_pixel_size(self, value):
@@ -361,11 +364,20 @@ class CoreMSR():
                 try:
                     # get buffer size (meters)
                     tmp_int = float(tmp_lookup["data"])
+                except:
+                    print("buffer value could not be converted to float")
+                    return 0
 
+                try:
                     # reproject point
-                    proj_utm = pyproj.Proj('+proj=utm +zone=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs ')
+                    proj_utm = pyproj.Proj("+proj=utm +zone=" + str(self.utm_zone) + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
                     proj_wgs = pyproj.Proj(init="epsg:4326")
+                except:
+                    print("error initializing projs")
+                    print(str(self.utm_zone))
+                    return 0
 
+                try:
                     utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm, tmp_pnt.x, tmp_pnt.y)
                     utm_pnt_act = Point(utm_pnt_raw)
 
@@ -379,11 +391,14 @@ class CoreMSR():
                     # clip buffer if it extends outside country
                     if self.is_in_country(tmp_buffer):
                         return tmp_buffer
+                    # elif tmp_buffer.intersects(self.adm0):
+                        # return tmp_buffer.intersection(self.adm0)
                     else:
                         return tmp_buffer.intersection(self.adm0)
+                        # return 0
 
                 except:
-                    print("buffer value could not be converted to float")
+                    print("error applying projs")
                     return 0
 
             elif tmp_lookup["type"] == "adm":
@@ -489,18 +504,22 @@ class CoreMSR():
             (columns, rows)
             for invalid geom: 1
         """
-        # check if geom is polygon
-        if geom != Polygon:
-            try:
-                # make polygon if needed and possible
-                geom = shape(geom)
+        # # check if geom is polygon
+        # if geom != Polygon:
+        #     try:
+        #         # make polygon if needed and possible
+        #         geom = shape(geom)
 
-                # if no_multi == True and geom != Polygon:
-                #     return 2
+        #         # if no_multi == True and geom != Polygon:
+        #         #     return 2
 
-            except:
-                # cannot convert geom to polygon
-                return 1
+        #     except:
+        #         # cannot convert geom to polygon
+        #         return 1
+
+
+        if not hasattr(geom, 'geom_type'):
+            sys.exit("CoreMSR [geom_to_grid_colrows] : invalid geom")
 
 
         # poly grid pixel size and poly grid pixel size inverse

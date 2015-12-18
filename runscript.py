@@ -169,20 +169,23 @@ else:
     quit("json file does not exists: " + request_path)
 
 # load dataset to iso3 crosswalk json
-abbrvs = json.load(open(dir_file + '/dataset_geometry_lookup.json', 'r'))
+iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
+utm_lookup = json.load(open(dir_file + '/dataset_utm_lookup.json', 'r'))
 
 # get dataset crosswalk id from request
 dataset_id = request['dataset'].split('_')[0]
 
 # make sure dataset crosswalk id is in crosswalk json
-if dataset_id not in abbrvs.keys():
+if dataset_id not in iso3_lookup.keys():
     quit("no shp crosswalk for dataset: " + dataset_id)
 
 # make sure dataset path given in request exists
 if not os.path.isdir(request['release_path']):
     quit("release path specified not found: " + request['release_path'])
 
-abbr = abbrvs[dataset_id]
+abbr = iso3_lookup[dataset_id]
+
+core.utm_zone = utm_lookup[abbr]
 
 
 # --------------------------------------------------
@@ -560,10 +563,14 @@ else:
             elif pg_type != "point" and pg_type in core.agg_types:
 
                 # for each row generate grid based on bounding box of geometry
-
-
                 pg_geom = pg_data.agg_geom
 
+                try:
+                    pg_geom = shape(pg_geom)
+                except:
+                    print(type(pg_geom))
+                    print(pg_geom)
+                    sys.exit("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
                 # factor used to determine subgrid size
                 # relative to output grid size
