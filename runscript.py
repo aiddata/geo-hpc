@@ -1,4 +1,4 @@
-'''
+"""
 runscript.py
 
 Summary:
@@ -11,9 +11,9 @@ Inputs:
 Data:
 - research release
 - shapefiles
-- dataset_geometry_lookup.json
-
-'''
+- dataset_iso3_lookup.json
+- dataset_utm_lookup.json
+"""
 
 # ====================================================================================================
 # ====================================================================================================
@@ -38,7 +38,7 @@ except:
 import os
 import sys
 import errno
-from copy import deepcopy
+# from copy import deepcopy
 import time
 import random
 import math
@@ -47,12 +47,12 @@ import json
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import Polygon, Point, shape, box
+from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
 import shapefile
 
-import pyproj
-from functools import partial
-from shapely.ops import transform
+# import pyproj
+# from functools import partial
+# from shapely.ops import transform
 import geopandas as gpd
 
 import itertools
