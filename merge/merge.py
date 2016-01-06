@@ -17,7 +17,11 @@ extract_types = sys.argv[3].split(',')
 output = sys.argv[4]
 
 # dataset name list
-# accessibility_map,dist_to_all_rivers,dist_to_big_rivers,dist_to_roads,ndvi_max_mask_lt6k,srtm_elevation,srtm_slope,terrestrial_air_temperature_v4.01,terrestrial_precipitation_v4.01,v4avg_lights_x_pct,gpw_v3
+# accessibility_map,dist_to_all_rivers,dist_to_big_rivers,dist_to_roads,srtm_elevation,srtm_slope,terrestrial_air_temperature_v4.01,terrestrial_precipitation_v4.01,v4avg_lights_x_pct,gpw_v3
+# ndvi_max_mask_lt6k
+# ltdr_yearly_ndvi_mean
+
+# ltdr_yearly_ndvi_mean,accessibility_map,dist_to_all_rivers,dist_to_roads,srtm_elevation,srtm_slope,terrestrial_air_temperature_v4.01,terrestrial_precipitation_v4.01,v4avg_lights_x_pct,gpw_v3
 
 
 # different method for listing years to ignore/accept
@@ -42,6 +46,10 @@ ignore = [str(e) for e in ignore]
 
 extract_base = "/sciclone/aiddata10/REU/extracts"
 # extract_base = "/sciclone/aiddata10/REU/projects"
+
+# extract_base = "/sciclone/aiddata10/REU/projects/liberia"
+# liberia_rural_dhs_buffers
+# liberia_urban_dhs_buffers
 
 
 # validate inputs by checking directories exist
