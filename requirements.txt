@@ -1,6 +1,6 @@
 numpy>=1.8
 shapely
-shapefile
+pyshp
 pyproj
 pandas
 geopandas
