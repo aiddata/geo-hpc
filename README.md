@@ -2,6 +2,8 @@
 
 scripts for preparing, extracting and working with datasets on sciclone
 
+be sure to run "build_test_datasets.sh" in tests/data folder before running dev tests
+
 --------------------------------------------------
 --------------------------------------------------
 
@@ -10,21 +12,21 @@ scripts for preparing, extracting and working with datasets on sciclone
 - includes: year, year month, year day, temporally invariant
 
 
-## merge  
-contains generic merge script (temporally agnostic) for use with gen 3 sciclone extract outputs
-
-
 ## builder (prototype)
 early version of script to automatically create and run jobs for a given selection of datasets
 
 
-## data post
+## utility/merge  
+contains generic merge script (temporally agnostic) for use with gen 3 sciclone extract outputs
+
+
+## utility/data post
 postprocessing scripts for working with extract data
 
 - coming soon
 
 
-## data prep 
+## utility/data prep 
 scripts for processing data before running extracts
 
 - **ltdr** (local/sciclone)  
@@ -43,7 +45,7 @@ scripts for processing data before running extracts
     mask existing yearly datasets using specified dataset and threshold value
     
 
-## old/generation_02
+## archive/generation_02
 2nd generation generic sciclone scripts for extracting data and merging results based on the temporal type of the dataset  
 
 - **year_extract**  
@@ -59,7 +61,7 @@ scripts for processing data before running extracts
     generic extract scripts for temporally invariant data
 
 
-## old/generation_01
+## archive/generation_01
 1st generation sciclone extract/merge/utility scripts which were designed for specific datasets
 
 - ndvi_original  
