@@ -32,6 +32,8 @@ try:
     run_mpi = True
 
 except:
+    size = 1
+    rank = 0
     run_mpi = False
 
 
@@ -183,8 +185,9 @@ if dataset_id not in iso3_lookup.keys():
 if not os.path.isdir(request['release_path']):
     quit("release path specified not found: " + request['release_path'])
 
-abbr = iso3_lookup[dataset_id]
 
+# todo: make sure these exist in lookups first
+abbr = iso3_lookup[dataset_id]
 core.utm_zone = utm_lookup[abbr]
 
 
@@ -413,7 +416,8 @@ if rank == 0:
 # ====================================================================================================
 # ====================================================================================================
 
-comm.Barrier()
+if run_mpi:
+    comm.Barrier()
 # sys.exit("! - init only")
 
 # ====================================================================================================
@@ -511,8 +515,6 @@ if rank == 0:
 
         stack_mean_surf = np.vstack(all_mean_surf)
         sum_mean_surf = np.sum(stack_mean_surf, axis=0)
-        # save_mean_surf = dir_working+"/mean_surf.npy"
-        # np.save(save_mean_surf, sum_mean_surf)
 
         # write asc file
         sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
@@ -540,27 +542,32 @@ else:
             # ==================================================
             # WORKER STUFF
 
-
             tmp_grid_gdf = grid_gdf.copy(deep=True)
             tmp_grid_gdf['value'] = 0
-
-            def map_to_grid(geom, val):
-                if val != 0:
-                    tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(geom.y * core.psi) / core.psi, round(geom.x * core.psi) / core.psi), 'value'] += val
-
-
 
             pg_data = i_m.loc[task]
             pg_type = pg_data.agg_type
 
             print(str(rank) + 'running pg_type: ' + pg_type + '('+ str(pg_data['project_location_id']) +')')
 
+
             if pg_type == "country":
                 
                 tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
 
 
-            elif pg_type != "point" and pg_type in core.agg_types:
+            elif pg_type == "point":
+
+                # round new grid points to old grid points and update old grid
+
+                tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, round(pg_data.longitude * core.psi) / core.psi)
+                tmp_value = pg_data['adjusted_aid']
+
+                if tmp_value != 0:
+                    tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(tmp_point.y * core.psi) / core.psi, round(tmp_point.x * core.psi) / core.psi), 'value'] += tmp_value
+
+
+            elif pg_type in core.agg_types:
 
                 # for each row generate grid based on bounding box of geometry
                 pg_geom = pg_data.agg_geom
@@ -570,7 +577,7 @@ else:
                 except:
                     print(type(pg_geom))
                     print(pg_geom)
-                    sys.exit("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    sys.exit("!!!")
 
                 # factor used to determine subgrid size
                 # relative to output grid size
@@ -581,7 +588,6 @@ else:
 
                 if pg_geom.geom_type == 'MultiPolygon':
                     
-
                     pg_cols = []
                     pg_rows = []
 
@@ -596,11 +602,9 @@ else:
                     pg_cols = set(pg_cols)
                     pg_rows = set(pg_rows)
 
-
                 else:
                 
                     pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
-
 
 
                 # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
@@ -644,15 +648,6 @@ else:
                         print(i in tmp_grid_gdf.index)
 
 
-            elif pg_type == "point":
-
-                # round new grid points to old grid points and update old grid
-
-                tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, round(pg_data.longitude * core.psi) / core.psi)
-                tmp_value = pg_data['adjusted_aid']
-                map_to_grid(tmp_point, tmp_value)
-
-
             # --------------------------------------------------
             # send np arrays back to master
 
@@ -694,7 +689,8 @@ if rank == 0:
 # ====================================================================================================
 # ====================================================================================================
 
-comm.Barrier()
+if run_mpi:
+    comm.Barrier()
 
 # ====================================================================================================
 # ====================================================================================================

@@ -29,7 +29,7 @@ class CoreMSR():
         code_field_2 (str): secondary field name associated with values in lookup dict
         not_geocoded (str): agg_type definition for non geocoded projects. can either allocated at country level (use: "country") or ignored (use: "None")
 
-        agg_types ([str, ...]): aggregation types used in lookup dict
+        agg_types (List[str]): aggregation types used in lookup dict
         lookup (dict):  precision and feature code values (uses default if feature code not listed)
                         buffer values in meters
                         for adm0 / country boundary  make sure to use type "country" instead of "adm" with data "0"
@@ -190,7 +190,7 @@ class CoreMSR():
         Args:
             path (str): absolute path to directory where project and location tables exist [required]
             merge_id (str): field to merge on [required]
-            field_ids ([str, ...]): list of fields to verify exist in merged dataframe [optional, default None]
+            field_ids (List[str]): list of fields to verify exist in merged dataframe [optional, default None]
             only_geo (bool): whether to use inner merge (true) or left merge (false) [optional, default False]
         Returns:
             merged dataframe containing project and location data
@@ -291,7 +291,7 @@ class CoreMSR():
 
         Args:
             shp (shape): shape object
-            polys ([shape, ...]): list of shapes
+            polys (List[shape]): list of shapes
         Returns:
             If shape is found in polys which shp is within, return shape.
             If not shape is found, return 0.
@@ -460,8 +460,8 @@ class CoreMSR():
             raw_aid (float): given aid value
             project_sectors_string (str): pipe (|) separated string of sectors from project table
             project_donors_string (str): pipe (|) separated string of donors from project table
-            filter_sectors_list ([str, ...]): list of donors selected via filter
-            filter_donors_list ([str, ...]): list of donors selected via filter
+            filter_sectors_list (List[str]): list of donors selected via filter
+            filter_donors_list (List[str]): list of donors selected via filter
         Returns:
             adjusted aid value (float)
 
