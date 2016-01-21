@@ -1,5 +1,19 @@
 
-from mpi4py import MPI
+try:
+    from mpi4py import MPI
+
+    # mpi info
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    run_mpi = True
+
+except:
+    size = 1
+    rank = 0
+    run_mpi = False
+
 
 import os
 import sys
@@ -10,13 +24,6 @@ from osgeo import osr
 
 # --------------------
 
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-
-c = rank
-
-# --------------------
 
 data_path = "/sciclone/aiddata10/REU/data/rasters/external/global/gimms.gsfc.nasa.gov/MODIS/std/GMOD09Q1/tif/NDVI/"
 out_base = "/sciclone/aiddata10/REU/data/rasters/external/global/modis_yearly"
@@ -49,6 +56,8 @@ qlist = [name for name in os.listdir(data_path) if os.path.isdir(os.path.join(da
 geotransform = None
 
 
+c = rank
+
 while c < len(qlist):
 
     year = qlist[c]
@@ -56,21 +65,27 @@ while c < len(qlist):
     
     file_paths = [data_path + "/" + year + "/" + name for name in os.listdir(data_path +"/"+ year) if not os.path.isdir(os.path.join(data_path +"/"+ year, name)) and name.endswith(".tif")]
 
-    if geotransform == None:
-        tmp_file = gdal.Open(file_paths[0])
-        ncols = tmp_file.RasterXSize
-        nrows = tmp_file.RasterYSize
-        geotransform = tmp_file.GetGeoTransform()
-
 
     try:
-        year_files = [gdal.Open(f) for f in file_paths]
+        all_year_files = [gdal.Open(f) for f in file_paths]
 
-        year_data = np.empty([nrows, ncols], dtype='uint8')
     except:
         print "error opening files"
         c += size
         continue
+
+
+    ncols = 160000
+    nrows = 64000
+
+    year_files = [f for f in all_year_files if f.RasterXSize == ncols and f.RasterYSize == nrows]
+
+    if geotransform == None:
+        tmp_file = year_files[0]
+        geotransform = tmp_file.GetGeoTransform()
+
+
+    year_data = np.empty([nrows, ncols], dtype='uint8')
 
 
     try:

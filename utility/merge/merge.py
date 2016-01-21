@@ -44,8 +44,8 @@ ignore = []
 ignore = [str(e) for e in ignore]
 
 
-extract_base = "/sciclone/aiddata10/REU/extracts"
-# extract_base = "/sciclone/aiddata10/REU/projects"
+# extract_base = "/sciclone/aiddata10/REU/extracts"
+extract_base = "/sciclone/aiddata10/REU/projects"
 
 # extract_base = "/sciclone/aiddata10/REU/projects/liberia"
 # liberia_rural_dhs_buffers
