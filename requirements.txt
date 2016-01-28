@@ -1,3 +1,7 @@
+shapely
+rasterio>=0.27
+#cligj>=0.4
+fiona
 numpy>=1.8
 # rasterstats
 pandas
