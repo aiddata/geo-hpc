@@ -1,0 +1,8 @@
+*.pyc
+*.aux.xml
+.coverage
+extract/ioe/*
+extract/old
+tests/data/datasets/*
+tests/.cache
+tests/__pycache__

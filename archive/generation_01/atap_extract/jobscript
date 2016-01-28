@@ -1,9 +1,0 @@
-#!/bin/tcsh
-#PBS -N ad:sg-atap_ex
-#PBS -l nodes=4:xeon:compute:ppn=8
-#PBS -l walltime=72:00:00
-#PBS -j oe
-
-cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ./extract_hpc.R liberia LBR_adm3 terrestrial_air_temperature
-# mvp2run -m cyclic python-mpi ./runscript.py ./extract_hpc.R kfw terra_indegenousMatched terrestrial_precipitation

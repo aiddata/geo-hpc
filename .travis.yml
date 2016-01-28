@@ -1,0 +1,15 @@
+language: python
+sudo: false
+python:
+  - "2.7"
+addons:
+  apt:
+    packages:
+    - libgdal1h
+    - gdal-bin
+    - libgdal-dev
+    # - r-base
+install:
+  - pip install -r requirements.txt
+  - pip install -r requirements_dev.txt
+script: "coverage run --include extract/extract_utility.py -m py.test tests/test_extract_utility.py"

@@ -1,92 +1,89 @@
-# extract-scripts
+# extract-scripts 
+__gen3.2__
 
 scripts for preparing, extracting and working with datasets on sciclone
 
-be sure to run "build_test_datasets.sh" in tests/data folder before running dev tests
 
 --------------------------------------------------
 --------------------------------------------------
 
-## extract  
+## file overview
+
+### extract/
+
+__extract.py__  
+
+__builder.py__
+automatically create and run jobs using a given jobs json
+
+__extract_utility.py__
 3rd generation fully integrated extract script which can be used for datasets with any temporal type  
 - includes: year, year month, year day, temporally invariant
 
+__runscript.py__
+stuff
 
-## builder (prototype)
-early version of script to automatically create and run jobs for a given selection of datasets
-
-
-## utility/merge  
-contains generic merge script (temporally agnostic) for use with gen 3 sciclone extract outputs
+__merge.py__
+script (temporally agnostic) for use with gen 3 sciclone extract outputs
 
 
-## utility/data post
-postprocessing scripts for working with extract data
+### tests/
 
-- coming soon
-
-
-## utility/data prep 
-scripts for processing data before running extracts
-
-- **ltdr** (local/sciclone)  
-   preprocessing for raw ltdr ndvi data
-
-- **ndvi_mosaic** (sciclone)  
-   scripts for creating a job on the Sciclone cluster which preprocesses/mosaics raw contemporary GIMMS NDVI data in parallel
-
-- **historic_ndvi** (sciclone)  
-   scripts for creating a job on the Sciclone cluster to process raw historic GIMMS NDVI data (1981-2003)
-
-- **atap** (local)  
-   creates rasters from raw atap data
-
-- **year_mask** (sciclone)  
-    mask existing yearly datasets using specified dataset and threshold value
-    
-
-## archive/generation_02
-2nd generation generic sciclone scripts for extracting data and merging results based on the temporal type of the dataset  
-
-- **year_extract**  
-    generic extract scripts for datasets identified by year
-
-- **year_month_extract**  
-    generic extract scripts for datasets identified by year and month
-
-- **year_day_extract**  
-    generic extract scripts for datasets identified by year and day of year
-
-- **single_extract**  
-    generic extract scripts for temporally invariant data
+stuff
+(be sure to run "build_test_datasets.sh" in tests/data folder before running dev tests)
 
 
-## archive/generation_01
-1st generation sciclone extract/merge/utility scripts which were designed for specific datasets
+--------------------------------------------------
+--------------------------------------------------
 
-- ndvi_original  
-    Contains original Rscripts for downloading GIMMS NDVI data, preprocessing, creating mosaic and extracting (serial scripts)
+## how it works
 
-- ndvi_extract  
-    Scripts for creating a job on the Sciclone cluster to run extracts on mosaic outputs of contemporary data
+- create job config json (see below for details on creating this)
+- run builder and give it your job config json
+- builder validates your config, searches for available datasets, clones your config file and adds information that will be used by main script, then finally creates a jobscript and submits the job on the HPC
+- when your HPC job starts the main runscript reads in the cloned config file which now includes details on how to run extracts
+- the run script then runs all the extracts and created a merged csv for each unique boundary used for extracts within your job
+- you can also independently run a merge using a json of the same format as your original config json to get specific merges to meet your needs after the extracts have finished. this just uses a normal python script and does not require running an HPC job.
 
-- historic_ndvi_extract  
-    Scripts for creating a job on the Sciclone cluster to run extracts on processed historic data
 
-- ndvi_merge  
-    Scripts for creating a job on the Sciclone cluster to merge extract outputs for both contemporary and historic data (change variable in runscripts.py to choose data type)
+--------------------------------------------------
+--------------------------------------------------
 
-- atap_extract  
-    Scripts for creating a job on the Sciclone cluster to run extracts on atap (air temperature and precipitation) datasets
+## job config json guide
 
-- atap_merge  
-    Scripts for creating a job on the Sciclone cluster to merge extract outputs for atap datasets (change variable in runscripts.py to choose air temp or precip)
 
-- utility  
-    Various scripts for managing output data, local tasks or anything not requiring a full Sciclone job.
-    - _ndvi_max.R_ : gets yearly maximum from merged ndvi extract outputs
-    - _gpw_extract.R_ : Rscript for running local extract on GPWv3 data
-    - _gpw_extract_merge.R_ : merge gpw extract
-    - _generic_extract.R_ : generic extract Rscript which takes user inputs
-    - _other scripts_ : see script comments for details
+### config
+
+__general information__
+
+batch name, job name, user prefix
+
+__job resources and runtime__
+
+max nodes, ppn override, walltime override and walltime
+
+current resource management
+- currently minimal resource management is automated, mostly based on user inputs
+- job config json includes max nodes (and optional ppn) you are willing to wait on
+- if job is small enough that it does not require all nodes to complete in a single cycle, the number of nodes requested will be reduced
+
+future plans for optimization
+- adjusts based on estimated runtimes of individual extract jobs
+- required reasonable estimation of runtimes and optimization algorithm
+
+### defaults
+
+__required fields__
+
+required fields must be present in defaults if they are not specified in **every** dataset options (see below for details on dataset specific options). the builder script will provide a warning if required fields are missing from the defaults object.
+
+### data
+
+__required fields__
+name: name must match dataset name in datasets.json (eventually will match to names in asdf)
+
+__overriding default fields__
+
+any of the required fields from the defaults section may be modified here. changes apply to the dataset they are specified within only. if a required field is excluding from the defaults, it must be included in every dataset's options or an error will occur
+
 

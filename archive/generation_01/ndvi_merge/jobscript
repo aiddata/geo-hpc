@@ -1,8 +1,0 @@
-#!/bin/tcsh
-#PBS -N ad:sg-exmerge
-#PBS -l nodes=1:c11:ppn=1
-#PBS -l walltime=02:00:00
-#PBS -j oe
-
-cd $PBS_O_WORKDIR
-mvp2run -m cyclic python-mpi ./runscript.py ./extract_merge.R
