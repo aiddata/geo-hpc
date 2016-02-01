@@ -66,7 +66,9 @@ job_summary['datasets'] = []
 
 
 required_options = ["bnd_absolute", "bnd_name", "extract_type", "extract_method", "output_base", "run_hours", "years"]
+
 missing_defaults = [i for i in required_options if i not in job_json['defaults'].keys()]
+
 
 if len(missing_defaults) > 0:
     print "builder.py warning: required option(s) missing from defaults ("+str(missing_defaults)+")"

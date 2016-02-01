@@ -37,7 +37,7 @@ class NewParallel():
 
     def __init__(self, parallel=True):
 
-        if run_mpi = False:    
+        if run_mpi == False:    
             print "NewParallel warning: mpi4py could not be loaded - any instances of NewParallel will run in serial"
             self.parallel = False
         else:

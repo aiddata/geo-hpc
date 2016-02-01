@@ -103,6 +103,8 @@ required fields must be present in defaults if they are not specified in **every
 __required fields__
 name: name must match dataset name in datasets.json (eventually will match to names in asdf)
 
+multiple data entries for the same dataset may be used in cases where you want multiple extract types (eg: mean and max) or you want extracts for the dataset using multiple boundaries
+
 __overriding default fields__
 
 any of the required fields from the defaults section may be modified here. changes apply to the dataset they are specified within only. if a required field is excluding from the defaults, it must be included in every dataset's options or an error will occur

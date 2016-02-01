@@ -53,6 +53,12 @@
         "data_mini": "lnye",
         "file_mask": "YYYY.tif"
     },
+    "ltdr_yearly_ndvi_max": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_max",
+        "data_name": "ltdr_yearly_ndvi_max",
+        "data_mini": "lnyx",
+        "file_mask": "YYYY.tif"
+    },
     "v4avg_lights_x_pct": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/v4avg_lights_x_pct",
         "data_name": "v4avg_lights_x_pct",

@@ -400,7 +400,7 @@ class ExtractObject():
             # list of all [[year, month], name] combos
             qlist = []
 
-            for year in self._years:
+            for year in years:
                 path_year = self._base_path +"/"+ year
                 qlist += [
                             [[year, "".join([x for x,y in zip(year+"/"+name, self._file_mask) if y == id_char and x.isdigit()])], year+"/"+name] 
