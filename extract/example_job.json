@@ -15,7 +15,8 @@
         "extract_type": "mean", 
         "extract_method": "python", 
         "output_base": "/sciclone/aiddata10/REU/projects/python-rasterstats-test", 
-        "years": "1980:2015|!1990:1995|1993|!1982"
+        "years": "1980:2015|!1990:1995|1993|!1982",
+        "run_hours": 2
     }, 
     "data": [
         {

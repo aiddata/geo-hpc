@@ -214,7 +214,7 @@ class NewParallel():
         self.master_init()
 
         for i in range(len(self.task_list)):
-            worker_result = self.worker_job(task_id)
+            worker_result = self.worker_job(i)
             self.master_process(worker_result)
 
         self.master_final()
