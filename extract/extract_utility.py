@@ -48,7 +48,7 @@ def parse_year_string(value):
     Years string are a simple method of specifying years and year ranges using a single string. 
     Through parsing of the year string, a list of years is generated.
 
-    The 4 key components of a year string are:
+    The 4 components of a year string are:
         1) single years -   simply notated using the 4 digit year (eg: 1995), this add an
                             individual year to the list
 
@@ -701,6 +701,11 @@ class MergeObject():
 
         self._merge_data = []
 
+
+        # if not interface, use qlist
+        # 
+
+        # if interface build from defaults/data
         for dataset_options in merge_json['data']:
 
             dataset_name = dataset_options['name']
