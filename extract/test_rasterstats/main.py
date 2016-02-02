@@ -194,21 +194,26 @@ def gen_zonal_stats(
                 if 'max' in stats:
                     feature_stats['max'] = float(masked.max())
                 if 'mean' in stats:
+
+                    # print "==="
+                    # print masked
+
                     if tmp_weights:
                         # print '!'
                         # print np.sum(np.sum(pctcover, axis=0), axis=0)
                         # print pctcover / np.sum(np.sum(pctcover, axis=0), axis=0)
                         # print masked * pctcover / np.sum(np.sum(pctcover, axis=0), axis=0)
                         # print  "$"
-
-                        # print ~masked.mask
+                        
                         # print pctcover
+
                         # print masked * pctcover
-                        # print masked.count()
-                        # print np.sum(np.sum(pctcover, axis=0), axis=0)
+
+                        # print np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)
                         # feature_stats['mean'] = float((masked * pctcover).mean())
 
                         feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
+                        # print feature_stats['mean']
                     else:
                         feature_stats['mean'] = float(masked.mean())
 

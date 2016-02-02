@@ -66,6 +66,7 @@ def rasterize_pctcover(geom, atrans, shape):
     # at this point all cells are known 100% coverage,
     # we'll update this array for exterior points
     pctcover = (alltouched - exterior) * 100
+    pctcover = pctcover.astype('float32')
     # print pctcover
 
     # loop through indicies of all exterior cells
@@ -89,12 +90,10 @@ def rasterize_pctcover(geom, atrans, shape):
         # print cell.area
         # print coverage
         # print '-'
-
         pctcover[r, c] = coverage
         # print pctcover[r, c]
 
     # print pctcover
-
     out = pctcover.astype('float32') / 100
     # print out
     # print 'x'
