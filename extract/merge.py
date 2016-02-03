@@ -31,7 +31,8 @@ print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
 
 
 merge_obj = MergeObject(input_json, os.path.dirname(input_json_path), interface=True)
-merge_obj.build_merges()
+merge_obj.build_merge_list()
+merge_obj.run_merge()
 
 
 # stop job timer

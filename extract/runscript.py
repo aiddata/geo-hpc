@@ -80,7 +80,8 @@ def tmp_master_final(self):
 
 
     merge_obj = MergeObject(input_json, os.path.dirname(input_json_path))
-    merge_obj.build_merges()
+    merge_obj.build_merge_list()
+    merge_obj.run_merge()
 
 
     # stop job timer

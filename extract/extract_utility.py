@@ -111,6 +111,28 @@ def parse_year_string(value):
     return map(str, tmp_years)
 
 
+def get_years(value):
+    """Get years.
+
+    Defines how to handle empty year strings
+
+    Args:
+        value (str): string which may be a year string or empty
+    """
+    if value == None:
+        value = ""
+
+    statements = [x for x in str(value).split('|') if x != ""]
+    
+    if len(statements) == 0:
+        tmp_years = map(str, range(1000,10000))
+
+    else:
+        tmp_years = parse_year_string(value)
+
+    return tmp_years
+
+
 class ExtractObject():
     """Contains variables and functions needed to validate and run extracts.
 
@@ -145,6 +167,21 @@ class ExtractObject():
         # _raster_path (str): path to raster file
 
     """
+    # available extract types and associated identifiers
+    _extract_options = {
+        # "var": "v",
+        # "std": "d",
+        "sum": "s",
+        "max": "x",
+        # "min": "m",
+        "mean": "e"
+    }
+
+    # accepted vector file extensions
+    _vector_extensions = [".geojson", ".shp"]
+
+         # accepted raster file extensions
+    _raster_extensions = [".tif", ".asc"]
 
     def __init__(self, builder=False):
 
@@ -152,23 +189,13 @@ class ExtractObject():
 
         self._extract_method = None
 
-        # accepted vector file extensions
-        self._vector_extensions = [".geojson", ".shp"]
 
         self._vector_path = None
         self._vector_extension = None
         self._vector_info = (None, None)
         # self._r_vector = None
 
-        # available extract types and associated identifiers
-        self._extract_options = {
-            # "var": "v",
-            # "std": "d",
-            "sum": "s",
-            "max": "x",
-            # "min": "m",
-            "mean": "e"
-        }
+
         self._extract_type = None
         
         self._base_path = None
@@ -180,8 +207,6 @@ class ExtractObject():
         self._run_option = None
 
 
-        # accepted raster file extensions
-        self._raster_extensions = [".tif", ".asc"]
 
         # self._raster_path = None
 
@@ -339,13 +364,7 @@ class ExtractObject():
         Args:
             value (str): year string
         """
-        statements = [x for x in str(value).split('|') if x != ""]
-        
-        if len(statements) == 0:
-            self._years = map(str, range(1000,10000))
-
-        else:
-            self._years = parse_year_string(value)
+        self._years = get_years(value)
 
 
     def set_file_mask(self, value):
@@ -620,9 +639,7 @@ class ValidateObject():
     Attributes:
 
         _something1 (str): x
-
         _something2 (List[str]): x
-
 
     """
 
@@ -638,7 +655,7 @@ class MergeObject():
     Merges all available extracts results given boundary, dataset, extract type and year string.
     Does not perform source data checks (see ExtractObject) or job validation (see ValidateObject).
 
-    When run as part of job chain (ie: Extract > Validate > Merge) users can confirm via ExtractObject and ValidateObject
+    When run as part of job chain (ie: Extract > Validate > Merge) users can confirm via ExtractObject (and ValidateObject?)
     that all available datasets meeting job config specification were extracted and thus will be merged.
 
     When running merge on its own, only available extracts are used (ie: we do not check if there is some dataset that 
@@ -646,107 +663,184 @@ class MergeObject():
 
     Attributes:
 
-        _years
-        _merge_data
-
-
-        ---------------------------------------------------
-
-        base_path (str): x
-        bnd_name (str): x
-        year_string (str): x
-
-        merge input object (from json or other) uses same format as job json "defaults" and "data"
-        
-        depends on datasets json as well
-
-        defaults:
-            bnd_name
-            extract_type
-            output_base
-            years
-
-        dataset_list
-
-        dataset specific:
-            dataset name
-            anything from defaults
-
-        merge output base (csv for each bnd)
+        merge_json (Dict): x
+        merge_output_dir (str): x
+        interface (bool): x
+        merge_list (List[Dict]): x
 
     """
 
     def __init__(self, merge_json, merge_output_dir, interface=False):
 
-        # merge_path = os.path.abspath(merge_path)
+        self.merge_json = merge_json
 
-        # merge_file = open(merge_path, 'r')
-        # merge_json = json.load(merge_file)
-        # merge_file.close()
-
+        self.merge_output_dir = os.path.abspath(merge_output_dir)
 
         self.interface = interface
         
-        self.merge_output_dir = os.path.abspath(merge_output_dir)
+        self.merge_list = []
 
 
-        self._years = None
+    def build_merge_list(self):
+        """build merge list
 
-        required_options = ["bnd_name", "extract_type", "output_base", "years"]
-        missing_defaults = [i for i in required_options if i not in merge_json['defaults'].keys()]
+        maybe the validation object should handle building this list
+        - or maybe we do not actually need a validation object if merge does everything
+        validation was going to do 
+        - is there anything beyond checking the resulting extract 
+        csvs that needs to (or can) be done?
 
-        if len(missing_defaults) > 0:
-            print "MergeObject warning: required option(s) missing from defaults ("+str(missing_defaults)+")"
+        """
+        tmp_merge_list = []
+
+        # if not interface, use job qlists
+        if not self.interface:
+     
+            bnd_list = set([i['settings']['bnd_name'] for i in self.merge_json['job']['datasets']])
+
+            for bnd_name in bnd_list:
+
+                bnd_merge_list = []
+
+                for i in self.merge_json['job']['datasets']:
+                    if i['settings']['bnd_name'] == bnd_name:
+
+                        data_name = i['name']
+                        extract_type = i['settings']['extract_type']
+                        output_base = i['settings']['output_base']
+                        data_mini = i['settings']['data_mini']
+
+                        extract_abbr = ExtractObject._extract_options[extract_type]
+
+                        bnd_merge_list += [
+                                            os.path.join(
+                                                output_base, 
+                                                bnd_name, 
+                                                'cache', 
+                                                data_name, 
+                                                extract_type, 
+                                                data_mini +'_'+ ''.join(j[0]) + extract_abbr + '.csv'
+                                            ) 
+                                            for j in i['qlist']
+                                        ]
 
 
-        self._merge_data = []
+                # add merge list for boundary as new item in tmp merge list
+                tmp_merge_list.append({
+                    'bnd_name': bnd_name,
+                    'file_list': bnd_merge_list
+                })
 
 
-        # if not interface, use qlist
-        # 
+        # if interface build from merge data
+        else:
 
-        # if interface build from defaults/data
-        for dataset_options in merge_json['data']:
+            # generate data needed to build file list
 
-            dataset_name = dataset_options['name']
-            print dataset_name
+            required_options = ["bnd_name", "extract_type", "output_base", "years"]
+            missing_defaults = [i for i in required_options if i not in self.merge_json['defaults'].keys()]
 
-            tmp_config = {}
-            tmp_config['name'] = dataset_name
+            if len(missing_defaults) > 0:
+                print "MergeObject warning: required option(s) missing from defaults ("+str(missing_defaults)+")"
 
-            for k in required_options:
-                if k in dataset_options:
-                    tmp_config[k] = dataset_options[k]
-                else:
-                    tmp_config[k] = merge_json['defaults'][k]
-            
+            merge_data = []
 
-            self._merge_data.append(tmp_config)
+            for dataset_options in self.merge_json['data']:
+
+                dataset_name = dataset_options['name']
+                print dataset_name
+
+                tmp_config = {}
+                tmp_config['name'] = dataset_name
+
+                for k in required_options:
+                    if k in dataset_options:
+                        tmp_config[k] = dataset_options[k]
+                    else:
+                        tmp_config[k] = self.merge_json['defaults'][k]
+                
+                merge_data.append(tmp_config)
+
+            # build file list
+
+            bnd_list = set([i['bnd_name'] for i in merge_data])
+
+            for bnd_name in bnd_list:
+
+                bnd_merge_list = []
+
+                for i in merge_data:
+                    if i['bnd_name'] == bnd_name:
+
+                        dset_years = get_years(i['years'])
+
+                        data_name = i['name']
+                        extract_type = i['extract_type']
+                        extract_base = i['output_base']
+
+                        # --------------------------------------------------
+
+                        extract_dir = extract_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
+
+                        print "\tChecking for extracts in: " + extract_dir
+
+                        # validate inputs by checking directories exist
+                        if not os.path.isdir(extract_base):
+                            sys.exit("Directory for extracts does not exist. You may not be connected to sciclone ("+extract_base+")")
+                        elif not os.path.isdir(extract_base + "/" + bnd_name):
+                            sys.exit("Directory for specified bnd_name does not exist (bnd_name: "+bnd_name+")")
+                        elif not os.path.isdir(extract_base + "/" + bnd_name + "/cache/" + data_name):
+                            sys.exit("Directory for specified dataset does not exists (data_name: "+data_name+")")
+                        elif not os.path.isdir(extract_dir):
+                            sys.exit("Directory for specified extract type does not exist (extract_type: "+extract_type+")")
 
 
-    def build_merges(self):
-        """build_merges 
+                        # find and sort all relevant extract files
+                        rlist = [fname for fname in os.listdir(extract_dir) if (len(fname) == 10 or fname[5:9] in dset_years) and os.path.isfile(extract_dir +"/"+ fname) and fname.endswith(".csv")]
+                        rlist = sorted(rlist)
+
+                        # exit if no extracts found
+                        if len(rlist) == 0:
+                            sys.exit("No extracts found for: " + extract_dir)
+                        
+                        bnd_merge_list += [extract_dir +"/"+ item for item in rlist]
+
+
+                # add merge list for boundary as new item in tmp merge list
+                tmp_merge_list.append({
+                    'bnd_name': bnd_name,
+                    'file_list': bnd_merge_list
+                })
+
+
+        # set actual merge list
+        self.merge_list = tmp_merge_list
+
+
+    def run_merge(self):
+        """Run merge 
 
         """
         # Ts = int(time.time())
 
-        bnd_list = set([i['bnd_name'] for i in self._merge_data])
-
-        for bnd_name in bnd_list:
+        for i in self.merge_list:
+            bnd_name = i['bnd_name']
+            file_list = i['file_list']
             
             print "Starting merge process for bnd_name = " + bnd_name
 
+            # if interface ask for output path
             if self.interface == True:
 
-                # ask for path
-                # make sure directory exists
-                # make sure file name ends with .csv
-
                 while True:
+                    # ask for path
                     sys.stdout.write("Absolute file path for output? \n> ")
                     answer = raw_input().lower()
 
+                    # make sure directory exists
                     if os.path.isdir(os.path.dirname(answer)):
+
+                        # make sure file name ends with .csv
                         if answer.endswith(".csv"):
                             merge_output_csv = answer
                             break
@@ -757,69 +851,24 @@ class MergeObject():
                         sys.stdout.write("Directory specified does not exist.\n")
 
 
-
-                # merge_output_csv =  self.merge_output_dir + "/merge_" + bnd_name + ".csv"
-
             else:
                 merge_output_csv =  self.merge_output_dir + "/merge_" + bnd_name + ".csv"
 
-            # if interface ask for output path
-            # 
 
             merge = 0
 
-            for i in self._merge_data:
-                if i['bnd_name'] == bnd_name:
+            for result_csv in file_list:
+                
+                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
-                    self.set_years(i['years'])
+                tmp_field = result_csv[result_csv.rindex('/')+1:-4]
 
-                    data_name = i['name']
-                    extract_type = i['extract_type']
-                    extract_base = i['output_base']
+                if not isinstance(merge, pd.DataFrame):
+                    merge = result_df.copy(deep=True)
+                    merge.rename(columns={"ad_extract": tmp_field}, inplace=True)
 
-                    # --------------------------------------------------
-                    extract_dir = extract_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
-
-                    print "\tChecking for extracts in: " + extract_dir
-
-                    # validate inputs by checking directories exist
-                    if not os.path.isdir(extract_base):
-                        sys.exit("Directory for extracts does not exist. You may not be connected to sciclone ("+extract_base+")")
-                    elif not os.path.isdir(extract_base + "/" + bnd_name):
-                        sys.exit("Directory for specified bnd_name does not exist (bnd_name: "+bnd_name+")")
-                    elif not os.path.isdir(extract_base + "/" + bnd_name + "/cache/" + data_name):
-                        sys.exit("Directory for specified dataset does not exists (data_name: "+data_name+")")
-                    elif not os.path.isdir(extract_dir):
-                        sys.exit("Directory for specified extract type does not exist (extract_type: "+extract_type+")")
-                        # print "\tWarning: extract type \"" + extract_type + "\" not found for " + data_name
-                        # continue
-
-
-                    # find and sort all relevant extract files
-                    rlist = [fname for fname in os.listdir(extract_dir) if (len(fname) == 10 or fname[5:9] in self._years) and os.path.isfile(extract_dir +"/"+ fname) and fname.endswith(".csv")]
-                    rlist = sorted(rlist)
-
-                    # exit if no extracts found
-                    if len(rlist) == 0:
-                        print "\tWarning: no extracts found for: " + extract_dir
-                        continue
-                    
-
-                    print "\tMerging extracts: " + extract_dir
-
-                    for item in rlist:
-
-                        result_csv = extract_dir +"/"+ item
-                        
-                        result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
-
-                        if not isinstance(merge, pd.DataFrame):
-                            merge = result_df.copy(deep=True)
-                            merge.rename(columns={"ad_extract": item[:-4]}, inplace=True)
-
-                        else:
-                            merge[item[:-4]] = result_df["ad_extract"]
-
+                else:
+                    merge[tmp_field] = result_df["ad_extract"]
 
 
             if isinstance(merge, pd.DataFrame):
@@ -836,19 +885,5 @@ class MergeObject():
         # T_run = int(time.time() - Ts)
         # print 'Merge Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
 
-
-    def set_years(self, value):
-        """Set 
-
-        Args:
-            value (str): x
-        """
-        statements = [x for x in str(value).split('|') if x != ""]
-        
-        if len(statements) == 0:
-            self._years = map(str, range(1000,10000))
-
-        else:
-            self._years = parse_year_string(value)
 
 
