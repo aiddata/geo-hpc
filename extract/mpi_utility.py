@@ -202,6 +202,8 @@ class NewParallel():
         return results
 
     def run(self):
+        """Run job in parallel or serial.        
+        """
         if self.parallel:
             self.run_parallel()
         else:
@@ -209,7 +211,7 @@ class NewParallel():
 
 
     def run_serial(self):
-
+        """Run job using set functions in serial."""
         self.general_init()
         self.master_init()
 
@@ -221,7 +223,7 @@ class NewParallel():
 
 
     def run_parallel(self):
-
+        """Run job using set functions in parallel."""
         self.general_init()
 
         if self.rank == 0:

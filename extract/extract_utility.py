@@ -136,22 +136,30 @@ def get_years(value):
 class ExtractObject():
     """Contains variables and functions needed to validate and run extracts.
 
-    Attributes:
+    Attributes (static):
+
+        _extract_options (dict): dictionary where keys are available extract options and
+                                 values are their associated letter indicators
+        _vector_extensions (List[str]): valid file extensions for vector files
+        _raster_extensions (List[str]): valid file extensions for raster files
+
+
+    Attributes (args):
 
         _builder (bool): indicates whether ExtractObject is being called by builder 
                          (prevents portions of code from being run when extracts are 
                          not actually going to be run)
         
+
+    Attributes (variable):
+
         _extract_method (str): method for performing extracts (python, rpy2, Rscript)
 
-        _vector_extensions (List[str]): valid file extensions for vector files
         _vector_path (str): path to vector file
         _vector_extension (str): extension for vector file
         _vector_info (Tuple(str, str)): standardized tuple containing vector path/layer info
         _r_vector : rpy2 vector object
 
-        _extract_options (dict): dictionary where keys are available extract options and
-                                 values are their associated letter indicators
         _extract_type (str): selected extract type (mean, max, etc.)
 
         _base_path (str): base path for datasets to be extracted
@@ -161,8 +169,6 @@ class ExtractObject():
 
         _file_mask (str): file mask used to parse date information from data file
         _run_option (str): automatically generated. used to identify temporal type of dataset (based on file mask)
-
-        _raster_extensions (List[str]): valid file extensions for raster files
 
         # _raster_path (str): path to raster file
 
@@ -180,7 +186,7 @@ class ExtractObject():
     # accepted vector file extensions
     _vector_extensions = [".geojson", ".shp"]
 
-         # accepted raster file extensions
+    # accepted raster file extensions
     _raster_extensions = [".tif", ".asc"]
 
     def __init__(self, builder=False):
@@ -189,12 +195,10 @@ class ExtractObject():
 
         self._extract_method = None
 
-
         self._vector_path = None
         self._vector_extension = None
         self._vector_info = (None, None)
         # self._r_vector = None
-
 
         self._extract_type = None
         
@@ -205,8 +209,6 @@ class ExtractObject():
 
         self._file_mask = None
         self._run_option = None
-
-
 
         # self._raster_path = None
 
@@ -630,22 +632,22 @@ class ExtractObject():
 
 
 
-class ValidateObject():
-    """Contains variables and functions needed to validate results of an extract job.
+# class ValidateObject():
+#     """Contains variables and functions needed to validate results of an extract job.
 
-    Make sure everything all extracts that were expected to be run for a job
-    were actually run and completed.
+#     Make sure everything all extracts that were expected to be run for a job
+#     were actually run and completed.
 
-    Attributes:
+#     Attributes:
 
-        _something1 (str): x
-        _something2 (List[str]): x
+#         _something1 (str): x
+#         _something2 (List[str]): x
 
-    """
+#     """
 
-    def __init__(self, interface=False):
+#     def __init__(self, interface=False):
 
-        self._interface = interface
+#         self._interface = interface
 
 
 
@@ -663,10 +665,11 @@ class MergeObject():
 
     Attributes:
 
-        merge_json (Dict): x
-        merge_output_dir (str): x
-        interface (bool): x
-        merge_list (List[Dict]): x
+        merge_json (Dict): contents of job/config json
+        merge_output_dir (str): path to output for merge results
+        interface (bool): indicates if merge is being called by user from merge script or
+                          automatically run by extract job
+        merge_list (List[Dict]): list of Dicts which each contain merge bnd_name and file_list
 
     """
 

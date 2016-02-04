@@ -101,7 +101,7 @@ for dataset_options in job_json['data']:
         sys.exit("builder.py has terminated : required option(s) missing from both dataset default options.")
 
 
-
+    # gather all relevant options
     for k in required_options:
         if k in dataset_options:
             tmp_config[k] = dataset_options[k]
@@ -116,9 +116,10 @@ for dataset_options in job_json['data']:
         # lines.append('set '+ str(k) + ' = "' + str(dataset_info[k]) + '"')
 
 
-   # ==================================================
+    # ==================================================
 
-    
+    # init / setup extract and generate qlist
+
     exo = ExtractObject(builder=True)
 
     exo.set_extract_method(tmp_config['extract_method'])
@@ -276,8 +277,6 @@ if run_hours > 180:
 # ===========================================================================
 # prep job json
 
-
-
 # user prefix (used in hpc job name)
 user_prefix = job_json["config"]["user_prefix"]
 
@@ -315,8 +314,6 @@ output_json_path = output_dir +'/config.json'
 # ===========================================================================
 # ===========================================================================
 # build jobscript
-
-
 
 lines = []
 

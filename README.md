@@ -17,10 +17,10 @@ __builder.py__
 automatically create and run jobs using a given jobs json
 
 __runscript.py__  
-stuff
+main script called by MPI process on sciclone.
 
 __merge.py__  
-script (for manually merging extract results. utilizes an config json to specify data merge which is identical to the one used for building and running extracts.
+script for manually merging extract results. utilizes an job/config json (same as used by builder/runscript) to specify data merge parameters 
 
 __extract_utility.py__  
 contains classes used by script to generate extract lists, run extracts and merge extract result.  
@@ -130,7 +130,8 @@ any of the required fields from the defaults section may be modified here. chang
         "extract_type": "mean", 
         "extract_method": "python", 
         "output_base": "/path/to/test", 
-        "years": "1980:2015|!1990:1995|1993|!1982"
+        "years": "1980:2015|!1990:1995|1993|!1982",
+        "run_hours": 2
     }, 
     "data": [
         {
