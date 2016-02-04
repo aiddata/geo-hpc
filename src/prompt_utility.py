@@ -1,16 +1,29 @@
+
 import sys
 
 
-# functions for generating user prompts
-class prompts():
+class PromptKit():
+    """Functions for generating user prompts.
 
+    Attributes:
+
+        interface (bool): whether to use interface (true) 
+                          or automate prompts (false)
+
+    """
     def __init__(self):
 
         self.interface = False
 
 
-    # prompt to continue function
     def user_prompt_bool(self, question):
+        """Prompt user for boolean response to question.
+
+        Args:
+            question (str): question to present to user
+        Returns:
+            (bool): response to prompt
+        """
         valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
         
         while True:
@@ -23,8 +36,14 @@ class prompts():
                 sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
 
-    # prompt to use entered/existing input
     def user_prompt_use_input(self, conditional=None, statement=0, value=None):
+        """Prompt user with option to use entered/existing input.
+
+        Args:
+            x
+        Returns:
+            x
+        """
         if not statement:
             if value == None:
                quit("Error - No statement or value given to user_prompt_use_input.")
@@ -45,9 +64,14 @@ class prompts():
         return True
 
 
-    # open ended user prompt
     def user_prompt_open(self, question, check, new_val=(0,0) ):
+        """Prompt user for open ended response and validate.
 
+        Args:
+            x
+        Returns:
+            x
+        """
         while True:
 
             print new_val

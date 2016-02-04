@@ -11,10 +11,10 @@ import datetime
 import json
 from collections import OrderedDict
 
-from log_validate import validate
-from log_prompt import prompts
-from log_resources import resource_utils
-from log_mongo import update_mongo
+from validation_utility import ValidationTools
+from prompt_utility import PromptKit
+from resource_utility import ResourceTools
+from mongo_utility import MongoUpdate
 
 # --------------------------------------------------
 
@@ -23,13 +23,13 @@ version = "0.2"
 generator = "manual"
 
 # validate class instance
-v = validate()
+v = ValidationTools()
 
 # prompt class instance
-p = prompts()
+p = PromptKit()
 
 # update mongo class instance
-update_db = update_mongo()
+update_db = MongoUpdate()
 
 
 # --------------------------------------------------
@@ -463,7 +463,7 @@ if update_data_package and interface and not p.user_prompt_bool("Run resource ch
 
 
 # resource utils class instance
-ru = resource_utils()
+ru = ResourceTools()
 
 
 if data_package["file_format"] in ['raster', 'vector']:

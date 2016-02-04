@@ -1,12 +1,22 @@
+
 import os
-from copy import deepcopy
 import pymongo
-import pandas as pd
+
+# import pandas as pd
+# from copy import deepcopy
 
 
-# update database(s)
-class update_mongo():
-    
+class MongoUpdate():
+    """Update MongoDB collection(s)
+
+    Attributes:
+
+        client : MongoDB client connection
+        asdf : "asdf" Mongo database
+        c_data : "data" collection of "asdf" db
+        releases : "releases" Mongo database
+
+    """
     # existing core database indexes:
     # 
     # spatial is 2dsphere spatial index
@@ -40,6 +50,14 @@ class update_mongo():
 
     # update main database 
     def update_core(self, in_data):
+        """Update main data collection (db:asdf, collection:data).
+        
+        Args:
+            in_data
+        Returns:
+            0 - success
+            1 - error
+        """
         print "update_core"
         # self.c_data.replace_one({"base": in_data["base"]}, in_data, upsert=True)
         try:
@@ -52,19 +70,23 @@ class update_mongo():
 
 
 
-    # update/create boundary tracker(s)
+    # to do:
     # *** add error handling for all inserts (above and below) ***
     # *** remove previous inserts if later insert fails, etc. ***
+    # - remove core insert if tracker fails
+    # - only insert partial of core document 
+    #       - essential identifying info only: name, path, type, others?
+    #       - no meta info in trackers so we do not have to update them if meta changes
+
     def update_trackers(self, in_data, new_boundary=0, update_geometry=0, update_data=0):
+        """Update boundary tracker(s).
 
-
-        # to do:
-        # - remove core insert if tracker fails
-        # - only insert partial of core document 
-        #       - essential identifying info only: name, path, type, others?
-        #       - no meta info in trackers so we do not have to update them if meta changes
-
-
+        Args:
+            in_data (Dict?): x
+            new_boundary (bool): x
+            update_geometry (bool): x
+            update_data (bool): x
+        """
         if in_data["type"] == "boundary" and in_data["options"]["group_class"] == "actual":
 
             # drop boundary tracker if geometry has changed

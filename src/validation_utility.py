@@ -1,16 +1,18 @@
+
 import os
 import json
 import re
-from collections import OrderedDict
-from log_prompt import prompts
-
 import pymongo
 
-p = prompts()
+from collections import OrderedDict
+from prompt_utility import PromptKit
+
+
+p = PromptKit()
 
 
 # validation functions, fields, etc.
-class validate():
+class ValidationTools():
 
     def __init__(self):
 
