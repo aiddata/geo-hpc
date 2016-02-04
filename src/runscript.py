@@ -19,7 +19,7 @@ from mongo_utility import MongoUpdate
 # --------------------------------------------------
 
 script = os.path.basename(sys.argv[0])
-version = "0.2"
+version = "0.3"
 generator = "manual"
 
 # validate class instance
@@ -858,7 +858,7 @@ if core_update_status == 0:
 if data_package['file_format'] == 'release':
     ru.release_to_mongo(data_package['name'], data_package['base'] +"/"+ os.path.basename(data_package['base']))
 
-# call/do ckan stuff eventually
+# call/do ckan stuff eventually (?)
 # 
 
 print "\nDone.\n"

@@ -40,9 +40,14 @@ class PromptKit():
         """Prompt user with option to use entered/existing input.
 
         Args:
-            x
+            conditional (bool): whether or not an external, user defined condition has been met
+            statement (str): statement / question to pass to promp_bool if conditional bool is not given
+            value (): existing value the user is being asked to confirm
         Returns:
-            x
+            bool
+        Exits:
+            If neither a "value" or "statement" arg are provided
+            User decides not to use input and also decides not to provide a replacement 
         """
         if not statement:
             if value == None:
@@ -68,9 +73,15 @@ class PromptKit():
         """Prompt user for open ended response and validate.
 
         Args:
-            x
+            question (str): question presented to user at prompt
+            check (fun): function to validate input provided by user
+            new_val (Tuple(bool, bool)): first item indicates whether a value is required (none exists)
+                                         if first item is false, second item is the existing value
         Returns:
-            x
+            validated user input
+        Exits:
+            interface is activve and input/existing val is invalid and user elects not to provide new input
+            interface is not active and input/existing val is invalid
         """
         while True:
 
@@ -98,7 +109,7 @@ class PromptKit():
                     elif not self.interface:
                         quit("Invalid automated input.")
   
-
                 else:
                     return checked_val
+
 

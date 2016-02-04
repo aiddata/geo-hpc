@@ -19,7 +19,17 @@ import pymongo
 
 
 class ResourceTools():
+    """
 
+    Attributes:
+
+        dp (Dict): x
+        file_list (List): x
+        temporal (Dict): x
+        spatial (): x
+        resources (List): x
+    
+    """
     def __init__(self):
         
         self.dp = {}

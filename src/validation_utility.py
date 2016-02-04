@@ -13,7 +13,28 @@ p = PromptKit()
 
 # validation functions, fields, etc.
 class ValidationTools():
+    """Validation functions and related variables.
 
+    Attributes:
+        interface (): x
+        user_update (): x
+        data (): x
+        dir_base (): x
+        licenses (): x
+        file_format (): x
+        types (): x
+        error (): x
+        fields (): x
+        client (): x
+        db (): x
+        c_data (): x
+        group_exists (): x
+        actual_exists (): x
+        is_actual (): x
+        new_boundary (): x
+        update_geometry (): x
+
+    """
     def __init__(self):
 
         self.interface = False
@@ -78,10 +99,17 @@ class ValidationTools():
     # -------------------------
     #  misc functions
 
-    # check if datapackage exists for given base path in mongo
-    # return datapackage if it does
-    def datapackage_exists(self, base):
 
+    def datapackage_exists(self, base):
+        """Check if datapackage exists in mongo for given base path 
+
+        Args:
+            base (str): base path used as unique id in mongo
+        Returns:
+            Tuple containing
+                - bool whether datapackage exists
+                - Dict if datapackage exists, 0 otherwise
+        """
         search = self.c_data.find({"base": base}).limit(1)
 
         exists = search.count() > 0       
@@ -111,6 +139,11 @@ class ValidationTools():
 
     # set file format 
     def update_file_format(self, val):
+        """Set file format."
+
+        Args:
+            val (str): file format
+        """
         self.file_format = val
 
 
@@ -118,14 +151,43 @@ class ValidationTools():
     # input validation functions
 
 
-    # base path exists and is a directory
     # ***going to add check to make sure path is in REU/data/internal(?) folder***
     def is_dir(self, val):
+        """Check if arg is a directory.
+
+        Args:
+            val (str): path
+        Returns:
+            Tuple containing
+                - if path is a directory
+                - path
+                - associated error message
+        """
         return os.path.isdir(str(val)), str(val), self.error["is_dir"]
 
 
-    # check if name is unique and valid
+    # should we check that there are not consection non-alphanumeric chars 
+    # eg: two underscores, underscore follow by period, etc.
     def name(self, val):
+        """Check if name is unique and valid.
+
+        All characters in name must be alphanumeric with the exception of
+        underscores, periods or dashes.
+        Spaces will be trimmed to single space and replaced with underscore.
+        Any other characters will be stripped out.
+        Resulting name must be at least 5 characters in length.
+        All remaining characters will be converted to lower case.
+
+        Final name must not exist in data collection.
+
+        Args:
+            val (str): name
+        Returns:
+            Tuple containing:
+                - if name is valid
+                - name
+                - None if valid, associated error message if invalid
+        """
         val = re.sub(' ', '_', val)
         val = re.sub('[^0-9a-zA-Z._-]+', '', val)
 
@@ -151,12 +213,29 @@ class ValidationTools():
 
         return True, val, None
 
-    # validate mini_name for dataset types which require it 
-    # used for any dataset which will be given to used in extract format (rasters, points, maybe vectors)
-    def mini_name(self, val):
 
-        val = re.sub(' ', '_', val)
-        val = re.sub('[^0-9a-zA-Z._-]+', '', val)
+    def mini_name(self, val):
+        """Validate mini_name for dataset types which require it 
+        
+        Used for any dataset which will be given to used in extract format (rasters, points, maybe vectors)
+
+        All characters in mini name must be alphanumeric.
+        Spaces and any other characters will be stripped out.
+        Resulting mini name must be exactly 4 characters in length.
+        All remaining characters will be converted to lower case.
+
+        Final mini name must not exist in data collection.
+ 
+        Args:
+            val (str): mini name
+        Returns:
+            Tuple containing:
+                - if mini name is valid
+                - mini name
+                - None if valid, associated error message if invalid
+        """
+        val = re.sub(' ', '', val)
+        val = re.sub('[^0-9a-zA-Z]+', '', val)
 
         if len(val) != 4:
             return False, None, "Mini name must be at least 4 (valid) chars"
@@ -180,9 +259,17 @@ class ValidationTools():
         return True, val, None
 
 
-    # each extract type in extract_types
     def license_types(self, val):
+        """Validate license types.
 
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         if isinstance(val, list):
             valx = [v['id'] for v in val]
         elif isinstance(val, str):
@@ -203,20 +290,46 @@ class ValidationTools():
         return valid, vals, self.error["license_types"]
 
 
-    # type in types
     def data_type(self, val):
+        """Validate data type.
+
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         return val in self.types["data"], val, self.error["data_type"]
 
 
-    # each extract type in extract_types
     def file_extension(self, val):
+        """Validate file extension.
+
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         valid = self.file_format in self.types["file_extensions"].keys() and val in self.types["file_extensions"][self.file_format]
         return valid, val, self.error["file_extension"]
 
 
-    # each extract type in extract_types
     def extract_types(self, val):
+        """Validate extract types.
 
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         if isinstance(val, list):
             vals = val
         elif isinstance(val, str):
@@ -228,8 +341,19 @@ class ValidationTools():
         return valid, vals, self.error["extract_types"]
 
 
-    # factor is a float
     def factor(self, val):
+        """Validate factor.
+
+        Must be a float (or be able to be converted to one)
+        
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         if val == "":
             val = 1.0
 
@@ -242,6 +366,16 @@ class ValidationTools():
 
     # day_range is string
     def day_range(self, val):
+        """
+
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         if val == "":
             val = 1
 
@@ -254,6 +388,16 @@ class ValidationTools():
 
     # generic string
     def string(self, val):
+        """
+
+        Args:
+            val (): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         try:
             str(val)
             return True, str(val), None
@@ -263,7 +407,16 @@ class ValidationTools():
 
     # boundary group
     def group(self, val):
+        """Validate boundary group.
 
+        Args:
+            val (str): x
+        Returns:
+            Tuple containing
+                -
+                -
+                -
+        """
         # core database is already named data
         # cannot have tracker database with same name
         if val == "data":
@@ -295,13 +448,31 @@ class ValidationTools():
 
     # boundary group_class
     def group_class(self, val):
+        """Check that group class is valid.
+
+        Args:
+            val (str): group class
+        Returns:
+            Tuple containing
+                - if group class is valid
+                - group class
+                - associate error message
+        """
         return val in self.types["group_class"], val, self.error["group_class"]
 
 
-    # runs check on selected group to determine parameters used in group_check selection
-    # parameters: group_exists, actual_exists, is_actual
-    def run_group_check(self, group):
 
+    def run_group_check(self, group):
+        """Run check on a boundary group to determine parameters used in group_check selection
+        
+        Parameters which are set: 
+            group_exists (bool): if the group exists
+            actual_exists (bool): if the actual boundary for the group exists yet
+            is_actual (bool): if this dataset is the boundary used to define the group
+        
+        Args:
+            group (str): group name
+        """
         
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0

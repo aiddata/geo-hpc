@@ -6,6 +6,14 @@ import pymongo
 # from copy import deepcopy
 
 
+# existing core database indexes:
+# 
+# spatial is 2dsphere spatial index
+# > db.data.createIndex( { spatial : "2dsphere" } )
+# path is unique index
+# > db.data.createIndex( { base : 1 }, { unique: 1 } )
+# name is unique index
+# > db.data.createIndex( { name : 1 }, { unique: 1 } )
 class MongoUpdate():
     """Update MongoDB collection(s)
 
@@ -17,16 +25,6 @@ class MongoUpdate():
         releases : "releases" Mongo database
 
     """
-    # existing core database indexes:
-    # 
-    # spatial is 2dsphere spatial index
-    # > db.data.createIndex( { spatial : "2dsphere" } )
-    # path is unique index
-    # > db.data.createIndex( { base : 1 }, { unique: 1 } )
-    # name is unique index
-    # > db.data.createIndex( { name : 1 }, { unique: 1 } )
-
-
     def __init__(self):
         # connect to mongodb
         self.client = pymongo.MongoClient()
@@ -48,12 +46,11 @@ class MongoUpdate():
         # self.c_tmp = self.asdf.tmp
 
 
-    # update main database 
     def update_core(self, in_data):
         """Update main data collection (db:asdf, collection:data).
         
         Args:
-            in_data
+            in_data (Dict): data for dataset to be added to main asdf data collection
         Returns:
             0 - success
             1 - error
@@ -69,7 +66,6 @@ class MongoUpdate():
             return 1
 
 
-
     # to do:
     # *** add error handling for all inserts (above and below) ***
     # *** remove previous inserts if later insert fails, etc. ***
@@ -77,15 +73,17 @@ class MongoUpdate():
     # - only insert partial of core document 
     #       - essential identifying info only: name, path, type, others?
     #       - no meta info in trackers so we do not have to update them if meta changes
-
     def update_trackers(self, in_data, new_boundary=0, update_geometry=0, update_data=0):
         """Update boundary tracker(s).
 
         Args:
-            in_data (Dict?): x
-            new_boundary (bool): x
-            update_geometry (bool): x
-            update_data (bool): x
+            in_data (Dict): contains dataset information. varies by dataset type
+            new_boundary (bool): indicates if this is a new boundary being created
+            update_geometry (bool): indicates if geometry for dataset needs to be updated
+            update_data (bool): indicates whether this is being run as part of (meta) data 
+                                update only, in which case, do not modify the tracker information
+        Returns:
+            0 on succesful update
         """
         if in_data["type"] == "boundary" and in_data["options"]["group_class"] == "actual":
 
