@@ -742,8 +742,8 @@ if data_package["file_format"] in ['raster', 'vector']:
 
         # check for reliability geojson
         # should only be present for rasters generated using mean surface script
+        resource_tmp["reliability"] = False
         if data_package["type"] == "raster":
-            resource_tmp["reliability"] = False
             reliability_file = data_package["base"] +"/"+ resource_tmp["path"][:-len(data_package["file_extension"])] + "geojson"
             if os.path.isfile(reliability_file):
                 resource_tmp["reliability"] = True
@@ -775,7 +775,7 @@ if data_package["file_format"] in ['raster', 'vector']:
                 resource_tmp["name"] = data_package["options"]["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
 
             else:
-                resource_tmp["name"] = data_package["options"]["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+                resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
 
         else:
             range_start = 10000101
@@ -785,7 +785,7 @@ if data_package["file_format"] in ['raster', 'vector']:
                 resource_tmp["name"] = data_package["options"]["mini_name"]
 
             else:
-                resource_tmp["name"] = data_package["options"]["mini_name"]
+                resource_tmp["name"] = data_package["name"]
 
 
         # file date range
