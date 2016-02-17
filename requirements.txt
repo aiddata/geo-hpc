@@ -1,0 +1,7 @@
+pymongo
+osgeo
+pygeoj
+shapely
+rasterstats
+pandas
+geopandas
