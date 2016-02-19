@@ -59,7 +59,7 @@ for i in items:
         ctime = int(time.time())
 
         i["status"] = 0
-        i["classification"] = "automated"
+        i["classification"] = "auto-external"
         i["priority"] = -1
 
         i["submit_time"] = ctime
