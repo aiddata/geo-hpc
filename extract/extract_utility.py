@@ -838,7 +838,7 @@ class MergeObject():
                 while True:
                     # ask for path
                     sys.stdout.write("Absolute file path for output? \n> ")
-                    answer = raw_input().lower()
+                    answer = raw_input()
 
                     # make sure directory exists
                     if os.path.isdir(os.path.dirname(answer)):

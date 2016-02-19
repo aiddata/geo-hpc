@@ -88,5 +88,11 @@
         "data_name": "terrestrial_precipitation_v4.01",
         "data_mini": "pc41",
         "file_mask": "yyyy/precip_YYYY_MM.tif"
+    },
+    "treecover2000": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/treecover2000/treecover2000.tif",
+        "data_name": "treecover2000",
+        "data_mini": "tc00",
+        "file_mask": "None"
     }
 }
