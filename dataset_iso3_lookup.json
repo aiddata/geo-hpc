@@ -1,10 +1,14 @@
 {
-    "drc": "COD",
-    "honduras": "HND",
+    "afghanistanaims": "AFG",
+    "bangladeshselectdonors": "BGD",
+    "colombiaaims": "COL",
+    "drcamp": "COD",
+    "hondurasamp": "HND",
     "iraqdad": "IRQ",
     "nepalamp": "NPL",
     "nigeriadad": "NGA",
     "senegalamp": "SEN",
+    "somaliaaims": "SOM",
     "timorlesteamp": "TLS",
     "ugandaamp": "UGA"
 }

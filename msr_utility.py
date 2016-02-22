@@ -171,12 +171,12 @@ class CoreMSR():
         """
         if path.endswith('.tsv'):
             try:
-                return pd.read_csv(path, sep='\t', quotechar='\"', na_values='', keep_default_na=False)
+                return pd.read_csv(path, sep='\t', quotechar='\"', na_values='', keep_default_na=False, encoding='utf-8')
             except:
                 return 'unable to open file (' + str(path) + ')'
         elif path.endswith('.csv'):
             try:
-                return pd.read_csv(path, quotechar='\"', na_values='', keep_default_na=False)
+                return pd.read_csv(path, quotechar='\"', na_values='', keep_default_na=False, encoding='utf-8')
             except:
                 return 'unable to open file (' + str(path) + ')'
         else:
