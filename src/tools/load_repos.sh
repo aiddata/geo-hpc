@@ -12,8 +12,7 @@ fi
 
 old_hash=$(md5sum ~/active/load_repos.sh | awk '{ print $1 }')
 new_hash=$(md5sum ~/active/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
-echo $old_hash
-echo $new_hash
+
 
 if [[ "$old_hash" != "$new_hash" ]]; then
 
