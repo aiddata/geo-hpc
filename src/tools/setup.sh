@@ -13,7 +13,11 @@ rm -rf ~/active/tmp
 mkdir -p ~/active/tmp
 cd ~/active/tmp
 
-git clone https://github.com/itpir/asdf
+if [[ $dev == 1 ]]; then
+    git clone -b develop https://github.com/itpir/asdf
+else
+    git clone https://github.com/itpir/asdf
+fi
 
 cp  ~/active/tmp/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
 

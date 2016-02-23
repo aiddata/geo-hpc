@@ -4,6 +4,7 @@
 # should be called periodically from cronjob (cronjob may be added automatically during setup)
 
 branch=$1
+echo '$branch'
 
 mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
