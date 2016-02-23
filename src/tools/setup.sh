@@ -4,9 +4,10 @@
 # use bash setup.sh --dev for dev environment (no options needed for production enviornment)
 
 dev=0
-if [[ $1 == --dev ]]; then
+if [[ $1 == '--dev' ]]; then
     dev=1
 fi
+
 
 # setup load_repos.sh cronjob and run load_repos.sh for first time
 rm -rf ~/active/tmp
@@ -15,10 +16,11 @@ cd ~/active/tmp
 
 git init
 if [[ $dev == 1 ]]; then
-    git fetch https://github.com/itpir/asdf develop
+    git pull https://github.com/itpir/asdf develop
 else
-    git fetch https://github.com/itpir/asdf master
+    git pull https://github.com/itpir/asdf master
 fi
+
 
 cp  ~/active/tmp/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
 
