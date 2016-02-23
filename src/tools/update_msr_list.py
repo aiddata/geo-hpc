@@ -126,6 +126,9 @@ for i in latest_releases:
 
 
 
+# remove any items in queue for old datasets that have not yet been processed
+delete_call = msr.delete_many({'dataset': {'$nin': latest_releases}, 'status': 0}) 
+deleted_count = delete_call.deleted_count
 
 import json
 import hashlib
@@ -330,9 +333,9 @@ for ix in dataset_info.keys():
 
 
         # add to msr tracker if hash does not exist
-        exists = msr.update({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
+        exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
     
-        if exists['updateExisting'] == True:
+        if exists.raw_result['updateExisting'] == True:
             add_count += 1
 
     # print tmp_sum
