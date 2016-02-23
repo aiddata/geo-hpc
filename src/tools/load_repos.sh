@@ -9,11 +9,11 @@ echo Loading branch: "$branch"
 # mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 
-load_repo() {
-    cd ~/active
-    rm -rf "$active_repo"
-    git clone -b "$branch" http://github.com/itpir/"$active_repo" 
-}
+# load_repo() {
+#     cd ~/active
+#     rm -rf "$active_repo"
+#     git clone -b "$branch" http://github.com/itpir/"$active_repo" 
+# }
 
 # load_repo() {
 #     cd ~/active
@@ -41,8 +41,14 @@ load_repo() {
 # cd asdf
 # git checkout '${branch}'
 # git pull origin '${branch}'
-active_repo='asdf'
-load_repo
+
+# active_repo='asdf'
+# load_repo
+
+cd ~/active
+rm -rf asdf
+git clone -b "$branch" http://github.com/itpir/asdf
+
 
 
 old_hash=$(md5sum ~/active/load_repos.sh | awk '{ print $1 }')
@@ -67,8 +73,13 @@ else
     # cd extract-scripts
     # git checkout '${branch}'
     # git pull origin '${branch}'
+
     active_repo='extract-scripts'
     load_repo
+
+    cd ~/active
+    rm -rf extract-scripts
+    git clone -b "$branch" http://github.com/itpir/extract-scripts 
 
     # load mean-surface-rasters
     # cd ~/active
@@ -80,7 +91,13 @@ else
     # cd mean-surface-rasters
     # git checkout '${branch}'
     # git pull origin '${branch}' 
+
     active_repo='mean-surface-raster'
     load_repo
+
+    cd ~/active
+    rm -rf mean-surface-raster
+    git clone -b "$branch" http://github.com/itpir/mean-surface-raster 
+
 
 fi
