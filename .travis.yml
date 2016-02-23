@@ -13,5 +13,5 @@ install:
   - pip install -r requirements.txt
   - pip install -r requirements_dev.txt
 script: 
-  - "coverage run --include extract/extract_utility.py -m py.test tests/test_extract_utility.py"
+  - "coverage run --include src/extract_utility.py -m py.test tests/test_extract_utility.py"
   - "coverage report -m"
