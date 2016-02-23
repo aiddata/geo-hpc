@@ -9,10 +9,10 @@ mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 cd ~/active/asdf
 if [ ! -d .git ]; then
-    git clone -b '$branch' https://github.com/itpir/asdf
+    git clone -b '${branch}' https://github.com/itpir/asdf
 else
-    git checkout '$branch'
-    git pull origin '$branch'
+    git checkout '${branch}'
+    git pull origin '${branch}'
 fi
 
 
@@ -24,25 +24,25 @@ if [[ "$old_hash" != "$new_hash" ]]; then
 
     echo "Found new load_repos.sh ..."
     cp  ~/active/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
-    bash ~/active/load_repos.sh '$branch'
+    bash ~/active/load_repos.sh '${branch}'
 
 else
 
     cd ~/active/extract-scripts
     if [ ! -d .git ]; then
-        git clone -b '$branch' https://github.com/itpir/extract-scripts
+        git clone -b '${branch}' https://github.com/itpir/extract-scripts
     else
-        git checkout '$branch'
-        git pull origin '$branch'
+        git checkout '${branch}'
+        git pull origin '${branch}'
     fi
 
 
     cd ~/active/mean-surface-rasters
     if [ ! -d .git ]; then
-        git clone -b '$branch' https://github.com/itpir/mean-surface-rasters
+        git clone -b '${branch}' https://github.com/itpir/mean-surface-rasters
     else
-        git checkout '$branch'
-        git pull origin '$branch' 
+        git checkout '${branch}'
+        git pull origin '${branch}' 
     fi
 
 fi
