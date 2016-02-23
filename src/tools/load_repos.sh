@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# makes sure the latest versions of repos are downloaded
+# should be called periodically from cronjob (cronjob may be added automatically during setup)
+
 mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 cd ~/active/asdf
