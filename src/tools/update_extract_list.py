@@ -48,25 +48,24 @@ for raster in rasters:
 # and add if they do not
 add_count = 0
 for i in items:
+          
+    # build full doc
+    ctime = int(time.time())
+    
+    i_full = i
+    i_full["status"] = 0
+    i_full["classification"] = "auto-external"
+    i_full["priority"] = -1
 
-    # check if it exists in extracts queue
-    exists = extracts.find(i)
+    i_full["submit_time"] = ctime
+    i_full["update_time"] = ctime
 
-    if exists.count() == 0:
-        
+
+    # update/upsert and check if it exists in extracts queue
+    exists = extracts.update(i, i_full, upsert=True)
+
+    if exists['updateExisting'] == True:
         add_count += 1
-
-        ctime = int(time.time())
-
-        i["status"] = 0
-        i["classification"] = "auto-external"
-        i["priority"] = -1
-
-        i["submit_time"] = ctime
-        i["update_time"] = ctime
-
-        # add to extracts queue
-        extracts.insert(i)
 
 
 print 'Added ' + str(add_count) + ' items to extract queue (' + str(len(items)) + ' total possible).'
