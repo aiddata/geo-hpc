@@ -32,7 +32,7 @@ load_repo() {
 # git checkout '${branch}'
 # git pull origin '${branch}'
 active_repo='asdf'
-load_repo()
+load_repo
 
 
 old_hash=$(md5sum ~/active/load_repos.sh | awk '{ print $1 }')
@@ -58,7 +58,7 @@ else
     # git checkout '${branch}'
     # git pull origin '${branch}'
     active_repo='extract-scripts'
-    load_repo()
+    load_repo
 
     # load mean-surface-rasters
     # cd ~/active
@@ -71,6 +71,6 @@ else
     # git checkout '${branch}'
     # git pull origin '${branch}' 
     active_repo='mean-surface-raster'
-    load_repo()
+    load_repo
 
 fi
