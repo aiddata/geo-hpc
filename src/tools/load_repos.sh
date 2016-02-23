@@ -10,7 +10,8 @@ mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 cd ~/active/asdf
 if [ ! -d .git ]; then
-    git clone -b '${branch}' https://github.com/itpir/asdf
+    git init
+    git fetch https://github.com/itpir/asdf '${branch}'
 else
     git checkout '${branch}'
     git pull origin '${branch}'
@@ -31,7 +32,8 @@ else
 
     cd ~/active/extract-scripts
     if [ ! -d .git ]; then
-        git clone -b '${branch}' https://github.com/itpir/extract-scripts
+        git init
+        git fetch https://github.com/itpir/extract-scripts '${branch}'
     else
         git checkout '${branch}'
         git pull origin '${branch}'
@@ -40,7 +42,8 @@ else
 
     cd ~/active/mean-surface-rasters
     if [ ! -d .git ]; then
-        git clone -b '${branch}' https://github.com/itpir/mean-surface-rasters
+        git init
+        git fetch https://github.com/itpir/mean-surface-rasters '${branch}'
     else
         git checkout '${branch}'
         git pull origin '${branch}' 
