@@ -10,11 +10,10 @@ fi
 
 
 # setup load_repos.sh cronjob and run load_repos.sh for first time
-rm -rf ~/active/tmp_asdf
-mkdir -p ~/active/tmp_asdf
-cd ~/active/tmp_asdf
+rm -rf ~/active/tmp
+mkdir -p ~/active/tmp
+cd ~/active/tmp
 
-git init
 if [[ $dev == 1 ]]; then
     git clone -b develop http://github.com/itpir/asdf
     # git pull https://github.com/itpir/asdf develop
@@ -26,9 +25,9 @@ else
 fi
 
 
-cp  ~/active/tmp_asdf/src/tools/load_repos.sh ~/active/load_repos.sh
+cp  ~/active/tmp/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
 
-rm -rf ~/active/tmp_asdf
+rm -rf ~/active/tmp
 
 mkdir -p ~/crontab.backup
 crontab -l > ~/crontab.backup/$(date +%Y%m%d).crontab

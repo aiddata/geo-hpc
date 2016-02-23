@@ -53,7 +53,7 @@ if [[ "$old_hash" != "$new_hash" ]]; then
 
     echo "Found new load_repos.sh ..."
     cp  ~/active/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
-    bash ~/active/load_repos.sh "${branch}"
+    bash ~/active/load_repos.sh "$branch"
 
 else
 
