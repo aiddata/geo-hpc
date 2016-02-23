@@ -74,8 +74,8 @@ else
     # git checkout '${branch}'
     # git pull origin '${branch}'
 
-    active_repo='extract-scripts'
-    load_repo
+    # active_repo='extract-scripts'
+    # load_repo
 
     cd ~/active
     rm -rf extract-scripts
@@ -92,12 +92,12 @@ else
     # git checkout '${branch}'
     # git pull origin '${branch}' 
 
-    active_repo='mean-surface-raster'
-    load_repo
+    # active_repo='mean-surface-raster'
+    # load_repo
 
     cd ~/active
-    rm -rf mean-surface-raster
-    git clone -b "$branch" http://github.com/itpir/mean-surface-raster 
+    rm -rf mean-surface-rasters
+    git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
 
 
 fi
