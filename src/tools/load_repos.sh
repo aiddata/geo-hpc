@@ -13,7 +13,9 @@ load_repo() {
     cd ~/active
     if [ ! -d "${active_repo}" ] || [ ! -d "${active_repo}"/.git ]; then
         rm -rf "${active_repo}"
-        git clone http://github.com/itpir/"${active_repo}"
+        git pull https://github.com/itpir/"${active_repo}" "${branch}"
+        # git pull git@github.com:itpir/"${active_repo}".git "${branch}"
+
     fi
 
     cd asdf
