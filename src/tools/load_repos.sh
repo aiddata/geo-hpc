@@ -12,8 +12,10 @@ fi
 
 old_hash=$(md5sum ~/active/load_repos.sh)
 new_hash=$(md5sum ~/active/asdf/src/tools/load_repos.sh)
+echo $old_hash
+echo $new_hash
 
-if [ "$old_hash" != "$new_hash" ]; then
+if [[] "$old_hash" != "$new_hash" ]]; then
 
     echo "Found new load_repos.sh ..."
     cp  ~/active/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
