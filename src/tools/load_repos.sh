@@ -6,23 +6,31 @@
 branch=$1
 echo Loading branch: "$branch"
 
-mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
+# mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 
 load_repo() {
     cd ~/active
-    if [ ! -d "${active_repo}" ] || [ ! -d "${active_repo}"/.git ]; then
-        rm -rf "${active_repo}"
-        git pull https://github.com/itpir/"${active_repo}" "${branch}"
-        # git pull git@github.com:itpir/"${active_repo}".git "${branch}"
-
-    fi
-
-    cd asdf
-    git checkout "${branch}"
-    git pull origin "${branch}"
-
+    rm -rf "$active_repo"
+    git clone -b "$branch" http://github.com/itpir/"$active_repo" 
 }
+
+# load_repo() {
+#     cd ~/active
+#     if [ ! -d "$active_repo" ] || [ ! -d "$active_repo"/.git ]; then
+#         rm -rf "$active_repo"
+#         mkdir -p "$active_repo"
+#         cd "$active_repo"
+#         git clone http://github.com/itpir/"$active_repo" 
+#         # git pull git@github.com:itpir/"${active_repo}".git "${branch}"
+
+#     fi
+
+#     cd ~/active/"$active_repo"
+#     git checkout "${branch}"
+#     git pull "${branch}"
+
+# }
 
 # load asdf
 # cd ~/active

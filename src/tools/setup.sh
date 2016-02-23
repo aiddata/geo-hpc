@@ -16,10 +16,12 @@ cd ~/active/tmp_asdf
 
 git init
 if [[ $dev == 1 ]]; then
-    git pull https://github.com/itpir/asdf develop
+    git clone -b develop http://github.com/itpir/asdf
+    # git pull https://github.com/itpir/asdf develop
     # git pull git@github.com:itpir/asdf.git develop
 else
-    git pull https://github.com/itpir/asdf master
+    git clone -b master http://github.com/itpir/asdf
+    # git pull https://github.com/itpir/asdf master
     # git pull git@github.com:itpir/asdf.git master
 fi
 
