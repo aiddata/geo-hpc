@@ -4,20 +4,21 @@
 # should be called periodically from cronjob (cronjob may be added automatically during setup)
 
 branch=$1
-echo '$branch'
+echo Loading branch: "$branch"
 
 mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 
 load_repo() {
     cd ~/active
-    if [ ! -d '${active_repo}' ] || [ ! -d '${active_repo}'/.git ]; then
-        git clone https://github.com/itpir/'${active_repo}'
+    if [ ! -d "${active_repo}" ] || [ ! -d "${active_repo}"/.git ]; then
+        rm -rf "${active_repo}"
+        git clone https://github.com/itpir/"${active_repo}"
     fi
 
     cd asdf
-    git checkout '${branch}'
-    git pull origin '${branch}'
+    git checkout "${branch}"
+    git pull origin "${branch}"
 
 }
 
@@ -42,7 +43,7 @@ if [[ "$old_hash" != "$new_hash" ]]; then
 
     echo "Found new load_repos.sh ..."
     cp  ~/active/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
-    bash ~/active/load_repos.sh '${branch}'
+    bash ~/active/load_repos.sh "${branch}"
 
 else
 

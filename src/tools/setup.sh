@@ -29,7 +29,7 @@ rm -rf ~/active/tmp_asdf
 mkdir -p ~/crontab.backup
 crontab -l > ~/crontab.backup/$(date +%Y%m%d).crontab
 
-load_repos_cron="0 1 * * * ~/active/load_repos.sh"
+load_repos_cron='0 1 * * * ~/active/load_repos.sh'
 
 cron_exists=$(crontab -l 2>/dev/null | grep -xF "$load_repos_cron" 2>/dev/null)
 
