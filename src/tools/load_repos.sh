@@ -4,9 +4,9 @@ mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
 cd ~/active/asdf
 if [ ! -d .git ]; then
-   git clone -b develop https://github.com/itpir/asdf
+   git clone https://github.com/itpir/asdf
 else
-   git pull origin develop
+   git pull origin master
 fi
 
 
