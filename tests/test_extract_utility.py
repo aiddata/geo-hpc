@@ -7,7 +7,7 @@ import sys
 import os
 import pytest
 
-sys.path.append( os.path.join( os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) ), 'extract' ) )
+sys.path.append( os.path.join( os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) ), 'src' ) )
 
 from extract_utility import *
 
