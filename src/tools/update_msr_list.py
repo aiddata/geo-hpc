@@ -1,12 +1,38 @@
+# 
 
+# --------------------------------------------------
+
+import sys
+import os
+
+branch = sys.argv[1]
+
+branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+if not os.path.isdir(branch_dir):
+    raise Exception('Branch directory does not exist')
+
+
+config_dir = os.path.join(branch_dir 'asdf', 'src', 'tools')
+sys.path.insert(0, config_dir)
+
+from config_utility import *
+
+config = BranchConfig(branch=branch)
+
+
+# --------------------------------------------------
+
+import time
+import pymongo
 import itertools
 import numpy as np
-import pymongo
 
 
-client = pymongo.MongoClient()
 
-asdf = client.asdf.data
+client = pymongo.MongoClient(config.server)
+
+asdf = client[config['asdf-db']].data
 msr = client['det-test'].msr
 releases = client.releases
 
@@ -130,17 +156,14 @@ for i in latest_releases:
 delete_call = msr.delete_many({'dataset': {'$nin': latest_releases}, 'status': 0}) 
 deleted_count = delete_call.deleted_count
 
+
 import json
 import hashlib
-
-import time
-
-import os
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'mean-surface-rasters', 'src'))
 from msr_utility import CoreMSR
+
 
 # print dataset_info
 tot_sum = 0

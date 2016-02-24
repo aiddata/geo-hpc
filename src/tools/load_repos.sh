@@ -81,9 +81,14 @@ if [[ "$old_hash" != "$new_hash" ]]; then
 
     echo "Found new load_repos.sh ..."
     cp  "$src"/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
-    bash "$src"/load_repos.sh "$branch"
+    bash "$src"/load_repos.sh "$server" "$branch"
 
 else
+
+    # cp  "$src"/asdf/src/tools/config.json "$src"/config.json
+    # cp  "$src"/asdf/src/tools/config_utility.py "$src"/config_utility.py
+
+
 
     # load extract-scripts
     # cd ~/active

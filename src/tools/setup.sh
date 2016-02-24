@@ -73,4 +73,4 @@ bash load_repos.sh "$server" "$branch"
 # create config file
 # PLACEHOLDER:
 #   could be used by jobs to grab server/other info depending on whether it is production/dev
-touch "$src"/../config.json
+# touch "$src"/../config.json

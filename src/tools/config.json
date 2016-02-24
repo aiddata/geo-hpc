@@ -1,8 +1,12 @@
 {
     "master":{
-        "web": "labs.aiddata.org"
+        "server": "labs.aiddata.org",
+        "det-db": "det",
+        "asdf-db": "asdf"
     },
     "develop": {
-        "web": "devlabs.aiddata.org"
+        "server": "devlabs.aiddata.org",
+        "det-db": "det-test",
+        "asdf-db": "asdf-test"
     }
 }
