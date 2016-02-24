@@ -1,5 +1,29 @@
+# 
+
+# --------------------------------------------------
+
+import sys
+import os
+
+branch = sys.argv[1]
+
+branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+if not os.path.isdir(branch_dir):
+    raise Exception('Branch directory does not exist')
 
 
+config_dir = os.path.join(branch_dir 'asdf', 'src', 'tools')
+sys.path.insert(0, config_dir)
+
+from config_utility import *
+
+config = BranchConfig(branch=branch)
+
+
+# --------------------------------------------------
+
+import time
 import pymongo
 
 from mpi_utility import *
@@ -25,11 +49,12 @@ extract_limit = default_extract_limit
 if extract_limit == -1:
     extract_limit = job.size -1
 
-client = pymongo.MongoClient('128.239.20.36')
+# client = pymongo.MongoClient('128.239.20.36')
+client = pymongo.MongoClient(config.server)
 
-asdf = client.asdf.data
+asdf = client[config['asdf-db']].data
 
-extract_list = client['det-test'].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
+extract_list = client[[config['det-db']]].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
 
 
 qlist = []
