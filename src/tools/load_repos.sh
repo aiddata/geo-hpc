@@ -49,7 +49,10 @@ echo Loading branch: "$branch"
 # active_repo='asdf'
 # load_repo
 
-cd ~/active
+
+src=~/active/"$branch"
+
+cd "$src"
 rm -rf asdf
 
 # git clone -b "$branch" http://github.com/itpir/asdf
@@ -69,15 +72,15 @@ fi
 
 
 
-old_hash=$(md5sum ~/active/load_repos.sh | awk '{ print $1 }')
-new_hash=$(md5sum ~/active/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
+old_hash=$(md5sum "$src"/load_repos.sh | awk '{ print $1 }')
+new_hash=$(md5sum "$src"/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
 
 
 if [[ "$old_hash" != "$new_hash" ]]; then
 
     echo "Found new load_repos.sh ..."
-    cp  ~/active/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
-    bash ~/active/load_repos.sh "$branch"
+    cp  "$src"/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
+    bash "$src"/load_repos.sh "$branch"
 
 else
 
@@ -96,7 +99,7 @@ else
     # load_repo
 
 
-    cd ~/active
+    cd "$src"
     rm -rf extract-scripts
     # git clone -b "$branch" http://github.com/itpir/extract-scripts 
 
@@ -125,7 +128,7 @@ else
     # load_repo
 
 
-    cd ~/active
+    cd "$src"
     rm -rf mean-surface-rasters
     # git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
 

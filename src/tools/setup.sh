@@ -30,10 +30,13 @@ done
 echo -e "\n"
 
 
+src=~/active/"$branch"
+
+
 # setup load_repos.sh cronjob and run load_repos.sh for first time
-rm -rf ~/active/tmp
-mkdir -p ~/active/tmp
-cd ~/active/tmp
+rm -rf "$src"/tmp
+mkdir -p "$src"/tmp
+cd "$src"/tmp
 
 if [[ $server == "hpc" ]]; then
     git clone -b "$branch" https://github.com/itpir/asdf
@@ -46,26 +49,26 @@ else
 fi
 
 
-cp  ~/active/tmp/asdf/src/tools/load_repos.sh ~/active/load_repos.sh
+cp  "$src"/tmp/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
 
-rm -rf ~/active/tmp
-
-
-mkdir -p ~/crontab.backup
-crontab -l > ~/crontab.backup/$(date +%Y%m%d).crontab
-
-load_repos_base='0 1 * * * ~/active/load_repos.sh'
-load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
-
-crontab -l | grep -v 'load_repos.sh' | { cat; echo "$load_repos_cron"; } | crontab -
+rm -rf "$src"/tmp
 
 
-cd ~/active
+mkdir -p "$src"/crontab.backup
+crontab -l > "$src"/crontab.backup/$(date +%Y%m%d).crontab
+
+load_repos_base='0 1 * * * "$src"/load_repos.sh'
+load_repos_cron='"$load_repos_base" "$server" "$branch"'
+
+crontab -l | grep -v 'load_repos.sh.*"$branch"' | { cat; echo "$load_repos_cron"; } | crontab -
+
+
+cd "$src"
 bash load_repos.sh "$server" "$branch"
 
 
 
-# setup other cronjobs
+# setup other cronjobs and stuff
 # 
 
-
+touch "$src"/../config.json
