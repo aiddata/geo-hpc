@@ -58,7 +58,7 @@ class BranchConfig():
 
         if config_exists:
 
-            config_file = open(input_json_path, 'r')
+            config_file = open(config_path, 'r')
             self.config_json = json.load(config_file)
             config_file.close()
 
