@@ -54,7 +54,7 @@ client = pymongo.MongoClient(config.server)
 
 asdf = client[config['asdf-db']].data
 
-extract_list = client[[config['det-db']]].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
+extract_list = client[config['det-db']].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
 
 
 qlist = []
