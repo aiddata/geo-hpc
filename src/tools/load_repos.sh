@@ -4,7 +4,11 @@
 # should be called periodically from cronjob (cronjob may be added automatically during setup)
 
 branch=$1
+server=$2
+
+echo Building on server: "$server"
 echo Loading branch: "$branch"
+
 
 # mkdir -p ~/active/{asdf,extract-scripts,mean-surface-rasters}
 
@@ -47,7 +51,21 @@ echo Loading branch: "$branch"
 
 cd ~/active
 rm -rf asdf
-git clone -b "$branch" http://github.com/itpir/asdf
+
+# git clone -b "$branch" http://github.com/itpir/asdf
+
+
+if [[ $server == "hpc" ]]; then
+    git clone -b "$branch" https://github.com/itpir/asdf
+    # git pull https://github.com/itpir/asdf develop
+    # git pull git@github.com:itpir/asdf.git develop
+else
+    git clone -b "$branch" http://github.com/itpir/asdf
+    # git pull https://github.com/itpir/asdf master
+    # git pull git@github.com:itpir/asdf.git master
+fi
+
+
 
 
 
@@ -77,9 +95,20 @@ else
     # active_repo='extract-scripts'
     # load_repo
 
+
     cd ~/active
     rm -rf extract-scripts
-    git clone -b "$branch" http://github.com/itpir/extract-scripts 
+    # git clone -b "$branch" http://github.com/itpir/extract-scripts 
+
+
+    if [[ $server == "hpc" ]]; then
+        git clone -b "$branch" https://github.com/itpir/extract-scripts
+    else
+        git clone -b "$branch" http://github.com/itpir/extract-scripts
+    fi
+
+
+
 
     # load mean-surface-rasters
     # cd ~/active
@@ -95,9 +124,15 @@ else
     # active_repo='mean-surface-raster'
     # load_repo
 
+
     cd ~/active
     rm -rf mean-surface-rasters
-    git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
+    # git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
 
+    if [[ $server == "hpc" ]]; then
+        git clone -b "$branch" https://github.com/itpir/mean-surface-rasters
+    else
+        git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
+    fi
 
 fi
