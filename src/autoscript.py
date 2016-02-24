@@ -28,6 +28,6 @@ import pymongo
 
 client = pymongo.MongoClient(config.server)
 
-msr = client[config['det-test']].msr
+msr = client[config.det_db].msr
 
 print msr.find().limit(1)[0]
