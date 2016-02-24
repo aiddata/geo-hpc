@@ -3,8 +3,8 @@
 # makes sure the latest versions of repos are downloaded
 # should be called periodically from cronjob (cronjob may be added automatically during setup)
 
-branch=$1
-server=$2
+server=$1
+branch=$2
 
 echo Building on server: "$server"
 echo Loading branch: "$branch"
