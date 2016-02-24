@@ -1,1 +1,8 @@
-{}
+{
+    "master":{
+        "web": "labs.aiddata.org"
+    },
+    "develop": {
+        "web": "devlabs.aiddata.org"
+    }
+}
