@@ -139,4 +139,15 @@ else
         git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
     fi
 
+
+    cd "$src"
+    rm -rf det-module
+    # git clone -b "$branch" http://github.com/itpir/det-module
+
+    if [[ $server == "hpc" ]]; then
+        git clone -b "$branch" https://github.com/itpir/det-module
+    else
+        git clone -b "$branch" http://github.com/itpir/det-module
+    fi
+
 fi
