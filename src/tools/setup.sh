@@ -56,9 +56,10 @@ rm -rf "$src"/tmp
 mkdir -p "$src"/../crontab.backup
 crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 
+
+# replace with running edit_crons.sh script later
 load_repos_base='0 1 * * * '"$src"'/load_repos.sh'
 load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
-
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
 
 
@@ -67,7 +68,9 @@ bash load_repos.sh "$server" "$branch"
 
 
 
-# setup other cronjobs and stuff
-# 
-
+# other setup
+ 
+# create config file
+# PLACEHOLDER:
+#   could be used by jobs to grab server/other info depending on whether it is production/dev
 touch "$src"/../config.json
