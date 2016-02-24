@@ -30,8 +30,8 @@ import pymongo
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
-asdf = client[config['asdf-db']].data
-extracts = client[config['det-db']].extracts
+asdf = client[config.asdf_db].data
+extracts = client[config.det_db].extracts
 
 
 # lookup all boundary datasets
