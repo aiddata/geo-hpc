@@ -59,7 +59,7 @@ crontab -l > "$src"/crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 load_repos_base='0 1 * * * '"$src"'/load_repos.sh'
 load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
 
-crontab -l | grep -v 'load_repos.sh.*"$branch"' | { cat; echo "$load_repos_cron"; } | crontab -
+crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
 
 
 cd "$src"
