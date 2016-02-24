@@ -52,9 +52,9 @@ if extract_limit == -1:
 # client = pymongo.MongoClient('128.239.20.36')
 client = pymongo.MongoClient(config.server)
 
-asdf = client[config['asdf-db']].data
+asdf = client[config.asdf_db].data
 
-extract_list = client[config['det-db']].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
+extract_list = client[config.det_db].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
 
 
 qlist = []
