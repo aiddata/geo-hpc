@@ -6,6 +6,7 @@
 server=$1
 branch=$2
 
+echo -e "\n"
 echo Building on server: "$server"
 echo Loading branch: "$branch"
 
@@ -50,7 +51,7 @@ echo Loading branch: "$branch"
 # load_repo
 
 
-src=~/active/"$branch"
+src="${HOME}"/active/"$branch"
 
 cd "$src"
 rm -rf asdf
