@@ -22,14 +22,14 @@ class BranchConfig():
         **settings
     """
 
-    def __init__(branch=None):
+    def __init__(self, branch=None):
         self.branch = None
         self.valid_branches = ['master', 'develop']
+        self.parent = os.path.dirname(os.path.abspath(__file__))
 
         if branch != None:
             self.set_branch(branch)
 
-        self.parent = os.path.dirname(os.path.abspath(__file__))
 
 
     def set_branch(self, branch):
@@ -40,24 +40,23 @@ class BranchConfig():
         Args:
             branch (str): branch name
         """
-        if branch in valid_branches:
+        if branch in self.valid_branches:
             self.branch = branch
             self.load_settings()
         else:
             raise Exception('Error BranchConfig: invalid branch')
 
 
-    def load_settings():
+    def load_settings(self):
         """Load setting for branch from config json
 
         Raise exception if config json does not exist.
         """
         # config file from branch's asdf
-        config_exists = os.path.isfile(self.parent +'/config.json')        
-
+        config_path = self.parent + '/config.json'
+        config_exists = os.path.isfile(config_path)        
 
         if config_exists:
-
 
             config_file = open(input_json_path, 'r')
             self.config_json = json.load(config_file)

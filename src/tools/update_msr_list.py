@@ -33,7 +33,7 @@ import numpy as np
 client = pymongo.MongoClient(config.server)
 
 asdf = client[config['asdf-db']].data
-msr = client['det-test'].msr
+msr = client[config['det-test']].msr
 releases = client.releases
 
 # get names of all research releases from asdf
