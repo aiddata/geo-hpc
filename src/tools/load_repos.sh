@@ -29,6 +29,8 @@ get_repo() {
 
     ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
 
+
+
 }
 
 
@@ -85,5 +87,10 @@ else
 
     repo='det-module'
     get_repo
+
+
+
+    # remove old repos from latest
+    find "$src"/latest -type d -maxdepth 1 | grep -v "$timestamp" | xargs -0 rm
 
 fi
