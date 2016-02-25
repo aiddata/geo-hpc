@@ -27,7 +27,7 @@ get_repo() {
         git clone -b "$branch" http://github.com/itpir/"$repo" "$timestamp"."$repo"
     fi
 
-    ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/asdf
+    ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
 
 }
 
