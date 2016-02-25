@@ -67,14 +67,14 @@ crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 # replace with running manage_crons.sh script later
 #
 
-load_repos_base='0 */6 * * * bash '"$src"'/tasks/load_repos.sh'
-load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
+load_repos_base='0 4-23/6 * * * bash '"$src"'/tasks/load_repos.sh'
+load_repos_cron="$load_repos_base"' '"$server"' '"$branch"' 2>$1 | tee 1>'"$src"/log/load_repos/$(date +%s).load_repos.log
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
 
 # --------------------------------------------------
 
 
-bash "$src"/tasks/load_repos.sh "$server" "$branch"
+bash "$src"/tasks/load_repos.sh "$server" "$branch" 2>$1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
 
 
 
@@ -84,3 +84,25 @@ bash "$src"/tasks/load_repos.sh "$server" "$branch"
 # PLACEHOLDER:
 #   could be used by jobs to grab server/other info depending on whether it is production/dev
 # touch "$src"/../config.json
+
+timestamp=$(date +%s)
+
+cat <<EOF > "$src"/tasks/update_db_job
+
+#!/bin/tcsh
+#PBS -N asdf-update
+#PBS -l nodes=1:vortex:ppn=1
+#PBS -l walltime=180:00:00
+#PBS -o "$timestamp".db_updates.log
+#PBS -j oe
+
+src="$src"/log/db_updates
+
+mkdir -p "$src"
+cd "$src"
+
+python /sciclone/home00/sgoodman/active/develop/asdf/src/tools/update_trackers.py
+python /sciclone/home00/sgoodman/active/develop/asdf/src/tools/update_extract_list.py
+python /sciclone/home00/sgoodman/active/develop/asdf/src/tools/update_msr_list.py
+
+EOF
