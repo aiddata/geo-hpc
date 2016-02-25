@@ -74,8 +74,7 @@ crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; }
 # --------------------------------------------------
 
 
-cd "$src"
-bash load_repos.sh "$server" "$branch"
+bash "$src"/tasks/load_repos.sh "$server" "$branch"
 
 
 
