@@ -358,7 +358,7 @@ for ix in dataset_info.keys():
         # add to msr tracker if hash does not exist
         exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
     
-        if exists.upserted_id != None:
+        if exists.raw_result['updatedExisting'] == True:
             add_count += 1
 
     # print tmp_sum

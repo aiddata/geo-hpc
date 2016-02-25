@@ -91,7 +91,7 @@ cat <<EOF > "$src"/tasks/update_db_job
 
 #!/bin/tcsh
 #PBS -N asdf-update
-#PBS -l nodes=1:vortex:ppn=1
+#PBS -l nodes=1:vortex:compute:ppn=1
 #PBS -l walltime=180:00:00
 #PBS -o $src/log/db_updates/$timestamp.db_updates.log
 #PBS -j oe
