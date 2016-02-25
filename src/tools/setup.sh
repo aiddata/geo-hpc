@@ -55,6 +55,7 @@ fi
 
 
 cp  "$src"/tmp/asdf/src/tools/load_repos.sh "$src"/tasks/load_repos.sh
+cp  "$src"/tmp/asdf/src/tools/build_update_job.sh "$src"/tasks/build_update_job.sh
 
 rm -rf "$src"/tmp/asdf
 
@@ -68,8 +69,12 @@ crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 #
 
 load_repos_base='0 4-23/6 * * * bash '"$src"'/tasks/load_repos.sh'
-load_repos_cron="$load_repos_base"' '"$server"' '"$branch"' 2>$1 | tee 1>'"$src"/log/load_repos/$(date +%s).load_repos.log
+load_repos_cron="$load_repos_base"' '"$server"' '"$branch"' 2>1 | tee 1>'"$src"/log/load_repos/$(date +%s).load_repos.log
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
+
+
+build_update_job_cron='0 0 * * * bash '"$src"'/tasks/build_update_job.sh '"$branch"' 2>1 | tee 1>'"$src"/log/db_updates/$(date +%s).db_updates.log
+crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 
 # --------------------------------------------------
 
@@ -78,31 +83,7 @@ bash "$src"/tasks/load_repos.sh "$server" "$branch" 2>1 | tee "$src"/log/load_re
 
 
 
-# other setup
- 
-# create config file
-# PLACEHOLDER:
-#   could be used by jobs to grab server/other info depending on whether it is production/dev
-# touch "$src"/../config.json
+# other setup?
+# 
 
-timestamp=$(date +%s)
 
-cat <<EOF > "$src"/tasks/update_db_job
-
-#!/bin/tcsh
-#PBS -N asdf-update
-#PBS -l nodes=1:xeon:compute:ppn=1
-#PBS -l walltime=1:00:00
-#PBS -o $src/log/db_updates/$timestamp.db_updates.log
-#PBS -j oe
-
-echo -e "\n *** Running update_trackers.py... \n"
-python $src/asdf/src/tools/update_trackers.py $branch
-
-echo -e "\n *** Running update_extract_list.py... \n"
-python $src/asdf/src/tools/update_extract_list.py $branch
-
-echo -e "\n *** Running update_msr_list.py... \n"
-python $src/asdf/src/tools/update_msr_list.py $branch
-
-EOF

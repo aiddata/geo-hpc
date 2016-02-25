@@ -80,6 +80,8 @@ for i in latest_releases:
 
     ix = i[0]
 
+    print 'Building filter combinations for:' + str(ix)
+
     tmp_collection = releases[ix]
 
     dataset_info[ix] = {
@@ -152,9 +154,13 @@ for i in latest_releases:
 
 
 
+
+
 # remove any items in queue for old datasets that have not yet been processed
 delete_call = msr.delete_many({'dataset': {'$nin': latest_releases}, 'status': 0}) 
 deleted_count = delete_call.deleted_count
+
+
 
 
 import json
@@ -168,7 +174,8 @@ from msr_utility import CoreMSR
 # print dataset_info
 # tot_sum = 0
 for ix in dataset_info.keys():
-    print dataset_info[ix]['name']
+    
+    print 'Generating jobs for: ' + dataset_info[ix]['name']
 
 
     # create instance of CoreMSR class
@@ -362,7 +369,7 @@ for ix in dataset_info.keys():
         exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
         
         accept_count += 1
-        if exists.raw_result['updatedExisting'] == True:
+        if exists.raw_result['updatedExisting'] == False:
             add_count += 1
 
     # print tmp_sum
@@ -373,7 +380,7 @@ for ix in dataset_info.keys():
     # print '--------------'
     # tot_sum += tmp_sum
     # raise
-    print 'Added ' + str(add_count) + ' items to msr queue (' + str(accept_count) + ' acceptable out of ' + str(total_count) + 'total possible).'
+    print 'Added ' + str(add_count) + ' items to msr queue (' + str(accept_count) + ' acceptable out of ' + str(total_count) + ' total possible).'
 
 
 # print tot_sum
