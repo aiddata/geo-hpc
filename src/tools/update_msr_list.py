@@ -329,7 +329,7 @@ for ix in dataset_info.keys():
         #         hash.
     
         def json_sha1_hash(hash_obj):
-            hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
+            hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = True, separators=(',', ':'))
             hash_builder = hashlib.sha1()
             try:
                 hash_builder.update(hash_json)
