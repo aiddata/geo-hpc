@@ -22,6 +22,9 @@ timestamp=$(date +%s)
 
 get_repo() {
 
+    echo -e "\n"
+    echo Loading repo: "$repo"
+
     if [[ $server == "hpc" ]]; then
         git clone -b "$branch" https://github.com/itpir/"$repo" "$timestamp"."$repo"
     else
@@ -29,8 +32,6 @@ get_repo() {
     fi
 
     ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
-
-
 
 }
 
@@ -58,25 +59,12 @@ else
         'det-module'
     )
 
-
     for repo in ${repo_list[*]}; do 
-
         # echo $repo
         get_repo
-
     done
-
-    # repo='extract-scripts'
-    # get_repo
-
-    # repo='mean-surface-rasters'
-    # get_repo
-
-    # repo='det-module'
-    # get_repo
 
     # remove old repos from latest
     find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
-
 
 fi
