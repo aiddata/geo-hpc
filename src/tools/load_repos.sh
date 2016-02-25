@@ -91,6 +91,6 @@ else
 
 
     # remove old repos from latest
-    find "$src"/latest -type d -maxdepth 1 | grep -v "$timestamp" | xargs -0 rm
+    find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
 
 fi
