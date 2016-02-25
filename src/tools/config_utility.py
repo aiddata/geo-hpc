@@ -31,7 +31,6 @@ class BranchConfig():
             self.set_branch(branch)
 
 
-
     def set_branch(self, branch):
         """Validate given branch, set branch attribute, call load_settings
 

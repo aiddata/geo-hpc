@@ -31,9 +31,14 @@ echo -e "\n"
 
 src="${HOME}"/active/"$branch"
 
+rm -rf "$src"
+
+
+mkdir -p "$src"/latest
+
 
 # setup load_repos.sh cronjob and run load_repos.sh for first time
-rm -rf "$src"/tmp
+# rm -rf "$src"/tmp
 mkdir -p "$src"/tmp
 cd "$src"/tmp
 
@@ -50,14 +55,16 @@ fi
 
 cp  "$src"/tmp/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
 
-rm -rf "$src"/tmp
+rm -rf "$src"/tmp/asdf
 
 
 mkdir -p "$src"/../crontab.backup
 crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 
 
-# replace with running edit_crons.sh script later
+# replace with running ma=nage_crons.sh script later
+#
+
 load_repos_base='0 1 * * * bash '"$src"'/load_repos.sh'
 load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -

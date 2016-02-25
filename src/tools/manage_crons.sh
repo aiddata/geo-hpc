@@ -2,6 +2,8 @@
 
 # script to enable cron jobs for production / development branch scrips
 
+# script can also add/remove flocks on relevant scripts called by cron jobs
+
 # setup script will call this to initialize cron jobs
 # admin can then run this after initial setup to disable/enable as needed
 
@@ -30,3 +32,10 @@
 
 
 
+# activate() {}
+
+# deactivate() {}
+
+# lock() {}
+
+# unlock() {}
