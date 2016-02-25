@@ -58,7 +58,7 @@ crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 
 
 # replace with running edit_crons.sh script later
-load_repos_base='0 1 * * * '"$src"'/load_repos.sh'
+load_repos_base='0 1 * * * bash '"$src"'/load_repos.sh'
 load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
 
