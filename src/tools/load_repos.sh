@@ -64,7 +64,14 @@ else
         get_repo
     done
 
+
     # remove old repos from latest
+    echo -e "\n"
+    echo 'Cleaning up old repos...'
+
     find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
+
+    echo 'Done'
+    echo -e "\n"
 
 fi
