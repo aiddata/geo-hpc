@@ -369,7 +369,7 @@ for ix in dataset_info.keys():
     # print '--------------'
     # tot_sum += tmp_sum
     # raise
-    print 'Added ' + str(add_count) + ' items to msr queue (' + str(len(items)) + ' total possible).'
+    print 'Added ' + str(add_count) + ' items to msr queue (' + str(len(dataset_info[ix]['iter'])) + ' total possible).'
 
 
 # print tot_sum
