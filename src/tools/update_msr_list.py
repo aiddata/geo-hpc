@@ -223,6 +223,7 @@ for ix in dataset_info.keys():
     # count_thresh_sum = 0
     # aid_thresh_sum = 0
     # empty_sum = 0
+    total_count = 0
     add_count = 0
 
     for filter_fields in dataset_info[ix]['iter']:
@@ -357,7 +358,8 @@ for ix in dataset_info.keys():
 
         # add to msr tracker if hash does not exist
         exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
-    
+        
+        total_count += 1
         if exists.raw_result['updatedExisting'] == True:
             add_count += 1
 
@@ -369,7 +371,7 @@ for ix in dataset_info.keys():
     # print '--------------'
     # tot_sum += tmp_sum
     # raise
-    print 'Added ' + str(add_count) + ' items to msr queue (' + str(len(dataset_info[ix]['iter'])) + ' total possible).'
+    print 'Added ' + str(add_count) + ' items to msr queue (' + str(total_count) + ' total possible).'
 
 
 # print tot_sum
