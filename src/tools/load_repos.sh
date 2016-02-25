@@ -50,7 +50,8 @@ if [[ "$old_hash" != "$new_hash" ]]; then
     echo "Found new load_repos.sh ..."
     cp  "$src"/asdf/src/tools/load_repos.sh "$src"/tasks/load_repos.sh
     bash "$src"/tasks/load_repos.sh "$server" "$branch"
-
+    exit 0 
+    
 else
 
     repo_list=(
