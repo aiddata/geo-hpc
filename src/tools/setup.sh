@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # used to initialize portions of asdf
-# use bash setup.sh --dev for dev environment (no options needed for production enviornment)
 
+# manages setup of both production and development branch files
+# NOTE: this script must be manually replaced/updated if changes to setup.sh are made
 
 
 # get server/branch inputs from user
@@ -39,7 +40,7 @@ src="${HOME}"/active/"$branch"
 
 rm -rf "$src"
 
-mkdir -p "$src"/{'latest','jobs','tmp'}
+mkdir -p "$src"/{'latest','jobs','tmp','tasks'}
 
 
 # setup load_repos.sh cronjob and run load_repos.sh for first time
@@ -53,7 +54,7 @@ else
 fi
 
 
-cp  "$src"/tmp/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
+cp  "$src"/tmp/asdf/src/tools/load_repos.sh "$src"/tasks/load_repos.sh
 
 rm -rf "$src"/tmp/asdf
 
@@ -66,7 +67,7 @@ crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 # replace with running manage_crons.sh script later
 #
 
-load_repos_base='0 1 * * * bash '"$src"'/load_repos.sh'
+load_repos_base='0 */6 * * * bash '"$src"'/tasks/load_repos.sh'
 load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
 
