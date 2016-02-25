@@ -6,18 +6,18 @@
 server=$1
 branch=$2
 
+timestamp=$(date +%s)
+
 echo -e "\n"
 echo Building on server: "$server"
 echo Loading branch: "$branch"
+echo Timestamp: "$timestamp"
 echo -e "\n"
 
 
 src="${HOME}"/active/"$branch"
 
 cd "$src"/latest
-# rm -rf asdf
-
-timestamp=$(date +%s)
 
 
 get_repo() {
