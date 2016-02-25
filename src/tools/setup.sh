@@ -74,7 +74,7 @@ crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; }
 # --------------------------------------------------
 
 
-bash "$src"/tasks/load_repos.sh "$server" "$branch" 2>$1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
+bash "$src"/tasks/load_repos.sh "$server" "$branch" 2>1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
 
 
 
@@ -93,16 +93,16 @@ cat <<EOF > "$src"/tasks/update_db_job
 #PBS -N asdf-update
 #PBS -l nodes=1:vortex:ppn=1
 #PBS -l walltime=180:00:00
-#PBS -o "$timestamp".db_updates.log
+#PBS -o $src/log/db_updates/$timestamp.db_updates.log
 #PBS -j oe
 
-src="$src"/log/db_updates
+echo -e "\n *** Running update_trackers.py... \n"
+python $src/asdf/src/tools/update_trackers.py $branch
 
-mkdir -p "$src"
-cd "$src"
+echo -e "\n *** Running update_extract_list.py... \n"
+python $src/asdf/src/tools/update_extract_list.py $branch
 
-python /sciclone/home00/sgoodman/active/develop/asdf/src/tools/update_trackers.py
-python /sciclone/home00/sgoodman/active/develop/asdf/src/tools/update_extract_list.py
-python /sciclone/home00/sgoodman/active/develop/asdf/src/tools/update_msr_list.py
+echo -e "\n *** Running update_msr_list.py... \n"
+python $src/asdf/src/tools/update_msr_list.py $branch
 
 EOF
