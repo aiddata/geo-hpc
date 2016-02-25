@@ -4,6 +4,9 @@
 # use bash setup.sh --dev for dev environment (no options needed for production enviornment)
 
 
+
+# get server/branch inputs from user
+
 echo -e "\n"
 while true; do
     echo "Input server [hpc / web]:"
@@ -29,27 +32,24 @@ done
 
 echo -e "\n"
 
+
+# setup branch directory
+
 src="${HOME}"/active/"$branch"
 
 rm -rf "$src"
 
-
-mkdir -p "$src"/latest
+mkdir -p "$src"/{'latest','jobs','tmp'}
 
 
 # setup load_repos.sh cronjob and run load_repos.sh for first time
-# rm -rf "$src"/tmp
-mkdir -p "$src"/tmp
+
 cd "$src"/tmp
 
 if [[ $server == "hpc" ]]; then
     git clone -b "$branch" https://github.com/itpir/asdf
-    # git pull https://github.com/itpir/asdf develop
-    # git pull git@github.com:itpir/asdf.git develop
 else
     git clone -b "$branch" http://github.com/itpir/asdf
-    # git pull https://github.com/itpir/asdf master
-    # git pull git@github.com:itpir/asdf.git master
 fi
 
 
@@ -62,12 +62,15 @@ mkdir -p "$src"/../crontab.backup
 crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 
 
-# replace with running ma=nage_crons.sh script later
+# --------------------------------------------------
+# replace with running manage_crons.sh script later
 #
 
 load_repos_base='0 1 * * * bash '"$src"'/load_repos.sh'
 load_repos_cron="$load_repos_base"' '"$server"' '"$branch"
 crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
+
+# --------------------------------------------------
 
 
 cd "$src"
