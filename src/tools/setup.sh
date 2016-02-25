@@ -40,7 +40,7 @@ src="${HOME}"/active/"$branch"
 
 rm -rf "$src"
 
-mkdir -p "$src"/{'latest','jobs','tmp','tasks','log/{db_updates,load_repos}'}
+mkdir -p "$src"/{latest,'jobs',tmp,tasks,log/{db_updates,load_repos}}
 
 
 # setup load_repos.sh cronjob and run load_repos.sh for first time
