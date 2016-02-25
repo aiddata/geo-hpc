@@ -40,7 +40,7 @@ repo='asdf'
 get_repo
 
 
-old_hash=$(md5sum "$src"/load_repos.sh | awk '{ print $1 }')
+old_hash=$(md5sum "$src"/tasks/load_repos.sh | awk '{ print $1 }')
 new_hash=$(md5sum "$src"/latest/"$timestamp"."$repo"/src/tools/load_repos.sh | awk '{ print $1 }')
 
 
@@ -48,8 +48,8 @@ if [[ "$old_hash" != "$new_hash" ]]; then
 
     echo -e "\n"
     echo "Found new load_repos.sh ..."
-    cp  "$src"/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
-    bash "$src"/load_repos.sh "$server" "$branch"
+    cp  "$src"/asdf/src/tools/load_repos.sh "$src"/tasks/load_repos.sh
+    bash "$src"/tasks/load_repos.sh "$server" "$branch"
 
 else
 
