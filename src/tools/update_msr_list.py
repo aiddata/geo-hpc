@@ -331,7 +331,11 @@ for ix in dataset_info.keys():
         def json_sha1_hash(hash_obj):
             hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = False, separators=(',', ':'))
             hash_builder = hashlib.sha1()
-            hash_builder.update(hash_json)
+            try:
+                hash_builder.update(hash_json)
+            except:
+                print hash_json
+                raise Exception("!NOPE!")
             hash_sha1 = hash_builder.hexdigest()
             return hash_sha1
 
