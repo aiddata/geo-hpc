@@ -9,6 +9,7 @@ branch=$2
 echo -e "\n"
 echo Building on server: "$server"
 echo Loading branch: "$branch"
+echo -e "\n"
 
 
 src="${HOME}"/active/"$branch"
@@ -44,53 +45,38 @@ new_hash=$(md5sum "$src"/latest/"$timestamp"."$repo"/src/tools/load_repos.sh | a
 
 if [[ "$old_hash" != "$new_hash" ]]; then
 
+    echo -e "\n"
     echo "Found new load_repos.sh ..."
     cp  "$src"/asdf/src/tools/load_repos.sh "$src"/load_repos.sh
     bash "$src"/load_repos.sh "$server" "$branch"
 
 else
 
-    # cd "$src"
-    # rm -rf extract-scripts
-
-    # if [[ $server == "hpc" ]]; then
-    #     git clone -b "$branch" https://github.com/itpir/extract-scripts
-    # else
-    #     git clone -b "$branch" http://github.com/itpir/extract-scripts
-    # fi
-
-    repo='extract-scripts'
-    get_repo
+    repo_list=(
+        'extract-scripts'
+        'mean-surface-rasters'
+        'det-module'
+    )
 
 
-    # cd "$src"
-    # rm -rf mean-surface-rasters
+    for repo in ${repo_list[*]}; do 
 
-    # if [[ $server == "hpc" ]]; then
-    #     git clone -b "$branch" https://github.com/itpir/mean-surface-rasters
-    # else
-    #     git clone -b "$branch" http://github.com/itpir/mean-surface-rasters
-    # fi
+        # echo $repo
+        get_repo
 
-    repo='mean-surface-rasters'
-    get_repo
+    done
 
+    # repo='extract-scripts'
+    # get_repo
 
-    # cd "$src"
-    # rm -rf det-module
+    # repo='mean-surface-rasters'
+    # get_repo
 
-    # if [[ $server == "hpc" ]]; then
-    #     git clone -b "$branch" https://github.com/itpir/det-module
-    # else
-    #     git clone -b "$branch" http://github.com/itpir/det-module
-    # fi
-
-    repo='det-module'
-    get_repo
-
-
+    # repo='det-module'
+    # get_repo
 
     # remove old repos from latest
     find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
+
 
 fi
