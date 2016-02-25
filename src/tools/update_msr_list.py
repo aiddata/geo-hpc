@@ -166,7 +166,7 @@ from msr_utility import CoreMSR
 
 
 # print dataset_info
-tot_sum = 0
+# tot_sum = 0
 for ix in dataset_info.keys():
     print dataset_info[ix]['name']
 
@@ -224,10 +224,12 @@ for ix in dataset_info.keys():
     # aid_thresh_sum = 0
     # empty_sum = 0
     total_count = 0
+    accept_count = 0
     add_count = 0
 
     for filter_fields in dataset_info[ix]['iter']:
         # tmp_sum += 1
+        total_count += 1
 
         tmp_time = int(time.time())
 
@@ -331,11 +333,7 @@ for ix in dataset_info.keys():
         def json_sha1_hash(hash_obj):
             hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii = True, separators=(',', ':'))
             hash_builder = hashlib.sha1()
-            try:
-                hash_builder.update(hash_json)
-            except:
-                print hash_json
-                raise Exception("!NOPE!")
+            hash_builder.update(hash_json)
             hash_sha1 = hash_builder.hexdigest()
             return hash_sha1
 
@@ -363,7 +361,7 @@ for ix in dataset_info.keys():
         # add to msr tracker if hash does not exist
         exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
         
-        total_count += 1
+        accept_count += 1
         if exists.raw_result['updatedExisting'] == True:
             add_count += 1
 
@@ -375,7 +373,7 @@ for ix in dataset_info.keys():
     # print '--------------'
     # tot_sum += tmp_sum
     # raise
-    print 'Added ' + str(add_count) + ' items to msr queue (' + str(total_count) + ' total possible).'
+    print 'Added ' + str(add_count) + ' items to msr queue (' + str(accept_count) + ' acceptable out of ' + str(total_count) + 'total possible).'
 
 
 # print tot_sum
