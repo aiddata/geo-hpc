@@ -1,23 +1,25 @@
 #!/bin/bash
 
-# makes sure the latest versions of repos are downloaded
-# should be called periodically from cronjob (cronjob may be added automatically during setup)
+# clone repos from github
 
-server=$1
-branch=$2
+
+# server=$1
+branch=$1
 
 timestamp=$(date +%s)
 
 echo -e "\n"
-echo Building on server: "$server"
-echo Loading branch: "$branch"
+# echo Building on server: "$server"
+echo Loading repos for branch: "$branch"
 echo Timestamp: "$timestamp"
 echo -e "\n"
 
 
 src="${HOME}"/active/"$branch"
 
-cd "$src"/latest
+rm -rf "$src"/git
+mkdir "$src"/git
+cd "$src"/git
 
 
 get_repo() {
@@ -25,54 +27,28 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
-    if [[ $server == "hpc" ]]; then
-        git clone -b "$branch" https://github.com/itpir/"$repo" "$timestamp"."$repo"
-    else
-        git clone -b "$branch" http://github.com/itpir/"$repo" "$timestamp"."$repo"
-    fi
+    git clone -b "$branch" https://github.com/itpir/"$repo" "$repo"
+
+    cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
     ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
 
 }
 
 
-repo='asdf'
-get_repo
+repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
+
+for repo in ${repo_list[*]}; do 
+    get_repo
+done
 
 
-old_hash=$(md5sum "$src"/tasks/load_repos.sh | awk '{ print $1 }')
-new_hash=$(md5sum "$src"/latest/"$timestamp"."$repo"/src/tools/load_repos.sh | awk '{ print $1 }')
+# remove old repos from latest
+echo -e "\n"
+echo 'Cleaning up old repos...'
 
+find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
 
-if [[ "$old_hash" != "$new_hash" ]]; then
+echo 'Done'
+echo -e "\n"
 
-    echo -e "\n"
-    echo "Found new load_repos.sh ..."
-    cp  "$src"/asdf/src/tools/load_repos.sh "$src"/tasks/load_repos.sh
-    bash "$src"/tasks/load_repos.sh "$server" "$branch"
-    exit 0 
-    
-else
-
-    repo_list=(
-        'extract-scripts'
-        'mean-surface-rasters'
-        'det-module'
-    )
-
-    for repo in ${repo_list[*]}; do 
-        # echo $repo
-        get_repo
-    done
-
-
-    # remove old repos from latest
-    echo -e "\n"
-    echo 'Cleaning up old repos...'
-
-    find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
-
-    echo 'Done'
-    echo -e "\n"
-
-fi

@@ -1,85 +1,64 @@
 #!/bin/bash
 
 # used to initialize portions of asdf
-
 # manages setup of both production and development branch files
-# NOTE: this script must be manually replaced/updated if changes to setup.sh are made
 
 
-# get server/branch inputs from user
+# server=$1
+branch=$1
 
-server=$1
-branch=$2
-
-timestamp=$(date +%s)
+# timestamp=$(date +%s)
 
 echo -e "\n"
-echo Building on server: "$server"
-echo Loading branch: "$branch"
-echo Timestamp: "$timestamp"
+# echo Building on server: "$server"
+echo Starting build for branch: "$branch"
+# echo Timestamp: "$timestamp"
 echo -e "\n"
-
-
 
 
 # setup branch directory
-
 src="${HOME}"/active/"$branch"
 
 rm -rf "$src"
 
-mkdir -p "$src"/{latest,'jobs',tmp,tasks,log/{db_updates,load_repos}}
+mkdir -p "$src"/{tmp,git,latest,log/{db_updates,update_repos}}
+#,'jobs',tasks}
+
+cd "$src"
 
 
-# setup load_repos.sh cronjob and run load_repos.sh for first time
+# clone tmp asdf for init scripts
+git clone -b "$branch" https://github.com/itpir/asdf tmp/asdf
 
-cd "$src"/tmp
+# run load_repos.sh
+bash "$src"/tmp/asdf/src/tools/load_repos.sh "$branch" #2>&1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
 
-if [[ $server == "hpc" ]]; then
-    git clone -b "$branch" https://github.com/itpir/asdf
-else
-    git clone -b "$branch" http://github.com/itpir/asdf
-fi
-
-
-# cp  "$src"/tmp/asdf/src/tools/load_repos.sh "$src"/tasks/load_repos.sh
-# cp  "$src"/tmp/asdf/src/tools/build_update_job.sh "$src"/tasks/build_update_job.sh
-
-
-
-bash "$src"/asdf/src/tools/load_repos.sh "$server" "$branch" 2>1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
-
-
-
+# clean up tmp asdf
 rm -rf "$src"/tmp/asdf
-
-
-
-
-
-mkdir -p "$src"/../crontab.backup
-crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 
 
 # --------------------------------------------------
 # replace with running manage_crons.sh script later
 #
 
-load_repos_base='0 4-23/6 * * * bash '"$src"'/asdf/src/tools/load_repos.sh'
-load_repos_cron="$load_repos_base"' '"$server"' '"$branch"' 2>1 | tee 1>'"$src"'/log/load_repos/'$(date +%s)'.load_repos.log #asdf'
-crontab -l | grep -v 'load_repos.*'"$branch" | { cat; echo "$load_repos_cron"; } | crontab -
+# backup crontab
+mkdir -p "$src"/../crontab.backup
+crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 
 
-build_update_job_cron='0 0 * * * bash '"$src"'/asdf/src/tools/build_update_job.sh '"$branch"' 2>1 | tee 1>'"$src"'/log/db_updates/'$(date +%s)'.db_updates.log #asdf'
+# setup update_repos.sh cronjob
+update_repos_base='0 4-23/6 * * * bash '"$src"'/asdf/src/tools/update_repos.sh'
+update_repos_cron="$update_repos_base"' '"$server"' '"$branch"' 2>&1 | tee 1>'"$src"'/log/update_repos/'$(date +%s)'.update_repos.log #asdf'
+crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
+
+
+# setup build_update_job.sh cronjob
+build_update_job_cron='0 0 * * * bash '"$src"'/asdf/src/tools/build_update_job.sh '"$branch"' 2>&1 | tee 1>'"$src"'/log/db_updates/'$(date +%s)'.db_updates.log #asdf'
 crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 
+
+
 # --------------------------------------------------
-
-
-
-
-
 # other setup?
 # 
-
 

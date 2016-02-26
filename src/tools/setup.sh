@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# used to initialize portions of asdf
-
-# manages setup of both production and development branch files
+# used to get and run asdf builder
 # NOTE: this script must be manually replaced/updated if changes to setup.sh are made
 
 
@@ -16,9 +14,8 @@
 #         "hpc")  server="$REPLY"; break ;;
 #         "web")  server="$REPLY"; break ;;
 #         *)      echo "Invalid input."; continue ;;
-#     esac 
-# done  
-
+#     esac
+# done
 
 echo -e "\n"
 while true; do
@@ -31,20 +28,8 @@ while true; do
     esac 
 done  
 
-echo -e "\n"
-
-
+# create temp dir, clone asdf, run builder, then clean up
 tmp=$(mktemp -d)
-
-cd "$tmp"
-
-if [[ $server == "hpc" ]]; then
-    git clone -b "$branch" https://github.com/itpir/asdf
-else
-    git clone -b "$branch" http://github.com/itpir/asdf
-fi
-
-bash "$tmp"/asdf/src/tools/setup.sh "$server" "$branch"
-
-rm -r "$tmp"
-
+git clone -b "$branch" https://github.com/itpir/asdf "$tmp"/asdf
+bash "$tmp"/asdf/src/tools/builder.sh "$branch"
+rm -rf "$tmp"
