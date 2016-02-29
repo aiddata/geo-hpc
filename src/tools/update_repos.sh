@@ -42,6 +42,22 @@ check_repo() {
 
         echo 'Completing update for repo: '"$repo"
 
+
+        cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
+        ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
+
+        echo 'Cleaning up old '"$repo"' repo...'
+        find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep *"$repo" | grep -v "$timestamp" | xargs rm -rf
+
+        # for i in "$src"/latest/*; do
+        #     echo "$i"
+        #     if [ ! $(echo "$i" | grep "$timestamp") ]; then
+        #         echo "Deleting"
+        #         rm -rf "$i"
+        #     fi
+        # done
+
+
         if [ "$repo" = 'asdf' ]; then
             new_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
             new_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
@@ -63,21 +79,7 @@ check_repo() {
 
         fi
 
-        cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
-        ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
-
-
-        echo 'Cleaning up old '"$repo"'repo...'
-        find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep *"$repo" | grep -v "$timestamp" | xargs rm -rf
-
-        # for i in "$src"/latest/*; do
-        #     echo "$i"
-        #     if [ ! $(echo "$i" | grep "$timestamp") ]; then
-        #         echo "Deleting"
-        #         rm -rf "$i"
-        #     fi
-        # done
     fi
 }
 
