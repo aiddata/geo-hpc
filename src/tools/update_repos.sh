@@ -22,10 +22,6 @@ src="${HOME}"/active/"$branch"
 # cd "$src"/git
 
 
-get_hash() {
-    echo $(md5sum $1 | awk '{ print $1 }')
-}
-
 
 check_repo() {
 
@@ -33,12 +29,12 @@ check_repo() {
     echo 'Checking repo: '"$repo"
 
     if [ "$repo" = 'asdf' ]; then
-        old_repo_hash=$(get_hash "$src"/git/asdf/src/tools/repo_list.sh)
-        old_load_hash=$(get_hash "$src"/git/asdf/src/tools/load_repos.sh)
-        old_update_hash=$(get_hash "$src"/git/asdf/src/tools/update_repos.sh)
+        old_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.sh | awk '{ print $1 }')
+        old_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
+        old_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
     fi
 
-    update_status=$(bash gitupdate.sh "$src"/git/"$repo")
+    update_status=$(bash "$src"/git/asdf/src/tools/gitupdate.sh "$src"/git/"$repo")
 
     echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
@@ -48,9 +44,9 @@ check_repo() {
         echo 'Completing update for repo: '"$repo"
 
         if [ "$repo" = 'asdf' ]; then
-            new_repo_hash=$(get_hash "$src"/git/asdf/src/tools/repo_list.sh)
-            new_load_hash=$(get_hash "$src"/git/asdf/src/tools/load_repos.sh)
-            new_update_hash=$(get_hash "$src"/git/asdf/src/tools/update_repos.sh)
+            new_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.sh | awk '{ print $1 }')
+            new_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
+            new_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
 
             if [ "$old_repo_hash" != "$new_repo_hash" ] | [ "$old_load_hash" != "$new_load_hash" ]; then
                 echo -e "\n"
