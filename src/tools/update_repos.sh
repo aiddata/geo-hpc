@@ -93,9 +93,7 @@ done
 echo -e "\n"
 
 # remove old repos from latest
-
 # echo 'Cleaning up old repos...'
-
 
 # echo "$timestamp"
 # for i in "$src"/latest/*; do
