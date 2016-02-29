@@ -369,7 +369,7 @@ for ix in dataset_info.keys():
         exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
         
         accept_count += 1
-        if exists.raw_result['updatedExisting'] == False:
+        if exists.raw_result['nModified'] == 1:
             add_count += 1
 
     # print tmp_sum

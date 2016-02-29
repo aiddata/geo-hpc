@@ -85,7 +85,7 @@ for i in items:
     # update/upsert and check if it exists in extracts queue
     exists = extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
 
-    if exists.raw_result['updatedExisting'] == False:
+    if exists.raw_result['nModified'] == 1:
         add_count += 1
 
 
