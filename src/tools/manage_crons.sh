@@ -62,6 +62,14 @@ backup_cron() {
 
 
 init() {
+
+    shell_line="SHELL=/bin/bash"
+    first_line=$(crontab -l | head -n 1)
+    if [ first_line != shell_line ]; then
+        echo "SHELL=/bin/bash" | { cat; crontab -l; }| crontab -
+    fi
+
+
     # setup update_repos.sh cronjob
     update_repos_base='0 4-23/6 * * *'
     update_repos_script='bash '"$src"'/asdf/src/tools/update_repos.sh '"$branch"
