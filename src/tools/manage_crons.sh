@@ -77,7 +77,7 @@ init() {
     build_update_job_script='bash '"$src"'/asdf/src/tools/build_update_job.sh '"$branch"
     build_update_job_log='2>&1 | tee 1>'"$src"'/log/db_updates/'$(date +%s)'.db_updates.log'
 
-    build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag")
+    build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag"
 
     crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 }
