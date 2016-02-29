@@ -21,4 +21,3 @@ done
 
 # single line
 # for i in *; do mkdir $i/$i; for j in $i/*; do if [[ $j != $i/$i ]]; then mv $j $i/$i; fi; done; done
-
