@@ -67,6 +67,20 @@ check_repo() {
         cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
         ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
+
+
+        echo 'Cleaning up old '"$repo"'repo...'
+        find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep *"$repo" | grep -v "$timestamp" | xargs rm -rf
+
+        # for i in "$src"/latest/*; do
+        #     echo "$i"
+        #     if [ ! $(echo "$i" | grep "$timestamp") ]; then
+        #         echo "Deleting"
+        #         rm -rf "$i"
+        #     fi
+        # done
+
+
     fi
 }
 
@@ -78,20 +92,22 @@ for repo in ${repo_list[*]}; do
 done
 
 
-# remove old repos from latest
 echo -e "\n"
-echo 'Cleaning up old repos...'
+
+# remove old repos from latest
+
+# echo 'Cleaning up old repos...'
 
 
-echo "$timestamp"
-for i in "$src"/latest/*; do
-    echo "$i"
-    if [ ! $(echo "$i" | grep "$timestamp") ]; then
-        echo "Deleting"
-        rm -rf "$i"
-    fi
+# echo "$timestamp"
+# for i in "$src"/latest/*; do
+#     echo "$i"
+#     if [ ! $(echo "$i" | grep "$timestamp") ]; then
+#         echo "Deleting"
+#         rm -rf "$i"
+#     fi
 
-done
+# done
 
 # find "$src"/latest -mindepth 1 -maxdepth 1 -type d ! -name "$timestamp"* -exec rm -rf "{}" \;
 
