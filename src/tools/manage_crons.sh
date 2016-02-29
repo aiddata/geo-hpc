@@ -65,7 +65,7 @@ init() {
     # setup update_repos.sh cronjob
     update_repos_base='0 4-23/6 * * *'
     update_repos_script='bash '"$src"'/asdf/src/tools/update_repos.sh '"$branch"
-    update_repos_log='2>&1 | tee 1>'"$src"'/log/update_repos/'$(date +%s)'.update_repos.log'
+    update_repos_log='2>&1 | tee 1>'"$src"'/log/update_repos/$(date +%s).update_repos.log'
 
     update_repos_cron="$update_repos_base $update_repos_script $update_repos_log $cron_tag"
 
@@ -75,7 +75,7 @@ init() {
     # setup build_update_job.sh cronjob
     build_update_job_base='0 0 * * * '
     build_update_job_script='bash '"$src"'/asdf/src/tools/build_update_job.sh '"$branch"
-    build_update_job_log='2>&1 | tee 1>'"$src"'/log/db_updates/'$(date +%s)'.db_updates.log'
+    build_update_job_log='2>&1 | tee 1>'"$src"'/log/db_updates/$(date +%s).db_updates.log'
 
     build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag"
 
