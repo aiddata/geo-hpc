@@ -95,6 +95,6 @@ init() {
 # --------------------------------------------------
 
 case $action in
-    "init")     $backup_cron; $action; break ;;
-    *)          echo "Invalid input."; continue ;;
+    "init")     $backup_cron; $action; exit 0;;
+    *)          echo "Invalid input."; exit 1 ;;
 esac 
