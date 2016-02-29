@@ -17,9 +17,9 @@ echo -e "\n"
 
 src="${HOME}"/active/"$branch"
 
-rm -rf "$src"/git
-mkdir "$src"/git
-cd "$src"/git
+# rm -rf "$src"/git
+# mkdir "$src"/git
+# cd "$src"/git
 
 
 get_hash() {
