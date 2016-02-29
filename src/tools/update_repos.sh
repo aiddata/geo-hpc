@@ -49,13 +49,27 @@ check_repo() {
         echo 'Cleaning up old '"$repo"' repo...'
         find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep *"$repo" | grep -v "$timestamp" | xargs rm -rf
 
-        # for i in "$src"/latest/*; do
-        #     echo "$i"
-        #     if [ ! $(echo "$i" | grep "$timestamp") ]; then
-        #         echo "Deleting"
-        #         rm -rf "$i"
-        #     fi
-        # done
+        for i in "$src"/latest/*; do
+            echo "$i"
+
+            if echo "$i" | grep -q "$repo"; then
+
+                if echo "$i" | grep -q -v "$timestamp"; then
+
+                    echo "Deleting"
+
+                    # find "$i" -type f | xargs rm -rf
+                    find "$i" -type f -exec rm -rf "{}" \;
+                    find "$i" -type d -exec rm -rf "{}" \;
+
+                    # find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep *"$repo" | grep -v "$timestamp" | xargs rm -rf
+
+                    # rm -rf "$i"
+
+                fi
+            fi
+            
+        done
 
 
         if [ "$repo" = 'asdf' ]; then
