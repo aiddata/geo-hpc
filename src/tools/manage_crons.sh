@@ -31,6 +31,69 @@
 
 
 
+branch=$1
+
+action=$2
+
+
+src="${HOME}"/active/"$branch"
+
+
+# --------------------------------------------------
+
+# backup crontab
+backup_cron() {
+    mkdir -p "$src"/../crontab.backup
+    crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
+}
+
+
+# # get crons
+# get_crontab() {
+#     crontab -l
+# }
+
+# # set / update crons
+# set_crontab() {
+#     echo "$1" | crontab -
+# }
+
+
+case $action in
+    "init")     $backup_cron; $action; break ;;
+    *)          echo "Invalid input."; continue ;;
+esac 
+
+
+# --------------------------------------------------
+
+
+cron_tag='#asdf'
+
+
+init() {
+    # setup update_repos.sh cronjob
+    update_repos_base='0 4-23/6 * * *'
+    update_repos_script='bash' "$src"'/asdf/src/tools/update_repos.sh' "$branch" 
+    update_repos_log='2>&1 | tee 1>'"$src"'/log/update_repos/'$(date +%s)'.update_repos.log'
+
+    update_repos_cron="$update_repos_base" "$update_repos_script" "$update_repos_log" "$cron_tag"
+
+    crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
+
+
+    # setup build_update_job.sh cronjob
+    build_update_job_base='0 0 * * * '
+    build_update_job_script='bash' "$src"'/asdf/src/tools/build_update_job.sh' "$branch"
+    build_update_job_log='2>&1 | tee 1>'"$src"'/log/db_updates/'$(date +%s)'.db_updates.log'
+
+    build_update_job_cron="$build_update_job_base" "$build_update_job_script" "$build_update_job_log" "$cron_tag"
+
+    crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
+}
+
+
+# --------------------------------------------------
 
 # activate() {}
 
@@ -39,3 +102,5 @@
 # lock() {}
 
 # unlock() {}
+
+

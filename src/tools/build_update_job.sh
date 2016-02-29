@@ -8,14 +8,14 @@ timestamp=$(date +%s)
 
 src="${HOME}"/active/"$branch"
 
-job_path="$src"/tasks/tmp_update_db_job
+job_path=$(mktemp)
 
 cat <<EOF > "$job_path"
 
 #!/bin/tcsh
 #PBS -N asdf-update
-#PBS -l nodes=1:xeon:compute:ppn=1
-#PBS -l walltime=1:00:00
+#PBS -l nodes=1:c18c:ppn=1
+#PBS -l walltime=180:00:00
 #PBS -o $src/log/db_updates/$timestamp.db_updates.log
 #PBS -j oe
 
