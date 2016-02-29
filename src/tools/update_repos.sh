@@ -19,7 +19,7 @@ src="${HOME}"/active/"$branch"
 
 # rm -rf "$src"/git
 # mkdir "$src"/git
-# cd "$src"/git
+cd "$src"/git
 
 
 
