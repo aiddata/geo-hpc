@@ -33,14 +33,16 @@ git clone -b "$branch" https://github.com/itpir/asdf tmp/asdf
 # run load_repos.sh
 bash "$src"/tmp/asdf/src/tools/load_repos.sh "$branch" #2>&1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
 
-# clean up tmp asdf
-rm -rf "$src"/tmp/asdf
-
 
 # setup crons using manage_crons.sh script 
 bash "$src"/tmp/asdf/src/tools/manage_crons.sh "$branch" init
 
 
+
 # other setup?
 # 
+
+
+# clean up tmp asdf
+rm -rf "$src"/tmp/asdf
 
