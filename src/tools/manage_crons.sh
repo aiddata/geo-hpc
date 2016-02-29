@@ -38,6 +38,7 @@ action=$2
 
 src="${HOME}"/active/"$branch"
 
+cron_tag='#asdf'
 
 # --------------------------------------------------
 
@@ -53,22 +54,11 @@ backup_cron() {
 #     crontab -l
 # }
 
+
 # # set / update crons
 # set_crontab() {
 #     echo "$1" | crontab -
 # }
-
-
-case $action in
-    "init")     $backup_cron; $action; break ;;
-    *)          echo "Invalid input."; continue ;;
-esac 
-
-
-# --------------------------------------------------
-
-
-cron_tag='#asdf'
 
 
 init() {
@@ -93,8 +83,6 @@ init() {
 }
 
 
-# --------------------------------------------------
-
 # activate() {}
 
 # deactivate() {}
@@ -104,3 +92,9 @@ init() {
 # unlock() {}
 
 
+# --------------------------------------------------
+
+case $action in
+    "init")     $backup_cron; $action; break ;;
+    *)          echo "Invalid input."; continue ;;
+esac 
