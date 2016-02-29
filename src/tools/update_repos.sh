@@ -78,7 +78,6 @@ check_repo() {
         #         rm -rf "$i"
         #     fi
         # done
-
     fi
 }
 
