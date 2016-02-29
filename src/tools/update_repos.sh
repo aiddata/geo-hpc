@@ -79,7 +79,6 @@ check_repo() {
 
         fi
 
-
     fi
 }
 
