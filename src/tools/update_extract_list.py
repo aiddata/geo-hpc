@@ -26,7 +26,7 @@ config = BranchConfig(branch=branch)
 
 import time
 import pymongo
-
+import copy
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
@@ -73,7 +73,7 @@ for i in items:
     # build full doc
     ctime = int(time.time())
     
-    i_full = i
+    i_full = copy.deepcopy(i)
     i_full["status"] = 0
     i_full["classification"] = "auto-external"
     i_full["priority"] = -1
