@@ -49,19 +49,16 @@ check_repo() {
 
         for i in "$src"/latest/*; do
             echo "$i"
-
+            
             if echo "$i" | grep -q "$repo"; then
-
                 if echo "$i" | grep -q -v "$timestamp"; then
 
                     echo 'Cleaning up old '"$repo"' repo...'
-
                     find "$i" -type f -exec rm -rf "{}" \;
                     find "$i" -type d -exec rm -rf "{}" \;
 
                 fi
             fi
-            
         done
 
 
@@ -96,27 +93,7 @@ for repo in ${repo_list[*]}; do
     check_repo
 done
 
-
 echo -e "\n"
-
-# remove old repos from latest
-# echo 'Cleaning up old repos...'
-
-# echo "$timestamp"
-# for i in "$src"/latest/*; do
-#     echo "$i"
-#     if [ ! $(echo "$i" | grep "$timestamp") ]; then
-#         echo "Deleting"
-#         rm -rf "$i"
-#     fi
-
-# done
-
-# find "$src"/latest -mindepth 1 -maxdepth 1 -type d ! -name "$timestamp"* -exec rm -rf "{}" \;
-
-# find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
-# find "$src"/latest -name ".svn" -type d -exec rm -r "{}" \;
-
 echo 'Done'
 echo -e "\n"
 
