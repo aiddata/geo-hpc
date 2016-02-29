@@ -83,9 +83,11 @@ echo -e "\n"
 echo 'Cleaning up old repos...'
 
 
+echo "$timestamp"
 for i in "$src"/latest/*; do
-
+    echo "$i"
     if [ ! $(echo "$i" | grep "$timestamp") ]; then
+        echo "Deleting"
         rm -rf "$i"
     fi
 
