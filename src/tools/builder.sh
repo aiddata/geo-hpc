@@ -11,7 +11,7 @@ branch=$1
 
 echo -e "\n"
 # echo Building on server: "$server"
-echo Starting build for branch: "$branch"
+echo 'Starting build for branch: '"$branch"
 # echo Timestamp: "$timestamp"
 echo -e "\n"
 

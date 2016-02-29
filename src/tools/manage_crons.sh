@@ -63,28 +63,31 @@ backup_cron() {
 
 init() {
 
-    shell_line="SHELL=/bin/bash"
-    echo "$shell_line" | { cat; crontab -l | grep -v "$shell_line"; }| crontab -
+    # shell_line="SHELL=/bin/bash"
+    # echo "$shell_line" | { cat; crontab -l | grep -v "$shell_line"; }| crontab -
 
 
     # setup update_repos.sh cronjob
-    update_repos_base='0 4-23/6 * * *'
-    update_repos_script='bash '"$src"'/asdf/src/tools/update_repos.sh '"$branch"
-    update_repos_log='2>&1 | tee 1>'"$src"'/log/update_repos/`date +%s`.update_repos.log'
+    # update_repos_base='0 4-23/6 * * *'
+    # update_repos_script='bash '"$src"'/asdf/src/tools/update_repos.sh '"$branch"
+    # update_repos_log='2>&1 | tee 1>'"$src"'/log/update_repos/`date +%s`.update_repos.log'
+    # update_repos_cron="$update_repos_base $update_repos_script $update_repos_log $cron_tag"
+    # crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
-    update_repos_cron="$update_repos_base $update_repos_script $update_repos_log $cron_tag"
-
+    update_repos_cron='0 4-23/6 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh update_repos '"$branch"' #asdf'
     crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
 
     # setup build_update_job.sh cronjob
-    build_update_job_base='0 0 * * * '
-    build_update_job_script='bash '"$src"'/asdf/src/tools/build_update_job.sh '"$branch"' `date +%s`'
-    build_update_job_log='2>&1 | tee 1>'"$src"'/log/db_updates/`date +%s`.db_updates.log'
+    # build_update_job_base='0 0 * * * '
+    # build_update_job_script='bash '"$src"'/asdf/src/tools/build_update_job.sh '"$branch"' `date +%s`'
+    # build_update_job_log='2>&1 | tee 1>'"$src"'/log/db_updates/`date +%s`.db_updates.log'
+    # build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag"
+    # crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 
-    build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag"
+    db_updates_cron='0 4-23/6 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh db_updates '"$branch"' #asdf'
+    crontab -l | grep -v 'db_updates.*'"$branch" | { cat; echo "$db_updates_cron"; } | crontab -
 
-    crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 }
 
 
