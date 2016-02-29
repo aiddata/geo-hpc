@@ -30,7 +30,7 @@ get_hash() {
 check_repo() {
 
     echo -e "\n"
-    echo Checking repo: "$repo"
+    echo 'Checking repo: '"$repo"
 
     if [ "$repo" = 'asdf' ]; then
         old_repo_hash=$(get_hash "$src"/git/asdf/src/tools/repo_list.sh)
@@ -40,12 +40,12 @@ check_repo() {
 
     update_status=$(bash gitupdate.sh "$src"/git/"$repo")
 
-    echo Status for repo ( "$repo" ): "$update_status"
+    echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
 
     if [ $(echo "$update_status" | grep 'Update complete') ]; then
 
-        echo Completing update for repo: "$repo"
+        echo 'Completing update for repo: '"$repo"
 
         if [ "$repo" = 'asdf' ]; then
             new_repo_hash=$(get_hash "$src"/git/asdf/src/tools/repo_list.sh)

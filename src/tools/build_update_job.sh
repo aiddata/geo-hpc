@@ -3,14 +3,14 @@
 
 branch=$1
 
-timestamp=$(date +%s)
+timestamp=$2
 
 
 src="${HOME}"/active/"$branch"
 
 job_path=$(mktemp)
 
-cat <<EOF > "$job_path"
+cat <<EOF >> "$job_path"
 
 #!/bin/tcsh
 #PBS -N asdf-update
