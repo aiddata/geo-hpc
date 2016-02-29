@@ -75,7 +75,7 @@ init() {
     # crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
     update_repos_cron='0 4-23/6 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh update_repos '"$branch"' #asdf'
-    crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
+    crontab -l | grep -v 'cron_wrapper.*update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
 
     # setup build_update_job.sh cronjob
@@ -85,8 +85,8 @@ init() {
     # build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag"
     # crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 
-    db_updates_cron='0 4-23/6 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh db_updates '"$branch"' #asdf'
-    crontab -l | grep -v 'db_updates.*'"$branch" | { cat; echo "$db_updates_cron"; } | crontab -
+    db_updates_cron='0 0 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh db_updates '"$branch"' #asdf'
+    crontab -l | grep -v 'cron_wrapper.*db_updates.*'"$branch" | { cat; echo "$db_updates_cron"; } | crontab -
 
 }
 
