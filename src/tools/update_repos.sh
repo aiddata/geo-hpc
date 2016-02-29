@@ -29,7 +29,7 @@ check_repo() {
     echo 'Checking repo: '"$repo"
 
     if [ "$repo" = 'asdf' ]; then
-        old_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.sh | awk '{ print $1 }')
+        old_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
         old_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
         old_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
     fi
@@ -44,7 +44,7 @@ check_repo() {
         echo 'Completing update for repo: '"$repo"
 
         if [ "$repo" = 'asdf' ]; then
-            new_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.sh | awk '{ print $1 }')
+            new_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
             new_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
             new_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
 
