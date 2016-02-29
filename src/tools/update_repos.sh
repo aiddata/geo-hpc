@@ -38,8 +38,7 @@ check_repo() {
 
     echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
-
-    if [ $(echo "$update_status" | grep 'Update complete') ]; then
+    if echo "$update_status" | grep -q 'Update complete'; then
 
         echo 'Completing update for repo: '"$repo"
 
