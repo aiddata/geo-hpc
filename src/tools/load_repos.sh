@@ -36,7 +36,7 @@ get_repo() {
 }
 
 
-repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
+repo_list=($(cat "$src"/tmp/asdf/src/tools/repo_list.txt))
 
 for repo in ${repo_list[*]}; do 
     get_repo
