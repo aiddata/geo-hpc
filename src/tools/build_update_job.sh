@@ -48,10 +48,10 @@ cat <<EOF >> "$job_path"
 #PBS -o $(mktemp)
 #PBS -j oe
 
-echo 'Timestamp: '$timestamp >> '$output_path
-echo 'Job id: $PBS_JOBID" >> '$output_path
+echo 'Timestamp: '$timestamp >> $output_path
+echo 'Job id: $PBS_JOBID"' >> $output_path
 
-echo -e "\n *** Running update_trackers.py... \n" >> '$output_path
+echo -e "\n *** Running update_trackers.py... \n" >> $output_path
 python $src/asdf/src/tools/update_trackers.py $branch 2>&1 | tee 1>>$output_path
 
 echo -e "\n *** Running update_extract_list.py... \n"  >> '$output_path
