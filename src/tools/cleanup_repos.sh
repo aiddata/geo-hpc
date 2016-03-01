@@ -12,7 +12,7 @@ timestamp=$(date +%Y%m%d.%s)
 echo '=================================================='
 # echo Building on server: "$server"
 echo Cleaning up old repos for branch: "$branch"
-echo Timestamp: "$(date)"("$timestamp")
+echo Timestamp: $(date) '('"$timestamp"')'
 echo -e "\n"
 
 
