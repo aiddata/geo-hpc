@@ -6,7 +6,7 @@ timestamp=$2
 output_path=$3
 src=$4
 
-echo -e "\n" >> "$output_path"
+
 echo 'Timestamp: '$timestamp >> "$output_path"
 echo 'Job id: '"$PBS_JOBID" >> "$output_path"
 

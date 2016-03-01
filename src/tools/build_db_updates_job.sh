@@ -54,6 +54,9 @@ EOF
     cd "$src"/log/db_updates/jobs
     qsub "$job_path"
 
+    echo "Running job..."
+    echo -e "\n" 
+    
     rm "$job_path"
 
 fi

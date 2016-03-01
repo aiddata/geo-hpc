@@ -112,7 +112,7 @@ for i in latest_releases:
 
 
     max_sector_count = 1
-    max_donor_count = 1
+    max_donor_count = 0
 
     ratio_list = itertools.product(range(max_sector_count), range(max_donor_count))
 
@@ -369,6 +369,9 @@ for ix in dataset_info.keys():
         exists = msr.update_one({'hash':mongo_doc['hash']}, {'$setOnInsert': mongo_doc}, upsert=True)
         
         accept_count += 1
+        print exists.upserted_id
+        print exists.upserted_id == None
+        print exists.upserted_id == "None"
         if exists.upserted_id != None:
             add_count += 1
 
