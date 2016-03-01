@@ -85,7 +85,7 @@ init() {
     # build_update_job_cron="$build_update_job_base $build_update_job_script $build_update_job_log $cron_tag"
     # crontab -l | grep -v 'build_update_job.*'"$branch" | { cat; echo "$build_update_job_cron"; } | crontab -
 
-    db_updates_cron='0 4 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh db_updates '"$branch"' #asdf'
+    db_updates_cron='0 4-23/4 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh db_updates '"$branch"' #asdf'
     crontab -l | grep -v 'cron_wrapper.*db_updates.*'"$branch" | { cat; echo "$db_updates_cron"; } | crontab -
 
 
