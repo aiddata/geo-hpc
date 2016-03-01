@@ -9,11 +9,10 @@ branch=$1
 # timestamp=$(date +%s)
 timestamp=$(date +%Y%m%d.%s)
 
-echo -e "\n"
 echo '=================================================='
 # echo Building on server: "$server"
 echo Updating repos for branch: "$branch"
-echo Timestamp: "$timestamp"
+echo Timestamp: $(date)("$timestamp")
 echo -e "\n"
 
 
@@ -27,7 +26,6 @@ cd "$src"/git
 
 check_repo() {
 
-    echo -e "\n"
     echo 'Checking repo: '"$repo"
 
     if [ "$repo" = 'asdf' ]; then
@@ -92,6 +90,9 @@ check_repo() {
 
         fi
 
+        echo -e "\n"
+
+
     fi
 }
 
@@ -102,7 +103,6 @@ for repo in ${repo_list[*]}; do
     check_repo
 done
 
-echo -e "\n"
 echo 'Done'
 echo -e "\n"
 

@@ -9,11 +9,10 @@ branch=$1
 # timestamp=$(date +%s)
 timestamp=$(date +%Y%m%d.%s)
 
-echo -e "\n"
 echo '=================================================='
 # echo Building on server: "$server"
 echo Cleaning up old repos for branch: "$branch"
-echo Timestamp: "$timestamp"
+echo Timestamp: $(date)("$timestamp")
 echo -e "\n"
 
 
@@ -34,7 +33,8 @@ yesterday=$(date -d "yesterday" +%Y%m%d)
 
 
 for repo in ${repo_list[*]}; do 
-
+    echo Cleaning up repo: "$repo"
+    
     tmp_rm_list=$(find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep "$repo" | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")
 
     for i in ${tmp_rm_list[*]}; do
@@ -43,10 +43,10 @@ for repo in ${repo_list[*]}; do
         find "$i" -type d -exec rm -rf "{}" \;
 
     done
+    echo -e "\n"
 
 done
 
 
-echo -e "\n"
 echo 'Done'
 echo -e "\n"
