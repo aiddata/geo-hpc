@@ -74,7 +74,7 @@ init() {
     # update_repos_cron="$update_repos_base $update_repos_script $update_repos_log $cron_tag"
     # crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
-    update_repos_cron='10 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh update_repos '"$branch"' #asdf'
+    update_repos_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh update_repos '"$branch"' #asdf'
     crontab -l | grep -v 'cron_wrapper.*update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
 
