@@ -23,7 +23,7 @@ src="${HOME}"/active/"$branch"
 find "$src" -type f -exec rm -rf "{}" \;
 find "$src" -type d -exec rm -rf "{}" \;
 
-mkdir -p "$src"/{tmp,git,latest,log/{db_updates,update_repos}}
+mkdir -p "$src"/{tmp,git,latest,log}
 #,'jobs',tasks}
 
 cd "$src"
