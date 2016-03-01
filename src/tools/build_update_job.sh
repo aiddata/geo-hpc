@@ -5,6 +5,11 @@ branch=$1
 
 timestamp=$2
 
+echo -e "\n"
+echo '=================================================='
+echo Building db update job for branch: "$branch"
+echo Timestamp: "$timestamp"
+echo -e "\n"
 
 src="${HOME}"/active/"$branch"
 

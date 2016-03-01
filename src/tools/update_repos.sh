@@ -10,6 +10,7 @@ branch=$1
 timestamp=$(date +%Y%m%d.%s)
 
 echo -e "\n"
+echo '=================================================='
 # echo Building on server: "$server"
 echo Updating repos for branch: "$branch"
 echo Timestamp: "$timestamp"
