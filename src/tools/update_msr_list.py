@@ -383,4 +383,4 @@ for ix in dataset_info.keys():
 # remove any items in queue for old datasets that have not yet been processed
 delete_call = msr.delete_many({'dataset': {'$nin': [i[0] for i in latest_releases]}, 'status': 0, 'priority': -1}) 
 deleted_count = delete_call.deleted_count
-print str(deleted_count) ' unprocessed automated msr requests for outdated released have been removed.'
+print str(deleted_count) + ' unprocessed automated msr requests for outdated released have been removed.'
