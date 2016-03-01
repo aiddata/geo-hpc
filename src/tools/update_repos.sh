@@ -90,10 +90,10 @@ check_repo() {
 
         fi
 
-        echo -e "\n"
-
-
     fi
+    
+    echo -e "\n"
+
 }
 
 
