@@ -14,10 +14,10 @@ echo -e "\n"
 
 
 # check if job needs to be run 
-echo "Checking for existing msr job..."
-qstat -nu $user
+echo 'Checking for existing msr job (asdf-msr-'"$branch"')...'
+qstat -nu $USER
 
-if qstat -nu $user | grep -q 'asdf-msr-'"$branch"; then
+if qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"

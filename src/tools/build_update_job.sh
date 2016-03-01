@@ -6,8 +6,6 @@ branch=$1
 timestamp=$2
 
 
-
-
 echo '=================================================='
 echo Running db_updates job builder for branch: "$branch"
 echo Timestamp: $(date) '('"$timestamp"')'
@@ -15,13 +13,13 @@ echo -e "\n"
 
 
 # check if job needs to be run 
-echo "Checking for existing db_updates job..."
+echo 'Checking for existing db_updates job (asdf-update-'"$branch"')...'
+qstat -nu $USER
 
-if qstat -nu $user | grep -q 'asdf-update-'"$branch"; then
+if qstat -nu $USER | grep -q 'asdf-update-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
-    qstat -nu $user
 
 else
 
