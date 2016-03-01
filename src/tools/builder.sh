@@ -19,7 +19,9 @@ echo -e "\n"
 # setup branch directory
 src="${HOME}"/active/"$branch"
 
-rm -rf "$src"
+# rm -rf "$src"
+find "$src" -type f -exec rm -rf "{}" \;
+find "$src" -type d -exec rm -rf "{}" \;
 
 mkdir -p "$src"/{tmp,git,latest,log/{db_updates,update_repos}}
 #,'jobs',tasks}

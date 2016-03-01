@@ -18,7 +18,10 @@ echo -e "\n"
 
 src="${HOME}"/active/"$branch"
 
-rm -rf "$src"/git
+# rm -rf "$src"/git
+find "$src"/git -type f -exec rm -rf "{}" \;
+find "$src"/git -type d -exec rm -rf "{}" \;
+
 mkdir "$src"/git
 cd "$src"/git
 
