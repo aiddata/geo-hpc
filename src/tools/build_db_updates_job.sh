@@ -28,11 +28,11 @@ else
 
     src="${HOME}"/active/"$branch"
 
-    mkdir -p "$src"/log/db_updates/jobs
+    mkdir -p "$src"/log/db_updates/{tmp,'jobs'}
 
     job_path=$(mktemp)
 
-    output_path=$(mktemp -p "$src"/log/db_updates/jobs)
+    output_path=$(mktemp -p "$src"/log/db_updates/tmp)
 
 
 # NOTE: just leave this heredoc unindented
@@ -45,14 +45,13 @@ cat <<EOF >> "$job_path"
 #PBS -N asdf-update-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=180:00:00
-#PBS -o $(mktemp)
 #PBS -j oe
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $output_path $src 
 
 EOF
 
-
+    cd "$src"/log/db_updates/jobs
     qsub "$job_path"
 
     rm "$job_path"

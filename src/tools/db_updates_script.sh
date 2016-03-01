@@ -6,7 +6,7 @@ timestamp=$2
 output_path=$3
 src=$4
 
-
+echo -e "\n" >> "$output_path"
 echo 'Timestamp: '$timestamp >> "$output_path"
 echo 'Job id: '"$PBS_JOBID" >> "$output_path"
 
@@ -19,6 +19,8 @@ python $src/asdf/src/tools/update_extract_list.py "$branch" 2>&1 | tee 1>> "$out
 echo -e "\n *** Running update_msr_list.py... \n" >> "$output_path"
 python $src/asdf/src/tools/update_msr_list.py "$branch" 2>&1 | tee 1>> "$output_path"
 
+echo -e "\nDone \n" >> "$output_path"
+
 cat "$output_path" >> "$src"/log/db_updates/"$timestamp".db_updates.log
 
-echo -e "\n Done \n" >> "$output_path"
+rm "$output_path"
