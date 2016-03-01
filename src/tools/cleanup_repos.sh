@@ -34,7 +34,7 @@ yesterday=$(date -d "yesterday" +%Y%m%d)
 
 for repo in ${repo_list[*]}; do 
 
-    tmp_rm_list=$(find "$src"/latest ! -path "$src"/latest -mindepth 1 -maxdepth 1 | grep "$repo" | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")
+    tmp_rm_list=$(find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep "$repo" | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")
 
     for i in ${tmp_rm_list[*]}; do
 
