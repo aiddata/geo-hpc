@@ -6,7 +6,8 @@
 # server=$1
 branch=$1
 
-timestamp=$(date +%s)
+# timestamp=$(date +%s)
+timestamp=$(date +%Y%m%d.%s)
 
 echo -e "\n"
 # echo Building on server: "$server"
@@ -43,12 +44,7 @@ for repo in ${repo_list[*]}; do
 done
 
 
-# remove old repos from latest
 echo -e "\n"
-echo 'Cleaning up old repos...'
-
-find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep -v "$timestamp" | xargs rm -rf
-
 echo 'Done'
 echo -e "\n"
 

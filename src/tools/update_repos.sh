@@ -6,7 +6,8 @@
 # server=$1
 branch=$1
 
-timestamp=$(date +%s)
+# timestamp=$(date +%s)
+timestamp=$(date +%Y%m%d.%s)
 
 echo -e "\n"
 # echo Building on server: "$server"
@@ -47,19 +48,19 @@ check_repo() {
         ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
 
 
-        for i in "$src"/latest/*; do
-            echo "$i"
+        # for i in "$src"/latest/*; do
+        #     echo "$i"
             
-            if echo "$i" | grep -q "$repo"; then
-                if echo "$i" | grep -q -v "$timestamp"; then
+        #     if echo "$i" | grep -q "$repo"; then
+        #         if echo "$i" | grep -q -v "$timestamp"; then
 
-                    echo 'Cleaning up old '"$repo"' repo...'
-                    find "$i" -type f -exec rm -rf "{}" \;
-                    find "$i" -type d -exec rm -rf "{}" \;
+        #             echo 'Cleaning up old '"$repo"' repo...'
+        #             find "$i" -type f -exec rm -rf "{}" \;
+        #             find "$i" -type d -exec rm -rf "{}" \;
 
-                fi
-            fi
-        done
+        #         fi
+        #     fi
+        # done
 
 
         if [ "$repo" = 'asdf' ]; then
