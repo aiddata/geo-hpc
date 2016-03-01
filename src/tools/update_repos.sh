@@ -30,6 +30,7 @@ check_repo() {
     echo 'Checking repo: '"$repo"
 
     if [ "$repo" = 'asdf' ]; then
+        old_manage_cron_hash=$(md5sum "$src"/git/asdf/src/tools/manage_crons.sh | awk '{ print $1 }')
         old_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
         old_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
         old_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
@@ -62,11 +63,17 @@ check_repo() {
         #     fi
         # done
 
-
         if [ "$repo" = 'asdf' ]; then
+            new_manage_cron_hash=$(md5sum "$src"/git/asdf/src/tools/manage_crons.sh | awk '{ print $1 }')
             new_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
             new_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
             new_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
+
+            if [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
+                echo -e "\n"
+                echo "Updating crons ..."
+                bash "$src"/git/asdf/src/tools/manage_crons.sh "$branch" init
+            fi
 
             if [ "$old_repo_hash" != "$new_repo_hash" ] | [ "$old_load_hash" != "$new_load_hash" ]; then
                 echo -e "\n"
