@@ -80,7 +80,7 @@ for i in latest_releases:
 
     ix = i[0]
 
-    print 'Building filter combinations for:' + str(ix)
+    print 'Building filter combinations for: ' + str(ix)
 
     tmp_collection = releases[ix]
 
@@ -112,7 +112,7 @@ for i in latest_releases:
 
 
     max_sector_count = 1
-    max_donor_count = 0
+    max_donor_count = 1
 
     ratio_list = itertools.product(range(max_sector_count), range(max_donor_count))
 
@@ -165,6 +165,7 @@ from msr_utility import CoreMSR
 
 # print dataset_info
 # tot_sum = 0
+print '\n'
 for ix in dataset_info.keys():
     
     print 'Generating jobs for: ' + dataset_info[ix]['name']
@@ -383,4 +384,5 @@ for ix in dataset_info.keys():
 # remove any items in queue for old datasets that have not yet been processed
 delete_call = msr.delete_many({'dataset': {'$nin': [i[0] for i in latest_releases]}, 'status': 0, 'priority': -1}) 
 deleted_count = delete_call.deleted_count
+print '\n' 
 print str(deleted_count) + ' unprocessed automated msr requests for outdated released have been removed.'
