@@ -27,32 +27,23 @@ cd "$src"/latest
 
 repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
 
+today=$(date +%Y%m%d)
+yesterday=$(date -d "yesterday" +%Y%m%d)
+
+
+
 for repo in ${repo_list[*]}; do 
 
+    tmp_rm_list=$(find "$src"/latest ! -path "$src"/latest -mindepth 1 -maxdepth 1 | grep "$repo" | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")
 
-    for i in "$src"/latest/*; do
-        echo "$i"
-        
-        if echo "$i" | grep -q "$repo"; then
+    for i in ${tmp_rm_list[*]}; do
 
-            echo "cool"
-            # if echo "$i" | grep -q -v "$timestamp"; then
-
-            #     echo 'Cleaning up old '"$repo"' repo...'
-            #     find "$i" -type f -exec rm -rf "{}" \;
-            #     find "$i" -type d -exec rm -rf "{}" \;
-
-            # fi
-        
-        fi
+        find "$i" -type f -exec rm -rf "{}" \;
+        find "$i" -type d -exec rm -rf "{}" \;
 
     done
 
-
 done
-
-
-
 
 
 echo -e "\n"
