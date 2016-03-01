@@ -7,7 +7,7 @@ timestamp=$2
 
 echo '=================================================='
 echo Building db update job for branch: "$branch"
-echo Timestamp: $(date)("$timestamp")
+echo Timestamp: "$(date)"("$timestamp")
 echo -e "\n"
 
 src="${HOME}"/active/"$branch"
