@@ -28,7 +28,11 @@ else
 
     src="${HOME}"/active/"$branch"
 
+    mkdir -p "$src"/log/db_updates/jobs
+
     job_path=$(mktemp)
+
+    output_path=$(mktemp -p "$src"/log/db_updates/jobs)
 
 
 # NOTE: just leave this heredoc unindented
@@ -37,24 +41,26 @@ else
 #   (can use cat <<- EOF to strip leading tabs )
 
 cat <<EOF >> "$job_path"
-
 #!/bin/tcsh
 #PBS -N asdf-update-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=180:00:00
-#PBS -o $src/log/db_updates/$timestamp.db_updates.log
+#PBS -o $(mktemp)
 #PBS -j oe
 
-echo 'Job id: '"$PBS_JOBID"
+echo 'Timestamp: '$timestamp >> '$output_path
+echo 'Job id: $PBS_JOBID" >> '$output_path
 
-echo -e "\n *** Running update_trackers.py... \n"
-python $src/asdf/src/tools/update_trackers.py $branch
+echo -e "\n *** Running update_trackers.py... \n" >> '$output_path
+python $src/asdf/src/tools/update_trackers.py $branch 2>&1 | tee 1>>$output_path
 
-echo -e "\n *** Running update_extract_list.py... \n"
-python $src/asdf/src/tools/update_extract_list.py $branch
+echo -e "\n *** Running update_extract_list.py... \n"  >> '$output_path
+python $src/asdf/src/tools/update_extract_list.py $branch 2>&1 | tee 1>>$output_path
 
-echo -e "\n *** Running update_msr_list.py... \n"
-python $src/asdf/src/tools/update_msr_list.py $branch
+echo -e "\n *** Running update_msr_list.py... \n" >> '$output_path
+python $src/asdf/src/tools/update_msr_list.py $branch 2>&1 | tee 1>>$output_path
+
+cat $output_path >> $src/log/db_updates/$timestamp.db_updates.log
 
 EOF
 
