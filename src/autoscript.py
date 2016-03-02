@@ -222,7 +222,7 @@ else:
    request = None
 
 
-request = comm.bcast(request_id, root=0)
+request = comm.bcast(request, root=0)
 
 if request == None:
     quit("no jobs found in queue")
