@@ -920,6 +920,7 @@ if rank == 0:
 
     # ====================================================================================================
 
+    import shutil
 
     # move entire dir for job from msr queue "active" dir to "done" dir  
     dir_final = dir_working.replace('/active/', '/done/')
