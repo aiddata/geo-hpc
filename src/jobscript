@@ -15,4 +15,7 @@ set sector = All
 
 
 cd $PBS_O_WORKDIR
+
 mvp2run -m cyclic python-mpi ./runscript.py "$country" "$version" "$resolution" "$sector"
+
+# mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py  "$country" "$version" "$resolution" "$sector"

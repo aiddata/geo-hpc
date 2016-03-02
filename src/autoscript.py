@@ -61,7 +61,6 @@ config = BranchConfig(branch=branch)
 # --------------------------------------------------
 
 
-
 # ====================================================================================================
 # ====================================================================================================
 
@@ -198,21 +197,35 @@ Ts = int(time.time())
 #     quit("json file does not exists: " + request_path)
 
 
-import pymongo
+if rank == 0:
 
-client = pymongo.MongoClient(config.server)
+    import pymongo
 
-msr = client[config.det_db].msr
+    client = pymongo.MongoClient(config.server)
 
-request_list = msr.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+    msr = client[config.det_db].msr
 
-# make sure request was found
-if request_list.count(True) == 1:
+    request_list = msr.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
 
-    request = request_list[0]
+    # make sure request was found
+    if request_list.count(True) == 1:
 
+        request = request_list[0]
+        # request_id = request['_id']
+
+    else:
+        request = None 
+
+    print request
+    
 else:
-    quit("no jobs found")
+   request = None
+
+
+request = comm.bcast(request_id, root=0)
+
+if request == None:
+    quit("no jobs found in queue")
 
 
 
