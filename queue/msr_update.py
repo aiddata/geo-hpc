@@ -113,9 +113,10 @@ def build_json(active_base, request):
         json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
 
 
-        # # write json
+        # write json
         json_file = open(json_path, 'w')
         json_file.write(json_output)
+        json_file.close()
 
         # return json path
         return 0, request
@@ -160,6 +161,7 @@ def build_jobscript(active_base, request):
         jobscript_path = active_base +'/jobscript'
         jobscript_file = open(jobscript_path, 'w')
         jobscript_file.write(jobscript_output)
+        jobscript_file.close()
 
         return 0, jobscript_path
 
