@@ -28,7 +28,7 @@ else
 
 
     echo "Checking for items in msr queue..."
-    queue_status=$(python $src/asdf/src/tools/check_msr_queue.py "$branch")
+    queue_status=$(python "$src"/asdf/src/tools/check_msr_queue.py "$branch")
 
     if [ "$queue_status" = "empty" ]; then
         echo '... msr queue empty'
@@ -64,7 +64,7 @@ cat <<EOF >> "$job_path"
 #PBS -j oe
 #PBS -o $src/log/msr/$timestamp.msr.log
 
-echo 'Job id: '"$PBS_JOBID"
+echo -e '\nJob id: '"$PBS_JOBID"
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
 mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
