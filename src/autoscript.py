@@ -230,7 +230,7 @@ if request == None:
 
 if rank == 0:
     # update status of request in msr queue to 2
-    # 
+    pass
 
 
 # =====================================
