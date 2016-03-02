@@ -24,8 +24,9 @@ if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; t
 
 else
 
-    echo "No existing job found."
+    src="${HOME}"/active/"$branch"
 
+    echo "No existing job found."
 
     echo "Checking for items in msr queue..."
     queue_status=$(python "$src"/asdf/src/tools/check_msr_queue.py "$branch")
@@ -42,7 +43,6 @@ else
 
     echo "Building job..."
 
-    src="${HOME}"/active/"$branch"
 
     mkdir -p "$src"/log/msr
 
