@@ -44,7 +44,8 @@ else
     echo "Building job..."
 
 
-    mkdir -p "$src"/log/msr/jobs
+    mkdir -p "$src"/log/msr
+    #/jobs
 
     job_path=$(mktemp)
 
