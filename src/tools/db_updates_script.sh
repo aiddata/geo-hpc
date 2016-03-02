@@ -3,9 +3,9 @@
 
 branch=$1
 timestamp=$2
-output_path=$3
-src=$4
+src=$3
 
+output_path=$(mktemp -p "$src"/log/db_updates/tmp)
 
 echo 'Timestamp: '$timestamp >> "$output_path"
 echo 'Job id: '"$PBS_JOBID" >> "$output_path"

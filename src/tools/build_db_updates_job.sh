@@ -14,9 +14,9 @@ echo -e "\n"
 
 # check if job needs to be run 
 echo 'Checking for existing db_updates job (asdf-update-'"$branch"')...'
-qstat -nu $USER
+/usr/local/torque-2.3.7/bin/qstat -nu $USER
 
-if qstat -nu $USER | grep -q 'asdf-update-'"$branch"; then
+if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-update-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -32,7 +32,6 @@ else
 
     job_path=$(mktemp)
 
-    output_path=$(mktemp -p "$src"/log/db_updates/tmp)
 
 
 # NOTE: just leave this heredoc unindented
@@ -47,12 +46,12 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=180:00:00
 #PBS -j oe
 
-bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $output_path $src 
+bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src 
 
 EOF
 
     cd "$src"/log/db_updates/jobs
-    qsub "$job_path"
+    /usr/local/torque-2.3.7/bin/qsub "$job_path"
 
     echo "Running job..."
     echo -e "\n" 
