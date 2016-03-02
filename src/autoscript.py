@@ -252,14 +252,21 @@ if dataset_id not in iso3_lookup.keys():
 
 
 # lookup release path
-asdf = client[config.asdf_db].data
-request['release_path'] = asdf.find({'name': request['dataset']})[0]['base']
-print(request['release_path'])
+
+
+if rank == 0:
+    asdf = client[config.asdf_db].data
+    release_path = asdf.find({'name': request['dataset']})[0]['base']
+    print(release_path)
+
+
+release_path = comm.bcast(release_path, root=0)
+
 
 
 # make sure dataset path given in request exists
-if not os.path.isdir(request['release_path']):
-    quit("release path specified not found: " + request['release_path'])
+if not os.path.isdir(release_path):
+    quit("release path specified not found: " + release_path)
 
 
 # todo: make sure these exist in lookups first
@@ -395,7 +402,7 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 # load project data
 
 # dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
-dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
+dir_data = release_path +'/'+ os.path.basename(release_path) +'/data'
 
 merged = core.merge_data(dir_data, "project_id", (core.code_field_1, core.code_field_2, "project_location_id"), core.only_geocoded)
 
