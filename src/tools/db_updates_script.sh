@@ -19,6 +19,8 @@ python $src/asdf/src/tools/update_extract_queue.py "$branch" 2>&1 | tee 1>> "$ou
 echo -e "\n *** Running update_msr_queue.py... \n" >> "$output_path"
 python $src/asdf/src/tools/update_msr_queue.py "$branch" 2>&1 | tee 1>> "$output_path"
 
+echo -e "\n" >> "$output_path"
+echo $(date) >> "$output_path"
 echo -e "\nDone \n" >> "$output_path"
 
 cat "$output_path" >> "$src"/log/db_updates/"$timestamp".db_updates.log
