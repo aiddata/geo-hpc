@@ -216,8 +216,8 @@ if rank == 0:
     else:
         request = None 
 
-    print request
-    
+    print(request)
+
 else:
    request = None
 
