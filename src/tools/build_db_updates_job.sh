@@ -44,6 +44,7 @@ cat <<EOF >> "$job_path"
 #PBS -N asdf-update-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=180:00:00
+#PBS -q alpha
 #PBS -j oe
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src 
