@@ -311,6 +311,7 @@ tmp_request = request
 if "_id" in tmp_request.keys():
     tmp_request['_id'] = str(tmp_request['_id'])
 
+json_path = dir_working +'/request.json'
 json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
 
 # # write json
