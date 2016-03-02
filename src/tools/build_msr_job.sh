@@ -44,7 +44,7 @@ else
     echo "Building job..."
 
 
-    mkdir -p "$src"/log/msr
+    mkdir -p "$src"/log/msr/jobs
 
     job_path=$(mktemp)
 
@@ -64,7 +64,7 @@ cat <<EOF >> "$job_path"
 #PBS -j oe
 #PBS -o $src/log/msr/$timestamp.msr.log
 
-echo -e '\nJob id: '"$PBS_JOBID"
+echo -e "\nJob id: $PBS_JOBID"
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
 mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
