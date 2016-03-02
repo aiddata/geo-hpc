@@ -254,6 +254,8 @@ if dataset_id not in iso3_lookup.keys():
 # lookup release path
 
 
+release_path = None
+
 if rank == 0:
     asdf = client[config.asdf_db].data
     release_path = asdf.find({'name': request['dataset']})[0]['base']
