@@ -15,9 +15,9 @@ echo -e "\n"
 
 # check if job needs to be run 
 echo 'Checking for existing msr job (asdf-msr-'"$branch"')...'
-qstat -nu $USER
+/usr/local/torque-2.3.7/bin/ -nu $USER
 
-if qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; then
+if /usr/local/torque-2.3.7/bin/ -nu $USER | grep -q 'asdf-msr-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -25,6 +25,21 @@ if qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; then
 else
 
     echo "No existing job found."
+
+
+    echo "Checking for items in msr queue..."
+    queue_status=$(python $src/asdf/src/tools/check_msr_queue.py "$branch")
+
+    if [ "$queue_status" = "empty"]; then
+        echo '... msr queue empty'
+        exit 0
+    fi
+
+    if [ "$queue_status" = "ready"]; then
+        echo '... items found in queue'
+        echo -e "\n"    
+    fi
+
     echo "Building job..."
 
     src="${HOME}"/active/"$branch"
@@ -43,20 +58,25 @@ cat <<EOF >> "$job_path"
 
 #!/bin/tcsh
 #PBS -N asdf-msr-$branch
-#PBS -l nodes=2:c18c:ppn=16
+#PBS -l nodes=4:c18c:ppn=16
 #PBS -l walltime=180:00:00
-#PBS -o $src/log/msr/$timestamp.msr.log
+#PBS -q alpha
 #PBS -j oe
+#PBS -o $src/log/msr/$timestamp.msr.log
 
 echo 'Job id: '"$PBS_JOBID"
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/asdf/src/tools/update_trackers.py $branch
+mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
 
 EOF
 
+    
+    # cd "$src"/log/msr/jobs
+    /usr/local/torque-2.3.7/bin/ "$job_path"
 
-    qsub "$job_path"
+    echo "Running job..."
+    echo -e "\n" 
 
     rm "$job_path"
 
