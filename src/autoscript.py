@@ -228,6 +228,10 @@ if request == None:
     quit("no jobs found in queue")
 
 
+if rank == 0:
+    # update status of request in msr queue to 2
+    # 
+
 
 # =====================================
 # =====================================
@@ -244,6 +248,14 @@ dataset_id = request['dataset'].split('_')[0]
 # make sure dataset crosswalk id is in crosswalk json
 if dataset_id not in iso3_lookup.keys():
     quit("no shp crosswalk for dataset: " + dataset_id)
+
+
+
+# lookup release path
+asdf = client[config.asdf_db].data
+request['release_path'] = asdf.find({'name': request['dataset']})[0]['base']
+print(request['release_path'])
+
 
 # make sure dataset path given in request exists
 if not os.path.isdir(request['release_path']):
@@ -287,7 +299,24 @@ core.set_pixel_size(request['options']['resolution'])
 # --------------------------------------------------
 # file paths
 
-dir_working = os.path.dirname(request_path)
+# dir_working = os.path.dirname(request_path)
+
+# dir_working = os.path.join(branch_dir, log, msr, jobs)
+
+dir_working =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
+
+make_dir(dir_working)
+
+tmp_request = request
+if "_id" in tmp_request.keys():
+    tmp_request['_id'] = str(tmp_request['_id'])
+
+json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
+
+# # write json
+json_file = open(json_path, 'w')
+json_file.write(json_output)
+json_file.close()
 
 
 # --------------------------------------------------
@@ -296,9 +325,13 @@ dir_working = os.path.dirname(request_path)
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
-adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm0.shp")
-adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm1.shp")
-adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
+# adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm0.shp")
+# adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm1.shp")
+# adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
+
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm0.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm1.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm2.shp")
 
 # build list of adm shape lists
 core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
@@ -874,4 +907,30 @@ if rank == 0:
     # json_handle2 = open(dir_working+'/'+str(Rid)+'.json',"w")
     # json.dump(mops, json_handle2, sort_keys = True, indent = 4, ensure_ascii=False)
 
+
+    # ====================================================================================================
+
+
+    # move entire dir for job from msr queue "active" dir to "done" dir  
+    dir_final = dir_working.replace('/active/', '/done/')
+
+    if os.path.isdir(dir_final):
+        shutil.rmtree(dir_final)
+
+    shutil.move(dir_working, dir_final)
+
+
+    # make msr data dir and move raster.asc, unique.geojson, output.json there
+    msr_data_dir = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + request['dataset'] +'/'+ request['hash']
+    make_dir(msr_data_dir)
+
+    msr_data_files = ['raster.asc', 'unique.geojson', 'output.json', 'request.json']
+    for f in msr_data_files:
+        msr_data_file = dir_final +'/'+ f
+
+        # if os.path.isfile(msr_data_dst_file):
+            # os.remove(msr_data_dst_file)
+
+        shutil.copy(msr_data_file, msr_data_dir)
+        os.remove(msr_data_file)
 
