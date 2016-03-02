@@ -15,9 +15,9 @@ echo -e "\n"
 
 # check if job needs to be run 
 echo 'Checking for existing msr job (asdf-msr-'"$branch"')...'
-/usr/local/torque-2.3.7/bin/ -nu $USER
+/usr/local/torque-2.3.7/bin/qstat -nu $USER
 
-if /usr/local/torque-2.3.7/bin/ -nu $USER | grep -q 'asdf-msr-'"$branch"; then
+if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -30,12 +30,12 @@ else
     echo "Checking for items in msr queue..."
     queue_status=$(python $src/asdf/src/tools/check_msr_queue.py "$branch")
 
-    if [ "$queue_status" = "empty"]; then
+    if [ "$queue_status" = "empty" ]; then
         echo '... msr queue empty'
         exit 0
     fi
 
-    if [ "$queue_status" = "ready"]; then
+    if [ "$queue_status" = "ready" ]; then
         echo '... items found in queue'
         echo -e "\n"    
     fi
@@ -73,7 +73,7 @@ EOF
 
     
     # cd "$src"/log/msr/jobs
-    /usr/local/torque-2.3.7/bin/ "$job_path"
+    /usr/local/torque-2.3.7/bin/qsub "$job_path"
 
     echo "Running job..."
     echo -e "\n" 
