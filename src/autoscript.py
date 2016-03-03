@@ -25,7 +25,7 @@ from __future__ import print_function
 from mpi_utility import *
 
 job = NewParallel()
-print(job.rank)
+
 
 # -------------------------------------
 
@@ -439,7 +439,7 @@ i_m['unique'] = range(0, len(i_m))
 i_m['index'] = range(0, len(i_m))
 i_m = i_m.set_index('index')
 
-unique_ids = i_m['unique']
+unique_ids = list(i_m['unique'])
 
 
 # =============================================================================

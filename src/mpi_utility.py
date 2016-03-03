@@ -209,25 +209,28 @@ class NewParallel():
         if self.parallel:
             self.run_parallel()
         else:
-            self.run_serial()
+           self.run_serial()
 
 
     def run_serial(self):
         """Run job using set functions in serial."""
-        self.general_init()
-        self.master_init()
+        if rank == 0:
+            self.general_init()
+            self.master_init()
 
-        for i in range(len(self.task_list)):
-            worker_result = self.worker_job(i)
-            self.master_process(worker_result)
+            for i in range(len(self.task_list)):
+                worker_result = self.worker_job(i)
+                self.master_process(worker_result)
 
-        self.master_final()
+            self.master_final()
 
 
     def run_parallel(self):
         """Run job using set functions in parallel."""
         self.general_init()
 
+        self.comm.Barrier()
+        
         if self.rank == 0:
 
             # ==================================================
