@@ -488,7 +488,6 @@ tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 # =============================================================================
 
 
-
 def complete_final_raster():
 
     # =============================================================================
@@ -507,14 +506,6 @@ def complete_final_raster():
         fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
         fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
-        # -------------------------------------
-        # record surf runtime
-
-        time_surf = time.time()
-        T_surf = int(time_surf - time_init)
-
-        print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
-        print('\n')
 
     else:
         print("Surf Master - terminating due to worker error.")
@@ -526,6 +517,7 @@ def complete_final_raster():
 
 
 def complete_unique_geoms():
+
     # =============================================================================
     # output unique geometries and sum of all 
     # project locations associated with that geometry
@@ -574,13 +566,8 @@ def complete_unique_geoms():
     json.dump(json.loads(geo_json), geo_file, indent = 4)
 
 
-    # calc section runtime and total runtime
-    time_end = time.time()
-    T_unique = int(time_end - time_surf)
-    T_total = int(time_end - Ts)
-
-
 def complete_options_json():
+
     # =============================================================================
     # output msr options as json (might be loaded into mongo?)
 
@@ -646,6 +633,7 @@ def complete_options_json():
 
 
 def complete_outputs():
+    
     # =============================================================================
     # move entire dir for job from msr queue "active" dir to "done" dir  
     # and copy data files to msr data dir
@@ -787,12 +775,28 @@ if rank == 0:
 
     # =====================================
     # MASTER FINAL
-    
+
+    # -------------------------------------
+    # record surf runtime
+
+    time_surf = time.time()
+    T_surf = int(time_surf - time_init)
+
+    print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
+    print('\n')
+
+
     complete_final_raster()
     complete_unique_geoms()
     complete_options_json()
     complete_outputs()
-    
+
+
+    # calc section runtime and total runtime
+    time_end = time.time()
+    T_unique = int(time_end - time_surf)
+    T_total = int(time_end - Ts)
+
     # =====================================
 
 
