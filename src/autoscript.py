@@ -303,19 +303,24 @@ core.set_pixel_size(request['options']['resolution'])
 
 dir_working =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
 
-make_dir(dir_working)
 
-tmp_request = request
-if "_id" in tmp_request.keys():
-    tmp_request['_id'] = str(tmp_request['_id'])
+# add request from mongo to request.json
+# might be better to just include this in output.json
+if rank == 0:
 
-json_path = dir_working +'/request.json'
-json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
+    make_dir(dir_working)
 
-# # write json
-json_file = open(json_path, 'w')
-json_file.write(json_output)
-json_file.close()
+    tmp_request = request
+    if "_id" in tmp_request.keys():
+        tmp_request['_id'] = str(tmp_request['_id'])
+
+    json_path = dir_working +'/request.json'
+    json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
+
+    # # write json
+    json_file = open(json_path, 'w')
+    json_file.write(json_output)
+    json_file.close()
 
 
 # -------------------------------------
@@ -469,6 +474,9 @@ i_m['unique'] = range(0, len(i_m))
 i_m['index'] = range(0, len(i_m))
 i_m = i_m.set_index('index')
 
+unique_ids = i_m['unique']
+
+task_list = unique_ids
 
 
 # =============================================================================
@@ -493,27 +501,22 @@ def complete_final_raster():
     # =============================================================================
     # build and output final raster
 
-    if err_status == 0:
-        # calc results
-        print("Surf Master - processing results")
+    # calc results
 
-        stack_mean_surf = np.vstack(all_mean_surf)
-        sum_mean_surf = np.sum(stack_mean_surf, axis=0)
+    stack_mean_surf = np.vstack(all_mean_surf)
+    sum_mean_surf = np.sum(stack_mean_surf, axis=0)
 
-        # write asc file
-        sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
-        asc_sum_mean_surf_str = asc + sum_mean_surf_str
-        fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
-        fout_sum_mean_surf.write(asc_sum_mean_surf_str)
+    # write asc file
+    sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
+    asc_sum_mean_surf_str = asc + sum_mean_surf_str
+    fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
+    fout_sum_mean_surf.write(asc_sum_mean_surf_str)
 
 
-    else:
-        print("Surf Master - terminating due to worker error.")
-
-        # validate sum_mean_surf
-        # exit if validation fails
-        if type(sum_mean_surf) == type(0):
-            sys.exit("! - mean surf validation failed")
+    # validate sum_mean_surf
+    # exit if validation fails
+    if type(sum_mean_surf) == type(0):
+        sys.exit("! - mean surf validation failed")
 
 
 def complete_unique_geoms():
@@ -613,10 +616,10 @@ def complete_options_json():
     add_to_json("cols",len(cols))
     add_to_json("locations",len(i_m))
 
-    add_to_json("T_init",T_init)
-    add_to_json("T_surf",T_surf)
-    add_to_json("T_unique",T_unique)
-    add_to_json("T_total",T_total)
+    # add_to_json("T_init",T_init)
+    # add_to_json("T_surf",T_surf)
+    # add_to_json("T_unique",T_unique)
+    # add_to_json("T_total",T_total)
 
     add_to_json("status",0)
 
@@ -633,7 +636,7 @@ def complete_options_json():
 
 
 def complete_outputs():
-    
+
     # =============================================================================
     # move entire dir for job from msr queue "active" dir to "done" dir  
     # and copy data files to msr data dir
@@ -664,6 +667,37 @@ def complete_outputs():
         os.remove(msr_data_file)
 
 
+def tmp_master_final():
+    # =====================================
+    # MASTER FINAL
+
+    # -------------------------------------
+    # record surf runtime
+
+    time_surf = time.time()
+    T_surf = int(time_surf - time_init)
+
+    print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
+    print('\n')
+
+
+    complete_final_raster()
+    complete_unique_geoms()
+    complete_options_json()
+    complete_outputs()
+
+
+    # calc section runtime and total runtime
+    time_end = time.time()
+    T_unique = int(time_end - time_surf)
+    T_total = int(time_end - Ts)
+
+    # =====================================
+
+
+def tmp_master_process(worker_data):
+    all_mean_surf.append(worker_data)
+
 
 # =============================================================================
 # =============================================================================
@@ -672,6 +706,7 @@ def complete_outputs():
 
 
 if rank == 0:
+
 
     # =====================================
     # MASTER INIT
@@ -707,65 +742,57 @@ if rank == 0:
 
     print('\tInit Runtime: ' + str(T_init//60) +'m '+ str(int(T_init%60)) +'s')
 
+
     # -------------------------------------
+    # init for final calcs later
 
-    # init for later
     sum_mean_surf = 0
-
-
     all_mean_surf = []
-    unique_ids = i_m['unique']
 
     # =====================================
+
 
     task_index = 0
     num_workers = size - 1
     closed_workers = 0
     err_status = 0
-    print("Surf Master - starting with %d workers" % num_workers)
+
+    print("Master - starting with %d workers" % num_workers)
 
     # distribute work
     while closed_workers < num_workers:
-        data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+        worker_data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
         source = status.Get_source()
         tag = status.Get_tag()
 
         if tag == tags.READY:
 
-            if task_index < len(unique_ids):
+            if task_index < len(task_list):
+                print("Master - sending task %d to worker %d" % (task_index, source))
 
-                #
-                # !!!
-                #   to do:
-                #   if task if for a point (not point with small buffer, etc.)
-                #   then let master do work
-                #   run tests to see if this actually improves runtimes
-                # !!!
-                #
+                comm.send(task_index, dest=source, tag=tags.START)
 
-                comm.send(unique_ids[task_index], dest=source, tag=tags.START)
-                print("Surf Master - sending task %d to worker %d" % (task_index, source))
                 task_index += 1
 
             else:
                 comm.send(None, dest=source, tag=tags.EXIT)
 
         elif tag == tags.DONE:
+            print("Master - got surf data from worker %d" % source)
 
-            # =====================================
+            # ==================================================
             # MASTER PROCESS
+        
+            tmp_master_process(worker_data)
 
-            all_mean_surf.append(data)
-            print("Surf Master - got surf data from worker %d" % source)
-
-            # =====================================
+            # ==================================================
 
         elif tag == tags.EXIT:
-            print("Surf Master - worker %d exited." % source)
+            print("Master - worker %d exited." % source)
             closed_workers += 1
 
         elif tag == tags.ERROR:
-            print("Surf Master - error reported by surf worker %d ." % source)
+            print("Master - error reported by surf worker %d ." % source)
             # broadcast error to all workers
             for i in range(1, size):
                 comm.send(None, dest=i, tag=tags.ERROR)
@@ -773,40 +800,28 @@ if rank == 0:
             err_status = 1
             break
 
-    # =====================================
-    # MASTER FINAL
 
-    # -------------------------------------
-    # record surf runtime
+    if err_status == 0:
+        print("Master - processing results")
 
-    time_surf = time.time()
-    T_surf = int(time_surf - time_init)
+        # ==================================================
+        # MASTER FINAL
+    
+        tmp_master_fina()
 
-    print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
-    print('\n')
+        # ==================================================
 
-
-    complete_final_raster()
-    complete_unique_geoms()
-    complete_options_json()
-    complete_outputs()
-
-
-    # calc section runtime and total runtime
-    time_end = time.time()
-    T_unique = int(time_end - time_surf)
-    T_total = int(time_end - Ts)
-
-    # =====================================
+    else:
+        print("Master - terminating due to worker error.")
 
 
 else:
     # Worker processes execute code below
     name = MPI.Get_processor_name()
-    print("Surf Worker - rank %d on %s." % (rank, name))
+    print("Worker - rank %d on %s." % (rank, name))
     while True:
         comm.send(None, dest=0, tag=tags.READY)
-        task = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+        task_id = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
         tag = status.Get_tag()
 
         if tag == tags.START:
@@ -816,6 +831,8 @@ else:
 
             tmp_grid_gdf = grid_gdf.copy(deep=True)
             tmp_grid_gdf['value'] = 0
+
+            task = task_list[task_id]
 
             pg_data = i_m.loc[task]
             pg_type = pg_data.agg_type
@@ -925,16 +942,19 @@ else:
 
             mean_surf = np.array(tmp_grid_gdf['value'])
 
-            comm.send(mean_surf, dest=0, tag=tags.DONE)
+            worker_result = mean_surf
 
             # =====================================
+
+            comm.send(worker_result, dest=0, tag=tags.DONE)
+
 
         elif tag == tags.EXIT:
             comm.send(None, dest=0, tag=tags.EXIT)
             break
 
         elif tag == tags.ERROR:
-            print("Surf Worker - error message from Surf Master. Shutting down." % source)
+            print("Worker - error message from Surf Master. Shutting down." % source)
             # confirm error message received and exit
             comm.send(None, dest=0, tag=tags.EXIT)
             break
