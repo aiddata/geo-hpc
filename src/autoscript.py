@@ -577,7 +577,7 @@ def tmp_worker_job(task_id):
     return mean_surf
 
 
-def tmp_master_process(worker_data):
+def tmp_master_process(self, worker_data):
     all_mean_surf.append(worker_data)
 
 
@@ -747,7 +747,7 @@ def complete_outputs():
         os.remove(msr_data_file)
 
 
-def tmp_master_final():
+def tmp_master_final(self):
 
     # record surf runtime
     time_surf = time.time()
