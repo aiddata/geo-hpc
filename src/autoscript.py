@@ -465,7 +465,7 @@ def tmp_worker_job(self, task_id):
     tmp_grid_gdf = grid_gdf.copy(deep=True)
     tmp_grid_gdf['value'] = 0
 
-    task = task_list[task_id]
+    task = unique_ids[task_id]
 
     pg_data = i_m.loc[task]
     pg_type = pg_data.agg_type
