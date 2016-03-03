@@ -674,12 +674,11 @@ def complete_options_json():
 
     add_to_json("request",request)
 
-    add_to_json("size",size)
+    add_to_json("size",job.size)
     add_to_json("run_stage",run_stage)
     add_to_json("run_version_str",run_version_str)
     add_to_json("run_version",run_version)
     add_to_json("run_id",run_id)
-    add_to_json("Ts",Ts)
 
     add_to_json("dataset",request['dataset'])
     add_to_json("abbr",abbr)
@@ -703,6 +702,7 @@ def complete_options_json():
     add_to_json("cols",len(cols))
     add_to_json("locations",len(i_m))
 
+    # add_to_json("Ts",Ts)
     # add_to_json("T_init",T_init)
     # add_to_json("T_surf",T_surf)
     # add_to_json("T_unique",T_unique)
