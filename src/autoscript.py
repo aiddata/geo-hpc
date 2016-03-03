@@ -741,7 +741,7 @@ def complete_outputs():
     msr_data_dir = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + request['dataset'] +'/'+ request['hash']
     make_dir(msr_data_dir)
 
-    msr_data_files = ['raster.asc', 'unique.geojson', 'output.json', 'request.json']
+    msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
     for f in msr_data_files:
         msr_data_file = dir_final +'/'+ f
 
