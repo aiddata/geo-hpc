@@ -25,7 +25,7 @@ from __future__ import print_function
 from mpi_utility import *
 
 job = NewParallel()
-print job.rank
+print(job.rank)
 
 # -------------------------------------
 
