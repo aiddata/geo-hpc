@@ -18,23 +18,13 @@ Data:
 # =============================================================================
 # =============================================================================
 
+
 from __future__ import print_function
 
-try:
-    from mpi4py import MPI
+# from mpi4py import MPI
+from mpi_utility import *
 
-    # mpi info
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    status = MPI.Status()
-
-    run_mpi = True
-
-except:
-    size = 1
-    rank = 0
-    run_mpi = False
+job = NewParallel()
 
 
 # -------------------------------------
@@ -186,7 +176,7 @@ Ts = int(time.time())
 #     quit("json file does not exists: " + request_path)
 
 
-if rank == 0:
+if job.rank == 0:
 
     import pymongo
 
@@ -217,7 +207,7 @@ if request == None:
     quit("no jobs found in queue")
 
 
-if rank == 0:
+if job.rank == 0:
     # update status of request in msr queue to 2
     pass
 
@@ -245,7 +235,7 @@ if dataset_id not in iso3_lookup.keys():
 
 release_path = None
 
-if rank == 0:
+if job.rank == 0:
     asdf = client[config.asdf_db].data
     release_path = asdf.find({'name': request['dataset']})[0]['base']
     print(release_path)
@@ -297,30 +287,12 @@ core.set_pixel_size(request['options']['resolution'])
 # -------------------------------------
 # file paths
 
-# dir_working = os.path.dirname(request_path)
-
 # dir_working = os.path.join(branch_dir, log, msr, jobs)
-
 dir_working =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
 
-
-# add request from mongo to request.json
-# might be better to just include this in output.json
-if rank == 0:
-
+if job.rank == 0:
+    # build output directories
     make_dir(dir_working)
-
-    tmp_request = request
-    if "_id" in tmp_request.keys():
-        tmp_request['_id'] = str(tmp_request['_id'])
-
-    json_path = dir_working +'/request.json'
-    json_output = json.dumps(tmp_request, sort_keys = True, indent = 4)
-
-    # # write json
-    json_file = open(json_path, 'w')
-    json_file.write(json_output)
-    json_file.close()
 
 
 # -------------------------------------
@@ -329,10 +301,6 @@ if rank == 0:
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
-# adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm0.shp")
-# adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm1.shp")
-# adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
-
 adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm0.shp")
 adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm1.shp")
 adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm2.shp")
@@ -456,9 +424,6 @@ filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(z.split_doll
 
 # -------------------------------------
 # assign geometries
-if rank == 0:
-    print("geom")
-
 
 # add geom columns
 filtered["agg_type"] = pd.Series(["None"] * len(filtered))
@@ -475,8 +440,6 @@ i_m['index'] = range(0, len(i_m))
 i_m = i_m.set_index('index')
 
 unique_ids = i_m['unique']
-
-task_list = unique_ids
 
 
 # =============================================================================
@@ -496,13 +459,147 @@ tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 # =============================================================================
 
 
-def complete_final_raster():
+def tmp_worker_job(task_id):
 
-    # =============================================================================
+    tmp_grid_gdf = grid_gdf.copy(deep=True)
+    tmp_grid_gdf['value'] = 0
+
+    task = task_list[task_id]
+
+    pg_data = i_m.loc[task]
+    pg_type = pg_data.agg_type
+
+    print(str(self.rank) + 'running pg_type: ' + pg_type + '('+ str(pg_data['project_location_id']) +')')
+
+
+    if pg_type == "country":
+        
+        tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
+
+
+    elif pg_type == "point":
+
+        # round new grid points to old grid points and update old grid
+
+        tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, round(pg_data.longitude * core.psi) / core.psi)
+        tmp_value = pg_data['adjusted_aid']
+
+        if tmp_value != 0:
+            tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(tmp_point.y * core.psi) / core.psi, round(tmp_point.x * core.psi) / core.psi), 'value'] += tmp_value
+
+
+    elif pg_type in core.agg_types:
+
+        # for each row generate grid based on bounding box of geometry
+        pg_geom = pg_data.agg_geom
+
+        try:
+            pg_geom = shape(pg_geom)
+        except:
+            print(type(pg_geom))
+            print(pg_geom)
+            sys.exit("!!!")
+
+        # factor used to determine subgrid size
+        # relative to output grid size
+        # sub grid res = output grid res * sub_grid_factor
+        sub_grid_factor = 0.1
+        pg_pixel_size = core.pixel_size * sub_grid_factor
+
+
+        if pg_geom.geom_type == 'MultiPolygon':
+            
+            pg_cols = []
+            pg_rows = []
+
+            for pg_geom_part in pg_geom:
+
+                tmp_pg_cols, tmp_pg_rows = core.geom_to_grid_colrows(pg_geom_part, pg_pixel_size, rounded=True, no_multi=True)
+
+                pg_cols = np.append(pg_cols, tmp_pg_cols)
+                pg_rows = np.append(pg_rows, tmp_pg_rows)
+
+
+            pg_cols = set(pg_cols)
+            pg_rows = set(pg_rows)
+
+        else:
+        
+            pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
+
+
+        # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
+
+        tmp_product = list(itertools.product(pg_cols, pg_rows))
+        tmp_gdf = gpd.GeoDataFrame()
+        tmp_gdf['within'] = [0] * len(tmp_product)
+        tmp_gdf['geometry'] = tmp_product
+        tmp_gdf['geometry'] = tmp_gdf.apply(lambda z: Point(z.geometry), axis=1)
+        
+
+        # round to reference grid points and fix -0.0
+        tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * core.psi) / core.psi), axis=1)
+        tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.x * core.psi) / core.psi), axis=1)
+
+
+        pg_geom_prep = prep(pg_geom)
+        tmp_gdf['within'] = [pg_geom_prep.contains(i) for i in tmp_gdf['geometry']]
+
+
+        pg_count = sum(tmp_gdf['within'])
+        tmp_gdf['value'] = 0
+        tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count)
+
+        # tmp_gdf.sort(['ref_lat','ref_lon'], ascending=[False, True], inplace=True)
+        aggregated_total = tmp_gdf.groupby(['ref_lat','ref_lon'])['value'].sum()
+        
+        agg_df = aggregated_total.reset_index()
+
+        agg_df['index'] = agg_df.apply(lambda z: str(z.ref_lon) +'_'+ str(z.ref_lat), axis=1)
+        agg_df.set_index('index', inplace=True)
+
+
+        try:
+            tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
+
+        except:
+            for i in agg_df.index:
+                print('bad index iters')
+                print(i)
+                print(i in tmp_grid_gdf.index)
+
+
+    # -------------------------------------
+    # send np arrays back to master
+
+    mean_surf = np.array(tmp_grid_gdf['value'])
+
+    return mean_surf
+
+
+def tmp_master_process(worker_data):
+    all_mean_surf.append(worker_data)
+
+
+def complete_final_raster():
     # build and output final raster
 
-    # calc results
+    # initialize asc file output
+    asc = ""
+    asc += "NCOLS " + str(len(cols)) + "\n"
+    asc += "NROWS " + str(len(rows)) + "\n"
 
+    # asc += "XLLCORNER " + str(adm0_minx-core.pixel_size*0.5) + "\n"
+    # asc += "YLLCORNER " + str(adm0_miny-core.pixel_size*0.5) + "\n"
+
+    asc += "XLLCENTER " + str(adm0_minx) + "\n"
+    asc += "YLLCENTER " + str(adm0_miny) + "\n"
+
+    asc += "CELLSIZE " + str(core.pixel_size) + "\n"
+    asc += "NODATA_VALUE " + str(core.nodata) + "\n"
+
+
+    # calc results
     stack_mean_surf = np.vstack(all_mean_surf)
     sum_mean_surf = np.sum(stack_mean_surf, axis=0)
 
@@ -520,11 +617,8 @@ def complete_final_raster():
 
 
 def complete_unique_geoms():
-
-    # =============================================================================
     # output unique geometries and sum of all 
     # project locations associated with that geometry
-
 
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
@@ -570,8 +664,6 @@ def complete_unique_geoms():
 
 
 def complete_options_json():
-
-    # =============================================================================
     # output msr options as json (might be loaded into mongo?)
 
     mops = {}
@@ -579,6 +671,7 @@ def complete_options_json():
     def add_to_json(field, data):
         mops[field] = data
 
+    add_to_json("request",request)
 
     add_to_json("size",size)
     add_to_json("run_stage",run_stage)
@@ -586,14 +679,10 @@ def complete_options_json():
     add_to_json("run_version",run_version)
     add_to_json("run_id",run_id)
     add_to_json("Ts",Ts)
-    # add_to_json("Rid",Rid)
 
     add_to_json("dataset",request['dataset'])
     add_to_json("abbr",abbr)
     add_to_json("pixel_size",core.pixel_size)
-
-    # add_to_json("filters",filters)
-    # add_to_json("filters_hash",filters_hash)
 
     add_to_json("nodata",core.nodata)
     add_to_json("aid_field",core.aid_field)
@@ -604,9 +693,6 @@ def complete_options_json():
     add_to_json("code_field_2",core.code_field_2)
     add_to_json("agg_types",core.agg_types)
     add_to_json("lookup",core.lookup)
-
-    add_to_json("dir_working",dir_working)
-    # add_to_json("path of surf file used",)
 
     add_to_json("adm0_minx",adm0_minx)
     add_to_json("adm0_miny",adm0_miny)
@@ -621,23 +707,17 @@ def complete_options_json():
     # add_to_json("T_unique",T_unique)
     # add_to_json("T_total",T_total)
 
+    add_to_json("dir_working",dir_working)
     add_to_json("status",0)
 
 
-    # put json in msr/json/mongo/ready folder
+    # write output.json
     json_out = dir_working+'/output.json'
-    # make_dir(os.path.dirname(json_out))
-    json_handle1 = open(json_out, 'w')
-    json.dump(mops, json_handle1, sort_keys = True, indent = 4, ensure_ascii=False)
-
-    # store json with outputs as meta
-    # json_handle2 = open(dir_working+'/'+str(Rid)+'.json',"w")
-    # json.dump(mops, json_handle2, sort_keys = True, indent = 4, ensure_ascii=False)
+    json_handle = open(json_out, 'w')
+    json.dump(mops, json_handle, sort_keys = True, indent = 4, ensure_ascii=False)
 
 
 def complete_outputs():
-
-    # =============================================================================
     # move entire dir for job from msr queue "active" dir to "done" dir  
     # and copy data files to msr data dir
 
@@ -668,12 +748,8 @@ def complete_outputs():
 
 
 def tmp_master_final():
-    # =====================================
-    # MASTER FINAL
 
-    # -------------------------------------
     # record surf runtime
-
     time_surf = time.time()
     T_surf = int(time_surf - time_init)
 
@@ -681,6 +757,7 @@ def tmp_master_final():
     print('\n')
 
 
+    # run final output gen functions
     complete_final_raster()
     complete_unique_geoms()
     complete_options_json()
@@ -692,47 +769,17 @@ def tmp_master_final():
     T_unique = int(time_end - time_surf)
     T_total = int(time_end - Ts)
 
-    # =====================================
-
-
-def tmp_master_process(worker_data):
-    all_mean_surf.append(worker_data)
 
 
 # =============================================================================
 # =============================================================================
-# generate mean surface raster
-# mpi comms structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
 
 
-if rank == 0:
+if job.rank == 0:
 
 
     # =====================================
     # MASTER INIT
-
-    # -------------------------------------
-    # initialize asc file output
-
-    asc = ""
-    asc += "NCOLS " + str(len(cols)) + "\n"
-    asc += "NROWS " + str(len(rows)) + "\n"
-
-    # asc += "XLLCORNER " + str(adm0_minx-core.pixel_size*0.5) + "\n"
-    # asc += "YLLCORNER " + str(adm0_miny-core.pixel_size*0.5) + "\n"
-
-    asc += "XLLCENTER " + str(adm0_minx) + "\n"
-    asc += "YLLCENTER " + str(adm0_miny) + "\n"
-
-    asc += "CELLSIZE " + str(core.pixel_size) + "\n"
-    asc += "NODATA_VALUE " + str(core.nodata) + "\n"
-
-
-    # -------------------------------------
-    # build output directories
-
-    make_dir(dir_working)
-
 
     # -------------------------------------
     # record init runtime
@@ -752,209 +799,17 @@ if rank == 0:
     # =====================================
 
 
-    task_index = 0
-    num_workers = size - 1
-    closed_workers = 0
-    err_status = 0
 
-    print("Master - starting with %d workers" % num_workers)
+# init / run job
 
-    # distribute work
-    while closed_workers < num_workers:
-        worker_data = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
-        source = status.Get_source()
-        tag = status.Get_tag()
+job = NewParallel()
+job.set_task_list(unique_ids)
 
-        if tag == tags.READY:
+# job.set_general_init(tmp_general_init)
+# job.set_master_init(tmp_master_init)
+job.set_master_process(tmp_master_process)
+job.set_master_final(tmp_master_final)
+job.set_worker_job(tmp_worker_job)
 
-            if task_index < len(task_list):
-                print("Master - sending task %d to worker %d" % (task_index, source))
+job.run()
 
-                comm.send(task_index, dest=source, tag=tags.START)
-
-                task_index += 1
-
-            else:
-                comm.send(None, dest=source, tag=tags.EXIT)
-
-        elif tag == tags.DONE:
-            print("Master - got surf data from worker %d" % source)
-
-            # ==================================================
-            # MASTER PROCESS
-        
-            tmp_master_process(worker_data)
-
-            # ==================================================
-
-        elif tag == tags.EXIT:
-            print("Master - worker %d exited." % source)
-            closed_workers += 1
-
-        elif tag == tags.ERROR:
-            print("Master - error reported by surf worker %d ." % source)
-            # broadcast error to all workers
-            for i in range(1, size):
-                comm.send(None, dest=i, tag=tags.ERROR)
-
-            err_status = 1
-            break
-
-
-    if err_status == 0:
-        print("Master - processing results")
-
-        # ==================================================
-        # MASTER FINAL
-    
-        tmp_master_final()
-
-        # ==================================================
-
-    else:
-        print("Master - terminating due to worker error.")
-
-
-else:
-    # Worker processes execute code below
-    name = MPI.Get_processor_name()
-    print("Worker - rank %d on %s." % (rank, name))
-    while True:
-        comm.send(None, dest=0, tag=tags.READY)
-        task_id = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
-        tag = status.Get_tag()
-
-        if tag == tags.START:
-
-            # =====================================
-            # WORKER JOB
-
-            tmp_grid_gdf = grid_gdf.copy(deep=True)
-            tmp_grid_gdf['value'] = 0
-
-            task = task_list[task_id]
-
-            pg_data = i_m.loc[task]
-            pg_type = pg_data.agg_type
-
-            print(str(rank) + 'running pg_type: ' + pg_type + '('+ str(pg_data['project_location_id']) +')')
-
-
-            if pg_type == "country":
-                
-                tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
-
-
-            elif pg_type == "point":
-
-                # round new grid points to old grid points and update old grid
-
-                tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, round(pg_data.longitude * core.psi) / core.psi)
-                tmp_value = pg_data['adjusted_aid']
-
-                if tmp_value != 0:
-                    tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(tmp_point.y * core.psi) / core.psi, round(tmp_point.x * core.psi) / core.psi), 'value'] += tmp_value
-
-
-            elif pg_type in core.agg_types:
-
-                # for each row generate grid based on bounding box of geometry
-                pg_geom = pg_data.agg_geom
-
-                try:
-                    pg_geom = shape(pg_geom)
-                except:
-                    print(type(pg_geom))
-                    print(pg_geom)
-                    sys.exit("!!!")
-
-                # factor used to determine subgrid size
-                # relative to output grid size
-                # sub grid res = output grid res * sub_grid_factor
-                sub_grid_factor = 0.1
-                pg_pixel_size = core.pixel_size * sub_grid_factor
-
-
-                if pg_geom.geom_type == 'MultiPolygon':
-                    
-                    pg_cols = []
-                    pg_rows = []
-
-                    for pg_geom_part in pg_geom:
-
-                        tmp_pg_cols, tmp_pg_rows = core.geom_to_grid_colrows(pg_geom_part, pg_pixel_size, rounded=True, no_multi=True)
-
-                        pg_cols = np.append(pg_cols, tmp_pg_cols)
-                        pg_rows = np.append(pg_rows, tmp_pg_rows)
-
-
-                    pg_cols = set(pg_cols)
-                    pg_rows = set(pg_rows)
-
-                else:
-                
-                    pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
-
-
-                # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
-
-                tmp_product = list(itertools.product(pg_cols, pg_rows))
-                tmp_gdf = gpd.GeoDataFrame()
-                tmp_gdf['within'] = [0] * len(tmp_product)
-                tmp_gdf['geometry'] = tmp_product
-                tmp_gdf['geometry'] = tmp_gdf.apply(lambda z: Point(z.geometry), axis=1)
-                
-
-                # round to reference grid points and fix -0.0
-                tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * core.psi) / core.psi), axis=1)
-                tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.x * core.psi) / core.psi), axis=1)
-
-
-                pg_geom_prep = prep(pg_geom)
-                tmp_gdf['within'] = [pg_geom_prep.contains(i) for i in tmp_gdf['geometry']]
-
-
-                pg_count = sum(tmp_gdf['within'])
-                tmp_gdf['value'] = 0
-                tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count)
-
-                # tmp_gdf.sort(['ref_lat','ref_lon'], ascending=[False, True], inplace=True)
-                aggregated_total = tmp_gdf.groupby(['ref_lat','ref_lon'])['value'].sum()
-                
-                agg_df = aggregated_total.reset_index()
-
-                agg_df['index'] = agg_df.apply(lambda z: str(z.ref_lon) +'_'+ str(z.ref_lat), axis=1)
-                agg_df.set_index('index', inplace=True)
-
-
-                try:
-                    tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
-
-                except:
-                    for i in agg_df.index:
-                        print('bad index iters')
-                        print(i)
-                        print(i in tmp_grid_gdf.index)
-
-
-            # -------------------------------------
-            # send np arrays back to master
-
-            mean_surf = np.array(tmp_grid_gdf['value'])
-
-            worker_result = mean_surf
-
-            # =====================================
-
-            comm.send(worker_result, dest=0, tag=tags.DONE)
-
-
-        elif tag == tags.EXIT:
-            comm.send(None, dest=0, tag=tags.EXIT)
-            break
-
-        elif tag == tags.ERROR:
-            print("Worker - error message from Surf Master. Shutting down." % source)
-            # confirm error message received and exit
-            comm.send(None, dest=0, tag=tags.EXIT)
-            break
