@@ -672,7 +672,11 @@ def complete_options_json():
     def add_to_json(field, data):
         mops[field] = data
 
-    add_to_json("request",request)
+    tmp_request = request
+    if "_id" in tmp_request.keys():
+        tmp_request['_id'] = str(tmp_request['_id'])
+
+    add_to_json("request",tmp_request)
 
     add_to_json("size",job.size)
     add_to_json("run_stage",run_stage)
