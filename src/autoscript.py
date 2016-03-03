@@ -25,7 +25,7 @@ from __future__ import print_function
 from mpi_utility import *
 
 job = NewParallel()
-
+print job.rank
 
 # -------------------------------------
 
@@ -201,7 +201,7 @@ else:
    request = None
 
 
-request = comm.bcast(request, root=0)
+request = job.comm.bcast(request, root=0)
 
 if request == None:
     quit("no jobs found in queue")
@@ -241,7 +241,7 @@ if job.rank == 0:
     print(release_path)
 
 
-release_path = comm.bcast(release_path, root=0)
+release_path = job.comm.bcast(release_path, root=0)
 
 
 
