@@ -184,7 +184,8 @@ if job.rank == 0:
 
     msr = client[config.det_db].msr
 
-    request_list = msr.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+    # request_list = msr.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+    request_list = msr.find({'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
 
     # make sure request was found
     if request_list.count(True) == 1:
@@ -459,7 +460,7 @@ tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 # =============================================================================
 
 
-def tmp_worker_job(task_id):
+def tmp_worker_job(self, task_id):
 
     tmp_grid_gdf = grid_gdf.copy(deep=True)
     tmp_grid_gdf['value'] = 0
