@@ -444,19 +444,6 @@ unique_ids = list(i_m['unique'])
 
 
 # =============================================================================
-# define MPI message tags
-
-def enum(*sequential, **named):
-    """Generate an enum type object."""
-    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
-    enums = dict(zip(sequential, range(len(sequential))), **named)
-    return type('Enum', (), enums)
-
-
-tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
-
-
-# =============================================================================
 # =============================================================================
 
 
