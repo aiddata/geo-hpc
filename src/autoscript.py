@@ -205,8 +205,8 @@ core = CoreMSR()
 core.time['start'] = int(time.time())
 
 if job.rank == 0:
-    print 'Starting MSR'
-    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
+    print '\nStarting MSR'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +') \n'
 
 # absolute path to script directory
 dir_file = os.path.dirname(os.path.abspath(__file__))
@@ -434,8 +434,8 @@ def tmp_master_init(self):
 
     # record runtime of general init
     core.time['init'] = int(time.time()) - core.time['start']
-    print '\tInit Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s'
-    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
+    print 'Init Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +') \n'
 
 
 def tmp_worker_job(self, task_id):
@@ -740,8 +740,14 @@ def tmp_master_final(self):
     # record surf runtime
     core.time['surf'] = int(time.time()) - core.time['init']
 
-    print '\tSurf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s'
-    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
+    print int(time.time())
+    print core.time['init']
+    print core.time['surf']
+    print core.time['surf']//60
+    print core.time['surf'] % 60
+
+    print 'Surf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +') \n'
 
 
     # run final output gen functions
@@ -753,12 +759,12 @@ def tmp_master_final(self):
     core.time['output'] = int(time.time()) - core.time['surf']
     core.time['total'] = int(time.time()) - core.time['start']
 
-    print '\tOutput Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s'
-    print '\tTotal Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s'
+    print 'Output Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s'
+    print 'Total Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s'
 
     core.time['end'] = int(time.time())
-    print 'Ending MSR' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
+    print '\nEnding MSR'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +') \n'
 
 
     # write output json and finalize output folders
