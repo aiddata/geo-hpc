@@ -695,7 +695,7 @@ def complete_options_json():
     add_to_json("start_time",core.time['start'])
     add_to_json("time_init",core.time['init'])
     add_to_json("time_surf",core.time['surf'])
-    add_to_json("time_unique",core.time['unique'])
+    add_to_json("time_output",core.time['output'])
     add_to_json("time_total",core.time['total'])
     add_to_json("end_time",core.time['end'])
 
