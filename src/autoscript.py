@@ -767,7 +767,7 @@ def tmp_master_final(self):
 
     # calc section runtime and total runtime
     core.time['output'] = int(time.time())
-    core.time['dur_output'] = core.time['output' - core.time['surf']
+    core.time['dur_output'] = core.time['output'] - core.time['surf']
     core.time['total'] = int(time.time())
     core.time['dur_total'] = core.time['total'] - core.time['start']
 
