@@ -434,7 +434,7 @@ def tmp_master_init(self):
 
 
     # record runtime of general init
-    core.time['init'] = int(time.time()) - core.time['start'])
+    core.time['init'] = int(time.time()) - core.time['start']
     print '\tInit Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s \n'
 
 
@@ -738,7 +738,7 @@ def complete_outputs():
 def tmp_master_final(self):
 
     # record surf runtime
-    core.time['surf'] = int(time.time()) - core.time['init'])
+    core.time['surf'] = int(time.time()) - core.time['init']
 
     print '\tSurf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s \n'
 
@@ -751,8 +751,8 @@ def tmp_master_final(self):
 
 
     # calc section runtime and total runtime
-    core.time['output'] = int(time.time()) - core.time['surf'])
-    core.time['total'] = int(time.time()) - core.time['start'])
+    core.time['output'] = int(time.time()) - core.time['surf']
+    core.time['total'] = int(time.time()) - core.time['start']
 
     print '\tOutput Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s \n'
     print '\tTotal Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s \n'
