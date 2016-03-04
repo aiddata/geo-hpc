@@ -256,7 +256,7 @@ class CoreMSR():
 
     def process_data(self, data_directory, request_object):
 
-        merged = self.merge_data(dir_data, "project_id", (self.code_field_1, self.code_field_2, "project_location_id"), self.only_geocoded)
+        merged = self.merge_data(data_directory, "project_id", (self.code_field_1, self.code_field_2, "project_location_id"), self.only_geocoded)
 
 
         # -------------------------------------
@@ -293,21 +293,21 @@ class CoreMSR():
         # 
 
         # filter sectors and donors
-        if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
-            filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))].copy(deep=True)
+        if request_object['options']['donors'] == ['All'] and request_object['options']['sectors'] != ['All']:
+            filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request_object['options']['sectors']))].copy(deep=True)
 
-        elif request['options']['donors'] != ['All'] and request['options']['sectors'] == ['All']:
-            filtered = merged.loc[merged['donors'].str.contains('|'.join(request['options']['donors']))].copy(deep=True)
+        elif request_object['options']['donors'] != ['All'] and request_object['options']['sectors'] == ['All']:
+            filtered = merged.loc[merged['donors'].str.contains('|'.join(request_object['options']['donors']))].copy(deep=True)
 
-        elif request['options']['donors'] != ['All'] and request['options']['sectors'] != ['All']:
-            filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
+        elif request_object['options']['donors'] != ['All'] and request_object['options']['sectors'] != ['All']:
+            filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request_object['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request_object['options']['donors'])))].copy(deep=True)
 
         else:
             filtered = merged.copy(deep=True)
          
 
         # adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
-        filtered['adjusted_aid'] = filtered.apply(lambda z: self.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
+        filtered['adjusted_aid'] = filtered.apply(lambda z: self.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request_object['options']['sectors'], request_object['options']['donors']), axis=1)
 
 
         # -------------------------------------
