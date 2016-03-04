@@ -324,8 +324,8 @@ class CoreMSR():
         # 
 
         # filter sectors and donors
-        if request_object['options']['donors'] == ['All'] and 
-                request_object['options']['sectors'] != ['All']:
+        if (request_object['options']['donors'] == ['All'] and 
+                request_object['options']['sectors'] != ['All']):
             
             filtered = merged.loc[
                 merged['ad_sector_names'].str.contains(
@@ -333,8 +333,8 @@ class CoreMSR():
                 )
             ].copy(deep=True)
 
-        elif request_object['options']['donors'] != ['All'] and 
-                request_object['options']['sectors'] == ['All']:
+        elif (request_object['options']['donors'] != ['All'] and 
+                request_object['options']['sectors'] == ['All']):
             
             filtered = merged.loc[
                 merged['donors'].str.contains(
@@ -342,8 +342,8 @@ class CoreMSR():
                 )
             ].copy(deep=True)
 
-        elif request_object['options']['donors'] != ['All'] and 
-                request_object['options']['sectors'] != ['All']:
+        elif (request_object['options']['donors'] != ['All'] and 
+                request_object['options']['sectors'] != ['All']):
             
             filtered = merged.loc[(
                 merged['ad_sector_names'].str.contains(
