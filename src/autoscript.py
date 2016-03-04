@@ -112,7 +112,8 @@ def quit(msg):
     Args:
         msg (str): message to add to log upon exiting
 
-    Function also manages error reporting and cleans up / moves request files.
+    Function also manages error reporting and cleans 
+    up / moves request files.
     """
     e_request_basename = os.path.basename(request_path)
 
@@ -154,8 +155,13 @@ if job.rank == 0:
 
     msr = client[config.det_db].msr
 
-    # request_list = msr.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
-    request_list = msr.find({'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"}).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+    # request_list = msr.find({
+    #     'status':0
+    # }).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+
+    request_list = msr.find({
+        'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
+    }).sort([("priority", -1), ("submit_time", 1)]).limit(1)
 
     # make sure request was found
     if request_list.count(True) == 1:
@@ -275,81 +281,9 @@ core.set_adm0(tmp_adm0)
 # DATA INIT
 
 # -------------------------------------
-# load project data
+# load / process data and get task list
 
-# dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 dir_data = release_path +'/'+ os.path.basename(release_path) +'/data'
-
-# merged = core.merge_data(dir_data, "project_id", (core.code_field_1, core.code_field_2, "project_location_id"), core.only_geocoded)
-
-
-# # -------------------------------------
-# # misc data prep
-
-# # get location count for each project
-# merged['ones'] = (pd.Series(np.ones(len(merged)))).values
-
-# # get project location count
-# grouped_location_count = merged.groupby('project_id')['ones'].sum()
-
-
-# # create new empty dataframe
-# df_location_count = pd.DataFrame()
-
-# # add location count series to dataframe
-# df_location_count['location_count'] = grouped_location_count
-
-# # add project_id field
-# df_location_count['project_id'] = df_location_count.index
-
-# # merge location count back into data
-# merged = merged.merge(df_location_count, on='project_id')
-
-# # aid field value split evenly across all project locations based on location count
-# merged[core.aid_field].fillna(0, inplace=True)
-# merged['split_dollars_pp'] = (merged[core.aid_field] / merged.location_count)
-
-
-# # -------------------------------------
-# # filters
-
-# # filter years
-# # 
-
-# # filter sectors and donors
-# if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
-#     filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))].copy(deep=True)
-
-# elif request['options']['donors'] != ['All'] and request['options']['sectors'] == ['All']:
-#     filtered = merged.loc[merged['donors'].str.contains('|'.join(request['options']['donors']))].copy(deep=True)
-
-# elif request['options']['donors'] != ['All'] and request['options']['sectors'] != ['All']:
-#     filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
-
-# else:
-#     filtered = merged.copy(deep=True)
- 
-
-# # adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
-# filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
-
-
-# # -------------------------------------
-# # assign geometries
-
-# # add geom columns
-# filtered["agg_type"] = pd.Series(["None"] * len(filtered))
-# filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
-
-# filtered.agg_type = filtered.apply(lambda x: core.get_geom_type(x[core.is_geocoded], x[core.code_field_1], x[core.code_field_2]), axis=1)
-# filtered.agg_geom = filtered.apply(lambda x: core.get_geom_val(x.agg_type, x[core.code_field_1], x[core.code_field_2], x.longitude, x.latitude), axis=1)
-# active_data = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
-
-
-# # active_data['index'] = active_data['project_location_id']
-# active_data['unique'] = range(0, len(active_data))
-# active_data['index'] = range(0, len(active_data))
-# active_data = active_data.set_index('index')
 
 active_data = core.process_data(dir_data, request)
 
@@ -380,7 +314,11 @@ core.set_pixel_size(request['options']['resolution'])
 gb = 0.5
 
 # bounding box rounded to pixel size (always increases bounding box size, never decreases)
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*gb)/gb, math.floor(adm0_miny*gb)/gb, math.ceil(adm0_maxx*gb)/gb, math.ceil(adm0_maxy*gb)/gb)
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (
+    math.floor(adm0_minx*gb)/gb, 
+    math.floor(adm0_miny*gb)/gb, 
+    math.ceil(adm0_maxx*gb)/gb, 
+    math.ceil(adm0_maxy*gb)/gb)
 
 # generate arrays of new grid x and y values
 cols = np.arange(adm0_minx, adm0_maxx+core.pixel_size*0.5, core.pixel_size)
@@ -426,7 +364,8 @@ sum_mean_surf = 0
 all_mean_surf = []
 
 # dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
+dir_working = '/sciclone/aiddata10/REU/msr/queue/active/' 
+    + request['dataset'] +'_'+ request['hash']
 
 
 # =============================================================================
@@ -471,11 +410,16 @@ def tmp_worker_job(self, task_id):
 
         # round new grid points to old grid points and update old grid
 
-        tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, round(pg_data.longitude * core.psi) / core.psi)
+        tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, 
+                          round(pg_data.longitude * core.psi) / core.psi)
         tmp_value = pg_data['adjusted_aid']
 
         if tmp_value != 0:
-            tmp_grid_gdf.loc[tmp_grid_gdf['geometry'] == Point(round(tmp_point.y * core.psi) / core.psi, round(tmp_point.x * core.psi) / core.psi), 'value'] += tmp_value
+            tmp_grid_gdf.loc[
+                tmp_grid_gdf['geometry'] == Point(
+                    round(tmp_point.y * core.psi) / core.psi, 
+                    round(tmp_point.x * core.psi) / core.psi),
+                'value'] += tmp_value
 
 
     elif pg_type in core.agg_types:
@@ -504,7 +448,8 @@ def tmp_worker_job(self, task_id):
 
             for pg_geom_part in pg_geom:
 
-                tmp_pg_cols, tmp_pg_rows = core.geom_to_grid_colrows(pg_geom_part, pg_pixel_size, rounded=True, no_multi=True)
+                tmp_pg_cols, tmp_pg_rows = core.geom_to_grid_colrows(
+                    pg_geom_part, pg_pixel_size, rounded=True, no_multi=True)
 
                 pg_cols = np.append(pg_cols, tmp_pg_cols)
                 pg_rows = np.append(pg_rows, tmp_pg_rows)
@@ -515,7 +460,8 @@ def tmp_worker_job(self, task_id):
 
         else:
         
-            pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
+            pg_cols, pg_rows = core.geom_to_grid_colrows(
+                pg_geom, pg_pixel_size, rounded=True, no_multi=False)
 
 
         # evenly split the aid for that row (active_data['adjusted_aid'] field) among new grid points
@@ -528,8 +474,10 @@ def tmp_worker_job(self, task_id):
         
 
         # round to reference grid points and fix -0.0
-        tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * core.psi) / core.psi), axis=1)
-        tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.x * core.psi) / core.psi), axis=1)
+        tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(
+            round(z.geometry.y * core.psi) / core.psi), axis=1)
+        tmp_gdf['ref_lon'] = tmp_gdf.apply(lambda z: core.positive_zero(
+            round(z.geometry.x * core.psi) / core.psi), axis=1)
 
 
         pg_geom_prep = prep(pg_geom)
@@ -737,7 +685,8 @@ def complete_outputs():
 
 
     # make msr data dir and move raster.asc, unique.geojson, output.json there
-    msr_data_dir = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' + request['dataset'] +'/'+ request['hash']
+    msr_data_dir = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' 
+        + request['dataset'] +'/'+ request['hash']
     make_dir(msr_data_dir)
 
     msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
