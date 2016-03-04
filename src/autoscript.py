@@ -364,8 +364,8 @@ sum_mean_surf = 0
 all_mean_surf = []
 
 # dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = '/sciclone/aiddata10/REU/msr/queue/active/' 
-    + request['dataset'] +'_'+ request['hash']
+dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/' 
+               + request['dataset'] +'_'+ request['hash'])
 
 
 # =============================================================================
@@ -685,8 +685,8 @@ def complete_outputs():
 
 
     # make msr data dir and move raster.asc, unique.geojson, output.json there
-    msr_data_dir = '/sciclone/aiddata10/REU/data/rasters/internal/msr/' 
-        + request['dataset'] +'/'+ request['hash']
+    msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/' 
+                    + request['dataset'] +'/'+ request['hash'])
     make_dir(msr_data_dir)
 
     msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
