@@ -61,7 +61,9 @@ import math
 import itertools
 import json
 import shutil
+
 # from copy import deepcopy
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -278,78 +280,80 @@ core.set_adm0(tmp_adm0)
 # dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
 dir_data = release_path +'/'+ os.path.basename(release_path) +'/data'
 
-merged = core.merge_data(dir_data, "project_id", (core.code_field_1, core.code_field_2, "project_location_id"), core.only_geocoded)
+# merged = core.merge_data(dir_data, "project_id", (core.code_field_1, core.code_field_2, "project_location_id"), core.only_geocoded)
 
 
-# -------------------------------------
-# misc data prep
+# # -------------------------------------
+# # misc data prep
 
-# get location count for each project
-merged['ones'] = (pd.Series(np.ones(len(merged)))).values
+# # get location count for each project
+# merged['ones'] = (pd.Series(np.ones(len(merged)))).values
 
-# get project location count
-grouped_location_count = merged.groupby('project_id')['ones'].sum()
-
-
-# create new empty dataframe
-df_location_count = pd.DataFrame()
-
-# add location count series to dataframe
-df_location_count['location_count'] = grouped_location_count
-
-# add project_id field
-df_location_count['project_id'] = df_location_count.index
-
-# merge location count back into data
-merged = merged.merge(df_location_count, on='project_id')
-
-# aid field value split evenly across all project locations based on location count
-merged[core.aid_field].fillna(0, inplace=True)
-merged['split_dollars_pp'] = (merged[core.aid_field] / merged.location_count)
+# # get project location count
+# grouped_location_count = merged.groupby('project_id')['ones'].sum()
 
 
-# -------------------------------------
-# filters
+# # create new empty dataframe
+# df_location_count = pd.DataFrame()
 
-# filter years
-# 
+# # add location count series to dataframe
+# df_location_count['location_count'] = grouped_location_count
 
-# filter sectors and donors
-if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
-    filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))].copy(deep=True)
+# # add project_id field
+# df_location_count['project_id'] = df_location_count.index
 
-elif request['options']['donors'] != ['All'] and request['options']['sectors'] == ['All']:
-    filtered = merged.loc[merged['donors'].str.contains('|'.join(request['options']['donors']))].copy(deep=True)
+# # merge location count back into data
+# merged = merged.merge(df_location_count, on='project_id')
 
-elif request['options']['donors'] != ['All'] and request['options']['sectors'] != ['All']:
-    filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
+# # aid field value split evenly across all project locations based on location count
+# merged[core.aid_field].fillna(0, inplace=True)
+# merged['split_dollars_pp'] = (merged[core.aid_field] / merged.location_count)
 
-else:
-    filtered = merged.copy(deep=True)
+
+# # -------------------------------------
+# # filters
+
+# # filter years
+# # 
+
+# # filter sectors and donors
+# if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
+#     filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))].copy(deep=True)
+
+# elif request['options']['donors'] != ['All'] and request['options']['sectors'] == ['All']:
+#     filtered = merged.loc[merged['donors'].str.contains('|'.join(request['options']['donors']))].copy(deep=True)
+
+# elif request['options']['donors'] != ['All'] and request['options']['sectors'] != ['All']:
+#     filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
+
+# else:
+#     filtered = merged.copy(deep=True)
  
 
-# adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
-filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
+# # adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
+# filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
 
 
-# -------------------------------------
-# assign geometries
+# # -------------------------------------
+# # assign geometries
 
-# add geom columns
-filtered["agg_type"] = pd.Series(["None"] * len(filtered))
-filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
+# # add geom columns
+# filtered["agg_type"] = pd.Series(["None"] * len(filtered))
+# filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
 
-filtered.agg_type = filtered.apply(lambda x: core.get_geom_type(x[core.is_geocoded], x[core.code_field_1], x[core.code_field_2]), axis=1)
-filtered.agg_geom = filtered.apply(lambda x: core.get_geom_val(x.agg_type, x[core.code_field_1], x[core.code_field_2], x.longitude, x.latitude), axis=1)
-i_m = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
+# filtered.agg_type = filtered.apply(lambda x: core.get_geom_type(x[core.is_geocoded], x[core.code_field_1], x[core.code_field_2]), axis=1)
+# filtered.agg_geom = filtered.apply(lambda x: core.get_geom_val(x.agg_type, x[core.code_field_1], x[core.code_field_2], x.longitude, x.latitude), axis=1)
+# active_data = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
 
 
-# i_m['index'] = i_m['project_location_id']
-i_m['unique'] = range(0, len(i_m))
-i_m['index'] = range(0, len(i_m))
-i_m = i_m.set_index('index')
+# # active_data['index'] = active_data['project_location_id']
+# active_data['unique'] = range(0, len(active_data))
+# active_data['index'] = range(0, len(active_data))
+# active_data = active_data.set_index('index')
 
-unique_ids = list(i_m['unique'])
+active_data = core.process_data(dir_data, request)
+
+unique_ids = list(active_data['unique'])
 
 
 # =============================================================================
@@ -452,7 +456,7 @@ def tmp_worker_job(self, task_id):
 
     task = unique_ids[task_id]
 
-    pg_data = i_m.loc[task]
+    pg_data = active_data.loc[task]
     pg_type = pg_data.agg_type
 
     print str(self.rank) + 'running pg_type: ' + pg_type + '('+ str(pg_data['project_location_id']) +')'
@@ -514,7 +518,7 @@ def tmp_worker_job(self, task_id):
             pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
 
 
-        # evenly split the aid for that row (i_m['adjusted_aid'] field) among new grid points
+        # evenly split the aid for that row (active_data['adjusted_aid'] field) among new grid points
 
         tmp_product = list(itertools.product(pg_cols, pg_rows))
         tmp_gdf = gpd.GeoDataFrame()
@@ -610,9 +614,9 @@ def complete_unique_geoms():
     geo_df = gpd.GeoDataFrame()
     # assuming even split of total project dollars is "max" dollars 
     # that project location could receive
-    geo_df["dollars"] = i_m["adjusted_aid"]
+    geo_df["dollars"] = active_data["adjusted_aid"]
     # geometry for each project location
-    geo_df["geometry"] = gpd.GeoSeries(i_m["agg_geom"])
+    geo_df["geometry"] = gpd.GeoSeries(active_data["agg_geom"])
     # string version of geometry used to determine duplicates
     geo_df["str_geo"] = geo_df["geometry"].astype(str)
     # create and set unique index
@@ -652,7 +656,7 @@ def complete_unique_geoms():
 def complete_options_json():
     # output msr options as json (might be loaded into mongo?)
 
-    mops = {}
+    mops = OrderedDict()
 
     def add_to_json(field, data):
         mops[field] = data
@@ -692,7 +696,7 @@ def complete_options_json():
     add_to_json("adm0_maxy",adm0_maxy)
     add_to_json("rows",len(rows))
     add_to_json("cols",len(cols))
-    add_to_json("locations",len(i_m))
+    add_to_json("locations",len(active_data))
 
     # status
     add_to_json("dir_working",dir_working)
@@ -796,7 +800,7 @@ def tmp_master_final(self):
 
 # init / run job
 
-job = NewParallel()
+# job = NewParallel()
 job.set_task_list(unique_ids)
 
 # job.set_general_init(tmp_general_init)

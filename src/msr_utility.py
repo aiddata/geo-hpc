@@ -253,6 +253,84 @@ class CoreMSR():
         return tmp_merged
 
 
+
+    def process_data(self, data_directory, request_object):
+
+        merged = self.merge_data(dir_data, "project_id", (self.code_field_1, self.code_field_2, "project_location_id"), self.only_geocoded)
+
+
+        # -------------------------------------
+        # misc data prep
+
+        # get location count for each project
+        merged['ones'] = (pd.Series(np.ones(len(merged)))).values
+
+        # get project location count
+        grouped_location_count = merged.groupby('project_id')['ones'].sum()
+
+
+        # create new empty dataframe
+        df_location_count = pd.DataFrame()
+
+        # add location count series to dataframe
+        df_location_count['location_count'] = grouped_location_count
+
+        # add project_id field
+        df_location_count['project_id'] = df_location_count.index
+
+        # merge location count back into data
+        merged = merged.merge(df_location_count, on='project_id')
+
+        # aid field value split evenly across all project locations based on location count
+        merged[self.aid_field].fillna(0, inplace=True)
+        merged['split_dollars_pp'] = (merged[self.aid_field] / merged.location_count)
+
+
+        # -------------------------------------
+        # filters
+
+        # filter years
+        # 
+
+        # filter sectors and donors
+        if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
+            filtered = merged.loc[merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))].copy(deep=True)
+
+        elif request['options']['donors'] != ['All'] and request['options']['sectors'] == ['All']:
+            filtered = merged.loc[merged['donors'].str.contains('|'.join(request['options']['donors']))].copy(deep=True)
+
+        elif request['options']['donors'] != ['All'] and request['options']['sectors'] != ['All']:
+            filtered = merged.loc[(merged['ad_sector_names'].str.contains('|'.join(request['options']['sectors']))) & (merged['donors'].str.contains('|'.join(request['options']['donors'])))].copy(deep=True)
+
+        else:
+            filtered = merged.copy(deep=True)
+         
+
+        # adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
+        filtered['adjusted_aid'] = filtered.apply(lambda z: self.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
+
+
+        # -------------------------------------
+        # assign geometries
+
+        # add geom columns
+        filtered["agg_type"] = pd.Series(["None"] * len(filtered))
+        filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
+
+        filtered.agg_type = filtered.apply(lambda x: self.get_geom_type(x[self.is_geocoded], x[self.code_field_1], x[self.code_field_2]), axis=1)
+        filtered.agg_geom = filtered.apply(lambda x: self.get_geom_val(x.agg_type, x[self.code_field_1], x[self.code_field_2], x.longitude, x.latitude), axis=1)
+
+        final_dataframe = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
+
+        # final_dataframe['index'] = final_dataframe['project_location_id']
+        final_dataframe['unique'] = range(0, len(final_dataframe))
+        final_dataframe['index'] = range(0, len(final_dataframe))
+        final_dataframe = final_dataframe.set_index('index')
+
+        return final_dataframe
+
+
+
     def get_geom_type(self, is_geo, code_1, code_2):
         """Get geometry type based on lookup table.
 
