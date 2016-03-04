@@ -18,45 +18,12 @@ Data:
 # =============================================================================
 # =============================================================================
 
-
-# from mpi4py import MPI
-from mpi_utility import *
-
-job = NewParallel()
-
-
-# -------------------------------------
-
 import sys
 import os
-
-branch = sys.argv[1]
-
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-sys.path.insert(0, config_dir)
-
-from config_utility import *
-
-config = BranchConfig(branch=branch)
-
-
-# -------------------------------------
-
-
-# =============================================================================
-# =============================================================================
-
-
 import errno
 import time
 import datetime
-import random
+# import random
 import math
 import itertools
 import json
@@ -69,10 +36,12 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
+from shapely.geometry import Point, shape #, MultiPolygon, Polygon, box
 from shapely.prepared import prep
 
 import shapefile
+
+import pymongo
 
 from msr_utility import CoreMSR
 
@@ -81,8 +50,43 @@ from msr_utility import CoreMSR
 # =============================================================================
 
 
+# from mpi4py import MPI
+import mpi_utility
+
+job = mpi_utility.NewParallel()
+
+
+# -------------------------------------
+
+# import sys
+# import os
+
+branch = sys.argv[1]
+
+branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+if not os.path.isdir(branch_dir):
+    raise Exception('Branch directory does not exist')
+
+
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+sys.path.insert(0, config_dir)
+
+import config_utility
+
+config = config_utility.BranchConfig(branch=branch)
+
+
+# -------------------------------------
+
+
+# =============================================================================
+# =============================================================================
+
+
+
 def make_dir(path):
-    """Make directory. 
+    """Make directory.
 
     Args:
         path (str): absolute path for directory
@@ -103,16 +107,15 @@ def make_dir(path):
 #         msg (str): message to add to log
 #     """
 #     msg = str(msg)
-#     # 
 
 
 def quit(msg):
     """Quit msr job.
-    
+
     Args:
         msg (str): message to add to log upon exiting
 
-    Function also manages error reporting and cleans 
+    Function also manages error reporting and cleans
     up / moves request files.
     """
     e_request_basename = os.path.basename(request_path)
@@ -122,7 +125,7 @@ def quit(msg):
 
     e_request_basename_split = os.path.splitext(e_request_basename)
 
-    error_dir = e_request_basename_split[0] +"_"+ str(Ts) 
+    error_dir = e_request_basename_split[0] +"_"+ str(Ts)
 
     # make error dir
     # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
@@ -130,10 +133,10 @@ def quit(msg):
 
     # if os.path.isfile(request_path):
         # move request to error_dir
-        # 
+        #
 
     # add error file to error_dir
-    # 
+    #
 
     sys.exit(msg)
 
@@ -149,7 +152,7 @@ def quit(msg):
 # check for request
 if job.rank == 0:
 
-    import pymongo
+    # import pymongo
 
     client = pymongo.MongoClient(config.server)
 
@@ -170,17 +173,17 @@ if job.rank == 0:
         # request_id = request['_id']
 
     else:
-        request = None 
+        request = None
 
     print request
 
 else:
-   request = None
+    request = None
 
 
 request = job.comm.bcast(request, root=0)
 
-if request == None:
+if request is None:
     quit("no jobs found in queue")
 
 
@@ -315,9 +318,9 @@ gb = 0.5
 
 # bounding box rounded to pixel size (always increases bounding box size, never decreases)
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (
-    math.floor(adm0_minx*gb)/gb, 
-    math.floor(adm0_miny*gb)/gb, 
-    math.ceil(adm0_maxx*gb)/gb, 
+    math.floor(adm0_minx*gb)/gb,
+    math.floor(adm0_miny*gb)/gb,
+    math.ceil(adm0_maxx*gb)/gb,
     math.ceil(adm0_maxy*gb)/gb)
 
 # generate arrays of new grid x and y values
@@ -354,7 +357,7 @@ adm0_count = sum(grid_gdf['within'])
 
 grid_gdf['value'] = 0
 
-grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
+grid_gdf.sort(['lat', 'lon'], ascending=[False, True], inplace=True)
 
 
 # -------------------------------------
@@ -364,7 +367,7 @@ sum_mean_surf = 0
 all_mean_surf = []
 
 # dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/' 
+dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/'
                + request['dataset'] +'_'+ request['hash'])
 
 
@@ -402,7 +405,7 @@ def tmp_worker_job(self, task_id):
 
 
     if pg_type == "country":
-        
+
         tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
 
 
@@ -410,14 +413,14 @@ def tmp_worker_job(self, task_id):
 
         # round new grid points to old grid points and update old grid
 
-        tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi, 
+        tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi,
                           round(pg_data.longitude * core.psi) / core.psi)
         tmp_value = pg_data['adjusted_aid']
 
         if tmp_value != 0:
             tmp_grid_gdf.loc[
                 tmp_grid_gdf['geometry'] == Point(
-                    round(tmp_point.y * core.psi) / core.psi, 
+                    round(tmp_point.y * core.psi) / core.psi,
                     round(tmp_point.x * core.psi) / core.psi),
                 'value'] += tmp_value
 
@@ -442,7 +445,7 @@ def tmp_worker_job(self, task_id):
 
 
         if pg_geom.geom_type == 'MultiPolygon':
-            
+
             pg_cols = []
             pg_rows = []
 
@@ -459,19 +462,20 @@ def tmp_worker_job(self, task_id):
             pg_rows = set(pg_rows)
 
         else:
-        
+
             pg_cols, pg_rows = core.geom_to_grid_colrows(
                 pg_geom, pg_pixel_size, rounded=True, no_multi=False)
 
 
-        # evenly split the aid for that row (active_data['adjusted_aid'] field) among new grid points
+        # evenly split the aid for that row
+        # ( active_data['adjusted_aid'] field ) among new grid points
 
         tmp_product = list(itertools.product(pg_cols, pg_rows))
         tmp_gdf = gpd.GeoDataFrame()
         tmp_gdf['within'] = [0] * len(tmp_product)
         tmp_gdf['geometry'] = tmp_product
         tmp_gdf['geometry'] = tmp_gdf.apply(lambda z: Point(z.geometry), axis=1)
-        
+
 
         # round to reference grid points and fix -0.0
         tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(
@@ -489,8 +493,8 @@ def tmp_worker_job(self, task_id):
         tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count)
 
         # tmp_gdf.sort(['ref_lat','ref_lon'], ascending=[False, True], inplace=True)
-        aggregated_total = tmp_gdf.groupby(['ref_lat','ref_lon'])['value'].sum()
-        
+        aggregated_total = tmp_gdf.groupby(['ref_lat', 'ref_lon'])['value'].sum()
+
         agg_df = aggregated_total.reset_index()
 
         agg_df['index'] = agg_df.apply(lambda z: str(z.ref_lon) +'_'+ str(z.ref_lat), axis=1)
@@ -550,17 +554,17 @@ def complete_final_raster():
 
     # validate sum_mean_surf
     # exit if validation fails
-    if type(sum_mean_surf) == type(0):
+    if isinstance(sum_mean_surf, int):
         sys.exit("! - mean surf validation failed")
 
 
 def complete_unique_geoms():
-    # output unique geometries and sum of all 
+    # output unique geometries and sum of all
     # project locations associated with that geometry
 
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
-    # assuming even split of total project dollars is "max" dollars 
+    # assuming even split of total project dollars is "max" dollars
     # that project location could receive
     geo_df["dollars"] = active_data["adjusted_aid"]
     # geometry for each project location
@@ -571,10 +575,10 @@ def complete_unique_geoms():
     geo_df['index'] = range(0, len(geo_df))
     geo_df = geo_df.set_index('index')
 
-    # group project locations by geometry using str_geo field 
+    # group project locations by geometry using str_geo field
     # and for each unique geometry get the sum of dollars for
     # all project locations with that geometry
-    sum_unique = geo_df.groupby(by ='str_geo')['dollars'].sum()
+    sum_unique = geo_df.groupby(by='str_geo')['dollars'].sum()
 
     # temporary dataframe with unique geometry and dollar sums
     # which can be used to merge with original geo_df dataframe
@@ -583,11 +587,11 @@ def complete_unique_geoms():
     tmp_geo_df['str_geo'] = tmp_geo_df.index
 
     # merge geo_df with tmp_geo_df
-    new_geo_df = geo_df.merge(tmp_geo_df, how = 'inner', on = "str_geo")
+    new_geo_df = geo_df.merge(tmp_geo_df, how='inner', on="str_geo")
     # drops duplicate rows
-    new_geo_df.drop_duplicates(subset = "str_geo", inplace = True)
+    new_geo_df.drop_duplicates(subset="str_geo", inplace=True)
     # gets rid of str_geo column
-    new_geo_df.drop('str_geo', axis = 1, inplace = True)
+    new_geo_df.drop('str_geo', axis=1, inplace=True)
 
     # create final output geodataframe with index, unique_dollars and unique geometry
     out_geo_df = gpd.GeoDataFrame()
@@ -598,7 +602,7 @@ def complete_unique_geoms():
     # write to geojson
     geo_json = out_geo_df.to_json()
     geo_file = open(dir_working+"/unique.geojson", "w")
-    json.dump(json.loads(geo_json), geo_file, indent = 4)
+    json.dump(json.loads(geo_json), geo_file, indent=4)
 
 
 def complete_options_json():
@@ -614,68 +618,68 @@ def complete_options_json():
         tmp_request['_id'] = str(tmp_request['_id'])
 
     # dataset / request
-    add_to_json("dataset",request['dataset'])
-    add_to_json("abbr",abbr)
-    add_to_json("request",tmp_request)
+    add_to_json("dataset", request['dataset'])
+    add_to_json("abbr", abbr)
+    add_to_json("request", tmp_request)
 
     # job / script info
-    add_to_json("size",job.size)
-    add_to_json("run_stage",run_stage)
-    add_to_json("run_version_str",run_version_str)
-    add_to_json("run_version",run_version)
-    add_to_json("run_id",run_id)
+    add_to_json("size", job.size)
+    add_to_json("run_stage", run_stage)
+    add_to_json("run_version_str", run_version_str)
+    add_to_json("run_version", run_version)
+    add_to_json("run_id", run_id)
 
     # core run options
-    add_to_json("pixel_size",core.pixel_size)
-    add_to_json("nodata",core.nodata)
-    add_to_json("aid_field",core.aid_field)
-    add_to_json("is_geocoded",core.is_geocoded)
-    add_to_json("only_geocoded",core.only_geocoded)
-    add_to_json("not_geocoded",core.not_geocoded)
-    add_to_json("code_field_1",core.code_field_1)
-    add_to_json("code_field_2",core.code_field_2)
-    add_to_json("agg_types",core.agg_types)
-    add_to_json("lookup",core.lookup)
+    add_to_json("pixel_size", core.pixel_size)
+    add_to_json("nodata", core.nodata)
+    add_to_json("aid_field", core.aid_field)
+    add_to_json("is_geocoded", core.is_geocoded)
+    add_to_json("only_geocoded", core.only_geocoded)
+    add_to_json("not_geocoded", core.not_geocoded)
+    add_to_json("code_field_1", core.code_field_1)
+    add_to_json("code_field_2", core.code_field_2)
+    add_to_json("agg_types", core.agg_types)
+    add_to_json("lookup", core.lookup)
 
     # resulting spatial / table info
-    add_to_json("adm0_minx",adm0_minx)
-    add_to_json("adm0_miny",adm0_miny)
-    add_to_json("adm0_maxx",adm0_maxx)
-    add_to_json("adm0_maxy",adm0_maxy)
-    add_to_json("rows",len(rows))
-    add_to_json("cols",len(cols))
-    add_to_json("locations",len(active_data))
+    add_to_json("adm0_minx", adm0_minx)
+    add_to_json("adm0_miny", adm0_miny)
+    add_to_json("adm0_maxx", adm0_maxx)
+    add_to_json("adm0_maxy", adm0_maxy)
+    add_to_json("rows", len(rows))
+    add_to_json("cols", len(cols))
+    add_to_json("locations", len(active_data))
 
     # status
-    add_to_json("dir_working",dir_working)
-    add_to_json("status",0)
+    add_to_json("dir_working", dir_working)
+    add_to_json("status", 0)
 
     # times
-    add_to_json("time_start",core.time['start'])
-    add_to_json("time_init",core.time['init'])
-    add_to_json("time_surf",core.time['surf'])
-    add_to_json("time_output",core.time['output'])
-    add_to_json("time_total",core.time['total'])
-    add_to_json("time_end",core.time['end'])
+    add_to_json("time_start", core.time['start'])
+    add_to_json("time_init", core.time['init'])
+    add_to_json("time_surf", core.time['surf'])
+    add_to_json("time_output", core.time['output'])
+    add_to_json("time_total", core.time['total'])
+    add_to_json("time_end", core.time['end'])
 
     # timings
-    add_to_json("dur_init",core.time['dur_init'])
-    add_to_json("dur_surf",core.time['dur_surf'])
-    add_to_json("dur_output",core.time['dur_output'])
-    add_to_json("dur_total",core.time['dur_total'])
+    add_to_json("dur_init", core.time['dur_init'])
+    add_to_json("dur_surf", core.time['dur_surf'])
+    add_to_json("dur_output", core.time['dur_output'])
+    add_to_json("dur_total", core.time['dur_total'])
 
     # write output.json
     json_out = dir_working+'/output.json'
     json_handle = open(json_out, 'w')
-    json.dump(mops, json_handle, sort_keys = False, indent = 4, ensure_ascii=False)
+    json.dump(mops, json_handle, sort_keys=False, indent=4, ensure_ascii=False)
 
 
 def complete_outputs():
-    # move entire dir for job from msr queue "active" dir to "done" dir  
+    # move entire dir for job from msr queue "active" dir to "done" dir
     # and copy data files to msr data dir
 
 
-    # move entire dir for job from msr queue "active" dir to "done" dir  
+    # move entire dir for job from msr queue "active" dir to "done" dir
     dir_final = dir_working.replace('/active/', '/done/')
 
     if os.path.isdir(dir_final):
@@ -685,7 +689,7 @@ def complete_outputs():
 
 
     # make msr data dir and move raster.asc, unique.geojson, output.json there
-    msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/' 
+    msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
                     + request['dataset'] +'/'+ request['hash'])
     make_dir(msr_data_dir)
 
