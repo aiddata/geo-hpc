@@ -205,7 +205,8 @@ core = CoreMSR()
 core.time['start'] = int(time.time())
 
 if job.rank == 0:
-    print 'Start: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print 'Starting MSR'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
 
 # absolute path to script directory
 dir_file = os.path.dirname(os.path.abspath(__file__))
@@ -428,14 +429,13 @@ dir_working = '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +
 
 def tmp_master_init(self):
 
-
     # build output directories
     make_dir(dir_working)
 
-
     # record runtime of general init
     core.time['init'] = int(time.time()) - core.time['start']
-    print '\tInit Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s \n'
+    print '\tInit Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
 
 
 def tmp_worker_job(self, task_id):
@@ -740,25 +740,32 @@ def tmp_master_final(self):
     # record surf runtime
     core.time['surf'] = int(time.time()) - core.time['init']
 
-    print '\tSurf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s \n'
+    print '\tSurf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
 
 
     # run final output gen functions
     complete_final_raster()
     complete_unique_geoms()
-    complete_options_json()
-    complete_outputs()
 
 
     # calc section runtime and total runtime
     core.time['output'] = int(time.time()) - core.time['surf']
     core.time['total'] = int(time.time()) - core.time['start']
 
-    print '\tOutput Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s \n'
-    print '\tTotal Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s \n'
+    print '\tOutput Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s'
+    print '\tTotal Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s'
 
     core.time['end'] = int(time.time())
-    print 'End: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print 'Ending MSR' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +'('+ str(int(time.time())) +') \n'
+
+
+    # write output json and finalize output folders
+    complete_options_json()
+    complete_outputs()
+
+
 
 
 
