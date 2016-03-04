@@ -203,7 +203,9 @@ core = CoreMSR()
 
 # full script start time
 core.time['start'] = int(time.time())
-print 'Start: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+if job.rank == 0:
+    print 'Start: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # absolute path to script directory
 dir_file = os.path.dirname(os.path.abspath(__file__))
@@ -261,7 +263,6 @@ core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 # define country shape
 tmp_adm0 = shape(core.adm_shps[0][0])
 core.set_adm0(tmp_adm0)
-
 
 
 # =============================================================================
@@ -412,10 +413,13 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 
 
 # -------------------------------------
-# init for final calcs later (only used by master)
+# init for later (only used by master)
 
 sum_mean_surf = 0
 all_mean_surf = []
+
+# dir_working = os.path.join(branch_dir, log, msr, jobs)
+dir_working = '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
 
 
 # =============================================================================
@@ -424,15 +428,13 @@ all_mean_surf = []
 
 def tmp_master_init(self):
 
-    # dir_working = os.path.join(branch_dir, log, msr, jobs)
-    dir_working =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
 
     # build output directories
     make_dir(dir_working)
 
 
     # record runtime of general init
-    core.time['init'] = int(time.time() - core.time['start'])
+    core.time['init'] = int(time.time()) - core.time['start'])
     print '\tInit Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s \n'
 
 
@@ -736,7 +738,7 @@ def complete_outputs():
 def tmp_master_final(self):
 
     # record surf runtime
-    core.time['surf'] = int(time.time() - core.time['init'])
+    core.time['surf'] = int(time.time()) - core.time['init'])
 
     print '\tSurf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s \n'
 
@@ -749,8 +751,8 @@ def tmp_master_final(self):
 
 
     # calc section runtime and total runtime
-    core.time['output'] = int(time.time() - core.time['surf'])
-    core.time['total'] = int(time.time() - core.time['start'])
+    core.time['output'] = int(time.time()) - core.time['surf'])
+    core.time['total'] = int(time.time()) - core.time['start'])
 
     print '\tOutput Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s \n'
     print '\tTotal Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s \n'
