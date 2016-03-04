@@ -1,6 +1,4 @@
 
-from __future__ import print_function
-
 import sys
 import math
 import numpy as np
@@ -47,6 +45,9 @@ class CoreMSR():
 
     def __init__(self):
 
+
+        # --------------------------------------------------
+        # current input vars (and direct derivations)
 
         self.pixel_size = 0.05
 
@@ -111,6 +112,10 @@ class CoreMSR():
             }
         }
 
+
+        # --------------------------------------------------
+
+        self.time = {}
 
         self.adm_shps = 0
         self.adm0 = 0
@@ -210,10 +215,10 @@ class CoreMSR():
         # make sure there were no issues opening files
         if type(amp) == str or type(loc) == str:
             if type(amp) == str:
-                print(amp)
+                print amp
 
             if type(loc) == str:
-                print(loc)
+                print loc
 
             sys.exit("merge_data - error opening files")
 
@@ -272,14 +277,14 @@ class CoreMSR():
                         tmp_type = self.lookup[code_1]["default"]["type"]
                         return tmp_type
                 else:
-                    print("lookup code_1 not recognized: " + code_1)
+                    print "lookup code_1 not recognized: " + code_1
                     return "None"
 
             elif is_geo == 0:
                 return self.not_geocoded
 
             else:
-                print("is_geocoded integer code not recognized: " + str(is_geo))
+                print "is_geocoded integer code not recognized: " + str(is_geo)
                 return "None"
 
         except:
@@ -346,7 +351,7 @@ class CoreMSR():
         tmp_pnt = Point(lon, lat)
 
         if not self.is_in_country(tmp_pnt):
-            print("point not in country")
+            print "point not in country"
             return 0
 
         else:
@@ -355,7 +360,7 @@ class CoreMSR():
             else:
                 tmp_lookup = self.lookup[code_1]["default"]
 
-            # print(tmp_lookup["type"])
+            # print tmp_lookup["type"]
 
             if tmp_lookup["type"] == "point":
                 return tmp_pnt
@@ -365,7 +370,7 @@ class CoreMSR():
                     # get buffer size (meters)
                     tmp_int = float(tmp_lookup["data"])
                 except:
-                    print("buffer value could not be converted to float")
+                    print "buffer value could not be converted to float"
                     return 0
 
                 try:
@@ -373,8 +378,8 @@ class CoreMSR():
                     proj_utm = pyproj.Proj("+proj=utm +zone=" + str(self.utm_zone) + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
                     proj_wgs = pyproj.Proj(init="epsg:4326")
                 except:
-                    print("error initializing projs")
-                    print(str(self.utm_zone))
+                    print "error initializing projs"
+                    print str(self.utm_zone)
                     return 0
 
                 try:
@@ -398,7 +403,7 @@ class CoreMSR():
                         # return 0
 
                 except:
-                    print("error applying projs")
+                    print "error applying projs"
                     return 0
 
             elif tmp_lookup["type"] == "adm":
@@ -407,11 +412,11 @@ class CoreMSR():
                     return self.get_shape_within(tmp_pnt, self.adm_shps[tmp_int])
 
                 except:
-                    print("adm value could not be converted to int")
+                    print "adm value could not be converted to int"
                     return 0
 
             else:
-                print("geom object type not recognized")
+                print "geom object type not recognized"
                 return 0
 
 
@@ -449,7 +454,7 @@ class CoreMSR():
             return self.adm0
 
         else:
-            print("agg_type not recognized: " + agg_type)
+            print "agg_type not recognized: " + agg_type
             return "None"
 
 

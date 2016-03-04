@@ -19,8 +19,6 @@ Data:
 # =============================================================================
 
 
-from __future__ import print_function
-
 # from mpi4py import MPI
 from mpi_utility import *
 
@@ -57,10 +55,12 @@ config = BranchConfig(branch=branch)
 
 import errno
 import time
+import datetime
 import random
 import math
 import itertools
 import json
+import shutil
 # from copy import deepcopy
 
 import numpy as np
@@ -137,45 +137,13 @@ def quit(msg):
 
 # =============================================================================
 # =============================================================================
+# GENERAL INIT
+
+# validate request and dataset
 # init, inputs and variables
 
-# create instance of CoreMSR class
-core = CoreMSR()
 
-
-# if len(sys.argv) != 2:
-#     quit('invalid number of inputs: ' + ', '.join(sys.argv))
-
-# # request path passed via python call from jobscript
-# request_path = sys.argv[1]
-
-
-# -------------------------------------
-
-
-# absolute path to script directory
-dir_file = os.path.dirname(os.path.abspath(__file__))
-
-# full script start time
-Ts = int(time.time())
-
-
-# -------------------------------------
-# validate request and dataset
-
-# # make sure request file exists
-# if os.path.isfile(request_path):
-#     # make sure request is valid json and can be loaded
-#     try:
-#         request = json.load(open(request_path, 'r'))
-
-#     except:
-#         quit("invalid json: " + request_path)
-
-# else:
-#     quit("json file does not exists: " + request_path)
-
-
+# check for request
 if job.rank == 0:
 
     import pymongo
@@ -196,7 +164,7 @@ if job.rank == 0:
     else:
         request = None 
 
-    print(request)
+    print request
 
 else:
    request = None
@@ -208,52 +176,9 @@ if request == None:
     quit("no jobs found in queue")
 
 
+# update status of request in msr queue to 2
 if job.rank == 0:
-    # update status of request in msr queue to 2
     pass
-
-
-# =====================================
-# =====================================
-
-
-
-# load dataset to iso3 crosswalk json
-iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
-utm_lookup = json.load(open(dir_file + '/dataset_utm_lookup.json', 'r'))
-
-# get dataset crosswalk id from request
-dataset_id = request['dataset'].split('_')[0]
-
-# make sure dataset crosswalk id is in crosswalk json
-if dataset_id not in iso3_lookup.keys():
-    quit("no shp crosswalk for dataset: " + dataset_id)
-
-
-
-# lookup release path
-
-
-release_path = None
-
-if job.rank == 0:
-    asdf = client[config.asdf_db].data
-    release_path = asdf.find({'name': request['dataset']})[0]['base']
-    print(release_path)
-
-
-release_path = job.comm.bcast(release_path, root=0)
-
-
-
-# make sure dataset path given in request exists
-if not os.path.isdir(release_path):
-    quit("release path specified not found: " + release_path)
-
-
-# todo: make sure these exist in lookups first
-abbr = iso3_lookup[dataset_id]
-core.utm_zone = utm_lookup[abbr]
 
 
 # -------------------------------------
@@ -272,28 +197,52 @@ run_id = run_stage[0:1] + run_version_str
 
 
 # -------------------------------------
-# set pixel size
 
-if not 'resolution' in request['options']:
-    quit("missing pixel size input from request")
+# create instance of CoreMSR class
+core = CoreMSR()
+
+# full script start time
+core.time['start'] = int(time.time())
+print 'Start: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+# absolute path to script directory
+dir_file = os.path.dirname(os.path.abspath(__file__))
+
+# load dataset to iso3 crosswalk json
+iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
+utm_lookup = json.load(open(dir_file + '/dataset_utm_lookup.json', 'r'))
+
+# get dataset crosswalk id from request
+dataset_id = request['dataset'].split('_')[0]
+
+# make sure dataset crosswalk id is in crosswalk json
+if dataset_id not in iso3_lookup.keys():
+    quit("no shp crosswalk for dataset: " + dataset_id)
 
 
-core.set_pixel_size(request['options']['resolution'])
 
+# lookup release path
 
-# =============================================================================
-# =============================================================================
-
-
-# -------------------------------------
-# file paths
-
-# dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
+release_path = None
 
 if job.rank == 0:
-    # build output directories
-    make_dir(dir_working)
+    asdf = client[config.asdf_db].data
+    release_path = asdf.find({'name': request['dataset']})[0]['base']
+    print release_path
+
+
+release_path = job.comm.bcast(release_path, root=0)
+
+
+
+# make sure release path exists
+if not os.path.isdir(release_path):
+    quit("release path specified not found: " + release_path)
+
+
+# todo: make sure these exist in lookups first
+abbr = iso3_lookup[dataset_id]
+core.utm_zone = utm_lookup[abbr]
 
 
 # -------------------------------------
@@ -314,54 +263,10 @@ tmp_adm0 = shape(core.adm_shps[0][0])
 core.set_adm0(tmp_adm0)
 
 
-# -------------------------------------
-# create point grid for country
 
-# country bounding box
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.adm0.bounds
-
-# grid_buffer
-gb = 0.5
-
-# bounding box rounded to pixel size (always increases bounding box size, never decreases)
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*gb)/gb, math.floor(adm0_miny*gb)/gb, math.ceil(adm0_maxx*gb)/gb, math.ceil(adm0_maxy*gb)/gb)
-
-# generate arrays of new grid x and y values
-cols = np.arange(adm0_minx, adm0_maxx+core.pixel_size*0.5, core.pixel_size)
-rows = np.arange(adm0_maxy, adm0_miny-core.pixel_size*0.5, -1*core.pixel_size)
-
-sig = 10 ** len(str(core.pixel_size)[str(core.pixel_size).index('.')+1:])
-
-cols = [round(i * sig) / sig for i in cols]
-rows = [round(i * sig) / sig for i in rows]
-
-
-# init grid reference object
-
-grid_product = list(itertools.product(cols, rows))
-
-grid_gdf = gpd.GeoDataFrame()
-grid_gdf['within'] = [0] * len(grid_product)
-grid_gdf['geometry'] = grid_product
-grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
-
-grid_gdf['lat'] = grid_gdf.apply(lambda z: z['geometry'].y, axis=1)
-grid_gdf['lon'] = grid_gdf.apply(lambda z: z['geometry'].x, axis=1)
-
-grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
-grid_gdf.set_index('index', inplace=True)
-
-
-# grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
-grid_gdf['within'] = [core.prep_adm0.contains(i) for i in grid_gdf['geometry']]
-
-
-adm0_count = sum(grid_gdf['within'])
-
-grid_gdf['value'] = 0
-
-grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
-
+# =============================================================================
+# =============================================================================
+# DATA INIT
 
 # -------------------------------------
 # load project data
@@ -445,6 +350,90 @@ unique_ids = list(i_m['unique'])
 
 # =============================================================================
 # =============================================================================
+# GRID INIT
+
+# -------------------------------------
+# set pixel size
+
+if not 'resolution' in request['options']:
+    quit("missing pixel size input from request")
+
+
+core.set_pixel_size(request['options']['resolution'])
+
+
+# -------------------------------------
+# create point grid for country
+
+# country bounding box
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.adm0.bounds
+
+# grid_buffer
+gb = 0.5
+
+# bounding box rounded to pixel size (always increases bounding box size, never decreases)
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (math.floor(adm0_minx*gb)/gb, math.floor(adm0_miny*gb)/gb, math.ceil(adm0_maxx*gb)/gb, math.ceil(adm0_maxy*gb)/gb)
+
+# generate arrays of new grid x and y values
+cols = np.arange(adm0_minx, adm0_maxx+core.pixel_size*0.5, core.pixel_size)
+rows = np.arange(adm0_maxy, adm0_miny-core.pixel_size*0.5, -1*core.pixel_size)
+
+sig = 10 ** len(str(core.pixel_size)[str(core.pixel_size).index('.')+1:])
+
+cols = [round(i * sig) / sig for i in cols]
+rows = [round(i * sig) / sig for i in rows]
+
+
+# init grid reference object
+
+grid_product = list(itertools.product(cols, rows))
+
+grid_gdf = gpd.GeoDataFrame()
+grid_gdf['within'] = [0] * len(grid_product)
+grid_gdf['geometry'] = grid_product
+grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
+
+grid_gdf['lat'] = grid_gdf.apply(lambda z: z['geometry'].y, axis=1)
+grid_gdf['lon'] = grid_gdf.apply(lambda z: z['geometry'].x, axis=1)
+
+grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
+grid_gdf.set_index('index', inplace=True)
+
+
+# grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
+grid_gdf['within'] = [core.prep_adm0.contains(i) for i in grid_gdf['geometry']]
+
+
+adm0_count = sum(grid_gdf['within'])
+
+grid_gdf['value'] = 0
+
+grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
+
+
+# -------------------------------------
+# init for final calcs later (only used by master)
+
+sum_mean_surf = 0
+all_mean_surf = []
+
+
+# =============================================================================
+# =============================================================================
+# MPI FUNCTIONS
+
+def tmp_master_init(self):
+
+    # dir_working = os.path.join(branch_dir, log, msr, jobs)
+    dir_working =  '/sciclone/aiddata10/REU/msr/queue/active/' + request['dataset'] +'_'+ request['hash']
+
+    # build output directories
+    make_dir(dir_working)
+
+
+    # record runtime of general init
+    core.time['init'] = int(time.time() - core.time['start'])
+    print '\tInit Runtime: ' + str(core.time['init']//60) +'m '+ str(int(core.time['init']%60)) +'s \n'
 
 
 def tmp_worker_job(self, task_id):
@@ -457,7 +446,7 @@ def tmp_worker_job(self, task_id):
     pg_data = i_m.loc[task]
     pg_type = pg_data.agg_type
 
-    print(str(self.rank) + 'running pg_type: ' + pg_type + '('+ str(pg_data['project_location_id']) +')')
+    print str(self.rank) + 'running pg_type: ' + pg_type + '('+ str(pg_data['project_location_id']) +')'
 
 
     if pg_type == "country":
@@ -484,8 +473,8 @@ def tmp_worker_job(self, task_id):
         try:
             pg_geom = shape(pg_geom)
         except:
-            print(type(pg_geom))
-            print(pg_geom)
+            print type(pg_geom)
+            print pg_geom
             sys.exit("!!!")
 
         # factor used to determine subgrid size
@@ -552,9 +541,9 @@ def tmp_worker_job(self, task_id):
 
         except:
             for i in agg_df.index:
-                print('bad index iters')
-                print(i)
-                print(i in tmp_grid_gdf.index)
+                print 'bad index iters'
+                print i
+                print i in tmp_grid_gdf.index
 
 
     # -------------------------------------
@@ -663,18 +652,20 @@ def complete_options_json():
     if "_id" in tmp_request.keys():
         tmp_request['_id'] = str(tmp_request['_id'])
 
+    # dataset / request
+    add_to_json("dataset",request['dataset'])
+    add_to_json("abbr",abbr)
     add_to_json("request",tmp_request)
 
+    # job / script info
     add_to_json("size",job.size)
     add_to_json("run_stage",run_stage)
     add_to_json("run_version_str",run_version_str)
     add_to_json("run_version",run_version)
     add_to_json("run_id",run_id)
 
-    add_to_json("dataset",request['dataset'])
-    add_to_json("abbr",abbr)
+    # core run options
     add_to_json("pixel_size",core.pixel_size)
-
     add_to_json("nodata",core.nodata)
     add_to_json("aid_field",core.aid_field)
     add_to_json("is_geocoded",core.is_geocoded)
@@ -685,6 +676,7 @@ def complete_options_json():
     add_to_json("agg_types",core.agg_types)
     add_to_json("lookup",core.lookup)
 
+    # resulting spatial / table info
     add_to_json("adm0_minx",adm0_minx)
     add_to_json("adm0_miny",adm0_miny)
     add_to_json("adm0_maxx",adm0_maxx)
@@ -693,27 +685,29 @@ def complete_options_json():
     add_to_json("cols",len(cols))
     add_to_json("locations",len(i_m))
 
-    # add_to_json("Ts",Ts)
-    # add_to_json("T_init",T_init)
-    # add_to_json("T_surf",T_surf)
-    # add_to_json("T_unique",T_unique)
-    # add_to_json("T_total",T_total)
-
+    # status
     add_to_json("dir_working",dir_working)
     add_to_json("status",0)
+
+    # times / timings
+    add_to_json("start_time",core.time['start'])
+    add_to_json("time_init",core.time['init'])
+    add_to_json("time_surf",core.time['surf'])
+    add_to_json("time_unique",core.time['unique'])
+    add_to_json("time_total",core.time['total'])
+    add_to_json("end_time",core.time['end'])
 
 
     # write output.json
     json_out = dir_working+'/output.json'
     json_handle = open(json_out, 'w')
-    json.dump(mops, json_handle, sort_keys = True, indent = 4, ensure_ascii=False)
+    json.dump(mops, json_handle, sort_keys = False, indent = 4, ensure_ascii=False)
 
 
 def complete_outputs():
     # move entire dir for job from msr queue "active" dir to "done" dir  
     # and copy data files to msr data dir
 
-    import shutil
 
     # move entire dir for job from msr queue "active" dir to "done" dir  
     dir_final = dir_working.replace('/active/', '/done/')
@@ -742,11 +736,9 @@ def complete_outputs():
 def tmp_master_final(self):
 
     # record surf runtime
-    time_surf = time.time()
-    T_surf = int(time_surf - time_init)
+    core.time['surf'] = int(time.time() - core.time['init'])
 
-    print('\tSurf Runtime: ' + str(T_surf//60) +'m '+ str(int(T_surf%60)) +'s')
-    print('\n')
+    print '\tSurf Runtime: ' + str(core.time['surf']//60) +'m '+ str(int(core.time['surf']%60)) +'s \n'
 
 
     # run final output gen functions
@@ -757,40 +749,20 @@ def tmp_master_final(self):
 
 
     # calc section runtime and total runtime
-    time_end = time.time()
-    T_unique = int(time_end - time_surf)
-    T_total = int(time_end - Ts)
+    core.time['output'] = int(time.time() - core.time['surf'])
+    core.time['total'] = int(time.time() - core.time['start'])
+
+    print '\tOutput Runtime: ' + str(core.time['output']//60) +'m '+ str(int(core.time['output']%60)) +'s \n'
+    print '\tTotal Runtime: ' + str(core.time['total']//60) +'m '+ str(int(core.time['total']%60)) +'s \n'
+
+    core.time['end'] = int(time.time())
+    print 'End: ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
 
 # =============================================================================
 # =============================================================================
-
-
-if job.rank == 0:
-
-
-    # =====================================
-    # MASTER INIT
-
-    # -------------------------------------
-    # record init runtime
-
-    time_init = time.time()
-    T_init = int(time_init - Ts)
-
-    print('\tInit Runtime: ' + str(T_init//60) +'m '+ str(int(T_init%60)) +'s')
-
-
-    # -------------------------------------
-    # init for final calcs later
-
-    sum_mean_surf = 0
-    all_mean_surf = []
-
-    # =====================================
-
-
+# RUN MPI
 
 # init / run job
 
@@ -798,7 +770,7 @@ job = NewParallel()
 job.set_task_list(unique_ids)
 
 # job.set_general_init(tmp_general_init)
-# job.set_master_init(tmp_master_init)
+job.set_master_init(tmp_master_init)
 job.set_master_process(tmp_master_process)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
