@@ -129,7 +129,8 @@ class CoreMSR():
 
         # --------------------------------------------------
 
-        self.time = {}
+        self.times = {}
+        self.durations = {}
 
         self.adm_shps = 0
         self.adm0 = 0

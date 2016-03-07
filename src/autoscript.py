@@ -260,7 +260,7 @@ utm_zone = utm_lookup[abbr]
 core = CoreMSR()
 
 # full script start time
-core.time['start'] = int(time.time())
+core.times['start'] = int(time.time())
 
 if job.rank == 0:
     print '\n'
@@ -392,12 +392,12 @@ def tmp_master_init(self):
 
 
     # record runtime of general init
-    core.time['init'] = int(time.time())
-    core.time['dur_init'] = core.time['init'] - core.time['start']
+    core.times['init'] = int(time.time())
+    core.durations['init'] = core.times['init'] - core.times['start']
 
     print '\n'
     print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +')'
-    print 'Init Runtime: ' + str(core.time['dur_init']//60) +'m '+ str(int(core.time['dur_init']%60)) +'s'
+    print 'Init Runtime: ' + str(core.durations['init']//60) +'m '+ str(int(core.durations['init']%60)) +'s'
     print '\n'
 
 
@@ -650,10 +650,12 @@ def complete_options_json():
     add_to_json("run_version", run_version)
     add_to_json("job_size", job.size)
 
-    # dataset info / core run options
+    # dataset info
     add_to_json("dataset", request['dataset'])
     add_to_json("abbr", abbr)
     add_to_json("utm_zone", core.utm_zone)
+
+    # core run options
     add_to_json("pixel_size", core.pixel_size)
     add_to_json("nodata", core.nodata)
     add_to_json("aid_field", core.aid_field)
@@ -678,19 +680,23 @@ def complete_options_json():
     # add_to_json("dir_working", dir_working)
     # add_to_json("status", 0)
 
-    # times
-    add_to_json("time_start", core.time['start'])
-    add_to_json("time_init", core.time['init'])
-    add_to_json("time_surf", core.time['surf'])
-    add_to_json("time_output", core.time['output'])
-    add_to_json("time_total", core.time['total'])
-    add_to_json("time_end", core.time['end'])
+    # times / durations
+    add_to_json("times", core.times)
+    add_to_json("durations", core.durations)
 
-    # timings
-    add_to_json("dur_init", core.time['dur_init'])
-    add_to_json("dur_surf", core.time['dur_surf'])
-    add_to_json("dur_output", core.time['dur_output'])
-    add_to_json("dur_total", core.time['dur_total'])
+    # # times
+    # add_to_json("time_start", core.times['start'])
+    # add_to_json("time_init", core.times['init'])
+    # add_to_json("time_surf", core.times['surf'])
+    # add_to_json("time_output", core.times['output'])
+    # add_to_json("time_total", core.times['total'])
+    # add_to_json("time_end", core.times['end'])
+
+    # # timings
+    # add_to_json("dur_init", core.durations['init'])
+    # add_to_json("dur_surf", core.durations['surf'])
+    # add_to_json("dur_output", core.durations['output'])
+    # add_to_json("dur_total", core.durations['total'])
 
 
     tmp_request = request
@@ -742,12 +748,12 @@ def tmp_master_final(self):
 
 
     # record surf runtime
-    core.time['surf'] = int(time.time())
-    core.time['dur_surf'] = core.time['surf'] - core.time['init']
+    core.times['surf'] = int(time.time())
+    core.durations['surf'] = core.times['surf'] - core.times['init']
 
     print '\n'
     print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +')'
-    print 'Surf Runtime: ' + str(core.time['dur_surf']//60) +'m '+ str(int(core.time['dur_surf']%60)) +'s'
+    print 'Surf Runtime: ' + str(core.durations['surf']//60) +'m '+ str(int(core.durations['surf']%60)) +'s'
     print '\n'
 
 
@@ -757,19 +763,19 @@ def tmp_master_final(self):
 
 
     # calc section runtime and total runtime
-    core.time['output'] = int(time.time())
-    core.time['dur_output'] = core.time['output'] - core.time['surf']
-    core.time['total'] = int(time.time())
-    core.time['dur_total'] = core.time['total'] - core.time['start']
+    core.times['output'] = int(time.time())
+    core.durations['output'] = core.times['output'] - core.times['surf']
+    core.times['total'] = int(time.time())
+    core.durations['total'] = core.times['total'] - core.times['start']
 
 
     print '\n'
     print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +')'
-    print 'Output Runtime: ' + str(core.time['dur_output']//60) +'m '+ str(int(core.time['dur_output']%60)) +'s'
-    print 'Total Runtime: ' + str(core.time['dur_total']//60) +'m '+ str(int(core.time['dur_total']%60)) +'s'
+    print 'Output Runtime: ' + str(core.durations['output']//60) +'m '+ str(int(core.durations['output']%60)) +'s'
+    print 'Total Runtime: ' + str(core.durations['total']//60) +'m '+ str(int(core.durations['total']%60)) +'s'
     print '\n'
 
-    core.time['end'] = int(time.time())
+    core.times['end'] = int(time.time())
     print 'Ending MSR'
 
 
