@@ -45,6 +45,7 @@ class NewParallel():
             print "NewParallel warning: mpi4py could not be loaded"
             print "\tany instances of NewParallel will run in serial"
             self.parallel = False
+        elif
         else:
             self.parallel = parallel
 
@@ -59,6 +60,11 @@ class NewParallel():
 
             # define MPI message tags
             self.tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
+
+            if self.size == 1:
+                self.parallel = False
+                print "NewParallel warning: only one core found"
+                print "\tany instances of NewParallel will run in serial"
 
         else:
             self.size = 1
