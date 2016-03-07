@@ -20,40 +20,40 @@ class CoreMSR():
 
         nodata (int): nodata value for output raster
         aid_field (str): field name (from csv files) for aid values
-        is_geocoded (str): field name (from csv files) identifying if 
+        is_geocoded (str): field name (from csv files) identifying if
                            project is geocoded (1/0)
         only_geocoded (bool): when True, only use geocoded data
 
-        code_field_1 (str): primary field name associated with 
+        code_field_1 (str): primary field name associated with
                             values in lookup dict
-        code_field_2 (str): secondary field name associated with 
+        code_field_2 (str): secondary field name associated with
                             values in lookup dict
-        not_geocoded (str): agg_type definition for non geocoded 
+        not_geocoded (str): agg_type definition for non geocoded
                             projects. can either allocated at country
-                            level (use: "country") or 
+                            level (use: "country") or
                             ignored (use: "None")
 
         agg_types (List[str]): aggregation types used in lookup dict
-        lookup (dict):  precision and feature code values (uses default 
+        lookup (dict):  precision and feature code values (uses default
                         if feature code not listed)
                         - buffer values in meters
-                        - for adm0 / country boundary  make sure to use 
+                        - for adm0 / country boundary  make sure to use
                           type "country" instead of "adm" with data "0"
 
-        adm_shps : list containing adm shape lists for each adm level 
+        adm_shps : list containing adm shape lists for each adm level
                    (indexed by adm level #)
         adm0 : shapely shape representing coarsest spatial unit
-        prep_adm0 : prepared shapely shape of adm0 for 
+        prep_adm0 : prepared shapely shape of adm0 for
                     faster spatial functions
         utm_zone : utm zone to use for dataset
 
-        All attributes except adm0 have default values built 
+        All attributes except adm0 have default values built
         into __init__.
 
-        Any attributes may be updated but be sure to use setter 
-        functions when available as they will verify the new value. 
+        Any attributes may be updated but be sure to use setter
+        functions when available as they will verify the new value.
         Read comments/documentation before changing attribute values
-        for which setter functions are not available to verify new 
+        for which setter functions are not available to verify new
         values follow standards or available acceptable values.
     """
 
@@ -89,7 +89,7 @@ class CoreMSR():
         self.code_field_1 = "precision_code"
         self.code_field_2 = "location_type_code"
 
-        
+
         self.not_geocoded = "country"
 
         if self.only_geocoded:
@@ -144,7 +144,7 @@ class CoreMSR():
         Args:
             value (float): new pixel size (max value of 1, no min)
 
-        Setter will validate pixel size and set attribute. 
+        Setter will validate pixel size and set attribute.
         Also calculates psi (pixel size inverse) and sets attribute.
         """
         try:
@@ -154,7 +154,7 @@ class CoreMSR():
                      + str(value))
 
         # check for valid pixel size
-        # examples of valid pixel sizes: 
+        # examples of valid pixel sizes:
         # 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
         if (1/value) != int(1/value):
             sys.exit("invalid pixel size: "+str(value))
@@ -169,7 +169,7 @@ class CoreMSR():
         Args:
             shape: shapely shape
 
-        Will exit script if shape is not a valid Polygon or 
+        Will exit script if shape is not a valid Polygon or
         MultiPolygon
         """
         if isinstance(shape(shp), (Polygon, MultiPolygon)):
@@ -193,16 +193,16 @@ class CoreMSR():
         """
         if path.endswith('.tsv'):
             try:
-                return pd.read_csv(path, 
-                                   sep='\t', quotechar='\"', 
-                                   na_values='', keep_default_na=False, 
+                return pd.read_csv(path,
+                                   sep='\t', quotechar='\"',
+                                   na_values='', keep_default_na=False,
                                    encoding='utf-8')
             except:
                 return 'unable to open file (' + str(path) + ')'
         elif path.endswith('.csv'):
             try:
-                return pd.read_csv(path, 
-                                   quotechar='\"', na_values='', 
+                return pd.read_csv(path,
+                                   quotechar='\"', na_values='',
                                    keep_default_na=False, encoding='utf-8')
             except:
                 return 'unable to open file (' + str(path) + ')'
@@ -215,13 +215,13 @@ class CoreMSR():
         """Retrieves and merges data from project and location tables.
 
         Args:
-            path (str): absolute path to directory where project and 
+            path (str): absolute path to directory where project and
                         location tables exist [required]
             merge_id (str): field to merge on [required]
-            field_ids (List[str]): list of fields to verify exist in 
-                                   merged dataframe 
+            field_ids (List[str]): list of fields to verify exist in
+                                   merged dataframe
                                    [optional, default None]
-            only_geo (bool): whether to use inner merge (true) or 
+            only_geo (bool): whether to use inner merge (true) or
                              left merge (false) [optional, default False]
         Returns:
             merged dataframe containing project and location data
@@ -232,7 +232,7 @@ class CoreMSR():
         loc_path = path+"/locations.csv"
 
         # make sure files exist
-        # 
+        #
 
         # read input csv files into memory
         amp = self.load_csv(amp_path)
@@ -282,10 +282,10 @@ class CoreMSR():
 
     def process_data(self, data_directory, request_object):
 
-        merged = self.merge_data(
-            data_directory, 
-            "project_id", 
-            (self.code_field_1, self.code_field_2, "project_location_id"), 
+        df_merged = self.merge_data(
+            data_directory,
+            "project_id",
+            (self.code_field_1, self.code_field_2, "project_location_id"),
             self.only_geocoded)
 
 
@@ -293,10 +293,10 @@ class CoreMSR():
         # misc data prep
 
         # get location count for each project
-        merged['ones'] = (pd.Series(np.ones(len(merged)))).values
+        df_merged['ones'] = (pd.Series(np.ones(len(df_merged)))).values
 
         # get project location count
-        grouped_location_count = merged.groupby('project_id')['ones'].sum()
+        grouped_location_count = df_merged.groupby('project_id')['ones'].sum()
 
 
         # create new empty dataframe
@@ -309,43 +309,43 @@ class CoreMSR():
         df_location_count['project_id'] = df_location_count.index
 
         # merge location count back into data
-        merged = merged.merge(df_location_count, on='project_id')
+        df_merged = df_merged.merge(df_location_count, on='project_id')
 
-        # aid field value split evenly across 
+        # aid field value split evenly across
         # all project locations based on location count
-        merged[self.aid_field].fillna(0, inplace=True)
-        merged['split_dollars_pp'] = (merged[self.aid_field] / merged.location_count)
+        df_merged[self.aid_field].fillna(0, inplace=True)
+        df_merged['split_dollars_pp'] = (df_merged[self.aid_field] / df_merged.location_count)
 
 
         # -------------------------------------
         # filters
 
         # filter years
-        # 
+        #
 
         # filter sectors and donors
-        if (request_object['options']['donors'] == ['All'] and 
+        if (request_object['options']['donors'] == ['All'] and
                 request_object['options']['sectors'] != ['All']):
-            
-            filtered = merged.loc[
+
+            df_filtered = merged.loc[
                 merged['ad_sector_names'].str.contains(
                     '|'.join(request_object['options']['sectors'])
                 )
             ].copy(deep=True)
 
-        elif (request_object['options']['donors'] != ['All'] and 
+        elif (request_object['options']['donors'] != ['All'] and
                 request_object['options']['sectors'] == ['All']):
-            
-            filtered = merged.loc[
+
+            df_filtered = merged.loc[
                 merged['donors'].str.contains(
                     '|'.join(request_object['options']['donors'])
                 )
             ].copy(deep=True)
 
-        elif (request_object['options']['donors'] != ['All'] and 
+        elif (request_object['options']['donors'] != ['All'] and
                 request_object['options']['sectors'] != ['All']):
-            
-            filtered = merged.loc[(
+
+            df_filtered = merged.loc[(
                 merged['ad_sector_names'].str.contains(
                     '|'.join(request_object['options']['sectors'])
                 )
@@ -356,14 +356,14 @@ class CoreMSR():
             )].copy(deep=True)
 
         else:
-            filtered = merged.copy(deep=True)
-         
+            df_filtered = merged.copy(deep=True)
 
-        # adjust aid based on ratio of sectors/donors in 
+
+        # adjust aid based on ratio of sectors/donors in
         # filter to all sectors/donors listed for project
-        filtered['adjusted_aid'] = filtered.apply(lambda z: self.adjust_aid(
-            z.split_dollars_pp, z.ad_sector_names, z.donors, 
-            request_object['options']['sectors'], 
+        df_filtered['adjusted_aid'] = df_filtered.apply(lambda z: self.adjust_aid(
+            z.split_dollars_pp, z.ad_sector_names, z.donors,
+            request_object['options']['sectors'],
             request_object['options']['donors']), axis=1)
 
 
@@ -371,26 +371,26 @@ class CoreMSR():
         # assign geometries
 
         # add geom columns
-        filtered["agg_type"] = pd.Series(["None"] * len(filtered))
-        filtered["agg_geom"] = pd.Series(["None"] * len(filtered))
+        df_filtered["agg_type"] = pd.Series(["None"] * len(df_filtered))
+        df_filtered["agg_geom"] = pd.Series(["None"] * len(df_filtered))
 
-        filtered.agg_type = filtered.apply(lambda x: self.get_geom_type(
-            x[self.is_geocoded], 
-            x[self.code_field_1], 
+        df_filtered.agg_type = df_filtered.apply(lambda x: self.get_geom_type(
+            x[self.is_geocoded],
+            x[self.code_field_1],
             x[self.code_field_2]), axis=1)
 
-        filtered.agg_geom = filtered.apply(lambda x: self.get_geom_val(
-            x.agg_type, x[self.code_field_1], x[self.code_field_2], 
+        df_filtered.agg_geom = df_filtered.apply(lambda x: self.get_geom_val(
+            x.agg_type, x[self.code_field_1], x[self.code_field_2],
             x.longitude, x.latitude), axis=1)
 
-        final_dataframe = filtered.loc[filtered.agg_geom != "None"].copy(deep=True)
+        df_final = df_filtered.loc[df_filtered.agg_geom != "None"].copy(deep=True)
 
-        # final_dataframe['index'] = final_dataframe['project_location_id']
-        final_dataframe['unique'] = range(0, len(final_dataframe))
-        final_dataframe['index'] = range(0, len(final_dataframe))
-        final_dataframe = final_dataframe.set_index('index')
+        # df_final['index'] = df_final['project_location_id']
+        df_final['unique'] = range(0, len(df_final))
+        df_final['index'] = range(0, len(df_final))
+        df_final = df_final.set_index('index')
 
-        return final_dataframe
+        return df_final
 
 
 
@@ -486,7 +486,7 @@ class CoreMSR():
             lon : longitude
             lat : latitude
         Returns:
-            shape for geometry identified by lookup table 
+            shape for geometry identified by lookup table
             or 0 for geometry that is outside adm0 or could not be identified
         """
         tmp_pnt = Point(lon, lat)
@@ -516,8 +516,8 @@ class CoreMSR():
 
                 try:
                     # reproject point
-                    proj_utm = pyproj.Proj("+proj=utm +zone=" 
-                        + str(self.utm_zone) 
+                    proj_utm = pyproj.Proj("+proj=utm +zone="
+                        + str(self.utm_zone)
                         + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
                     proj_wgs = pyproj.Proj(init="epsg:4326")
                 except:
@@ -526,7 +526,7 @@ class CoreMSR():
                     return 0
 
                 try:
-                    utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm, 
+                    utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
                                                    tmp_pnt.x, tmp_pnt.y)
                     utm_pnt_act = Point(utm_pnt_raw)
 
@@ -577,7 +577,7 @@ class CoreMSR():
             geometry (shape) or "None"
 
         Method for finding actual geometry varies by geometry type.
-        For point, buffer and adm types the lookup table is needed so the 
+        For point, buffer and adm types the lookup table is needed so the
         get_geom function is called.
         Country types can simply return the adm0 attribute.
         Unrecognized types return None.
@@ -603,27 +603,27 @@ class CoreMSR():
             return "None"
 
 
-    def adjust_aid(self, raw_aid, 
-            project_sectors_string, project_donors_string, 
+    def adjust_aid(self, raw_aid,
+            project_sectors_string, project_donors_string,
             filter_sectors_list, filter_donors_list):
         """Adjusts given aid value based on filter.
 
         Args:
             raw_aid (float): given aid value
-            project_sectors_string (str): pipe (|) separated string 
+            project_sectors_string (str): pipe (|) separated string
                 of sectors from project table
-            project_donors_string (str): pipe (|) separated string of 
+            project_donors_string (str): pipe (|) separated string of
                 donors from project table
-            filter_sectors_list (List[str]): list of donors selected 
+            filter_sectors_list (List[str]): list of donors selected
                 via filter
-            filter_donors_list (List[str]): list of donors selected 
+            filter_donors_list (List[str]): list of donors selected
                 via filter
         Returns:
             adjusted aid value (float)
 
-        Aid value is adjusted based on the ratio of donors and 
-        sectors selected via filter when compared to the total 
-        number of (distinct) donors and sectors associated with 
+        Aid value is adjusted based on the ratio of donors and
+        sectors selected via filter when compared to the total
+        number of (distinct) donors and sectors associated with
         a project.
         """
         project_sectors_list = project_sectors_string.split('|')
@@ -632,13 +632,13 @@ class CoreMSR():
         if filter_sectors_list == ['All']:
             sectors_match = project_sectors_list
         else:
-            sectors_match = [match for match in project_sectors_list 
+            sectors_match = [match for match in project_sectors_list
                                 if match in filter_sectors_list]
 
         if filter_donors_list == ['All']:
             donors_match = project_donors_list
-        else:  
-            donors_match = [match for match in project_donors_list 
+        else:
+            donors_match = [match for match in project_donors_list
                             if match in filter_donors_list]
 
         match = float(len(sectors_match) * len(donors_match))
@@ -648,7 +648,7 @@ class CoreMSR():
         # remove duplicates? - could be duplicates from project strings
         # match = (len(set(sectors_match)) * len(set(donors_match)))
         # total = (len(set(project_sectors_list)) * len(set(project_donors_list)))
-        # ratio = match / total 
+        # ratio = match / total
 
         adjusted_aid = ratio * float(raw_aid)
 
@@ -659,13 +659,13 @@ class CoreMSR():
         """Generate column/row lists for grid based on geometry.
 
         Args:
-            geom (shape): geometry to be used (must be shape or be able to 
+            geom (shape): geometry to be used (must be shape or be able to
                 be converted to shape)
             step (float): grid pixel size
             rounded (bool): flag to round output column/row values
             no_multi (bool): flag to allow using multipolygons
         Returns:
-            for valid geom: tuple of lists for columns (longitude) and 
+            for valid geom: tuple of lists for columns (longitude) and
                 rows (latitude) of grid - (columns, rows)
             for invalid geom: 1
         """
@@ -688,16 +688,17 @@ class CoreMSR():
 
 
         # poly grid pixel size and poly grid pixel size inverse
-        # poly grid pixel size is 1 order of magnitude higher resolution than output pixel_size
+        # poly grid pixel size is 1 order of magnitude higher
+        #   resolution than output pixel_size
         tmp_pixel_size = float(step)
         tmp_psi = 1/tmp_pixel_size
 
         (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = geom.bounds
 
         (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = (
-            math.floor(tmp_minx*tmp_psi)/tmp_psi, 
-            math.floor(tmp_miny*tmp_psi)/tmp_psi, 
-            math.ceil(tmp_maxx*tmp_psi)/tmp_psi, 
+            math.floor(tmp_minx*tmp_psi)/tmp_psi,
+            math.floor(tmp_miny*tmp_psi)/tmp_psi,
+            math.ceil(tmp_maxx*tmp_psi)/tmp_psi,
             math.ceil(tmp_maxy*tmp_psi)/tmp_psi)
 
         tmp_cols = np.arange(tmp_minx, tmp_maxx+tmp_pixel_size*0.5, tmp_pixel_size)
@@ -719,8 +720,8 @@ class CoreMSR():
         Args:
             val: number (should be float, but not checked)
         Returns:
-            If val equals zero return +0.0 to make sure val was not a "negative" zero,
-            otherwise return val.
+            If val equals zero return +0.0 to make sure val was
+            not a "negative" zero, otherwise return val.
 
         Needed as a result of how binary floating point works.
         """

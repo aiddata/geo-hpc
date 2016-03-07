@@ -118,14 +118,14 @@ def quit(msg):
     Function also manages error reporting and cleans
     up / moves request files.
     """
-    e_request_basename = os.path.basename(request_path)
+    # e_request_basename = os.path.basename(request_path)
 
-    if e_request_basename == '':
-        e_request_basename = 'unknown'
+    # if e_request_basename == '':
+    #     e_request_basename = 'unknown'
 
-    e_request_basename_split = os.path.splitext(e_request_basename)
+    # e_request_basename_split = os.path.splitext(e_request_basename)
 
-    error_dir = e_request_basename_split[0] +"_"+ str(Ts)
+    # error_dir = e_request_basename_split[0] +"_"+ str(Ts)
 
     # make error dir
     # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
