@@ -29,7 +29,7 @@ import itertools
 import json
 import shutil
 
-# from copy import deepcopy
+from copy import deepcopy
 from collections import OrderedDict
 
 import numpy as np
@@ -618,28 +618,22 @@ def complete_unique_geoms():
 def complete_options_json():
     # output msr options as json (might be loaded into mongo?)
 
-    mops = OrderedDict()
+    options_obj = OrderedDict()
 
     def add_to_json(field, data):
-        mops[field] = data
-
-    tmp_request = request
-    if "_id" in tmp_request.keys():
-        tmp_request['_id'] = str(tmp_request['_id'])
-
-    # dataset / request
-    add_to_json("dataset", request['dataset'])
-    add_to_json("abbr", abbr)
-    add_to_json("request", tmp_request)
+        options_obj[field] = data
 
     # job / script info
-    add_to_json("size", job.size)
+    add_to_json("run_id", run_id)
     add_to_json("run_stage", run_stage)
     add_to_json("run_version_str", run_version_str)
     add_to_json("run_version", run_version)
-    add_to_json("run_id", run_id)
+    add_to_json("job_size", job.size)
 
-    # core run options
+    # dataset info / core run options
+    add_to_json("dataset", request['dataset'])
+    add_to_json("abbr", abbr)
+    add_to_json("utm_zone", core.utm_zone)
     add_to_json("pixel_size", core.pixel_size)
     add_to_json("nodata", core.nodata)
     add_to_json("aid_field", core.aid_field)
@@ -661,8 +655,8 @@ def complete_options_json():
     add_to_json("locations", len(active_data))
 
     # status
-    add_to_json("dir_working", dir_working)
-    add_to_json("status", 0)
+    # add_to_json("dir_working", dir_working)
+    # add_to_json("status", 0)
 
     # times
     add_to_json("time_start", core.time['start'])
@@ -678,12 +672,20 @@ def complete_options_json():
     add_to_json("dur_output", core.time['dur_output'])
     add_to_json("dur_total", core.time['dur_total'])
 
+
+    tmp_request = request
+    if "_id" in tmp_request.keys():
+        tmp_request['_id'] = str(tmp_request['_id'])
+
+    write_options = deepcopy(options_obj)
+    write_options["request"] = tmp_request
+
     # write output.json
     json_out = dir_working+'/output.json'
     json_handle = open(json_out, 'w')
-    json.dump(mops, json_handle, sort_keys=False, indent=4, ensure_ascii=False)
+    json.dump(write_options, json_handle, sort_keys=False, indent=4, ensure_ascii=False)
 
-    return mops
+    return options_obj
 
 
 def complete_outputs():
@@ -757,9 +759,7 @@ def tmp_master_final(self):
 
     # update status of request in msr queue
     # and add output_obj to "output" field
-    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": 1, "output": output_obj}}, upsert=False)
-
-
+    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": 1, "info": output_obj}}, upsert=False)
 
 
 
@@ -780,6 +780,7 @@ job.set_worker_job(tmp_worker_job)
 
 try:
     job.run()
-except:
+except Exception as err:
+    print err
     # add error status to request in msr queue
     update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": -1,}}, upsert=False)
