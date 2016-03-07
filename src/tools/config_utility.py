@@ -5,6 +5,7 @@ BranchConfig (class): used to access setting from config json for specific branc
 
 import os
 import json
+import pymongo
 
 class BranchConfig():
     """Get branch config settings from config json for specified branch.
@@ -18,6 +19,7 @@ class BranchConfig():
         config_json
         branch_settings
         branch_keys
+        connection_status
 
         **settings
     """
@@ -42,6 +44,7 @@ class BranchConfig():
         if branch in self.valid_branches:
             self.branch = branch
             self.load_settings()
+            self.check_connection()
         else:
             raise Exception('Error BranchConfig: invalid branch')
 
@@ -53,7 +56,7 @@ class BranchConfig():
         """
         # config file from branch's asdf
         config_path = self.parent + '/config.json'
-        config_exists = os.path.isfile(config_path)        
+        config_exists = os.path.isfile(config_path)
 
         if config_exists:
 
@@ -61,6 +64,11 @@ class BranchConfig():
             self.config_json = json.load(config_file)
             config_file.close()
 
+        else:
+            raise Exception("Error BranchConfig: could not find config json")
+
+
+        try:
             self.branch_settings = self.config_json[self.branch]
 
             self.branch_keys = self.branch_settings.keys()
@@ -68,7 +76,30 @@ class BranchConfig():
             for attr in self.branch_keys:
                 setattr(self, attr, self.branch_settings[attr])
 
-        else:
-            raise Exception("Error BranchConfig: could not find config json")
+        except:
+            raise Exception("Error BranchConfig: could not add config settings to BranchConfig")
 
 
+    def check_connection(self):
+        """Test mongodb connection
+        """
+        try:
+            connection_timeout_ms = 10000
+
+            client = pymongo.MongoClient(
+                self.server, serverSelectionTimeoutMS=connection_timeout_ms)
+
+            client.server_info()
+            self.connection_status = 0
+
+        except pymongo.errors.ServerSelectionTimeoutError as err:
+            # print "Error (ServerSelectionTimeoutError) connecting to mongodb ("+str(config.server)+")"
+            # print err
+            self.connection_status = 1
+            self.connection_error = err
+
+        except Exception as err:
+            # print "Other error connecting to mongodb ("+str(config.server)+")"
+            # print err
+            self.connection_status = 2
+            self.connection_error = err
