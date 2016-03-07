@@ -625,6 +625,8 @@ def complete_unique_geoms():
     out_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
     out_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
     out_geo_df["location_count"] = new_geo_df["location_count"]
+    out_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
+
     out_geo_df['index'] = range(len(out_geo_df))
 
     # write to geojson
