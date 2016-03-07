@@ -327,8 +327,8 @@ class CoreMSR():
         if (request_object['options']['donors'] == ['All'] and
                 request_object['options']['sectors'] != ['All']):
 
-            df_filtered = merged.loc[
-                merged['ad_sector_names'].str.contains(
+            df_filtered = df_merged.loc[
+                df_merged['ad_sector_names'].str.contains(
                     '|'.join(request_object['options']['sectors'])
                 )
             ].copy(deep=True)
@@ -336,8 +336,8 @@ class CoreMSR():
         elif (request_object['options']['donors'] != ['All'] and
                 request_object['options']['sectors'] == ['All']):
 
-            df_filtered = merged.loc[
-                merged['donors'].str.contains(
+            df_filtered = df_merged.loc[
+                df_merged['donors'].str.contains(
                     '|'.join(request_object['options']['donors'])
                 )
             ].copy(deep=True)
@@ -345,18 +345,18 @@ class CoreMSR():
         elif (request_object['options']['donors'] != ['All'] and
                 request_object['options']['sectors'] != ['All']):
 
-            df_filtered = merged.loc[(
-                merged['ad_sector_names'].str.contains(
+            df_filtered = df_merged.loc[(
+                df_merged['ad_sector_names'].str.contains(
                     '|'.join(request_object['options']['sectors'])
                 )
             ) & (
-                merged['donors'].str.contains(
+                df_merged['donors'].str.contains(
                     '|'.join(request_object['options']['donors'])
                 )
             )].copy(deep=True)
 
         else:
-            df_filtered = merged.copy(deep=True)
+            df_filtered = df_merged.copy(deep=True)
 
 
         # adjust aid based on ratio of sectors/donors in
