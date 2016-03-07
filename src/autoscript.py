@@ -574,6 +574,8 @@ def complete_unique_geoms():
 
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
+    # location id
+    geo_df["project_location_id"] = active_data["project_location_id"]
     # assuming even split of total project dollars is "max" dollars
     # that project location could receive
     geo_df["dollars"] = active_data["adjusted_aid"]
@@ -590,10 +592,25 @@ def complete_unique_geoms():
     # all project locations with that geometry
     sum_unique = geo_df.groupby(by='str_geo')['dollars'].sum()
 
-    # temporary dataframe with unique geometry and dollar sums
+    # get count of locations for each unique geom
+    geo_df['ones'] = (pd.Series(np.ones(len(geo_df)))).values
+    sum_count = geo_df.groupby(by='str_geo')['ones'].sum()
+
+    # create list of project location ids for unique geoms
+    cat_plids = geo_df.groupby(by='str_geo')['project_location_id'].apply(
+        lambda z: '|'.join(list(z)))
+
+
+    # temporary dataframe with
+    #   unique geometry
+    #   location_count
+    #   dollar sums
     # which can be used to merge with original geo_df dataframe
     tmp_geo_df = gpd.GeoDataFrame()
     tmp_geo_df['unique_dollars'] = sum_unique
+    tmp_geo_df['location_count'] = sum_count
+    tmp_geo_df['project_location_ids'] = cat_plids
+
     tmp_geo_df['str_geo'] = tmp_geo_df.index
 
     # merge geo_df with tmp_geo_df
@@ -607,6 +624,7 @@ def complete_unique_geoms():
     out_geo_df = gpd.GeoDataFrame()
     out_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
     out_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
+    out_geo_df["location_count"] = new_geo_df["location_count"]
     out_geo_df['index'] = range(len(out_geo_df))
 
     # write to geojson
