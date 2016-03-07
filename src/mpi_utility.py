@@ -1,5 +1,6 @@
 # utility for running parallel jobs with mpi4py
-# mpi comms structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
+# mpi comms structured based on "09-task-pull" from:
+#   https://github.com/jbornschein/mpi4py-examples
 
 
 # from mpi4py import MPI
@@ -16,13 +17,14 @@ import types
 
 def enum(*sequential, **named):
     """Generate an enum type object."""
-    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
+    # source:
+    # http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
 
 class NewParallel():
-    """Contains basic structure needed to utilize MPI for managing parallel processing tasks.
+    """Contains basic structure for managing parallel processing tasks.
 
     Attributes:
 
@@ -39,8 +41,9 @@ class NewParallel():
 
     def __init__(self, parallel=True):
 
-        if run_mpi == False:    
-            print "NewParallel warning: mpi4py could not be loaded - any instances of NewParallel will run in serial"
+        if run_mpi == False:
+            print "NewParallel warning: mpi4py could not be loaded"
+            print "\tany instances of NewParallel will run in serial"
             self.parallel = False
         else:
             self.parallel = parallel
@@ -72,7 +75,7 @@ class NewParallel():
             task_list (List[str]): x
         """
         if isinstance(input_list, list):
-            self.task_list = input_list    
+            self.task_list = input_list
         else:
             raise Exception("set_task_list: requires input of type list")
 
@@ -84,7 +87,7 @@ class NewParallel():
             task_list (List[str]): x
         """
         if hasattr(input_function, '__call__'):
-            self.general_init = types.MethodType(input_function, self)    
+            self.general_init = types.MethodType(input_function, self)
         else:
             raise Exception("set_general_init: requires input to be a function")
 
@@ -96,7 +99,7 @@ class NewParallel():
             task_list (List[str]): x
         """
         if hasattr(input_function, '__call__'):
-            self.master_init = types.MethodType(input_function, self)     
+            self.master_init = types.MethodType(input_function, self)
         else:
             raise Exception("set_master_init: requires input to be a function")
 
@@ -108,7 +111,7 @@ class NewParallel():
             task_list (List[str]): x
         """
         if hasattr(input_function, '__call__'):
-            self.master_process = types.MethodType(input_function, self)     
+            self.master_process = types.MethodType(input_function, self)
         else:
             raise Exception("set_master_process: requires input to be a function")
 
@@ -120,7 +123,7 @@ class NewParallel():
             task_list (List[str]): x
         """
         if hasattr(input_function, '__call__'):
-            self.master_final = types.MethodType(input_function, self)     
+            self.master_final = types.MethodType(input_function, self)
         else:
             raise Exception("set_master_final: requires input to be a function")
 
@@ -132,39 +135,44 @@ class NewParallel():
             task_list (List[str]): x
         """
         if hasattr(input_function, '__call__'):
-            self.worker_job = types.MethodType(input_function, self)     
+            self.worker_job = types.MethodType(input_function, self)
         else:
             raise Exception("set_worker_job: requires input to be a function")
 
 
     def general_init(self):
-        """Template only. 
+        """Template only.
 
         Should be replaced by user created function using set_general_init method.
 
-        Run by all processes (master and workers) at start of processing before any tasks are sent to workers.
+        Run by all processes (master and workers) at start
+            of processing before any tasks are sent to workers.
         No args orreturn value.
         """
         pass
 
 
     def master_init(self):
-        """Template only. 
+        """Template only.
 
-        Should be replaced by user created function using set_master_init method.
+        Should be replaced by user created function using
+            set_master_init method.
 
-        Run by master only at start of processing before any tasks are sent to workers.
+        Run by master only at start of processing before any tasks are
+            sent to workers.
         No args or return value.
         """
         self.master_data = []
-        
+
 
     def master_process(self, worker_data):
-        """Template only. 
+        """Template only.
 
-        Should be replaced by user created function using set_master_process method
+        Should be replaced by user created function using
+            set_master_process method
 
-        Run by master only during processing for each task received from a worker.
+        Run by master only during processing for each task received
+            from a worker.
         No return value.
 
         Args:
@@ -174,20 +182,23 @@ class NewParallel():
 
 
     def master_final(self):
-        """Template only. 
+        """Template only.
 
-        Should be replaced by user created function using set_master_final method
+        Should be replaced by user created function using
+            set_master_final method
 
-        Run by master only at end of processing after all tasks have been completed by workers.
+        Run by master only at end of processing after all tasks have
+            been completed by workers.
         No args or return value.
         """
         master_data_stack = self.master_data
 
 
     def worker_job(self, task_id):
-        """Template only. 
-        
-        Should be replaced by user created function using set_worker_job method
+        """Template only.
+
+        Should be replaced by user created function using
+            set_worker_job method
 
         Run by work after receiving a task from master.
 
@@ -198,13 +209,13 @@ class NewParallel():
             results: object to be passed back from worker to master
         """
         task = self.task_list[task_id]
-        
+
         results = task
 
         return results
 
     def run(self):
-        """Run job in parallel or serial.        
+        """Run job in parallel or serial.
         """
         if self.parallel:
             self.run_parallel()
@@ -230,7 +241,7 @@ class NewParallel():
         self.general_init()
 
         self.comm.Barrier()
-        
+
         if self.rank == 0:
 
             # ==================================================
@@ -296,7 +307,7 @@ class NewParallel():
                 # MASTER FINAL
 
                 self.master_final()
-                
+
                 # ==================================================
 
             else:
@@ -318,7 +329,7 @@ class NewParallel():
                     # WORKER JOB
 
                     worker_result = self.worker_job(task_id)
-                  
+
                     # ==================================================
 
                     # send worker_result back to master (master_process function)
