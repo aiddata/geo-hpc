@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pyproj
 from functools import partial
+from collections import OrderedDict
 from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
 from shapely.ops import transform
 from shapely.prepared import prep
@@ -129,8 +130,8 @@ class CoreMSR():
 
         # --------------------------------------------------
 
-        self.times = {}
-        self.durations = {}
+        self.times = OrderedDict()
+        self.durations = OrderedDict()
 
         self.adm_shps = 0
         self.adm0 = 0
