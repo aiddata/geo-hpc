@@ -80,9 +80,13 @@ config = config_utility.BranchConfig(branch=branch)
 # -------------------------------------
 
 
-# =============================================================================
-# =============================================================================
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
 
+
+# =============================================================================
+# =============================================================================
 
 
 def make_dir(path):
@@ -189,7 +193,7 @@ if request is None:
 
 # update status of request in msr queue to 2
 if job.rank == 0:
-    pass
+    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": 2,}}, upsert=False)
 
 
 # -------------------------------------
@@ -209,18 +213,6 @@ run_id = run_stage[0:1] + run_version_str
 
 # -------------------------------------
 
-# create instance of CoreMSR class
-core = CoreMSR()
-
-# full script start time
-core.time['start'] = int(time.time())
-
-if job.rank == 0:
-    print '\n'
-    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +')'
-    print 'Starting MSR'
-    print '\n'
-
 # absolute path to script directory
 dir_file = os.path.dirname(os.path.abspath(__file__))
 
@@ -236,7 +228,6 @@ if dataset_id not in iso3_lookup.keys():
     quit("no shp crosswalk for dataset: " + dataset_id)
 
 
-
 # lookup release path
 
 release_path = None
@@ -250,7 +241,6 @@ if job.rank == 0:
 release_path = job.comm.bcast(release_path, root=0)
 
 
-
 # make sure release path exists
 if not os.path.isdir(release_path):
     quit("release path specified not found: " + release_path)
@@ -258,7 +248,27 @@ if not os.path.isdir(release_path):
 
 # todo: make sure these exist in lookups first
 abbr = iso3_lookup[dataset_id]
-core.utm_zone = utm_lookup[abbr]
+utm_zone = utm_lookup[abbr]
+
+
+# =============================================================================
+# =============================================================================
+
+# -------------------------------------
+
+# create instance of CoreMSR class
+core = CoreMSR()
+
+# full script start time
+core.time['start'] = int(time.time())
+
+if job.rank == 0:
+    print '\n'
+    print datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +' ('+ str(int(time.time())) +')'
+    print 'Starting MSR'
+    print '\n'
+
+core.utm_zone = utm_zone
 
 
 # -------------------------------------
@@ -281,7 +291,7 @@ core.set_adm0(tmp_adm0)
 
 # =============================================================================
 # =============================================================================
-# DATA INIT
+# DATAFRAME INIT
 
 # -------------------------------------
 # load / process data and get task list
@@ -673,6 +683,8 @@ def complete_options_json():
     json_handle = open(json_out, 'w')
     json.dump(mops, json_handle, sort_keys=False, indent=4, ensure_ascii=False)
 
+    return mops
+
 
 def complete_outputs():
     # move entire dir for job from msr queue "active" dir to "done" dir
@@ -740,8 +752,12 @@ def tmp_master_final(self):
 
 
     # write output json and finalize output folders
-    complete_options_json()
+    output_obj = complete_options_json()
     complete_outputs()
+
+    # update status of request in msr queue
+    # and add output_obj to "output" field
+    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": 1, "output": output_obj}}, upsert=False)
 
 
 
@@ -762,5 +778,8 @@ job.set_master_process(tmp_master_process)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
-job.run()
-
+try:
+    job.run()
+except:
+    # add error status to request in msr queue
+    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": -1,}}, upsert=False)
