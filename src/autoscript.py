@@ -684,7 +684,7 @@ def complete_options_json():
     add_to_json("times", core.times)
     add_to_json("durations", core.durations)
     add_to_json("cpu_hours",
-                math.floor(
+                math.ceil(
                     100 * float(core.durations['total']) * job.size / 3600) / 100)
 
     # # times
