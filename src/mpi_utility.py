@@ -45,7 +45,6 @@ class NewParallel():
             print "NewParallel warning: mpi4py could not be loaded"
             print "\tany instances of NewParallel will run in serial"
             self.parallel = False
-        elif
         else:
             self.parallel = parallel
 
