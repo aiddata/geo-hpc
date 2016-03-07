@@ -766,7 +766,8 @@ def tmp_master_final(self):
     core.times['output'] = int(time.time())
     core.durations['output'] = core.times['output'] - core.times['surf']
     # core.times['total'] = int(time.time())
-    core.durations['total'] = core.times['total'] - core.times['start']
+    core.times['end'] = int(time.time())
+    core.durations['total'] = core.times['end'] - core.times['start']
 
 
     print '\n'
@@ -775,7 +776,6 @@ def tmp_master_final(self):
     print 'Total Runtime: ' + str(core.durations['total']//60) +'m '+ str(int(core.durations['total']%60)) +'s'
     print '\n'
 
-    core.times['end'] = int(time.time())
     print 'Ending MSR'
 
 
