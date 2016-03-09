@@ -577,7 +577,9 @@ def complete_final_raster():
         'count': 1,
         'crs': {'init': 'epsg:4326'},
         'dtype': 'float64',
-        'affine': Affine(core.pixel_size, 0.0, (adm0_minx-core.pixel_size/2), 0.0, -core.pixel_size, (adm0_maxy+core.pixel_size/2)),
+        'affine': Affine(
+            core.pixel_size, 0.0, (adm0_minx-core.pixel_size/2),
+            0.0, -core.pixel_size, (adm0_maxy+core.pixel_size/2)),
         'driver': 'GTiff',
         'height': len(rows),
         'width': len(cols),
@@ -587,7 +589,7 @@ def complete_final_raster():
 
 
     # write geotif file
-    with rasterio.open(dir_working+"/raster.asc", "w", **meta) as dst:
+    with rasterio.open(dir_working+"/raster.tif", "w", **meta) as dst:
         dst.write(sum_mean_surf.astype('float64'))
 
 
