@@ -587,11 +587,12 @@ def complete_final_raster():
         # 'compress': 'lzw'
     }
 
+    print sum_mean_surf.shape
     print len(sum_mean_surf)
     print len(rows)
     print len(cols)
 
-    sum_mean_surf.shape = (len(rows), len(cols))
+    np.array(sum_mean_surf).shape = (len(rows), len(cols))
 
     # write geotif file
     with rasterio.open(dir_working+"/raster.tif", "w", **meta) as dst:
