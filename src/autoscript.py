@@ -43,6 +43,9 @@ import shapefile
 
 import pymongo
 
+import rasterio
+from affine import Affine
+
 from msr_utility import CoreMSR
 
 
@@ -536,36 +539,63 @@ def tmp_master_process(self, worker_data):
 def complete_final_raster():
     # build and output final raster
 
-    # initialize asc file output
-    asc = ""
-    asc += "NCOLS " + str(len(cols)) + "\n"
-    asc += "NROWS " + str(len(rows)) + "\n"
 
-    # asc += "XLLCORNER " + str(adm0_minx-core.pixel_size*0.5) + "\n"
-    # asc += "YLLCORNER " + str(adm0_miny-core.pixel_size*0.5) + "\n"
+    # # initialize asc file output
+    # asc = ""
+    # asc += "NCOLS " + str(len(cols)) + "\n"
+    # asc += "NROWS " + str(len(rows)) + "\n"
 
-    asc += "XLLCENTER " + str(adm0_minx) + "\n"
-    asc += "YLLCENTER " + str(adm0_miny) + "\n"
+    # # asc += "XLLCORNER " + str(adm0_minx-core.pixel_size*0.5) + "\n"
+    # # asc += "YLLCORNER " + str(adm0_miny-core.pixel_size*0.5) + "\n"
 
-    asc += "CELLSIZE " + str(core.pixel_size) + "\n"
-    asc += "NODATA_VALUE " + str(core.nodata) + "\n"
+    # asc += "XLLCENTER " + str(adm0_minx) + "\n"
+    # asc += "YLLCENTER " + str(adm0_miny) + "\n"
 
+    # asc += "CELLSIZE " + str(core.pixel_size) + "\n"
+    # asc += "NODATA_VALUE " + str(core.nodata) + "\n"
+
+
+    # # calc results
+    # stack_mean_surf = np.vstack(all_mean_surf)
+    # sum_mean_surf = np.sum(stack_mean_surf, axis=0)
+
+    # # write asc file
+    # sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
+    # asc_sum_mean_surf_str = asc + sum_mean_surf_str
+    # fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
+    # fout_sum_mean_surf.write(asc_sum_mean_surf_str)
+
+    # --------------------------
 
     # calc results
     stack_mean_surf = np.vstack(all_mean_surf)
     sum_mean_surf = np.sum(stack_mean_surf, axis=0)
 
-    # write asc file
-    sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
-    asc_sum_mean_surf_str = asc + sum_mean_surf_str
-    fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
-    fout_sum_mean_surf.write(asc_sum_mean_surf_str)
+    # affine takes upper left
+    # (writing to asc directly used lower left)
+    meta = {
+        'count': 1,
+        'crs': {'init': 'epsg:4326'},
+        'dtype': 'float64',
+        'affine': Affine(core.pixel_size, 0.0, (adm0_minx-core.pixel_size/2), 0.0, -core.pixel_size, (adm0_maxy+core.pixel_size/2)),
+        'driver': 'GTiff',
+        'height': len(rows),
+        'width': len(cols),
+        'nodata': core.nodata#,
+        # 'compress': 'lzw'
+    }
+
+
+    # write geotif file
+    with rasterio.open(dir_working+"/raster.asc", "w", **meta) as dst:
+        dst.write(sum_mean_surf.astype('float64'))
 
 
     # validate sum_mean_surf
     # exit if validation fails
     if isinstance(sum_mean_surf, int):
         sys.exit("! - mean surf validation failed")
+
 
 
 def complete_unique_geoms():
