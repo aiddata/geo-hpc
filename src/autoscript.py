@@ -840,9 +840,9 @@ job.set_master_process(tmp_master_process)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
-try:
-    job.run()
-except Exception as err:
-    print err
-    # add error status to request in msr queue
-    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": -1,}}, upsert=False)
+# try:
+job.run()
+# except Exception as err:
+#     print err
+#     # add error status to request in msr queue
+#     update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": -1,}}, upsert=False)
