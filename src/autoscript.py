@@ -587,6 +587,10 @@ def complete_final_raster():
         # 'compress': 'lzw'
     }
 
+    print len(sum_mean_surf)
+    print len(rows)
+    print len(cols)
+
     sum_mean_surf.shape = (len(rows), len(cols))
 
     # write geotif file
