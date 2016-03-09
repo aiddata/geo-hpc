@@ -589,9 +589,11 @@ def complete_final_raster():
 
     sum_mean_surf.shape = (len(rows), len(cols))
 
+    out_mean_surf = np.array([sum_mean_surf.astype('float64')])
+
     # write geotif file
     with rasterio.open(dir_working+"/raster.tif", "w", **meta) as dst:
-        dst.write([sum_mean_surf.astype('float64')])
+        dst.write(out_mean_surf)
 
 
     # validate sum_mean_surf
