@@ -752,34 +752,44 @@ def complete_options_json():
     return options_obj
 
 
+# def complete_outputs():
+#     # move entire dir for job from msr queue "active" dir to "done" dir
+#     # and copy data files to msr data dir
+
+#     # move entire dir for job from msr queue "active" dir to "done" dir
+#     dir_final = dir_working.replace('/active/', '/done/')
+
+#     if os.path.isdir(dir_final):
+#         shutil.rmtree(dir_final)
+
+#     shutil.move(dir_working, dir_final)
+
+
+#     # make msr data dir and move raster.asc, unique.geojson, output.json there
+#     msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
+#                     + request['dataset'] +'/'+ request['hash'])
+#     make_dir(msr_data_dir)
+
+#     msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
+#     for f in msr_data_files:
+#         msr_data_file = dir_final +'/'+ f
+
+#         # if os.path.isfile(msr_data_dst_file):
+#             # os.remove(msr_data_dst_file)
+
+#         shutil.copy(msr_data_file, msr_data_dir)
+#         os.remove(msr_data_file)
+
+
 def complete_outputs():
-    # move entire dir for job from msr queue "active" dir to "done" dir
-    # and copy data files to msr data dir
 
-
-    # move entire dir for job from msr queue "active" dir to "done" dir
-    dir_final = dir_working.replace('/active/', '/done/')
-
-    if os.path.isdir(dir_final):
-        shutil.rmtree(dir_final)
-
-    shutil.move(dir_working, dir_final)
-
-
-    # make msr data dir and move raster.asc, unique.geojson, output.json there
     msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
                     + request['dataset'] +'/'+ request['hash'])
-    make_dir(msr_data_dir)
 
-    msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
-    for f in msr_data_files:
-        msr_data_file = dir_final +'/'+ f
+    if os.path.isdir(msr_data_dir):
+        shutil.rmtree(msr_data_dir)
 
-        # if os.path.isfile(msr_data_dst_file):
-            # os.remove(msr_data_dst_file)
-
-        shutil.copy(msr_data_file, msr_data_dir)
-        os.remove(msr_data_file)
+    shutil.move(dir_working, msr_data_dir)
 
 
 def tmp_master_final(self):
