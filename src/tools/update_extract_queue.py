@@ -21,6 +21,13 @@ from config_utility import *
 
 config = BranchConfig(branch=branch)
 
+# -------------------------------------
+
+
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
+
 
 # --------------------------------------------------
 
@@ -46,7 +53,7 @@ rasters = asdf.find({"type": "raster"})
 
 items = []
 
-# build list of dicts for all combinations of boundary names, 
+# build list of dicts for all combinations of boundary names,
 # rasters names/reliabiity and respective raster extract types
 for raster in rasters:
 
@@ -54,25 +61,25 @@ for raster in rasters:
 
     items += [
         {
-            'boundary': b, 
-            'raster': r['name'], 
-            'reliability': r['reliability'], 
+            'boundary': b,
+            'raster': r['name'],
+            'reliability': r['reliability'],
             'extract_type': e
-        } 
-        for r in raster['resources'] 
+        }
+        for r in raster['resources']
         for e in extract_types
         for b in bnds
     ]
 
 
-# check if unique extract combinations exist in tracker 
+# check if unique extract combinations exist in tracker
 # and add if they do not
 add_count = 0
 for i in items:
-          
+
     # build full doc
     ctime = int(time.time())
-    
+
     i_full = copy.deepcopy(i)
     i_full["status"] = 0
     i_full["classification"] = "auto-external"
@@ -95,19 +102,19 @@ print 'Added ' + str(add_count) + ' items to extract queue (' + str(len(items)) 
 
 # example extract tracker document
 
-# { 
-#     "_id" : ObjectId("566baebf6050d566eca1f25d"), 
-    
-#     "boundary" : "npl_adm3", 
+# {
+#     "_id" : ObjectId("566baebf6050d566eca1f25d"),
 
-#     "raster" : "selv", 
-#     "extract_type" : "mean", 
+#     "boundary" : "npl_adm3",
+
+#     "raster" : "selv",
+#     "extract_type" : "mean",
 #     "reliability" : false,
 
-#     "status" : 0, 
-#     "classification" : "automated", 
+#     "status" : 0,
+#     "classification" : "automated",
 #     "priority" : -1
 
-#     "submit_time" : 1449897663, 
-#     "update_time" : 1450383510, 
+#     "submit_time" : 1449897663,
+#     "update_time" : 1450383510,
 # }

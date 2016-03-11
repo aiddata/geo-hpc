@@ -21,6 +21,13 @@ from config_utility import *
 
 config = BranchConfig(branch=branch)
 
+# -------------------------------------
+
+
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
+
 
 # --------------------------------------------------
 
@@ -31,13 +38,13 @@ from osgeo import gdal,ogr,osr
 import pygeoj
 from shapely.geometry import Point, shape, box
 from shapely.ops import cascaded_union
-import rasterstats as rs 
+import rasterstats as rs
 
 # user inputs
 # in_trigger = sys.argv[1]
 
 # check trigger that initiated search
-# 
+#
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
@@ -49,9 +56,9 @@ bnds = c_data.find({"type": "boundary", "options.group_class": "actual"})
 
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
-    
+
     print 'processing ' + bnd['options']['group'] + ' tracker...'
-    
+
     c_bnd = db[bnd["options"]["group"]]
 
     # get boundary bbox
@@ -74,7 +81,7 @@ for bnd in bnds:
                                 {
                                     "scale": "global"
                                 }
-                            ]               
+                            ]
                         })
 
     # for each unprocessed dataset in boundary tracker matched in first stage search (second stage search)
@@ -90,7 +97,7 @@ for bnd in bnds:
 
         # dataset base and type
         dset_base = meta['base'] +"/"+ meta["resources"][0]["path"]
-        dset_type = meta['type'] 
+        dset_type = meta['type']
 
         result = False
         if meta['file_format'] in ["raster", "release"]:
@@ -124,7 +131,7 @@ for bnd in bnds:
         #       # shapely intersect
         #       bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
     #           dset_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
-                
+
     #           intersect = bnd_geo.intersects(dset_geo)
 
         #       if intersect == True:
@@ -148,12 +155,12 @@ for bnd in bnds:
 
 
         # run third stage search on second stage matches
-        # request actual vs dataset actual 
+        # request actual vs dataset actual
         # may only be needed for user point input files
-        # 
+        #
 
         # update tracker for third stage search
-        # 
+        #
 
 
     # update tracker for all unprocessed dataset not matching first stage search
