@@ -1,9 +1,21 @@
-# 
-
-# --------------------------------------------------
+#
 
 import sys
 import os
+
+import time
+import pymongo
+
+import extract_utility
+
+import mpi_utility
+
+job = mpi_utility.NewParallel()
+
+# --------------------------------------------------
+
+# import sys
+# import os
 
 branch = sys.argv[1]
 
@@ -16,32 +28,34 @@ if not os.path.isdir(branch_dir):
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
 sys.path.insert(0, config_dir)
 
-from config_utility import *
+import config_utility
 
-config = BranchConfig(branch=branch)
+config = config_utility.BranchConfig(branch=branch)
+
+# -------------------------------------
+
+
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
 
 
 # --------------------------------------------------
 
-import time
-import pymongo
-
-from mpi_utility import *
-from extract_utility import *
-
-
-job = NewParallel()
-
 
 default_extract_limit = 10
-default_time_limit = 5
-default_extract_minimum = 1
+# default_time_limit = 5
+# default_extract_minimum = 1
 
 
 # ===========================================================================
 # ===========================================================================
 
-
+# if something:
+#   check config/input/request for extract_limit parameter
+#   extract_limit = some val
+# else:
+#   use default
 extract_limit = default_extract_limit
 
 # limit of 0 = no limit
@@ -54,7 +68,17 @@ client = pymongo.MongoClient(config.server)
 
 asdf = client[config.asdf_db].data
 
-extract_list = client[config.det_db].extracts.find({'status':0}).sort([("priority", -1), ("submit_time", 1)]).limit(10)
+
+# ---
+extract_list = []
+
+# ---
+
+extract_list = client[config.det_db].extracts.find(
+    {'status':0}).sort([
+        ("priority", -1),
+        ("submit_time", 1)
+    ]).limit(extract_limit)
 
 
 qlist = []
@@ -64,17 +88,26 @@ for i in extract_list:
 
     tmp['bnd_name'] = i['boundary']
 
-    bnd_info = asdf.find({'name': tmp['bnd_name']}, {'base': 1, 'resources': 1}).limit(1)[0]
+    bnd_info = asdf.find(
+        {'name': tmp['bnd_name']},
+        {'base': 1, 'resources': 1}).limit(1)[0]
 
-    tmp['bnd_absolute'] = bnd_info['base'] +'/'+ bnd_info['resources'][0]['path']
+    tmp['bnd_absolute'] = (bnd_info['base'] + '/'
+        + bnd_info['resources'][0]['path'])
 
     tmp['data_mini' = i['raster'].split('_')[0]
 
 
-    data_info = asdf.find({'options.mini_name': tmp['data_mini']}, {'name':1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
+    data_info = asdf.find(
+        {'options.mini_name': tmp['data_mini']},
+        {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
 
     tmp['data_name'] = data_info['name']
-    tmp['data_absolute'] = data_info['base'] +'/'+ [j['path'] for j in data_info['resources'] if j['name'] == i['raster']][0]
+    tmp['data_absolute'] = (data_info['base'] + '/'+
+        [
+            j['path'] for j in data_info['resources']
+            if j['name'] == i['raster']
+        ][0])
 
     tmp['file_mask'] = data_info['file_mask']
 
@@ -140,12 +173,13 @@ def tmp_master_final(self):
 def tmp_worker_job(self, task_id):
 
     task = self.task_list[task_id]
-        
-    
+
+
     # ==================================================
 
 
-    # inputs (see jobscript_template comments for detailed descriptions of inputs)
+    # inputs (see jobscript_template comments for detailed
+    # descriptions of inputs)
     # * = managed by ExtractObject
 
     # extract method *
@@ -179,7 +213,7 @@ def tmp_worker_job(self, task_id):
     # ==================================================
 
 
-    exo = ExtractObject()
+    exo = extract_utility.ExtractObject()
 
     exo.set_extract_method(extract_method)
     exo.set_vector_path(bnd_absolute)
@@ -194,7 +228,8 @@ def tmp_worker_job(self, task_id):
     # ==================================================
 
 
-    output_dir = output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ exo._extract_type 
+    output_dir = (output_base + "/" + bnd_name + "/cache/"
+        + data_name +"/"+ exo._extract_type)
 
     # creates directories
     try:
@@ -208,17 +243,23 @@ def tmp_worker_job(self, task_id):
 
     # generate raster path
     raster = data_absolute
- 
-    # generate output path
-    # output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
-    output = output_dir + "/" + data_mini +"_"+ ''.join([str(e) for e in item[0]]) + exo._extract_options[exo._extract_type]
+
+    # # generate output path
+    # output = (output_base + "/extracts/" + bnd_name + "/cache/"
+    #     + data_name +"/"+ extract_type + "/extract_"
+    #     + '_'.join([str(e) for e in item[0]]))
+    output = (output_dir + "/" + data_mini + "_"
+        + ''.join([str(e) for e in item[0]])
+        + exo._extract_options[exo._extract_type])
 
     # run extract
-    print 'Worker ' + str(self.rank) + ' | Task ' + str(task_id) + ' - running extract: ' + output
+    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id)
+        + ' - running extract: ' + output)
     run_status, run_statment = exo.run_extract(raster, output)
 
     if run_status == 0:
-        print 'Worker ' + str(self.rank) + ' | Task ' + str(task_id) + ' - ' + run_statment
+        print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id)
+            + ' - ' + run_statment)
     else:
         raise Exception(run_statment)
 
