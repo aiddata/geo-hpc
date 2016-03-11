@@ -165,27 +165,35 @@ if job.rank == 0:
 
     msr = client[config.det_db].msr
 
-    # request_list = msr.find({
+
+
+    # find_request = msr.find_one({
     #     'status':0
-    # }).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+    # }).sort([("priority", -1), ("submit_time", 1)])
 
-    request_list = msr.find({
+    # request_accept = msr.update_one(find_request,{
+    #     '$set': {'status': 2}
+    # })
+
+    # # js/pseudocode --- need to convert to python
+    # if ( request_accept.hasWriteError() or request_accept.nMatched == 0 ) {
+    #     # try another
+    # }
+
+
+
+
+    request = msr.find_one_and_update({
         'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
-    }).sort([("priority", -1), ("submit_time", 1)]).limit(1)
+    }, {
+        '$set': {'status': 2}
+    }, sort=[("priority", -1), ("submit_time", 1)])
 
-    # make sure request was found
-    if request_list.count(True) == 1:
-
-        request = request_list[0]
-        # request_id = request['_id']
-
-    else:
-        request = None
 
     print request
 
 else:
-    request = None
+    request = 0
 
 
 request = job.comm.bcast(request, root=0)
@@ -193,10 +201,8 @@ request = job.comm.bcast(request, root=0)
 if request is None:
     quit("no jobs found in queue")
 
-
-# update status of request in msr queue to 2
-if job.rank == 0:
-    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": 2,}}, upsert=False)
+elif request == 0:
+    quit("error getting request from master")
 
 
 # -------------------------------------
