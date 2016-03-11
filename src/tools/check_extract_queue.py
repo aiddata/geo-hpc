@@ -35,7 +35,7 @@ import pymongo
 
 client = pymongo.MongoClient(config.server)
 
-msr = client[config.det_db].msr
+msr = client[config.det_db].extracts
 
 request_count = msr.find({'status':0}).count()
 
@@ -45,5 +45,3 @@ if request_count > 0:
 
 else:
     print "empty"
-
-

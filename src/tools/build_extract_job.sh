@@ -8,16 +8,16 @@ timestamp=$(date +%Y%m%d.%s)
 
 
 echo '=================================================='
-echo Running mean-surface-rasters job builder for branch: "$branch"
+echo Running extract-scripts job builder for branch: "$branch"
 echo Timestamp: $(date) #'('"$timestamp"')'
 echo -e "\n"
 
 
 # check if job needs to be run
-echo 'Checking for existing msr job (asdf-msr-'"$branch"')...'
+echo 'Checking for existing extract job (asdf-extract-'"$branch"')...'
 /usr/local/torque-2.3.7/bin/qstat -nu $USER
 
-if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; then
+if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-extract-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -28,16 +28,16 @@ else
 
     echo "No existing job found."
 
-    echo "Checking for items in msr queue..."
-    queue_status=$(python "$src"/asdf/src/tools/check_msr_queue.py "$branch")
+    echo "Checking for items in extract queue..."
+    queue_status=$(python "$src"/asdf/src/tools/check_extract_queue.py "$branch")
 
     if [ "$queue_status" = "error" ]; then
-        echo '... error connecting to msr queue'
+        echo '... error connecting to extract queue'
         exit 1
     fi
 
     if [ "$queue_status" = "empty" ]; then
-        echo '... msr queue empty'
+        echo '... extract queue empty'
         exit 0
     fi
 
@@ -49,7 +49,7 @@ else
     echo "Building job..."
 
 
-    mkdir -p "$src"/log/msr
+    mkdir -p "$src"/log/extract
     #/jobs
 
     job_path=$(mktemp)
@@ -63,22 +63,22 @@ else
 cat <<EOF >> "$job_path"
 
 #!/bin/tcsh
-#PBS -N asdf-msr-$branch
+#PBS -N asdf-extract-$branch
 #PBS -l nodes=4:c18c:ppn=16
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
-#PBS -o $src/log/msr/$timestamp.msr.log
+#PBS -o $src/log/extract/$timestamp.extract.log
 
 echo -e "\nJob id: $PBS_JOBID"
 
-echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+echo -e "\n *** Running extract-scripts autoscript.py... \n"
+mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp
 
 EOF
 
 
-    # cd "$src"/log/msr/jobs
+    # cd "$src"/log/extract/jobs
     /usr/local/torque-2.3.7/bin/qsub "$job_path"
 
     echo "Running job..."
