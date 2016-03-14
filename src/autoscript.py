@@ -168,32 +168,32 @@ if job.rank == 0:
 
 
     while True:
-        # find_request = msr.find_one({
-        #     'status': 0
-        # }).sort([("priority", -1), ("submit_time", 1)])
+        find_request = msr.find_one({
+            'status': 0
+        }).sort([("priority", -1), ("submit_time", 1)])
 
-        # if find_request is None:
-        #     request = None
-        #     break
+        if find_request is None:
+            request = None
+            break
 
-        # request_accept = msr.update_one(find_request, {
-        #     '$set': {'status': 2}
-        # })
+        request_accept = msr.update_one(find_request, {
+            '$set': {'status': 2}
+        })
 
-        # if request_accept.acknowledged and request_accept.modified_count == 1:
-        #     request = find_request
-        #     print request
-        #     break
+        if request_accept.acknowledged and request_accept.modified_count == 1:
+            request = find_request
+            print request
+            break
 
 
 
-    request = msr.find_one_and_update({
-        'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
-    }, {
-        '$set': {'status': 2}
-    }, sort=[("priority", -1), ("submit_time", 1)])
+    # request = msr.find_one_and_update({
+    #     'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
+    # }, {
+    #     '$set': {'status': 2}
+    # }, sort=[("priority", -1), ("submit_time", 1)])
 
-    print request
+    # print request
 
 
 
