@@ -170,7 +170,7 @@ if job.rank == 0:
     while True:
         find_request = msr.find_one({
             'status': 0
-        }).sort([("priority", -1), ("submit_time", 1)])
+        }, sort=[("priority", -1), ("submit_time", 1)])
 
         if find_request is None:
             request = None
@@ -888,3 +888,4 @@ job.run()
 #     print err
 #     # add error status to request in msr queue
 #     update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": -1,}}, upsert=False)
+
