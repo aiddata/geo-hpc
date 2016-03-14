@@ -3,6 +3,7 @@ import sys
 import math
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import pyproj
 from functools import partial
 from collections import OrderedDict
@@ -657,7 +658,8 @@ class CoreMSR():
         return adjusted_aid
 
 
-    def geom_to_grid_colrows(self, geom, step, rounded=True, no_multi=False):
+    def geom_to_colrows(self, geom, step, grid_buffer=None,
+        rounded=True, no_multi=False, return_bounds=False):
         """Generate column/row lists for grid based on geometry.
 
         Args:
@@ -686,14 +688,18 @@ class CoreMSR():
 
 
         if not hasattr(geom, 'geom_type'):
-            sys.exit("CoreMSR [geom_to_grid_colrows] : invalid geom")
+            sys.exit("CoreMSR [geom_to_colrows] : invalid geom")
 
 
         # poly grid pixel size and poly grid pixel size inverse
         # poly grid pixel size is 1 order of magnitude higher
         #   resolution than output pixel_size
         tmp_pixel_size = float(step)
-        tmp_psi = 1/tmp_pixel_size
+
+        if grid_buffer is not None:
+            tmp_psi = grid_buffer
+        else:
+            tmp_psi = 1/tmp_pixel_size
 
         (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = geom.bounds
 
@@ -713,7 +719,37 @@ class CoreMSR():
             tmp_rows = [round(i * tmp_sig) / tmp_sig for i in tmp_rows]
 
 
-        return tmp_cols, tmp_rows
+        if return_bounds:
+            return (tmp_cols, tmp_rows), (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy)
+        else:
+            return tmp_cols, tmp_rows
+
+
+    def colrows_to_grid(self, cols, rows):
+
+        colrows_product = list(itertools.product(cols, rows))
+        grid_gdf = gpd.GeoDataFrame()
+        grid_gdf['within'] = [0] * len(colrows_product)
+        grid_gdf['geometry'] = colrows_product
+        grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
+
+
+        # round to reference grid points and fix -0.0
+        grid_gdf['lat'] = grid_gdf.apply(lambda z: self.positive_zero(
+            round(z.geometry.y * self.psi) / self.psi), axis=1)
+        grid_gdf['lon'] = grid_gdf.apply(lambda z: self.positive_zero(
+            round(z.geometry.x * self.psi) / self.psi), axis=1)
+
+        geom_prep = prep(pg_geom)
+        grid_gdf['within'] = [geom_prep.contains(i) for i in grid_gdf['geometry']]
+
+
+        geom_count = sum(grid_gdf['within'])
+        grid_gdf['value'] = 0
+
+        grid_gdf.sort(['lat', 'lon'], ascending=[False, True], inplace=True)
+
+        return grid_gdf, geom_count
 
 
     def positive_zero(self, val):
