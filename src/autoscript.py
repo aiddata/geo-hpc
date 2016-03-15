@@ -803,7 +803,11 @@ def tmp_master_final(self):
 
     # update status of request in msr queue
     # and add output_obj to "output" field
-    update_msr = msr.update_one({'hash': request['hash']}, {'$set': {"status": 1, "info": output_obj}}, upsert=False)
+    update_msr = msr.update_one({
+        '_id': request['_id']
+    }, {
+        '$set': {"status": 1, "info": output_obj}
+    }, upsert=False)
 
 
 
