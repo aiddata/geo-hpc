@@ -727,7 +727,7 @@ class CoreMSR():
             return tmp_cols, tmp_rows
 
 
-    def colrows_to_grid(self, cols, rows, geom, round_points=False):
+    def colrows_to_grid(self, cols, rows, geom, round_points=True):
 
         colrows_product = list(itertools.product(cols, rows))
         grid_gdf = gpd.GeoDataFrame()

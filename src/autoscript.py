@@ -159,20 +159,16 @@ def quit(msg):
 if job.rank == 0:
 
     # import pymongo
-
     client = pymongo.MongoClient(config.server)
-
     msr = client[config.det_db].msr
 
-
     print 'starting request search'
-
     search_limit = 5
     search_attempt = 0
+
     while search_attempt < search_limit:
 
         print 'finding request:'
-
         find_request = msr.find_one({
             'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c",
             'status': 0
@@ -191,12 +187,10 @@ if job.rank == 0:
             '$set': {'status': 2}
         })
 
-        print request_accept.acknowledged
-        print request_accept.modified_count
+        print request_accept.raw_result
 
         if request_accept.acknowledged and request_accept.modified_count == 1:
             request = find_request
-            print request
             break
 
         search_attempt += 1
@@ -207,10 +201,7 @@ if job.rank == 0:
     if search_attempt == search_limit:
         request = 'Error'
 
-
     print 'request found'
-
-
 
     # request = msr.find_one_and_update({
     #     'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
@@ -220,11 +211,8 @@ if job.rank == 0:
 
     # print request
 
-
-
 else:
     request = 0
-
 
 
 request = job.comm.bcast(request, root=0)
@@ -250,9 +238,6 @@ run_version_str = "010"
 run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
-# random_id = '{0:05d}'.format(int(random.random() * 10**5))
-# Rid = str(Ts) +"_"+ random_id
-
 
 # -------------------------------------
 
@@ -270,7 +255,12 @@ dataset_id = request['dataset'].split('_')[0]
 if dataset_id not in iso3_lookup.keys():
     quit("no shp crosswalk for dataset: " + dataset_id)
 
+# todo: make sure these exist in lookups first
+abbr = iso3_lookup[dataset_id]
+utm_zone = utm_lookup[abbr]
 
+
+# -------------------------------------
 # lookup release path
 
 release_path = None
@@ -280,18 +270,11 @@ if job.rank == 0:
     release_path = asdf.find({'name': request['dataset']})[0]['base']
     print release_path
 
-
 release_path = job.comm.bcast(release_path, root=0)
-
 
 # make sure release path exists
 if not os.path.isdir(release_path):
     quit("release path specified not found: " + release_path)
-
-
-# todo: make sure these exist in lookups first
-abbr = iso3_lookup[dataset_id]
-utm_zone = utm_lookup[abbr]
 
 
 # =============================================================================
@@ -362,31 +345,6 @@ core.set_pixel_size(request['options']['resolution'])
 
 # -------------------------------------
 # create point grid for country
-
-
-# # grid_buffer
-# gb = 0.5
-
-# # country bounding box
-# (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.adm0.bounds
-
-# # bounding box rounded to pixel size (always increases bounding box size, never decreases)
-# (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = (
-#     math.floor(adm0_minx*gb)/gb,
-#     math.floor(adm0_miny*gb)/gb,
-#     math.ceil(adm0_maxx*gb)/gb,
-#     math.ceil(adm0_maxy*gb)/gb)
-
-# # generate arrays of new grid x and y values
-# cols = np.arange(adm0_minx, adm0_maxx+core.pixel_size*0.5, core.pixel_size)
-# rows = np.arange(adm0_miny, adm0_miny+core.pixel_size*0.5, core.pixel_size)
-
-# sig = 10 ** len(str(core.pixel_size)[str(core.pixel_size).index('.')+1:])
-
-# cols = [round(i * sig) / sig for i in cols]
-# rows = [round(i * sig) / sig for i in rows]
-
-
 master_grid = core.geom_to_colrows(
                 core.adm0, core.pixel_size, grid_buffer=0.5,
                 rounded=True, no_multi=True, return_bounds=True)
@@ -394,33 +352,7 @@ master_grid = core.geom_to_colrows(
 cols, rows = master_grid[0]
 (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = master_grid[1]
 
-
 # init grid reference object
-
-# grid_product = list(itertools.product(cols, rows))
-
-# grid_gdf = gpd.GeoDataFrame()
-# grid_gdf['within'] = [0] * len(grid_product)
-# grid_gdf['geometry'] = grid_product
-# grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
-
-# grid_gdf['lat'] = grid_gdf.apply(lambda z: z['geometry'].y, axis=1)
-# grid_gdf['lon'] = grid_gdf.apply(lambda z: z['geometry'].x, axis=1)
-
-# grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
-# grid_gdf.set_index('index', inplace=True)
-
-
-# grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
-# grid_gdf['within'] = [core.prep_adm0.contains(i) for i in grid_gdf['geometry']]
-
-
-# adm0_count = sum(grid_gdf['within'])
-
-# grid_gdf['value'] = 0
-
-# grid_gdf.sort(['lat', 'lon'], ascending=[False, True], inplace=True)
-
 grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0, round_points=False)
 
 grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
@@ -446,7 +378,6 @@ def tmp_master_init(self):
 
     # build output directories
     make_dir(dir_working)
-
 
     # record runtime of general init
     core.times['init'] = int(time.time())
@@ -539,32 +470,8 @@ def tmp_worker_job(self, task_id):
         # evenly split the aid for that row
         # ( active_data['adjusted_aid'] field ) among new grid points
 
-# ---
-        # tmp_product = list(itertools.product(pg_cols, pg_rows))
-        # tmp_gdf = gpd.GeoDataFrame()
-        # tmp_gdf['within'] = [0] * len(tmp_product)
-        # tmp_gdf['geometry'] = tmp_product
-        # tmp_gdf['geometry'] = tmp_gdf.apply(lambda z: Point(z.geometry), axis=1)
-
-
-        # # round to reference grid points and fix -0.0
-        # tmp_gdf['lat'] = tmp_gdf.apply(lambda z: core.positive_zero(
-        #     round(z.geometry.y * core.psi) / core.psi), axis=1)
-        # tmp_gdf['lon'] = tmp_gdf.apply(lambda z: core.positive_zero(
-        #     round(z.geometry.x * core.psi) / core.psi), axis=1)
-
-
-        # pg_geom_prep = prep(pg_geom)
-        # tmp_gdf['within'] = [pg_geom_prep.contains(i) for i in tmp_gdf['geometry']]
-
-
-        # pg_count = sum(tmp_gdf['within'])
-        # tmp_gdf['value'] = 0
-# ---
-
         tmp_gdf, pg_count = core.colrows_to_grid(pg_cols, pg_rows, pg_geom, round_points=True)
 
-# ---
 
         tmp_gdf['value'] = tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count)
 
