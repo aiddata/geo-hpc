@@ -44,7 +44,7 @@ if config.connection_status != 0:
 # --------------------------------------------------
 
 
-default_extract_limit = 10
+default_extract_limit = 2
 # default_time_limit = 5
 # default_extract_minimum = 1
 
@@ -101,7 +101,10 @@ for i in range(extract_limit):
                 '_id': find_request['_id'],
                 'status': find_request['status']
             }, {
-                '$set': {'status': 2}
+                '$set': {
+                    'status': 2,
+                    'update_time': int(time.time())
+                }
             })
 
             print request_accept.raw_result
@@ -148,6 +151,7 @@ for i in range(extract_limit):
 #         ("priority", -1),
 #         ("submit_time", 1)
 #     ]).limit(extract_limit)
+
 
 # --------------------------------------------------
 
@@ -224,21 +228,21 @@ def tmp_master_final(self):
     print '\n\n'
 
 
-    Ts2 = int(time.time())
-    T_start2 = time.localtime()
-    print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
+    # Ts2 = int(time.time())
+    # T_start2 = time.localtime()
+    # print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
 
-    merge_obj = MergeObject(input_json, os.path.dirname(input_json_path))
-    merge_obj.build_merge_list()
-    merge_obj.run_merge()
+    # merge_obj = extract_utility.MergeObject(input_json, os.path.dirname(input_json_path))
+    # merge_obj.build_merge_list()
+    # merge_obj.run_merge()
 
-    # stop job timer
-    T_run2 = int(time.time() - Ts2)
-    T_end2 = time.localtime()
-    print '\n\n'
-    print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
-    print 'Merge End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end2)
-    print 'Merge Runtime: ' + str(T_run2//60) +'m '+ str(int(T_run2%60)) +'s'
+    # # stop job timer
+    # T_run2 = int(time.time() - Ts2)
+    # T_end2 = time.localtime()
+    # print '\n\n'
+    # print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
+    # print 'Merge End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end2)
+    # print 'Merge Runtime: ' + str(T_run2//60) +'m '+ str(int(T_run2%60)) +'s'
 
 
 def tmp_worker_job(self, task_id):
@@ -317,8 +321,12 @@ def tmp_worker_job(self, task_id):
     raster = data_absolute
 
     # generate output path
-    output = (output_dir + "/" + raster_name + "_" +
-              exo._extract_options[exo._extract_type])
+    output = (output_dir + "/" + raster_name
+
+    if not "_" in raster_name:
+        output += "_"
+
+    output += exo._extract_options[exo._extract_type])
 
     # run extract
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
@@ -337,7 +345,10 @@ def tmp_worker_job(self, task_id):
     update_extract = extracts.update_one({
         '_id': task['_id']
     }, {
-        '$set': {"status": 1}
+        '$set': {
+            'status': 1,
+            'update_time': int(time.time())
+        }
     }, upsert=False)
 
     return 0
