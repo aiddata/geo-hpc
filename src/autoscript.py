@@ -168,6 +168,7 @@ for i in extract_list:
 
     tmp['data_mini'] = i['raster'].split('_')[0]
 
+    tmp['raster_name'] = i['raster']
 
     data_info = asdf.find(
         {'options.mini_name': tmp['data_mini']},
@@ -264,6 +265,8 @@ def tmp_worker_job(self, task_id):
 
     data_name = task['data_name']
 
+    raster_name = task['raster_name']
+
     # dataset mini_name
     data_mini = task['data_mini']
 
@@ -313,8 +316,7 @@ def tmp_worker_job(self, task_id):
     raster = data_absolute
 
     # generate output path
-    output = (output_dir + "/" + data_mini + "_" +
-              ''.join([str(e) for e in item[0]]) +
+    output = (output_dir + "/" + raster_name + "_" +
               exo._extract_options[exo._extract_type])
 
     # run extract
