@@ -727,7 +727,7 @@ class CoreMSR():
             return tmp_cols, tmp_rows
 
 
-    def colrows_to_grid(self, cols, rows, geom):
+    def colrows_to_grid(self, cols, rows, geom, round_points=False):
 
         colrows_product = list(itertools.product(cols, rows))
         grid_gdf = gpd.GeoDataFrame()
@@ -735,12 +735,15 @@ class CoreMSR():
         grid_gdf['geometry'] = colrows_product
         grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
 
-
-        # round to reference grid points and fix -0.0
-        grid_gdf['lat'] = grid_gdf.apply(lambda z: self.positive_zero(
-            round(z.geometry.y * self.psi) / self.psi), axis=1)
-        grid_gdf['lon'] = grid_gdf.apply(lambda z: self.positive_zero(
-            round(z.geometry.x * self.psi) / self.psi), axis=1)
+        if round_points:
+            # round to reference grid points and fix -0.0
+            grid_gdf['lat'] = grid_gdf.apply(lambda z: self.positive_zero(
+                round(z.geometry.y * self.psi) / self.psi), axis=1)
+            grid_gdf['lon'] = grid_gdf.apply(lambda z: self.positive_zero(
+                round(z.geometry.x * self.psi) / self.psi), axis=1)
+        else:
+            grid_gdf['lat'] = grid_gdf.apply(lambda z: z.geometry.y, axis=1)
+            grid_gdf['lon'] = grid_gdf.apply(lambda z: z.geometry.x, axis=1)
 
         geom_prep = prep(geom)
         grid_gdf['within'] = [geom_prep.contains(i) for i in grid_gdf['geometry']]

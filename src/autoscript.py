@@ -421,7 +421,7 @@ cols, rows = master_grid[0]
 
 # grid_gdf.sort(['lat', 'lon'], ascending=[False, True], inplace=True)
 
-grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0)
+grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0, round_points=False)
 
 # -------------------------------------
 # init for later (only used by master)
@@ -558,7 +558,7 @@ def tmp_worker_job(self, task_id):
         # tmp_gdf['value'] = 0
 # ---
 
-        tmp_gdf, pg_count = core.colrows_to_grid(pg_cols, pg_rows, pg_geom)
+        tmp_gdf, pg_count = core.colrows_to_grid(pg_cols, pg_rows, pg_geom, round_points=True)
 
 # ---
 
