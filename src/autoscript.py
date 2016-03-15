@@ -155,7 +155,6 @@ def quit(msg):
 # validate request and dataset
 # init, inputs and variables
 
-print '001'
 # check for request
 if job.rank == 0:
 
@@ -168,12 +167,14 @@ if job.rank == 0:
 
     print 'starting request search'
 
-    search_attempts = 0
-    while search_attempts < 5:
+    search_limit = 5
+    search_attempt = 0
+    while search_attempt < search_limit:
 
         print 'finding request:'
 
         find_request = msr.find_one({
+            'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c",
             'status': 0
         }, sort=[("priority", -1), ("submit_time", 1)])
 
@@ -183,7 +184,10 @@ if job.rank == 0:
             request = None
             break
 
-        request_accept = msr.update_one(find_request, {
+        request_accept = msr.update_one({
+            '_id': find_request['_id'],
+            'status': find_request['status']
+        }, {
             '$set': {'status': 2}
         })
 
@@ -195,12 +199,17 @@ if job.rank == 0:
             print request
             break
 
-        search_attempts += 1
+        search_attempt += 1
 
         print 'looking for another request...'
 
 
-    print 'request_found'
+    if search_attempt == search_limit:
+        request = 'Error'
+
+
+    print 'request found'
+
 
 
     # request = msr.find_one_and_update({
@@ -218,12 +227,13 @@ else:
 
 
 
-print '100'
-
 request = job.comm.bcast(request, root=0)
 
 if request is None:
     quit("no jobs found in queue")
+
+elif request == 'Error':
+    quit("error updating request status in mongodb")
 
 elif request == 0:
     quit("error getting request from master")
