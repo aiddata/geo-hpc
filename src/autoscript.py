@@ -70,8 +70,9 @@ asdf = client[config.asdf_db].data
 
 extracts = client[config.det_db].extracts
 
+# --------------------------------------------------
 
-# ----------
+# build extract list
 
 extract_list = []
 
@@ -104,7 +105,8 @@ for i in range(extract_limit):
 
             print request_accept.raw_result
 
-            if request_accept.acknowledged and request_accept.modified_count == 1:
+            if (request_accept.acknowledged and
+                    request_accept.modified_count == 1):
                 request = find_request
                 break
 
@@ -126,7 +128,10 @@ for i in range(extract_limit):
     request = job.comm.bcast(request, root=0)
 
     if request is None:
-        quit("no jobs found in queue")
+        if i == 0:
+            quit("no jobs found in queue")
+        else:
+            break
 
     elif request == 'Error':
         quit("error updating request status in mongodb")
@@ -137,23 +142,20 @@ for i in range(extract_limit):
     extract_list.append(request)
 
 
-if job.rank == 0:
-    print extract_list
-
-sys.exit('!~!')
-# ----------
-
 # extract_list = client[config.det_db].extracts.find(
 #     {'status':0}).sort([
 #         ("priority", -1),
 #         ("submit_time", 1)
 #     ]).limit(extract_limit)
 
+# --------------------------------------------------
 
 qlist = []
 
 for i in extract_list:
     tmp = {}
+
+    tmp['_id'] = i['_id']
 
     tmp['bnd_name'] = i['boundary']
 
@@ -319,11 +321,19 @@ def tmp_worker_job(self, task_id):
 
     run_status, run_statment = exo.run_extract(raster, output)
 
-    if run_status == 0:
-        print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
-               ' - ' + run_statment)
-    else:
+    if run_status != 0:
         raise Exception(run_statment)
+
+    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
+           ' - ' + run_statment)
+
+
+    # update status of item in extract queue
+    update_extract = extracts.update_one({
+        '_id': task['_id']
+    }, {
+        '$set': {"status": 1}
+    }, upsert=False)
 
     return 0
 
