@@ -388,7 +388,7 @@ core.set_pixel_size(request['options']['resolution'])
 
 
 master_grid = core.geom_to_colrows(
-                core.adm0.bounds, core.pixel_size, grid_buffer=0.5,
+                core.adm0, core.pixel_size, grid_buffer=0.5,
                 rounded=True, no_multi=True, return_bounds=True)
 
 cols, rows = master_grid[0]
