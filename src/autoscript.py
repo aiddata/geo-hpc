@@ -68,6 +68,8 @@ client = pymongo.MongoClient(config.server)
 
 asdf = client[config.asdf_db].data
 
+extracts = client[config.det_db].extracts
+
 
 # ----------
 
