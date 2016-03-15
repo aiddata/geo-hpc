@@ -155,7 +155,7 @@ def quit(msg):
 # validate request and dataset
 # init, inputs and variables
 
-
+print '001'
 # check for request
 if job.rank == 0:
 
@@ -166,11 +166,17 @@ if job.rank == 0:
     msr = client[config.det_db].msr
 
 
+    print 'starting request search'
 
     while True:
+
+        print 'finding request:'
+
         find_request = msr.find_one({
             'status': 0
         }, sort=[("priority", -1), ("submit_time", 1)])
+
+        print find_request
 
         if find_request is None:
             request = None
@@ -185,6 +191,10 @@ if job.rank == 0:
             print request
             break
 
+        print 'looking for another request...'
+
+
+    print 'request_found'
 
 
     # request = msr.find_one_and_update({
@@ -200,6 +210,9 @@ if job.rank == 0:
 else:
     request = 0
 
+
+
+print '100'
 
 request = job.comm.bcast(request, root=0)
 
