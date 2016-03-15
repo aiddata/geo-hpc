@@ -159,10 +159,10 @@ for i in extract_list:
         {'name': tmp['bnd_name']},
         {'base': 1, 'resources': 1}).limit(1)[0]
 
-    tmp['bnd_absolute'] = (bnd_info['base'] + '/'
-        + bnd_info['resources'][0]['path'])
+    tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
+                           bnd_info['resources'][0]['path'])
 
-    tmp['data_mini' = i['raster'].split('_')[0]
+    tmp['data_mini'] = i['raster'].split('_')[0]
 
 
     data_info = asdf.find(
@@ -170,7 +170,8 @@ for i in extract_list:
         {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
 
     tmp['data_name'] = data_info['name']
-    tmp['data_absolute'] = (data_info['base'] + '/'+
+    tmp['data_absolute'] = (
+        data_info['base'] + '/'+
         [
             j['path'] for j in data_info['resources']
             if j['name'] == i['raster']
@@ -289,8 +290,8 @@ def tmp_worker_job(self, task_id):
 
     # ==================================================
 
-    output_dir = (output_base + "/" + bnd_name + "/cache/"
-        + data_name +"/"+ exo._extract_type)
+    output_dir = (output_base + "/" + bnd_name + "/cache/" +
+                  data_name +"/"+ exo._extract_type)
 
     # creates directories
     try:
@@ -306,18 +307,19 @@ def tmp_worker_job(self, task_id):
     raster = data_absolute
 
     # generate output path
-    output = (output_dir + "/" + data_mini + "_"
-        + ''.join([str(e) for e in item[0]])
-        + exo._extract_options[exo._extract_type])
+    output = (output_dir + "/" + data_mini + "_" +
+              ''.join([str(e) for e in item[0]]) +
+              exo._extract_options[exo._extract_type])
 
     # run extract
-    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id)
-        + ' - running extract: ' + output)
+    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
+           ' - running extract: ' + output)
+
     run_status, run_statment = exo.run_extract(raster, output)
 
     if run_status == 0:
-        print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id)
-            + ' - ' + run_statment)
+        print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
+               ' - ' + run_statment)
     else:
         raise Exception(run_statment)
 
