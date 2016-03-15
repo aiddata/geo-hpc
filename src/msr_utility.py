@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import pyproj
+import itertools
+
 from functools import partial
 from collections import OrderedDict
 from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
