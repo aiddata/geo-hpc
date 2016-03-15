@@ -69,16 +69,83 @@ client = pymongo.MongoClient(config.server)
 asdf = client[config.asdf_db].data
 
 
-# ---
+# ----------
+
 extract_list = []
 
-# ---
+for i in range(extract_limit):
+    if job.rank == 0:
 
-extract_list = client[config.det_db].extracts.find(
-    {'status':0}).sort([
-        ("priority", -1),
-        ("submit_time", 1)
-    ]).limit(extract_limit)
+        print 'starting request search'
+        search_limit = 5
+        search_attempt = 0
+
+        while search_attempt < search_limit:
+
+            print 'finding request:'
+            find_request = extracts.find_one({
+                'status': 0
+            }, sort=[("priority", -1), ("submit_time", 1)])
+
+            print find_request
+
+            if find_request is None:
+                request = None
+                break
+
+            request_accept = extracts.update_one({
+                '_id': find_request['_id'],
+                'status': find_request['status']
+            }, {
+                '$set': {'status': 2}
+            })
+
+            print request_accept.raw_result
+
+            if request_accept.acknowledged and request_accept.modified_count == 1:
+                request = find_request
+                break
+
+            search_attempt += 1
+
+            print 'looking for another request...'
+
+
+        if search_attempt == search_limit:
+            request = 'Error'
+            break
+
+        print 'request found'
+
+    else:
+        request = 0
+
+
+    request = job.comm.bcast(request, root=0)
+
+    if request is None:
+        quit("no jobs found in queue")
+
+    elif request == 'Error':
+        quit("error updating request status in mongodb")
+
+    elif request == 0:
+        quit("error getting request from master")
+
+    extract_list.append(request)
+
+
+if job.rank == 0:
+    print extract_list
+
+sys.exit('!~!')
+# ----------
+
+# extract_list = client[config.det_db].extracts.find(
+#     {'status':0}).sort([
+#         ("priority", -1),
+#         ("submit_time", 1)
+#     ]).limit(extract_limit)
 
 
 qlist = []
@@ -147,19 +214,16 @@ def tmp_master_final(self):
     print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
     print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
     print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
-
-
     print '\n\n'
+
 
     Ts2 = int(time.time())
     T_start2 = time.localtime()
     print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
 
-
     merge_obj = MergeObject(input_json, os.path.dirname(input_json_path))
     merge_obj.build_merge_list()
     merge_obj.run_merge()
-
 
     # stop job timer
     T_run2 = int(time.time() - Ts2)
@@ -176,7 +240,6 @@ def tmp_worker_job(self, task_id):
 
 
     # ==================================================
-
 
     # inputs (see jobscript_template comments for detailed
     # descriptions of inputs)
@@ -212,7 +275,6 @@ def tmp_worker_job(self, task_id):
 
     # ==================================================
 
-
     exo = extract_utility.ExtractObject()
 
     exo.set_extract_method(extract_method)
@@ -227,7 +289,6 @@ def tmp_worker_job(self, task_id):
 
     # ==================================================
 
-
     output_dir = (output_base + "/" + bnd_name + "/cache/"
         + data_name +"/"+ exo._extract_type)
 
@@ -238,16 +299,13 @@ def tmp_worker_job(self, task_id):
         if exception.errno != errno.EEXIST:
             raise
 
-    # ==================================================
 
+    # ==================================================
 
     # generate raster path
     raster = data_absolute
 
-    # # generate output path
-    # output = (output_base + "/extracts/" + bnd_name + "/cache/"
-    #     + data_name +"/"+ extract_type + "/extract_"
-    #     + '_'.join([str(e) for e in item[0]]))
+    # generate output path
     output = (output_dir + "/" + data_mini + "_"
         + ''.join([str(e) for e in item[0]])
         + exo._extract_options[exo._extract_type])
