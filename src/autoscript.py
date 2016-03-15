@@ -168,7 +168,8 @@ if job.rank == 0:
 
     print 'starting request search'
 
-    while True:
+    search_attempts = 0
+    while search_attempts < 5:
 
         print 'finding request:'
 
@@ -186,10 +187,15 @@ if job.rank == 0:
             '$set': {'status': 2}
         })
 
+        print request_accept.acknowledged
+        print request_accept.modified_count
+
         if request_accept.acknowledged and request_accept.modified_count == 1:
             request = find_request
             print request
             break
+
+        search_attempts += 1
 
         print 'looking for another request...'
 
