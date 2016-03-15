@@ -262,6 +262,8 @@ def tmp_worker_job(self, task_id):
     # folder which contains data (or data file) *
     data_absolute = task['data_absolute']
 
+    data_name = task['data_name']
+
     # dataset mini_name
     data_mini = task['data_mini']
 
