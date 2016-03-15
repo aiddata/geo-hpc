@@ -321,12 +321,12 @@ def tmp_worker_job(self, task_id):
     raster = data_absolute
 
     # generate output path
-    output = (output_dir + "/" + raster_name
+    output = output_dir + "/" + raster_name
 
     if not "_" in raster_name:
         output += "_"
 
-    output += exo._extract_options[exo._extract_type])
+    output += exo._extract_options[exo._extract_type]
 
     # run extract
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
