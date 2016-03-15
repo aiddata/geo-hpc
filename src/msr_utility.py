@@ -727,7 +727,7 @@ class CoreMSR():
             return tmp_cols, tmp_rows
 
 
-    def colrows_to_grid(self, cols, rows):
+    def colrows_to_grid(self, cols, rows, geom):
 
         colrows_product = list(itertools.product(cols, rows))
         grid_gdf = gpd.GeoDataFrame()
@@ -742,7 +742,7 @@ class CoreMSR():
         grid_gdf['lon'] = grid_gdf.apply(lambda z: self.positive_zero(
             round(z.geometry.x * self.psi) / self.psi), axis=1)
 
-        geom_prep = prep(pg_geom)
+        geom_prep = prep(geom)
         grid_gdf['within'] = [geom_prep.contains(i) for i in grid_gdf['geometry']]
 
 
