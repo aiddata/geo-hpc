@@ -411,7 +411,7 @@ cols, rows = master_grid[0]
 # grid_gdf.set_index('index', inplace=True)
 
 
-# # grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
+# grid_gdf['within'] = grid_gdf['geometry'].intersects(adm0)
 # grid_gdf['within'] = [core.prep_adm0.contains(i) for i in grid_gdf['geometry']]
 
 
@@ -422,6 +422,10 @@ cols, rows = master_grid[0]
 # grid_gdf.sort(['lat', 'lon'], ascending=[False, True], inplace=True)
 
 grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0, round_points=False)
+
+grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat), axis=1)
+grid_gdf.set_index('index', inplace=True)
+
 
 # -------------------------------------
 # init for later (only used by master)
