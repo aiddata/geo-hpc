@@ -319,7 +319,62 @@ class CoreMSR():
         # aid field value split evenly across
         # all project locations based on location count
         df_merged[self.aid_field].fillna(0, inplace=True)
-        df_merged['split_dollars_pp'] = (df_merged[self.aid_field] / df_merged.location_count)
+        df_merged['split_dollars_pp'] = (
+            df_merged[self.aid_field] / df_merged.location_count)
+
+
+        # -------------------------------------
+        # filters
+
+        filters = request_object['options']['filters']
+
+        df_filtered = df_merged.copy(deep=True)
+
+        for filter_field in filters.keys():
+
+            tmp_filter = filters[filter_field]
+
+            if tmp_filter and 'All' not in tmp_filter:
+
+                if filter_field == "years":
+                    # need to add year filter to check if year is
+                    # between transaction_start_year and
+                    # transaction_end_year
+                    df_filtered = df_filtered.loc[
+                        df_filtered.apply(
+                            lambda z: any(
+                                int(i) >= int(z.transactions_start_year) and
+                                int(i) <= int(z.transactions_end_year)
+                                for i in y),
+                            axis=1)
+                    ].copy(deep=True)
+
+                else:
+
+                    df_filtered = df_filtered.loc[
+                        df_filtered[filter_field].str.contains(
+                            '(' + '|'.join(tmp_filter) + ')')
+                    ].copy(deep=True)
+
+
+
+        # adjust aid based on ratio of sectors/donors in
+        # filter to all sectors/donors listed for project
+
+        if not 'ad_sector_names' in filters.keys():
+            sector_split_list = []
+        else:
+            sector_split_list = filters['ad_sector_names']
+
+        if not 'donors' in filters.keys():
+            donor_split_list = []
+        else:
+            donor_split_list = filters['donors']
+
+        df_filtered['adjusted_aid'] = df_filtered.apply(
+            lambda z: self.adjust_aid(
+                z.split_dollars_pp, z.ad_sector_names, z.donors,
+                sector_split_list, donor_split_list), axis=1)
 
 
         # -------------------------------------
@@ -328,48 +383,49 @@ class CoreMSR():
         # filter years
         #
 
-        # filter sectors and donors
-        if (request_object['options']['donors'] == ['All'] and
-                request_object['options']['sectors'] != ['All']):
+        # # filter sectors and donors
+        # if (request_object['options']['donors'] == ['All'] and
+        #         request_object['options']['sectors'] != ['All']):
 
-            df_filtered = df_merged.loc[
-                df_merged['ad_sector_names'].str.contains(
-                    '|'.join(request_object['options']['sectors'])
-                )
-            ].copy(deep=True)
+        #     df_filtered = df_merged.loc[
+        #         df_merged['ad_sector_names'].str.contains(
+        #             '|'.join(request_object['options']['sectors'])
+        #         )
+        #     ].copy(deep=True)
 
-        elif (request_object['options']['donors'] != ['All'] and
-                request_object['options']['sectors'] == ['All']):
+        # elif (request_object['options']['donors'] != ['All'] and
+        #         request_object['options']['sectors'] == ['All']):
 
-            df_filtered = df_merged.loc[
-                df_merged['donors'].str.contains(
-                    '|'.join(request_object['options']['donors'])
-                )
-            ].copy(deep=True)
+        #     df_filtered = df_merged.loc[
+        #         df_merged['donors'].str.contains(
+        #             '|'.join(request_object['options']['donors'])
+        #         )
+        #     ].copy(deep=True)
 
-        elif (request_object['options']['donors'] != ['All'] and
-                request_object['options']['sectors'] != ['All']):
+        # elif (request_object['options']['donors'] != ['All'] and
+        #         request_object['options']['sectors'] != ['All']):
 
-            df_filtered = df_merged.loc[(
-                df_merged['ad_sector_names'].str.contains(
-                    '|'.join(request_object['options']['sectors'])
-                )
-            ) & (
-                df_merged['donors'].str.contains(
-                    '|'.join(request_object['options']['donors'])
-                )
-            )].copy(deep=True)
+        #     df_filtered = df_merged.loc[(
+        #         df_merged['ad_sector_names'].str.contains(
+        #             '|'.join(request_object['options']['sectors'])
+        #         )
+        #     ) & (
+        #         df_merged['donors'].str.contains(
+        #             '|'.join(request_object['options']['donors'])
+        #         )
+        #     )].copy(deep=True)
 
-        else:
-            df_filtered = df_merged.copy(deep=True)
+        # else:
+        #     df_filtered = df_merged.copy(deep=True)
 
 
-        # adjust aid based on ratio of sectors/donors in
-        # filter to all sectors/donors listed for project
-        df_filtered['adjusted_aid'] = df_filtered.apply(lambda z: self.adjust_aid(
-            z.split_dollars_pp, z.ad_sector_names, z.donors,
-            request_object['options']['sectors'],
-            request_object['options']['donors']), axis=1)
+        # # adjust aid based on ratio of sectors/donors in
+        # # filter to all sectors/donors listed for project
+        # df_filtered['adjusted_aid'] = df_filtered.apply(
+        #     lambda z: self.adjust_aid(
+        #         z.split_dollars_pp, z.ad_sector_names, z.donors,
+        #         request_object['options']['sectors'],
+        #         request_object['options']['donors']), axis=1)
 
 
         # -------------------------------------
@@ -388,7 +444,8 @@ class CoreMSR():
             x.agg_type, x[self.code_field_1], x[self.code_field_2],
             x.longitude, x.latitude), axis=1)
 
-        df_final = df_filtered.loc[df_filtered.agg_geom != "None"].copy(deep=True)
+        df_final = df_filtered.loc[
+            df_filtered.agg_geom != "None"].copy(deep=True)
 
         # df_final['index'] = df_final['project_location_id']
         df_final['unique'] = range(0, len(df_final))
@@ -430,7 +487,7 @@ class CoreMSR():
                 return self.not_geocoded
 
             else:
-                print "is_geocoded integer code not recognized: " + str(is_geo)
+                print "is_geocoded integer code not recognized: "+str(is_geo)
                 return "None"
 
         except:
@@ -487,7 +544,8 @@ class CoreMSR():
 
         Args:
             code_1 (str) : primary location identifier (eg: precision code)
-            code_2 (str) : secondary location identifier (eg: location type code)
+            code_2 (str) : secondary location identifier (eg: location type
+                code)
             lon : longitude
             lat : latitude
         Returns:
@@ -539,7 +597,8 @@ class CoreMSR():
                     utm_buffer = utm_pnt_act.buffer(tmp_int)
 
                     # reproject back
-                    buffer_proj = partial(pyproj.transform, proj_utm, proj_wgs)
+                    buffer_proj = partial(pyproj.transform,
+                                          proj_utm, proj_wgs)
                     tmp_buffer = transform(buffer_proj, utm_buffer)
 
                     # clip buffer if it extends outside country
@@ -558,7 +617,8 @@ class CoreMSR():
             elif tmp_lookup["type"] == "adm":
                 try:
                     tmp_int = int(tmp_lookup["data"])
-                    return self.get_shape_within(tmp_pnt, self.adm_shps[tmp_int])
+                    return self.get_shape_within(tmp_pnt,
+                                                 self.adm_shps[tmp_int])
 
                 except:
                     print "adm value could not be converted to int"
@@ -575,7 +635,8 @@ class CoreMSR():
         Args:
             agg_type (str) : geometry type
             code_1 (str) : primary location identifier (eg: precision code)
-            code_2 (str) : secondary location identifier (eg: location type code)
+            code_2 (str) : secondary location identifier (eg: location type
+                code)
             lon : longitude
             lat : latitude
         Returns:
@@ -634,13 +695,14 @@ class CoreMSR():
         project_sectors_list = project_sectors_string.split('|')
         project_donors_list = project_donors_string.split('|')
 
-        if filter_sectors_list == ['All']:
+        if not filter_sectors_list or 'All' in filter_sectors_list:
             sectors_match = project_sectors_list
         else:
             sectors_match = [match for match in project_sectors_list
-                                if match in filter_sectors_list]
+                             if match in filter_sectors_list]
 
-        if filter_donors_list == ['All']:
+
+        if not filter_donors_list or 'All' in filter_donors_list:
             donors_match = project_donors_list
         else:
             donors_match = [match for match in project_donors_list
@@ -652,7 +714,8 @@ class CoreMSR():
 
         # remove duplicates? - could be duplicates from project strings
         # match = (len(set(sectors_match)) * len(set(donors_match)))
-        # total = (len(set(project_sectors_list)) * len(set(project_donors_list)))
+        # total = (len(set(project_sectors_list)) *
+        #            len(set(project_donors_list)))
         # ratio = match / total
 
         adjusted_aid = ratio * float(raw_aid)
@@ -711,20 +774,29 @@ class CoreMSR():
             math.ceil(tmp_maxx*tmp_psi)/tmp_psi,
             math.ceil(tmp_maxy*tmp_psi)/tmp_psi)
 
-        tmp_cols = np.arange(tmp_minx, tmp_maxx+tmp_pixel_size*0.5, tmp_pixel_size)
-        tmp_rows = np.arange(tmp_miny, tmp_maxy+tmp_pixel_size*0.5, tmp_pixel_size)
+        tmp_cols = np.arange(tmp_minx,
+                             tmp_maxx+tmp_pixel_size*0.5,
+                             tmp_pixel_size)
+
+        tmp_rows = np.arange(tmp_miny,
+                             tmp_maxy+tmp_pixel_size*0.5,
+                             tmp_pixel_size)
 
         if rounded == True:
-            tmp_sig = 10 ** len(str(tmp_pixel_size)[str(tmp_pixel_size).index('.')+1:])
+            tmp_sig = 10 ** len(
+                str(tmp_pixel_size)[str(tmp_pixel_size).index('.')+1:])
 
             tmp_cols = [round(i * tmp_sig) / tmp_sig for i in tmp_cols]
             tmp_rows = [round(i * tmp_sig) / tmp_sig for i in tmp_rows]
 
 
+        tmp_colrows = (tmp_cols, tmp_rows)
+        tmp_bounds = (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy)
+
         if return_bounds:
-            return (tmp_cols, tmp_rows), (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy)
+            return tmp_colrows, tmp_bounds
         else:
-            return tmp_cols, tmp_rows
+            return tmp_colrows
 
 
     def colrows_to_grid(self, cols, rows, geom, round_points=True):
@@ -733,7 +805,8 @@ class CoreMSR():
         grid_gdf = gpd.GeoDataFrame()
         grid_gdf['within'] = [0] * len(colrows_product)
         grid_gdf['geometry'] = colrows_product
-        grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry), axis=1)
+        grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry),
+                                              axis=1)
 
         if round_points:
             # round to reference grid points and fix -0.0
@@ -746,7 +819,8 @@ class CoreMSR():
             grid_gdf['lon'] = grid_gdf.apply(lambda z: z.geometry.x, axis=1)
 
         geom_prep = prep(geom)
-        grid_gdf['within'] = [geom_prep.contains(i) for i in grid_gdf['geometry']]
+        grid_gdf['within'] = [geom_prep.contains(i)
+                              for i in grid_gdf['geometry']]
 
 
         geom_count = sum(grid_gdf['within'])

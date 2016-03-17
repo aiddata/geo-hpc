@@ -184,7 +184,10 @@ if job.rank == 0:
             '_id': find_request['_id'],
             'status': find_request['status']
         }, {
-            '$set': {'status': 2}
+            '$set': {
+                'status': 2,
+                'update_time': int(time.time())
+            }
         })
 
         print request_accept.raw_result
@@ -806,7 +809,11 @@ def tmp_master_final(self):
     update_msr = msr.update_one({
         '_id': request['_id']
     }, {
-        '$set': {"status": 1, "info": output_obj}
+        '$set': {
+            'status': 1,
+            'update_time': int(time.time()),
+            'info': output_obj
+        }
     }, upsert=False)
 
 
