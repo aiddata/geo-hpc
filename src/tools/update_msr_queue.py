@@ -364,6 +364,9 @@ for ix in dataset_info.keys():
 
 
         if len(filtered) == 0:
+            if len(sector_split_list) + len(donor_split_list) <= 1):
+                print sector_split_list
+                print donor_split_list
             # empty_sum += 1
             continue
 
