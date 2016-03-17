@@ -6,6 +6,7 @@ import pandas as pd
 import geopandas as gpd
 import pyproj
 import itertools
+import re
 
 from functools import partial
 from collections import OrderedDict
@@ -353,7 +354,7 @@ class CoreMSR():
 
                     df_filtered = df_filtered.loc[
                         df_filtered[filter_field].str.contains(
-                            '(' + '|'.join(tmp_filter) + ')')
+                            '|'.join([re.escape(i) for i in tmp_filter]))
                     ].copy(deep=True)
 
 
