@@ -351,17 +351,6 @@ for ix in dataset_info.keys():
         # --------------------------------------------------
 
 
-        if len(filtered) == 0:
-            # empty_sum += 1
-            continue
-
-        if len(filtered) < 10: #0.05 * len(merged):
-            # count_thresh_sum += 1
-            continue
-
-        # adjust aid based on ratio of sectors/donors in
-        # filter to all sectors/donors listed for project
-
         if not 'ad_sector_names' in filter_object.keys():
             sector_split_list = []
         else:
@@ -371,6 +360,21 @@ for ix in dataset_info.keys():
             donor_split_list = []
         else:
             donor_split_list = filter_object['donors']
+
+
+
+        if (len(filtered) == 0 and
+                len(sector_split_list) + len(donor_split_list) > 1):
+            # empty_sum += 1
+            continue
+
+        if len(filtered) < 10 and
+                len(sector_split_list) + len(donor_split_list) > 1):
+            # count_thresh_sum += 1
+            continue
+
+        # adjust aid based on ratio of sectors/donors in
+        # filter to all sectors/donors listed for project
 
         filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(
             z.split_dollars_pp, z.ad_sector_names, z.donors,
