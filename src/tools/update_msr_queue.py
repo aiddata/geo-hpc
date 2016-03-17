@@ -359,19 +359,19 @@ for ix in dataset_info.keys():
             # count_thresh_sum += 1
             continue
 
+        # adjust aid based on ratio of sectors/donors in
+        # filter to all sectors/donors listed for project
 
         if not 'ad_sector_names' in filter_object.keys():
             sector_split_list = []
         else:
             sector_split_list = filter_object['ad_sector_names']
 
-        if not 'donor' in filter_object.keys():
+        if not 'donors' in filter_object.keys():
             donor_split_list = []
         else:
-            donor_split_list = filter_object['donor']
+            donor_split_list = filter_object['donors']
 
-        # adjust aid based on ratio of sectors/donors in
-        # filter to all sectors/donors listed for project
         filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(
             z.split_dollars_pp, z.ad_sector_names, z.donors,
             sector_split_list, donor_split_list), axis=1)
@@ -481,6 +481,8 @@ for ix in dataset_info.keys():
            str(accept_count) + ' acceptable out of ' +
            str(total_count) + ' total possible).')
 
+
+    break
 
 # print tot_sum
 
