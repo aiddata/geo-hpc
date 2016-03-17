@@ -316,7 +316,7 @@ for ix in dataset_info.keys():
 
                     filtered = filtered.loc[
                         filtered[filter_field].str.contains(
-                            '|'.join(re.escape(tmp_filter)))
+                            '|'.join([re.escape(i) for i in tmp_filter]))
                     ].copy(deep=True)
 
 
