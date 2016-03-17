@@ -486,7 +486,6 @@ for ix in dataset_info.keys():
            str(total_count) + ' total possible).')
 
 
-    break
 
 # print tot_sum
 
