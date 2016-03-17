@@ -363,8 +363,7 @@ for ix in dataset_info.keys():
 
 
 
-        if (len(filtered) == 0 and
-                len(sector_split_list) + len(donor_split_list) > 1):
+        if len(filtered) == 0:
             # empty_sum += 1
             continue
 
