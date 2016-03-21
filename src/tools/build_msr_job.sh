@@ -64,7 +64,7 @@ cat <<EOF >> "$job_path"
 
 #!/bin/tcsh
 #PBS -N asdf-msr-$branch
-#PBS -l nodes=4:c18c:ppn=16
+#PBS -l nodes=10:c18c:ppn=4
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
