@@ -162,7 +162,7 @@ for dataset_options in job_json['data']:
 # ===========================================================================
 # determine node specifications for job
 
-total_count = sum([i['info']['count'] for i in job_summary['datasets']])
+total_count = sum([i['info']['count'] for i in job_summary['datasets']]) + 1
 max_individual_run_time = max([i['info']['individual_run_time'] for i in job_summary['datasets']])
 
 # job_summary['summary']['count'] = total_count
@@ -321,8 +321,8 @@ lines = []
 
 lines.append('#!/bin/tcsh')
 lines.append('#PBS -N '+user_prefix+':ex:'+job_name)
-lines.append('#PBS -l nodes='+str(node_count)+':'+node_spec+':'+'ppn='+str(ppn))
-lines.append('#PBS -l walltime='+str(run_hours)+':00:00')
+lines.append('#PBS -l nodes='+str(int(node_count))+':'+node_spec+':'+'ppn='+str(int(ppn)))
+lines.append('#PBS -l walltime='+str(int(run_hours))+':00:00')
 lines.append('#PBS -q alpha')
 lines.append('#PBS -j oe')
 lines.append('')
@@ -343,9 +343,9 @@ lines.append('')
 args = 'python-mpi ../../../runscript.py ' + output_json_path
 
 if node_type == "xeon":
-    lines.append('mvp2run -m cyclic -c ' + str(np) +' '+ args)
+    lines.append('mvp2run -m cyclic -c ' + str(int(np)) +' '+ args)
 elif node_type in ["vortex", "vortex-alpha"]:
-    lines.append('mpirun --mca mpi_warn_on_fork 0 -np '+ str(np) +' '+ args)
+    lines.append('mpirun --mca mpi_warn_on_fork 0 -np '+ str(int(np)) +' '+ args)
 
 
 # jobscripts must have newline at end of file
