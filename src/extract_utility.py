@@ -23,7 +23,7 @@ def str_to_range(value):
     Args:
         value (str): year string range segment (see parse_year_string() documentation for year string details)
     Returns:
-        year range (List[int]): 
+        year range (List[int]):
     """
     if not isinstance(value, str):
         raise Exception("str_to_range: input must be str")
@@ -45,7 +45,7 @@ def str_to_range(value):
 def parse_year_string(value):
     """Generate list of years based on year string input.
 
-    Years string are a simple method of specifying years and year ranges using a single string. 
+    Years string are a simple method of specifying years and year ranges using a single string.
     Through parsing of the year string, a list of years is generated.
 
     The 4 components of a year string are:
@@ -62,12 +62,12 @@ def parse_year_string(value):
         4) separator -      the separator or pipe (|) is used to separate each portion of your year string
 
     Year strings are parsed sequentially, meaning that each pipe separated portion of the year string
-    will be parse in order and will override any previous segments. The resulting list is "positive" 
+    will be parse in order and will override any previous segments. The resulting list is "positive"
     which means that only accepted years are included (ie: a year string with only negations will
     be empty.)
 
     Examples:
-    - 1980|1990:1992 = ['1980', '1990', '1991', '1992'] 
+    - 1980|1990:1992 = ['1980', '1990', '1991', '1992']
     - 1980:1982 = ['1980', '1981', '1982']
     - 1980:1982|!1981 = ['1980', '1982']
     - 1985:1987|!1980:1990 = []
@@ -76,7 +76,7 @@ def parse_year_string(value):
         value (str): year string (see above for details on year strings)
     Returns:
         year list (List[str]): list of strings generated based on year string
-    """       
+    """
     statements = [x for x in str(value).split('|') if x != ""]
 
     tmp_years = []
@@ -86,7 +86,7 @@ def parse_year_string(value):
 
             if ':' in i:
                 tmp_range = str_to_range(i[1:])
-                tmp_years = [y for y in tmp_years if y not in tmp_range] 
+                tmp_years = [y for y in tmp_years if y not in tmp_range]
             else:
                 try:
                     year = int(i[1:])
@@ -123,7 +123,7 @@ def get_years(value):
         value = ""
 
     statements = [x for x in str(value).split('|') if x != ""]
-    
+
     if len(statements) == 0:
         tmp_years = map(str, range(1000,10000))
 
@@ -146,10 +146,10 @@ class ExtractObject():
 
     Attributes (args):
 
-        _builder (bool): indicates whether ExtractObject is being called by builder 
-                         (prevents portions of code from being run when extracts are 
+        _builder (bool): indicates whether ExtractObject is being called by builder
+                         (prevents portions of code from being run when extracts are
                          not actually going to be run)
-        
+
 
     Attributes (variable):
 
@@ -201,7 +201,7 @@ class ExtractObject():
         # self._r_vector = None
 
         self._extract_type = None
-        
+
         self._base_path = None
 
         # self.default_years = range(1000, 10000)
@@ -245,7 +245,7 @@ class ExtractObject():
     # def _init_rpy2(self):
     #     # from rpy2.robjects.packages import importr
     #     # from rpy2 import robjects
-        
+
     #     # try loading rpy2 packages, open vector file and other init
     #     try:
     #         # load packages
@@ -274,7 +274,7 @@ class ExtractObject():
     # def _set_r_vector(self):
     #     """Set _r_vector attribute.
 
-    #     Makes sure extract method is rpy2 and vector info has 
+    #     Makes sure extract method is rpy2 and vector info has
     #     been set, then sets _r_vector.
     #     """
     #     if not self._builder and self._extract_method == "rpy2" and self._vector_info != (None, None):
@@ -290,11 +290,11 @@ class ExtractObject():
             value (str): vector file path
         """
         if self._extract_method == None:
-            raise Exception("set_vector_path: no extract method set") 
+            raise Exception("set_vector_path: no extract method set")
 
         if not os.path.isfile(value):
             raise Exception("set_vector_path: vector does not exist (" + value + ")")
-   
+
         self._vector_path = value
         self._set_vector_extension(value)
 
@@ -332,9 +332,9 @@ class ExtractObject():
         """Run general validation of file_mask based on base_path
 
         Makes sure that:
-        1) temporally invariant file masks (ie "None") are not used with 
+        1) temporally invariant file masks (ie "None") are not used with
         a base path that indicates temporal data (ie base_path is directory)
-        2) temporal file masks (ie not "None") are not used with a base path that 
+        2) temporal file masks (ie not "None") are not used with a base path that
         indicates temporally invariant data (ie base_path is file)
         """
         if self._file_mask == "None" and self._base_path != None and not self._base_path.endswith(tuple(self._raster_extensions)):
@@ -413,7 +413,7 @@ class ExtractObject():
 
 
     def gen_data_list(self):
-        """Generate data list (qlist). 
+        """Generate data list (qlist).
 
         should this have more advanced raster checks? (ie load and test)
         """
@@ -429,10 +429,10 @@ class ExtractObject():
             id_char = "Y"
 
             qlist = [
-                        [["".join([x for x,y in zip(name, self._file_mask) if y == id_char and x.isdigit()])], name] 
-                        for name in os.listdir(self._base_path) 
-                        if not os.path.isdir(os.path.join(self._base_path, name)) 
-                        and name.endswith(tuple(self._raster_extensions)) 
+                        [["".join([x for x,y in zip(name, self._file_mask) if y == id_char and x.isdigit()])], name]
+                        for name in os.listdir(self._base_path)
+                        if not os.path.isdir(os.path.join(self._base_path, name))
+                        and name.endswith(tuple(self._raster_extensions))
                         and "".join([x for x,y in zip(name, self._file_mask) if y == id_char and x.isdigit()]) in self._years
                     ]
 
@@ -445,13 +445,13 @@ class ExtractObject():
                 id_char = "M"
             else:
                 # year day
-                id_char = "D"   
+                id_char = "D"
 
 
             years = [
-                        name 
-                        for name in os.listdir(self._base_path) 
-                        if os.path.isdir(os.path.join(self._base_path, name)) 
+                        name
+                        for name in os.listdir(self._base_path)
+                        if os.path.isdir(os.path.join(self._base_path, name))
                         and name in self._years
                     ]
 
@@ -461,9 +461,9 @@ class ExtractObject():
             for year in years:
                 path_year = self._base_path +"/"+ year
                 qlist += [
-                            [[year, "".join([x for x,y in zip(year+"/"+name, self._file_mask) if y == id_char and x.isdigit()])], year+"/"+name] 
-                            for name in os.listdir(path_year) 
-                            if not os.path.isdir(os.path.join(path_year, name)) 
+                            [[year, "".join([x for x,y in zip(year+"/"+name, self._file_mask) if y == id_char and x.isdigit()])], year+"/"+name]
+                            for name in os.listdir(path_year)
+                            if not os.path.isdir(os.path.join(path_year, name))
                             and name.endswith(tuple(self._raster_extensions))
                         ]
 
@@ -483,13 +483,13 @@ class ExtractObject():
 
 
     # def set_raster_extension(self, value):
-    #     """Set 
+    #     """Set
 
     #     Args:
-    #         value (str): 
+    #         value (str):
     #     """
 
-    
+
     # --------------------------------------------------------------------
     # --------------------------------------------------------------------
 
@@ -501,9 +501,9 @@ class ExtractObject():
         Args:
             in_raster (str): absolute path of raster file
             in_output (str): absolute path for csv output of extract
-        """        
+        """
         # make sure all options are set
-        # 
+        #
 
         # print "running extract: " + in_output
 
@@ -520,7 +520,7 @@ class ExtractObject():
 
     # run extract user rasterstats
     def _python_extract(self, raster, output):
-        """Run python extract 
+        """Run python extract
 
         Args:
             raster (str): path of raster file relative to base path
@@ -549,7 +549,7 @@ class ExtractObject():
         #     except:
         #         i["ad_extract"] = "NA"
 
-        
+
         # out = open(output+".csv", "w")
         # out.write(rs.utils.stats_to_csv(stats))
 
@@ -574,7 +574,7 @@ class ExtractObject():
     # !!! WARNING !!!
     # # run extract using rpy2
     # def _rpy2_extract(self, raster, output):
-    #     """Set 
+    #     """Set
 
     #     Args:
     #         (): x
@@ -601,7 +601,7 @@ class ExtractObject():
 
     #         robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
     #         robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
-            
+
     #         return 0, None
 
     #     except:
@@ -610,12 +610,12 @@ class ExtractObject():
 
     # # run R extract script using subprocess call
     # def _rscript_extract(self, raster, output):
-    #     """Set 
+    #     """Set
 
     #     Args:
     #         (): x
     #     """
-    #     try:  
+    #     try:
 
     #         # buildt command for Rscript
     #         cmd = "Rscript extract.R " + self._vector_info[0] +" "+ self._vector_info[1] +" "+ raster +" "+ output +" "+ self._extract_type
@@ -626,7 +626,7 @@ class ExtractObject():
     #         print sts
     #          return  0, None
 
-    #     except sp.CalledProcessError as sts_err:                                                                                                   
+    #     except sp.CalledProcessError as sts_err:
     #         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
     #         return 1, "Rscript extract failed"
 
@@ -660,7 +660,7 @@ class MergeObject():
     When run as part of job chain (ie: Extract > Validate > Merge) users can confirm via ExtractObject (and ValidateObject?)
     that all available datasets meeting job config specification were extracted and thus will be merged.
 
-    When running merge on its own, only available extracts are used (ie: we do not check if there is some dataset that 
+    When running merge on its own, only available extracts are used (ie: we do not check if there is some dataset that
     exists, but has not yet been extracted)
 
     Attributes:
@@ -680,7 +680,7 @@ class MergeObject():
         self.merge_output_dir = os.path.abspath(merge_output_dir)
 
         self.interface = interface
-        
+
         self.merge_list = []
 
 
@@ -689,8 +689,8 @@ class MergeObject():
 
         maybe the validation object should handle building this list
         - or maybe we do not actually need a validation object if merge does everything
-        validation was going to do 
-        - is there anything beyond checking the resulting extract 
+        validation was going to do
+        - is there anything beyond checking the resulting extract
         csvs that needs to (or can) be done?
 
         """
@@ -698,7 +698,7 @@ class MergeObject():
 
         # if not interface, use job qlists
         if not self.interface:
-     
+
             bnd_list = set([i['settings']['bnd_name'] for i in self.merge_json['job']['datasets']])
 
             for bnd_name in bnd_list:
@@ -717,13 +717,13 @@ class MergeObject():
 
                         bnd_merge_list += [
                                             os.path.join(
-                                                output_base, 
-                                                bnd_name, 
-                                                'cache', 
-                                                data_name, 
-                                                extract_type, 
+                                                output_base,
+                                                bnd_name,
+                                                'cache',
+                                                data_name,
+                                                extract_type,
                                                 data_mini +'_'+ ''.join(j[0]) + extract_abbr + '.csv'
-                                            ) 
+                                            )
                                             for j in i['qlist']
                                         ]
 
@@ -761,7 +761,7 @@ class MergeObject():
                         tmp_config[k] = dataset_options[k]
                     else:
                         tmp_config[k] = self.merge_json['defaults'][k]
-                
+
                 merge_data.append(tmp_config)
 
             # build file list
@@ -783,7 +783,7 @@ class MergeObject():
 
                         # --------------------------------------------------
 
-                        extract_dir = extract_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type 
+                        extract_dir = extract_base + "/" + bnd_name + "/cache/" + data_name +"/"+ extract_type
 
                         print "\tChecking for extracts in: " + extract_dir
 
@@ -805,7 +805,7 @@ class MergeObject():
                         # exit if no extracts found
                         if len(rlist) == 0:
                             sys.exit("No extracts found for: " + extract_dir)
-                        
+
                         bnd_merge_list += [extract_dir +"/"+ item for item in rlist]
 
 
@@ -821,7 +821,7 @@ class MergeObject():
 
 
     def run_merge(self):
-        """Run merge 
+        """Run merge
 
         """
         # Ts = int(time.time())
@@ -829,7 +829,7 @@ class MergeObject():
         for i in self.merge_list:
             bnd_name = i['bnd_name']
             file_list = i['file_list']
-            
+
             print "Starting merge process for bnd_name = " + bnd_name
 
             # if interface ask for output path
@@ -861,7 +861,7 @@ class MergeObject():
             merge = 0
 
             for result_csv in file_list:
-                
+
                 result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
 
                 tmp_field = result_csv[result_csv.rindex('/')+1:-4]

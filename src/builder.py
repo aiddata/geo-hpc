@@ -49,7 +49,7 @@ datasets_file.close()
 # prompt to continue function
 def user_prompt_bool(question):
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
-    
+
     while True:
         sys.stdout.write(str(question) + " [y/n] \n> ")
         choice = raw_input().lower()
@@ -124,19 +124,19 @@ for dataset_options in job_json['data']:
 
     exo.set_extract_method(tmp_config['extract_method'])
     exo.set_vector_path(tmp_config['bnd_absolute'])
-    
+
     exo.set_base_path(tmp_config['data_base'])
     exo.set_years(tmp_config['years'])
-    
+
     exo.set_file_mask(tmp_config['file_mask'])
     exo.set_extract_type(tmp_config['extract_type'])
-    
+
     qlist = exo.gen_data_list()
 
 
     print len(qlist)
     print qlist
-    
+
     tmp_info = OrderedDict()
     tmp_info['name'] = dataset_name
     tmp_info['info'] = {}
@@ -166,7 +166,7 @@ total_count = sum([i['info']['count'] for i in job_summary['datasets']])
 max_individual_run_time = max([i['info']['individual_run_time'] for i in job_summary['datasets']])
 
 # job_summary['summary']['count'] = total_count
-# job_summary['summary']['max_individual_run_time'] = max_individual_run_time 
+# job_summary['summary']['max_individual_run_time'] = max_individual_run_time
 # job_summary['summary']['distribution'] = [(i['info']['count'], i['info']['individual_run_time']) for i in job_summary['datasets']]
 # job_summary['summary']['serial_run_time'] = sum([i['info']['serial_run_time'] for i in job_summary['datasets']])
 # job_summary['summary']['weighted_serial_run_time'] = sum([i['info']['individual_run_time']*i['info']['count'] for i in job_summary['datasets']]) / total_count
@@ -182,17 +182,19 @@ def get_ppn(value, node_type):
     else:
         tmp_ppn = tmp_default
 
-    return tmp_ppn     
+    return tmp_ppn
 
 
 node_spec_reference = {
     'xeon': ['xeon:compute', 'c10', 'c10a', 'c11', 'c11a'],
-    'vortex': ['vortex:compute', 'c18a', 'c18b']
+    'vortex': ['vortex:compute', 'c18a', 'c18b'],
+    'vortex-alpha': ['c18c']
 }
 
 ppn_defaults = {
     'xeon': 8,
-    'vortex': 12
+    'vortex': 12,
+    'vortex-alpha': 16
 }
 
 
@@ -213,7 +215,7 @@ if node_type == None:
     sys.exit("builder.py has terminated : invalid node spec")
 
 
-ppn = get_ppn(ppn_override, node_type)   
+ppn = get_ppn(ppn_override, node_type)
 
 
 # adjust node count if needed (reduce from max nodes if possible)
@@ -225,15 +227,15 @@ else:
 
 
 # optimize node calcs
-# 
+#
 
-# simple example of optimization 
+# simple example of optimization
 # scenario:
 # - dataset #1 - temporally invariant (1 extract) estimated at 10 hours
 # - dataset #2 - yearly with 10 years (10 extracts) estimated at 1 hour each (10 hours total)
 # - max node count of 2, no ppn override, default ppn of 8
 # current resource use:
-#   two nodes will be requested to run the 11 combined extracts 
+#   two nodes will be requested to run the 11 combined extracts
 #   even though all but 1 processor will be idle after the first hour
 # optimized resource use:
 #   single node will be requested since the 10 yearly extracts can run
@@ -319,8 +321,9 @@ lines = []
 
 lines.append('#!/bin/tcsh')
 lines.append('#PBS -N '+user_prefix+':ex:'+job_name)
-lines.append('#PBS -l nodes='+str(node_count)+':'+node_type+':compute'+':ppn='+str(ppn))
+lines.append('#PBS -l nodes='+str(node_count)+':'+node_spec+':'+'ppn='+str(ppn))
 lines.append('#PBS -l walltime='+str(run_hours)+':00:00')
+lines.append('#PBS -q alpha')
 lines.append('#PBS -j oe')
 lines.append('')
 
@@ -341,7 +344,7 @@ args = 'python-mpi ../../../runscript.py ' + output_json_path
 
 if node_type == "xeon":
     lines.append('mvp2run -m cyclic -c ' + str(np) +' '+ args)
-elif node_type == "vortex":
+elif node_type in ["vortex", "vortex-alpha"]:
     lines.append('mpirun --mca mpi_warn_on_fork 0 -np '+ str(np) +' '+ args)
 
 
@@ -393,7 +396,7 @@ output_job_file.close()
 
 # qsub jobscript
 def qsub(jobscript):
-    try:  
+    try:
         # buildt command for Rscript
         cmd = "qsub " + jobscript
         print cmd
@@ -402,7 +405,7 @@ def qsub(jobscript):
         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
         print sts
 
-    except sp.CalledProcessError as sts_err:                                                                                                   
+    except sp.CalledProcessError as sts_err:
         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
 
 
