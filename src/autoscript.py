@@ -584,7 +584,7 @@ def complete_unique_geoms():
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
     # location id
-    geo_df["project_location_id"] = active_data["project_location_id"]
+    geo_df["project_location_id"] = active_data["project_location_id"].astype(str)
     # assuming even split of total project dollars is "max" dollars
     # that project location could receive
     geo_df["dollars"] = active_data["adjusted_aid"]
