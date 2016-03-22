@@ -711,7 +711,7 @@ def complete_options_json():
     # add_to_json("dur_total", core.durations['total'])
 
 
-    tmp_request = request
+    tmp_request = deepcopy(request)
     if "_id" in tmp_request.keys():
         tmp_request['_id'] = str(tmp_request['_id'])
 
@@ -817,7 +817,8 @@ def tmp_master_final(self):
         }
     }, upsert=False)
 
-
+    print request['_id']
+    print update_msr.raw_result
 
 # =============================================================================
 # =============================================================================
