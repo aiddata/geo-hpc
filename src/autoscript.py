@@ -12,7 +12,6 @@ Data:
 - research release
 - shapefiles
 - dataset_iso3_lookup.json
-- dataset_utm_lookup.json
 """
 
 # =============================================================================
@@ -171,8 +170,8 @@ if job.rank == 0:
         print 'finding request:'
         find_request = msr.find_one({
             # 'hash': '96bfe47c4a5d173e60d9177ced664299e0d84b54',
-            'hash': '3721f3ca71a8934ac7d0e47926048ceb611fd26d',
-            'status': 0
+            'hash': '3721f3ca71a8934ac7d0e47926048ceb611fd26d'#,
+            # 'status': 0
         }, sort=[("priority", -1), ("submit_time", 1)])
 
         print find_request
@@ -296,7 +295,6 @@ if job.rank == 0:
     print 'Starting MSR'
     print '\n'
 
-core.utm_zone = utm_zone
 
 
 # -------------------------------------
