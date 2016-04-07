@@ -41,6 +41,12 @@
         "data_mini": "gpw3",
         "file_mask": "gldsxxag_YYYY.asc"
     },
+    "gpw_v4": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw_v4",
+        "data_name": "gpw_v4",
+        "data_mini": "gpw4",
+        "file_mask": "gpw-v4-population-density-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
+    },
     "ndvi_max_mask_lt6k": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_max_mask_lt6k",
         "data_name": "ndvi_max_mask_lt6k",
