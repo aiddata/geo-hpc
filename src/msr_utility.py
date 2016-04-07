@@ -447,7 +447,7 @@ class CoreMSR():
             df_filtered.agg_geom != "None"].copy(deep=True)
 
         # df_final['index'] = df_final['project_location_id']
-        df_final['unique'] = range(0, len(df_final))
+        df_final['task_ids'] = range(0, len(df_final))
         df_final['index'] = range(0, len(df_final))
         df_final = df_final.set_index('index')
 

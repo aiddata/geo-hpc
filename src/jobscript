@@ -1,21 +1,17 @@
 #!/bin/tcsh
-#PBS -N asg:msr:np-all
+#PBS -N asg:msr:x
 #PBS -l nodes=5:xeon:compute:ppn=8
 #PBS -l walltime=03:00:00
 #PBS -j oe
 
 
-set country = nepal
-
-set version = 1.1
-
-set resolution = 0.05
-
-set sector = All
+set request_path = "/path/to/the/job.json"
 
 
 cd $PBS_O_WORKDIR
 
-mvp2run -m cyclic python-mpi ./runscript.py "$country" "$version" "$resolution" "$sector"
+# xeon
+mvp2run -m cyclic python-mpi ./runscript.py "$request_path"
 
-# mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py  "$country" "$version" "$resolution" "$sector"
+# vortex
+# mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ./runscript.py  "$request_path"

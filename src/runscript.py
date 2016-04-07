@@ -12,70 +12,57 @@ Data:
 - research release
 - shapefiles
 - dataset_iso3_lookup.json
-- dataset_utm_lookup.json
 """
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 
-from __future__ import print_function
-
-try:
-    from mpi4py import MPI
-
-    # mpi info
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    status = MPI.Status()
-
-    run_mpi = True
-
-except:
-    size = 1
-    rank = 0
-    run_mpi = False
-
-
-import os
 import sys
+import os
 import errno
-# from copy import deepcopy
 import time
-import random
+import datetime
 import math
-
+import itertools
 import json
+import shutil
+
+from copy import deepcopy
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
-import shapefile
-
-# import pyproj
-# from functools import partial
-# from shapely.ops import transform
 import geopandas as gpd
 
-import itertools
+from shapely.geometry import Point, shape #, MultiPolygon, Polygon, box
 from shapely.prepared import prep
+
+import shapefile
+
+import pymongo
+
+import rasterio
+from affine import Affine
 
 from msr_utility import CoreMSR
 
 
-# ====================================================================================================
-# ====================================================================================================
-# general functions
+# =============================================================================
+# =============================================================================
 
-def enum(*sequential, **named):
-    """Generate an enum type object."""
-    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
-    enums = dict(zip(sequential, range(len(sequential))), **named)
-    return type('Enum', (), enums)
+
+# from mpi4py import MPI
+import mpi_utility
+
+job = mpi_utility.NewParallel()
+
+
+# =============================================================================
+# =============================================================================
 
 
 def make_dir(path):
-    """Make directory. 
+    """Make directory.
 
     Args:
         path (str): absolute path for directory
@@ -96,25 +83,25 @@ def make_dir(path):
 #         msg (str): message to add to log
 #     """
 #     msg = str(msg)
-#     # 
 
 
 def quit(msg):
     """Quit msr job.
-    
+
     Args:
         msg (str): message to add to log upon exiting
 
-    Function also manages error reporting and cleans up / moves request files.
+    Function also manages error reporting and cleans
+    up / moves request files.
     """
-    e_request_basename = os.path.basename(request_path)
+    # e_request_basename = os.path.basename(request_path)
 
-    if e_request_basename == '':
-        e_request_basename = 'unknown'
+    # if e_request_basename == '':
+    #     e_request_basename = 'unknown'
 
-    e_request_basename_split = os.path.splitext(e_request_basename)
+    # e_request_basename_split = os.path.splitext(e_request_basename)
 
-    error_dir = e_request_basename_split[0] +"_"+ str(Ts) 
+    # error_dir = e_request_basename_split[0] +"_"+ str(Ts)
 
     # make error dir
     # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
@@ -122,20 +109,18 @@ def quit(msg):
 
     # if os.path.isfile(request_path):
         # move request to error_dir
-        # 
+        #
 
     # add error file to error_dir
-    # 
+    #
 
     sys.exit(msg)
 
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 # init, inputs and variables
 
-# create instance of CoreMSR class
-core = CoreMSR()
 
 
 if len(sys.argv) != 2:
@@ -144,15 +129,6 @@ if len(sys.argv) != 2:
 # request path passed via python call from jobscript
 request_path = sys.argv[1]
 
-
-# --------------------------------------------------
-
-
-# absolute path to script directory
-dir_file = os.path.dirname(os.path.abspath(__file__))
-
-# full script start time
-Ts = int(time.time())
 
 
 # --------------------------------------------------
@@ -170,26 +146,6 @@ if os.path.isfile(request_path):
 else:
     quit("json file does not exists: " + request_path)
 
-# load dataset to iso3 crosswalk json
-iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
-utm_lookup = json.load(open(dir_file + '/dataset_utm_lookup.json', 'r'))
-
-# get dataset crosswalk id from request
-dataset_id = request['dataset'].split('_')[0]
-
-# make sure dataset crosswalk id is in crosswalk json
-if dataset_id not in iso3_lookup.keys():
-    quit("no shp crosswalk for dataset: " + dataset_id)
-
-# make sure dataset path given in request exists
-if not os.path.isdir(request['release_path']):
-    quit("release path specified not found: " + request['release_path'])
-
-
-# todo: make sure these exist in lookups first
-abbr = iso3_lookup[dataset_id]
-core.utm_zone = utm_lookup[abbr]
-
 
 # --------------------------------------------------
 # version info stuff
@@ -202,28 +158,52 @@ run_version_str = "010"
 run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
-# random_id = '{0:05d}'.format(int(random.random() * 10**5))
-# Rid = str(Ts) +"_"+ random_id
+
+# --------------------------------------------------
+
+# absolute path to script directory
+dir_file = os.path.dirname(os.path.abspath(__file__))
+
+# load dataset to iso3 crosswalk json
+iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
+
+# get dataset crosswalk id from request
+dataset_id = request['dataset'].split('_')[0]
+
+# make sure dataset crosswalk id is in crosswalk json
+if dataset_id not in iso3_lookup.keys():
+    quit("no shp crosswalk for dataset: " + dataset_id)
+
+# todo: make sure these exist in lookups first
+abbr = iso3_lookup[dataset_id]
 
 
 # --------------------------------------------------
-# set pixel size
 
-if not 'resolution' in request['options']:
-    quit("missing pixel size input from request")
+release_path = request['release_path']
 
-
-core.set_pixel_size(request['options']['resolution'])
-
-
-# ====================================================================================================
-# ====================================================================================================
+# make sure dataset path given in request exists
+if not os.path.isdir(release_path):
+    quit("release path specified not found: " + release_path)
 
 
-# --------------------------------------------------
-# file paths
+# =============================================================================
+# =============================================================================
 
-dir_working = os.path.dirname(request_path)
+# -------------------------------------
+
+# create instance of CoreMSR class
+core = CoreMSR()
+
+# full script start time
+core.times['start'] = int(time.time())
+
+if job.rank == 0:
+    print '\n'
+    print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +
+           ' ('+ str(int(time.time())) +')')
+    print 'Starting MSR'
+    print '\n'
 
 
 # --------------------------------------------------
@@ -232,9 +212,9 @@ dir_working = os.path.dirname(request_path)
 # must start at and inlcude ADM0
 # all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
-adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm0.shp")
-adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm1.shp")
-adm_paths.append(dir_file+"/shps/"+abbr+"/"+abbr+"_adm2.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm0.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm1.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm2.shp")
 
 # build list of adm shape lists
 core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
@@ -242,6 +222,31 @@ core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 # define country shape
 tmp_adm0 = shape(core.adm_shps[0][0])
 core.set_adm0(tmp_adm0)
+
+
+
+# =============================================================================
+# =============================================================================
+# DATAFRAME INIT
+
+# -------------------------------------
+# load / process data and get task list
+
+dir_data = release_path +'/'+ os.path.basename(release_path) +'/data'
+
+
+# =============================================================================
+# =============================================================================
+# GRID INIT
+
+# -------------------------------------
+# set pixel size
+
+if not 'resolution' in request['options']:
+    quit("missing pixel size input from request")
+
+
+core.set_pixel_size(request['options']['resolution'])
 
 
 # --------------------------------------------------
@@ -296,8 +301,6 @@ grid_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
 # --------------------------------------------------
 # load project data
 
-# dir_data = dir_file+"/countries/"+country+"/versions/"+country+"_"+str(data_version)+"/data"
-dir_data = request['release_path'] +'/'+ os.path.basename(request['release_path']) +'/data'
 
 merged = core.merge_data(dir_data, "project_id", (core.code_field_1, core.code_field_2, "project_location_id"), core.only_geocoded)
 
@@ -333,7 +336,7 @@ merged['split_dollars_pp'] = (merged[core.aid_field] / merged.location_count)
 # filters
 
 # filter years
-# 
+#
 
 # filter sectors and donors
 if request['options']['donors'] == ['All'] and request['options']['sectors'] != ['All']:
@@ -347,7 +350,7 @@ elif request['options']['donors'] != ['All'] and request['options']['sectors'] !
 
 else:
     filtered = merged.copy(deep=True)
- 
+
 
 # adjust aid based on ratio of sectors/donors in filter to all sectors/donors listed for project
 filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(z.split_dollars_pp, z.ad_sector_names, z.donors, request['options']['sectors'], request['options']['donors']), axis=1)
@@ -374,13 +377,16 @@ i_m['index'] = range(0, len(i_m))
 i_m = i_m.set_index('index')
 
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 # master init
 
 
+dir_working = os.path.dirname(request_path)
+
+
 if rank == 0:
-    
+
     # --------------------------------------------------
     # initialize asc file output
 
@@ -413,20 +419,26 @@ if rank == 0:
     print('\tInit Runtime: ' + str(T_init//60) +'m '+ str(int(T_init%60)) +'s')
 
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 
 if run_mpi:
     comm.Barrier()
 # sys.exit("! - init only")
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 # mpi prep
 
 
 # terminate if master init fails
 #
+
+def enum(*sequential, **named):
+    """Generate an enum type object."""
+    # source: http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
 
 # define MPI message tags
 tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
@@ -435,8 +447,8 @@ tags = enum('READY', 'DONE', 'EXIT', 'START', 'ERROR')
 sum_mean_surf = 0
 
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 # generate mean surface raster
 # mpi comms structured based on https://github.com/jbornschein/mpi4py-examples/blob/master/09-task-pull.py
 
@@ -552,7 +564,7 @@ else:
 
 
             if pg_type == "country":
-                
+
                 tmp_grid_gdf['value'] = tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count)
 
 
@@ -587,7 +599,7 @@ else:
 
 
                 if pg_geom.geom_type == 'MultiPolygon':
-                    
+
                     pg_cols = []
                     pg_rows = []
 
@@ -603,7 +615,7 @@ else:
                     pg_rows = set(pg_rows)
 
                 else:
-                
+
                     pg_cols, pg_rows = core.geom_to_grid_colrows(pg_geom, pg_pixel_size, rounded=True, no_multi=False)
 
 
@@ -614,7 +626,7 @@ else:
                 tmp_gdf['within'] = [0] * len(tmp_product)
                 tmp_gdf['geometry'] = tmp_product
                 tmp_gdf['geometry'] = tmp_gdf.apply(lambda z: Point(z.geometry), axis=1)
-                
+
 
                 # round to reference grid points and fix -0.0
                 tmp_gdf['ref_lat'] = tmp_gdf.apply(lambda z: core.positive_zero(round(z.geometry.y * core.psi) / core.psi), axis=1)
@@ -631,7 +643,7 @@ else:
 
                 # tmp_gdf.sort(['ref_lat','ref_lon'], ascending=[False, True], inplace=True)
                 aggregated_total = tmp_gdf.groupby(['ref_lat','ref_lon'])['value'].sum()
-                
+
                 agg_df = aggregated_total.reset_index()
 
                 agg_df['index'] = agg_df.apply(lambda z: str(z.ref_lon) +'_'+ str(z.ref_lat), axis=1)
@@ -686,14 +698,14 @@ if rank == 0:
     print('\n')
 
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 
 if run_mpi:
     comm.Barrier()
 
-# ====================================================================================================
-# ====================================================================================================
+# =============================================================================
+# =============================================================================
 # output unique geometries and sum of all project locations associated with that geometry
 
 if rank == 0:
@@ -710,7 +722,7 @@ if rank == 0:
     geo_df['index'] = range(0, len(geo_df))
     geo_df = geo_df.set_index('index')
 
-    # group project locations by geometry using str_geo field 
+    # group project locations by geometry using str_geo field
     # and for each unique geometry get the sum of dollars for
     # all project locations with that geometry
     sum_unique = geo_df.groupby(by ='str_geo')['dollars'].sum()
@@ -745,8 +757,8 @@ if rank == 0:
     T_unique = int(time_end - time_surf)
     T_total = int(time_end - Ts)
 
-    # ====================================================================================================
-    # ====================================================================================================
+    # =========================================================================
+    # =========================================================================
 
     # msr options
     # output as json which will be loaded into a mongo database

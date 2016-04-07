@@ -1,12 +1,12 @@
 """
-autoscript.py
+runscript.py
 
 Summary:
-Mean surface raster generation script for use with mpi4py
+Mean surface raster generation script for use on MPI configured system with mpi4py
 
 Inputs:
-- called via temporary jobscript which was automatically generated
-- mongodb doc (in place of request.json)
+- called via jobscript (shell script)shell
+- request.json
 
 Data:
 - research release
@@ -55,35 +55,6 @@ from msr_utility import CoreMSR
 import mpi_utility
 
 job = mpi_utility.NewParallel()
-
-
-# -------------------------------------
-
-# import sys
-# import os
-
-branch = sys.argv[1]
-
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-sys.path.insert(0, config_dir)
-
-import config_utility
-
-config = config_utility.BranchConfig(branch=branch)
-
-
-# -------------------------------------
-
-
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
 
 
 # =============================================================================
@@ -148,88 +119,35 @@ def quit(msg):
 
 # =============================================================================
 # =============================================================================
-# GENERAL INIT
-
-# validate request and dataset
 # init, inputs and variables
 
-# check for request
-if job.rank == 0:
-
-    # import pymongo
-    client = pymongo.MongoClient(config.server)
-    msr = client[config.det_db].msr
-
-    print 'starting request search'
-    search_limit = 5
-    search_attempt = 0
-
-    while search_attempt < search_limit:
-
-        print 'finding request:'
-        find_request = msr.find_one({
-            # 'hash': '96bfe47c4a5d173e60d9177ced664299e0d84b54',
-            'hash': '3721f3ca71a8934ac7d0e47926048ceb611fd26d'#,
-            # 'status': 0
-        }, sort=[("priority", -1), ("submit_time", 1)])
-
-        print find_request
-
-        if find_request is None:
-            request = None
-            break
-
-        request_accept = msr.update_one({
-            '_id': find_request['_id'],
-            'status': find_request['status']
-        }, {
-            '$set': {
-                'status': 2,
-                'update_time': int(time.time())
-            }
-        })
-
-        print request_accept.raw_result
-
-        if request_accept.acknowledged and request_accept.modified_count == 1:
-            request = find_request
-            break
-
-        search_attempt += 1
-
-        print 'looking for another request...'
 
 
-    if search_attempt == search_limit:
-        request = 'Error'
+if len(sys.argv) != 2:
+    quit('invalid number of inputs: ' + ', '.join(sys.argv))
 
-    print 'request found'
+# request path passed via python call from jobscript
+request_path = sys.argv[1]
 
-    # request = msr.find_one_and_update({
-    #     'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
-    # }, {
-    #     '$set': {'status': 2}
-    # }, sort=[("priority", -1), ("submit_time", 1)])
 
-    # print request
+
+# --------------------------------------------------
+# validate request and dataset
+
+# make sure request file exists
+if os.path.isfile(request_path):
+    # make sure request is valid json and can be loaded
+    try:
+        request = json.load(open(request_path, 'r'))
+
+    except:
+        quit("invalid json: " + request_path)
 
 else:
-    request = 0
+    quit("json file does not exists: " + request_path)
 
 
-request = job.comm.bcast(request, root=0)
-
-if request is None:
-    quit("no jobs found in queue")
-
-elif request == 'Error':
-    quit("error updating request status in mongodb")
-
-elif request == 0:
-    quit("error getting request from master")
-
-
-# -------------------------------------
+# --------------------------------------------------
 # version info stuff
 
 msr_type = request['options']['type']
@@ -241,7 +159,7 @@ run_version = int(run_version_str)
 run_id = run_stage[0:1] + run_version_str
 
 
-# -------------------------------------
+# --------------------------------------------------
 
 # absolute path to script directory
 dir_file = os.path.dirname(os.path.abspath(__file__))
@@ -260,19 +178,11 @@ if dataset_id not in iso3_lookup.keys():
 abbr = iso3_lookup[dataset_id]
 
 
-# -------------------------------------
-# lookup release path
+# --------------------------------------------------
 
-release_path = None
+release_path = request['release_path']
 
-if job.rank == 0:
-    asdf = client[config.asdf_db].data
-    release_path = asdf.find({'name': request['dataset']})[0]['base']
-    print release_path
-
-release_path = job.comm.bcast(release_path, root=0)
-
-# make sure release path exists
+# make sure dataset path given in request exists
 if not os.path.isdir(release_path):
     quit("release path specified not found: " + release_path)
 
@@ -296,12 +206,11 @@ if job.rank == 0:
     print '\n'
 
 
-# -------------------------------------
+# --------------------------------------------------
 # load shapefiles
 
 # must start at and inlcude ADM0
-# all additional ADM shps must be included so that adm_path index corresponds
-# to adm level
+# all additional ADM shps must be included so that adm_path index corresponds to adm level
 adm_paths = []
 adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm0.shp")
 adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm1.shp")
@@ -367,9 +276,7 @@ grid_gdf.set_index('index', inplace=True)
 sum_mean_surf = 0
 all_mean_surf = []
 
-# dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/'
-               + request['dataset'] +'_'+ request['hash'])
+dir_working = os.path.dirname(request_path)
 
 
 # =============================================================================
@@ -774,15 +681,15 @@ def complete_options_json():
 #         os.remove(msr_data_file)
 
 
-def complete_outputs():
+# def complete_outputs():
 
-    msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
-                    + request['dataset'] +'/'+ request['hash'])
+#     msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
+#                     + request['dataset'] +'/'+ request['hash'])
 
-    if os.path.isdir(msr_data_dir):
-        shutil.rmtree(msr_data_dir)
+#     if os.path.isdir(msr_data_dir):
+#         shutil.rmtree(msr_data_dir)
 
-    shutil.move(dir_working, msr_data_dir)
+#     shutil.move(dir_working, msr_data_dir)
 
 
 def tmp_master_final(self):
@@ -827,22 +734,22 @@ def tmp_master_final(self):
 
     # write output json and finalize output folders
     output_obj = complete_options_json()
-    complete_outputs()
+    # complete_outputs()
 
-    # update status of request in msr queue
-    # and add output_obj to "output" field
-    update_msr = msr.update_one({
-        '_id': request['_id']
-    }, {
-        '$set': {
-            'status': 1,
-            'update_time': int(time.time()),
-            'info': output_obj
-        }
-    }, upsert=False)
+    # # update status of request in msr queue
+    # # and add output_obj to "output" field
+    # update_msr = msr.update_one({
+    #     '_id': request['_id']
+    # }, {
+    #     '$set': {
+    #         'status': 1,
+    #         'update_time': int(time.time()),
+    #         'info': output_obj
+    #     }
+    # }, upsert=False)
 
-    print request['_id']
-    print update_msr.raw_result
+    # print request['_id']
+    # print update_msr.raw_result
 
 # =============================================================================
 # =============================================================================
