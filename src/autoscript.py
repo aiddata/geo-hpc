@@ -250,7 +250,6 @@ dir_file = os.path.dirname(os.path.abspath(__file__))
 
 # load dataset to iso3 crosswalk json
 iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
-utm_lookup = json.load(open(dir_file + '/dataset_utm_lookup.json', 'r'))
 
 # get dataset crosswalk id from request
 dataset_id = request['dataset'].split('_')[0]
@@ -261,7 +260,6 @@ if dataset_id not in iso3_lookup.keys():
 
 # todo: make sure these exist in lookups first
 abbr = iso3_lookup[dataset_id]
-utm_zone = utm_lookup[abbr]
 
 
 # -------------------------------------
@@ -590,6 +588,13 @@ def complete_unique_geoms():
     geo_df["dollars"] = active_data["adjusted_aid"]
     # geometry for each project location
     geo_df["geometry"] = gpd.GeoSeries(active_data["agg_geom"])
+
+    # write full to geojson
+    full_geo_json = geo_df.to_json()
+    full_geo_file = open(dir_working+"/full.geojson", "w")
+    json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
+    full_geo_file.close()
+
     # string version of geometry used to determine duplicates
     geo_df["str_geo"] = geo_df["geometry"].astype(str)
     # create and set unique index
@@ -608,7 +613,6 @@ def complete_unique_geoms():
     # create list of project location ids for unique geoms
     cat_plids = geo_df.groupby(by='str_geo')['project_location_id'].apply(
         lambda z: '|'.join(list(z)))
-
 
     # temporary dataframe with
     #   unique geometry
@@ -630,18 +634,19 @@ def complete_unique_geoms():
     new_geo_df.drop('str_geo', axis=1, inplace=True)
 
     # create final output geodataframe with index, unique_dollars and unique geometry
-    out_geo_df = gpd.GeoDataFrame()
-    out_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
-    out_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
-    out_geo_df["location_count"] = new_geo_df["location_count"]
-    out_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
+    unique_geo_df = gpd.GeoDataFrame()
+    unique_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
+    unique_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
+    unique_geo_df["location_count"] = new_geo_df["location_count"]
+    unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
 
-    out_geo_df['index'] = range(len(out_geo_df))
+    unique_geo_df['index'] = range(len(unique_geo_df))
 
-    # write to geojson
-    geo_json = out_geo_df.to_json()
-    geo_file = open(dir_working+"/unique.geojson", "w")
-    json.dump(json.loads(geo_json), geo_file, indent=4)
+    # write unique to geojson
+    unique_geo_json = unique_geo_df.to_json()
+    unique_geo_file = open(dir_working+"/unique.geojson", "w")
+    json.dump(json.loads(unique_geo_json), unique_geo_file, indent=4)
+    unique_geo_file.close()
 
 
 def complete_options_json():
@@ -662,7 +667,6 @@ def complete_options_json():
     # dataset info
     add_to_json("dataset", request['dataset'])
     add_to_json("abbr", abbr)
-    add_to_json("utm_zone", core.utm_zone)
 
     # core run options
     add_to_json("pixel_size", core.pixel_size)
@@ -718,8 +722,8 @@ def complete_options_json():
     write_options = deepcopy(options_obj)
     write_options["request"] = tmp_request
 
-    # write output.json
-    json_out = dir_working+'/output.json'
+    # write summary.json
+    json_out = dir_working+'/summary.json'
     json_handle = open(json_out, 'w')
     json.dump(write_options, json_handle, sort_keys=False, indent=4, ensure_ascii=False)
 

@@ -4,6 +4,7 @@ import math
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import utm
 import pyproj
 import itertools
 import re
@@ -50,7 +51,6 @@ class CoreMSR():
         adm0 : shapely shape representing coarsest spatial unit
         prep_adm0 : prepared shapely shape of adm0 for
                     faster spatial functions
-        utm_zone : utm zone to use for dataset
 
         All attributes except adm0 have default values built
         into __init__.
@@ -140,8 +140,6 @@ class CoreMSR():
         self.adm_shps = 0
         self.adm0 = 0
         self.prep_adm0 = 0
-
-        self.utm_zone = "45"
 
 
     def set_pixel_size(self, value):
@@ -579,14 +577,17 @@ class CoreMSR():
                     return 0
 
                 try:
+                    tmp_utm_info = utm.from_latlon(lat, lon)
+                    tmp_utm_zone = str(tmp_utm_info[1]) + tmp_utm_info[2]
+
                     # reproject point
                     proj_utm = pyproj.Proj("+proj=utm +zone="
-                        + str(self.utm_zone)
+                        + str(tmp_utm_zone)
                         + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
                     proj_wgs = pyproj.Proj(init="epsg:4326")
                 except:
                     print "error initializing projs"
-                    print str(self.utm_zone)
+                    print str(tmp_utm_zone)
                     return 0
 
                 try:
