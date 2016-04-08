@@ -1,4 +1,4 @@
-# add dataset to system 
+# add dataset to system
 #   - validate options
 #   - scan and validate dataset resources
 #   - generate metadata for dataset resources
@@ -39,13 +39,13 @@ update_db = MongoUpdate()
 def quit(reason):
 
     # do error log stuff
-    # 
+    #
 
     # output error logs somewhere
-    # 
+    #
 
     # if auto, move job file to error location
-    # 
+    #
 
     sys.exit("Terminating script - "+str(reason)+"\n")
 
@@ -54,7 +54,7 @@ def write_data_package():
     dp_out = data_package
     # print "dp out"
     # print dp_out.keys()
-    
+
     if "_id" in dp_out.keys():
         del dp_out['_id']
 
@@ -90,20 +90,7 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
         dp["datapackage_script"] = script
         dp["datapackage_version"] = version
         dp["datapackage_generator"] = generator
-        dp["maintainers"] =  [
-            {
-                "web": "http://aiddata.org", 
-                "name": "AidData", 
-                "email": "info@aiddata.org"
-            }
-        ]
-        dp["publishers"] = [
-            {
-                "web": "http://aiddata.org", 
-                "name": "AidData", 
-                "email": "info@aiddata.org"
-            }
-        ]
+
 
         # make sure all current datapackage fields exist
         # iterate over keys in fields list
@@ -121,7 +108,7 @@ def init_datapackage(dp=0, init=0, update=0, clean=0, fields=0):
                     del dp[k]
 
             # clean options?
-            # 
+            #
 
     return dp
 
@@ -143,7 +130,7 @@ def check_update(var_str, opt=0):
             return update
     elif interface:
         return True
-    
+
     return False
 
 
@@ -219,7 +206,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "auto":
 
     except:
         # move mcr output to error folder
-        # 
+        #
 
         quit("Bad inputs.")
 
@@ -244,7 +231,7 @@ if interface:
     if "REU/data/boundaries" in v.data["base"] and not p.user_prompt_bool("Warning: boundary files will be modified/overwritten/deleted during process. Make sure you have a backup. Continue?"):
         quit("User request - boundary backup.")
 
-    # check datapackage exists for path 
+    # check datapackage exists for path
     dp_exists, tmp_data = v.datapackage_exists(v.data["base"])
 
     print "dpexists:"
@@ -289,56 +276,56 @@ flist_core = [
     {
         "type": "open",
         "id": "name",
-        "in_1": "Dataset name? (must be unique from existing datasets)", 
+        "in_1": "Dataset name? (must be unique from existing datasets)",
         "in_2": v.name
     },
-    {   
+    {
         "type": "open",
         "id": "title",
-        "in_1": "Dataset title?", 
+        "in_1": "Dataset title?",
         "in_2": v.string
     },
-    {   
+    {
         "type": "open",
         "id": "version",
-        "in_1": "Dataset version?", 
+        "in_1": "Dataset version?",
         "in_2": v.string
     },
-    {   
+    {
         "type": "loop",
         "id": "sources",
-        "in_1": "Add source", 
+        "in_1": "Add source",
         "in_2": {"name": v.string, "web": v.string}
     },
-    {   
+    {
         "type": "open",
         "id": "source_link",
-        "in_1": "Generic link for dataset?", 
+        "in_1": "Generic link for dataset?",
         "in_2": v.string
     },
-    {   
+    {
         "type": "open",
         "id": "licenses",
         "in_1": "Id of license(s) for dataset? (" + ', '.join(v.types["licenses"]) + ") [separate your input with commas]",
         "in_2": v.license_types
     },
-    {   
+    {
         "type": "open",
         "id": "description",
-        "in_1": "A short description of the dataset?", 
+        "in_1": "A short description of the dataset?",
         "in_2": v.string
     }
 ]
 
 flist_additional = [
-    {   
+    {
         "type": "open",
         "id": "citation",
-        "in_1": "Dataset citation?", 
+        "in_1": "Dataset citation?",
         "in_2": v.string
     }
 ]
-    
+
 # print v.data
 
 if data_package["type"] in ['boundary', 'raster']:
@@ -412,19 +399,19 @@ elif data_package["type"] == "boundary":
     # run check on group to prep for group_class selection
     v.run_group_check(data_package['options']['group'])
 
-        
+
     # boundary class
     # only a single actual may exist for a group
     if v.is_actual:
         data_package["options"]["group_class"] = "actual"
-    
+
     elif v.actual_exists[data_package["options"]["group"]]:
         # force sub if actual exists
         data_package["options"]["group_class"] = "sub"
-    
+
     else:
         generic_input("open", "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
-        
+
         if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
             v.new_boundary = True
 
@@ -496,7 +483,7 @@ def validate_file_mask(vmask):
 
     # test file_mask for first file in file_list
     test_date_str = ru.run_file_mask(vmask, ru.file_list[0], data_package["base"])
-    valid_date = ru.validate_date(test_date_str) 
+    valid_date = ru.validate_date(test_date_str)
     if valid_date[0] == False:
         return False, None, valid_date[1]
 
@@ -531,13 +518,13 @@ elif data_package["file_mask"] == "None":
     ru.temporal["type"] = "None"
 
 elif len(ru.file_list) > 0:
-    
+
     # name for temporal data format
     ru.temporal["name"] = "Date Range"
     ru.temporal["format"] = "%Y%m%d"
     ru.temporal["type"] = ru.get_date_range(ru.run_file_mask(data_package["file_mask"], ru.file_list[0], data_package["base"]))[2]
 
-    # day range for each file (eg: MODIS 8 day composites) 
+    # day range for each file (eg: MODIS 8 day composites)
     use_day_range = False
     if interface:
         use_day_range = p.user_prompt_bool("Set a day range for each file (not used if data is yearly/monthly)?")
@@ -607,15 +594,15 @@ elif data_package["file_format"] == 'vector':
         if data_package["type"] == "boundary" and f_count == 0:
             print f
             geo_ext = ru.vector_envelope(f)
-            
+
             convert_status = ru.add_ad_id(f)
             if convert_status == 1:
                  quit("Error adding ad_id to boundary file and outputting geojson.")
-            
+
 
             if data_package["file_extension"] == "shp":
 
-                # update file list 
+                # update file list
                 ru.file_list[0] = os.path.splitext(ru.file_list[0])[0] + ".geojson"
 
                 # update extension
@@ -631,15 +618,15 @@ elif data_package["file_format"] == 'vector':
             f_count += 1
 
 
-        elif data_package["type"] == "boundary" and f_count > 0:     
+        elif data_package["type"] == "boundary" and f_count > 0:
             quit("Boundaries must be submitted individually.")
 
         else:
             # - run something similar to ru.vector_envelope
-            # - instead of polygons in adm files (or some "other" boundary file(s)) we are 
+            # - instead of polygons in adm files (or some "other" boundary file(s)) we are
             #   checking polygons in files in list
             # - create new ru.vector_list function which calls ru.vector_envelope
-            # 
+            #
             #  geo_ext = ru.vector_list(ru.file_list)
             quit("Only accepting boundary vectors at this time.")
 
@@ -658,13 +645,13 @@ else:
 # clip extents if they are outside global bounding box
 for c in range(len(geo_ext)):
     if geo_ext[c][0] < -180:
-        geo_ext[c][0] = -180 
+        geo_ext[c][0] = -180
 
     elif geo_ext[c][0] > 180:
         geo_ext[c][0] = 180
 
     if geo_ext[c][1] < -90:
-        geo_ext[c][1] = -90 
+        geo_ext[c][1] = -90
 
     elif geo_ext[c][1] > 90:
         geo_ext[c][1] = 90
@@ -697,7 +684,7 @@ if interface and not p.user_prompt_bool("Continue with this bounding box?"):
 # get generic spatial data for rasters
 # something else for vectors?
 ru.spatial = {
-                "type": "Polygon", 
+                "type": "Polygon",
                 "coordinates": [ [
                     geo_ext[0],
                     geo_ext[1],
@@ -767,7 +754,7 @@ if data_package["file_format"] in ['raster', 'vector']:
 
             if "day_range" in data_package:
                 range_start, range_end, range_type = ru.get_date_range(date_str, data_package["day_range"])
-            else: 
+            else:
                 range_start, range_end, range_type = ru.get_date_range(date_str)
 
             # name (unique among this dataset's resources - not same name as dataset)
@@ -859,6 +846,6 @@ if data_package['file_format'] == 'release':
     ru.release_to_mongo(data_package['name'], data_package['base'] +"/"+ os.path.basename(data_package['base']))
 
 # call/do ckan stuff eventually (?)
-# 
+#
 
 print "\nDone.\n"
