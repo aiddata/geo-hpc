@@ -8,10 +8,11 @@ import sys
 import os
 import datetime
 import json
-from collections import OrderedDict
+# from collections import OrderedDict
 
 from resource_utility import ResourceTools
 from mongo_utility import MongoUpdate
+
 
 # -----------------------------------------------------------------------------
 
@@ -36,13 +37,12 @@ def quit(reason):
     sys.exit("Terminating script - "+str(reason)+"\n")
 
 
-
-
 # update mongo class instance
 update_db = MongoUpdate()
 
 # init data package
-dp = OrderedDict()
+# dp = OrderedDict()
+dp = {}
 
 # get release base path
 if len(sys.argv) > 1:
@@ -88,11 +88,14 @@ dp["file_format"] = "vector"
 dp["file_extension"] = "shp"
 dp["file_mask"] = "None"
 
+# -------------------------------------
+
+# v = ValidationTools()
 
 gadm_default = {
   "name": "npl_adm4_gadm28",
-  "title": "Nepal ADM4 Boundary - GADM 2.8",
-  "description": "GADM Boundary File for ADM4 in Nepal.",
+  "title": "GADM_NAME GADM_ADM Boundary - GADM 2.8",
+  "description": "GADM Boundary File for GADM_ADM in GADM_NAME.",
   "version": "2.8",
   "citation": "Global Administrative Areas (GADM) http://www.gadm.org.",
   "sources_web": "http://www.gadm.org",
@@ -100,38 +103,38 @@ gadm_default = {
 }
 
 
-# get country name /  gadm name
-gadm_name = 'Country ABC'
+gadm_name = os.path.basename(dp["base"])
+
+gadm_iso3 = gadm_name[:3]
+gadm_adm = gadm_name[4:]
+
+gadm_lookup_path = 'gadm_iso3.json'
+gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
+
+gadm_country = gadm_lookup[gadm_iso3]
+
 
 for i in gadm_default:
-    dp[i] = gadm_default[i].replace("COUNTRYNAME", gadm_name)
+    tmp_field = gadm_default[i]
+    tmp_field = gadm_default[i].replace("GADM_NAME", gadm_country)
+    tmp_field = gadm_default[i].replace("GADM_ADM", gadm_adm.upper())
+    dp[i] = tmp_field
 
 
+dp["options"]["group"] = gadm_name.replace(" ", "_").lower()
 
 
-# boundary info
+# probably do not need this
+# run check on group to prep for group_class selection
+# v.run_group_check(dp['options']['group'])
+
 
 # boundary group
-generic_input("open", "group", "Boundary group? (eg. country name for adm boundaries) [leave blank if boundary has no group]", v.group, opt=True)
-
-# run check on group to prep for group_class selection
-v.run_group_check(data_package['options']['group'])
-
-
-# boundary class
-# only a single actual may exist for a group
-if v.is_actual:
-    data_package["options"]["group_class"] = "actual"
-
-elif v.actual_exists[data_package["options"]["group"]]:
-    # force sub if actual exists
-    data_package["options"]["group_class"] = "sub"
-
+dp["options"] = {}
+if "adm0" in gadm_name:
+     dp["options"]["group_class"] = "actual"
 else:
-    generic_input("open", "group_class", "Group class? (" + ', '.join(v.types["group_class"]) + ")", v.group_class, opt=True)
-
-    if data_package["options"]["group_class"] == "actual" and (not v.group_exists or not v.actual_exists[data_package["options"]["group"]]):
-        v.new_boundary = True
+     dp["options"]["group_class"] = "sub"
 
 
 
@@ -142,12 +145,12 @@ ru = ResourceTools()
 
 
 # find all files with file_extension in path
-for root, dirs, files in os.walk(data_package["base"]):
+for root, dirs, files in os.walk(dp["base"]):
     for file in files:
 
         file = os.path.join(root, file)
 
-        file_check = ru.run_file_check(file, data_package["file_extension"])
+        file_check = ru.run_file_check(file, dp["file_extension"])
 
         if file_check == True and not file.endswith('simplified.geojson'):
             ru.file_list.append(file)
@@ -180,19 +183,19 @@ for f in ru.file_list:
              quit("Error adding ad_id to boundary file and outputting geojson.")
 
 
-        if data_package["file_extension"] == "shp":
+        if dp["file_extension"] == "shp":
 
             # update file list
             ru.file_list[0] = os.path.splitext(ru.file_list[0])[0] + ".geojson"
 
             # update extension
-            data_package["file_extension"] = "geojson"
+            dp["file_extension"] = "geojson"
 
             # remove shapefile
             for z in os.listdir(os.path.dirname(ru.file_list[0])):
-                if os.path.isfile(data_package["base"] +"/"+ z) and not z.endswith(".geojson") and not z.endswith("datapackage.json"):
-                    print "deleting " + data_package["base"] +"/"+ z
-                    os.remove(data_package["base"] +"/"+ z)
+                if os.path.isfile(dp["base"] +"/"+ z) and not z.endswith(".geojson") and not z.endswith("datapackage.json"):
+                    print "deleting " + dp["base"] +"/"+ z
+                    os.remove(dp["base"] +"/"+ z)
 
 
         f_count += 1
@@ -201,14 +204,6 @@ for f in ru.file_list:
     elif f_count > 0:
         quit("Boundaries must be submitted individually.")
 
-    else:
-        # - run something similar to ru.vector_envelope
-        # - instead of polygons in adm files (or some "other" boundary file(s)) we are
-        #   checking polygons in files in list
-        # - create new ru.vector_list function which calls ru.vector_envelope
-        #
-        #  geo_ext = ru.vector_list(ru.file_list)
-        quit("Only accepting boundary vectors at this time.")
 
 
 
@@ -240,7 +235,7 @@ scale = "regional"
 if tsize >= 32400:
     scale = "global"
 
-data_package["scale"] = scale
+dp["scale"] = scale
 
 
 
@@ -259,16 +254,6 @@ ru.spatial = {
 }
 
 
-# if updating an existing boundary who is the actual for a group
-# warn users when the new geometry does not match the existing geometry
-# continuing will force the boundary tracker database to be dumped
-# all datasets that were in the tracker database will need to be reindexed
-if update_data_package and data_package["options"]["group_class"] == "actual" and ru.spatial != data_package["spatial"]:
-    v.update_geometry = True
-    if interface and not p.user_prompt_bool("The geometry of your boundary does not match the existing geometry, do you wish to continue? (Warning: This will force a dump of the existing tracker database and all datasets in it will need to be reindexed)"):
-        quit("User request - boundary geometry change.")
-
-
 
 # -------------------------------------
 print '\nProcessing resources...'
@@ -281,33 +266,28 @@ for f in ru.file_list:
     resource_tmp = {}
 
     # path relative to datapackage.json
-    resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
+    resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
 
     resource_tmp["reliability"] = False
-
 
     # file size
     resource_tmp["bytes"] = os.path.getsize(f)
 
-
     range_start = 10000101
     range_end = 99991231
 
-
-    resource_tmp["name"] = data_package["name"]
-
+    resource_tmp["name"] = dp["name"]
 
     # file date range
     resource_tmp["start"] = range_start
     resource_tmp["end"] = range_end
 
     # reorder resource fields
-    resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
-    resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
+    # resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+    # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 
     # update main list
     ru.resources.append(resource_tmp)
-
 
     # update dataset temporal info
     if not ru.temporal["start"] or range_start < ru.temporal["start"]:
@@ -319,23 +299,25 @@ for f in ru.file_list:
 # -------------------------------------
 # add temporal, spatial and resources info
 
-data_package["temporal"] = ru.temporal
-data_package["spatial"] = ru.spatial
-data_package["resources"] = ru.resources
+dp["temporal"] = ru.temporal
+dp["spatial"] = ru.spatial
+dp["resources"] = ru.resources
 
 
 # -----------------------------------------------------------------------------
 # database update(s) and datapackage output
 
 print "\nFinal datapackage..."
-print data_package
+print dp
 
+quit("!!!")
 
 # update mongo
 print "\nWriting datapackage to system..."
 
-core_update_status = update_db.update_core(data_package)
+core_update_status = update_db.update_core(dp)
 
-tracker_update_status = update_db.update_trackers(data_package, v.new_boundary, v.update_geometry, update_data_package)
+# tracker_update_status = update_db.update_trackers(dp, v.new_boundary, v.update_geometry, update_data_package)
+tracker_update_status = update_db.update_trackers(dp)
 
 print "\nDone.\n"

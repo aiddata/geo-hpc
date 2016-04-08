@@ -8,7 +8,7 @@ import sys
 import os
 import datetime
 import json
-from collections import OrderedDict
+# from collections import OrderedDict
 
 from resource_utility import ResourceTools
 from mongo_utility import MongoUpdate
@@ -41,7 +41,8 @@ def quit(reason):
 update_db = MongoUpdate()
 
 # init data package
-dp = OrderedDict()
+# dp = OrderedDict()
+dp = {}
 
 # get release base path
 if len(sys.argv) > 1:
@@ -87,6 +88,8 @@ dp["file_format"] = "release"
 dp["file_extension"] = ""
 dp["file_mask"] = "None"
 
+# -------------------------------------
+
 # get release datapackage
 release_path = dp["base"] + '/datapackage.json'
 release_package =  json.load(open(release_path, 'r'))
@@ -100,7 +103,7 @@ for f in release_package.keys():
     elif f == 'extras':
         for g in release_package['extras']:
             rkey = g['key'].replace (" ", "_").lower()
-            dp[g['key']] = g['value']
+            dp[rkey] = g['value']
 
 
 # -----------------------------------------------------------------------------
@@ -111,11 +114,11 @@ ru = ResourceTools()
 print "\nProcessing temporal..."
 
 # set temporal using release datapackage
-ru.temporal["name"] = dp['Temporal Name']
+ru.temporal["name"] = dp['temporal_name']
 ru.temporal["format"] = "%Y"
 ru.temporal["type"] = "year"
-ru.temporal["start"] = dp['Temporal Start']
-ru.temporal["end"] = dp['Temporal End']
+ru.temporal["start"] = dp['temporal_start']
+ru.temporal["end"] = dp['temporal_end']
 
 
 # -------------------------------------
@@ -177,8 +180,8 @@ resource_tmp = {
     "reliability": False
 }
 
-resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
-resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
+# resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+# resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 ru.resources.append(resource_tmp)
 
 
