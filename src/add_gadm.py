@@ -233,12 +233,12 @@ if dp["file_extension"] == "shp":
     dp["file_extension"] = "geojson"
 
     # remove shapefile
-    # for z in os.listdir(os.path.dirname(f)):
-    #     if (os.path.isfile(dp["base"] +"/"+ z) and
-    #             not z.endswith(".geojson") and
-    #             not z.endswith("datapackage.json")):
-    #         print "deleting " + dp["base"] +"/"+ z
-    #         os.remove(dp["base"] +"/"+ z)
+    for z in os.listdir(os.path.dirname(f)):
+        if (os.path.isfile(dp["base"] +"/"+ z) and
+                not z.endswith(".geojson") and
+                not z.endswith("datapackage.json")):
+            print "deleting " + dp["base"] +"/"+ z
+            os.remove(dp["base"] +"/"+ z)
 
 
 
