@@ -50,7 +50,7 @@ check_repo() {
 
         # for i in "$src"/latest/*; do
         #     echo "$i"
-            
+
         #     if echo "$i" | grep -q "$repo"; then
         #         if echo "$i" | grep -q -v "$timestamp"; then
 
@@ -68,30 +68,31 @@ check_repo() {
             new_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
             new_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
 
+
             if [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
                 echo -e "\n"
                 echo "Updating crons ..."
                 bash "$src"/git/asdf/src/tools/manage_crons.sh "$branch" init
             fi
 
-            if [ "$old_repo_hash" != "$new_repo_hash" ] | [ "$old_load_hash" != "$new_load_hash" ]; then
+            if [ "$old_repo_hash" != "$new_repo_hash" ] || [ "$old_load_hash" != "$new_load_hash" ]; then
                 echo -e "\n"
-                echo "Found new load_repos.sh ..."
+                echo "Found new load_repos.sh or repo list..."
                 bash "$src"/git/asdf/src/tools/load_repos.sh "$branch"
-                exit 0 
+                exit 0
             else
                 if [ "$old_update_hash" != "$new_update_hash" ]; then
                     echo -e "\n"
                     echo "Found new update_repos.sh ..."
                     bash "$src"/git/asdf/src/tools/update_repos.sh "$branch"
-                    exit 0 
+                    exit 0
                 fi
             fi
 
         fi
 
     fi
-    
+
     echo -e "\n"
 
 }
@@ -99,7 +100,7 @@ check_repo() {
 
 repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
 
-for repo in ${repo_list[*]}; do 
+for repo in ${repo_list[*]}; do
     check_repo
 done
 
