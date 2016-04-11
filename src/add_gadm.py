@@ -34,7 +34,7 @@ if config.connection_status != 0:
 
 import datetime
 import json
-
+import pymongo
 from resource_utility import ResourceTools
 
 
@@ -233,12 +233,12 @@ if dp["file_extension"] == "shp":
     dp["file_extension"] = "geojson"
 
     # remove shapefile
-    for z in os.listdir(os.path.dirname(f)):
-        if (os.path.isfile(dp["base"] +"/"+ z) and
-                not z.endswith(".geojson") and
-                not z.endswith("datapackage.json")):
-            print "deleting " + dp["base"] +"/"+ z
-            os.remove(dp["base"] +"/"+ z)
+    # for z in os.listdir(os.path.dirname(f)):
+    #     if (os.path.isfile(dp["base"] +"/"+ z) and
+    #             not z.endswith(".geojson") and
+    #             not z.endswith("datapackage.json")):
+    #         print "deleting " + dp["base"] +"/"+ z
+    #         os.remove(dp["base"] +"/"+ z)
 
 
 
@@ -362,41 +362,44 @@ else:
 
 
 # update core
-try:
-    c_data.replace_one({"base": dp["base"]}, dp, upsert=True)
-    print "successful core update"
-except:
-     quit("Error updating core.")
+# try:
+c_data.replace_one({"base": dp["base"]}, dp, upsert=True)
+print "successful core update"
+# except:
+#      quit("Error updating core.")
 
 
 # create/update tracker
-try:
+# try:
 
-    if dp["options"]["group_class"] == "actual":
+if dp["options"]["group_class"] == "actual":
 
-        # drop boundary tracker if exists
-        if  dp["options"]["group"] in asdf.collection_names():
-            asdf.drop_collection(dp["options"]["group"])
+    # drop boundary tracker if exists
+    if dp["options"]["group"] in asdf.collection_names():
+        asdf.drop_collection(dp["options"]["group"])
 
-        # create new boundary tracker collection
-        c_bnd = asdf[dp["options"]["group"]]
-        c_bnd.create_index("name", unique=True)
-        # c_bnd.create_index("base", unique=True)
-        c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
+    # create new boundary tracker collection
+    c_bnd = asdf[dp["options"]["group"]]
+    c_bnd.create_index("name", unique=True)
+    # c_bnd.create_index("base", unique=True)
+    c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
-        # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
-        dsets = c_data.find({"type": {"$ne": "boundary"}})
-        for full_dset in dsets:
-            dset = {
-                'name': full_dset["name"],
-                'spatial': full_dset["spatial"],
-                'scale': full_dset["scale"],
-                'status': -1
-            }
-            c_bnd.insert(dset)
+    # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
+    dsets = c_data.find({"type": {"$ne": "boundary"}})
+    for full_dset in dsets:
+        dset = {
+            'name': full_dset["name"],
+            'spatial': full_dset["spatial"],
+            'scale': full_dset["scale"],
+            'status': -1
+        }
+        c_bnd.insert(dset)
 
-except:
-     quit("Error updating tracker.")
+    print "successful tracker update"
+
+
+# except:
+#      quit("Error updating tracker.")
 
 
 
