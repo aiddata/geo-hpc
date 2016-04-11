@@ -75,7 +75,7 @@ init() {
     # crontab -l | grep -v 'update_repos.*'"$branch" | { cat; echo "$update_repos_cron"; } | crontab -
 
     update_repos_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' update_repos #asdf'
-    crontab -l | grep -v 'cron_wrapper.*'"$branch"'update_repos.*' | { cat; echo "$update_repos_cron"; } | crontab -
+    crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*update_repos' | { cat; echo "$update_repos_cron"; } | crontab -
 
 
     # setup build_update_job.sh cronjob
@@ -90,7 +90,7 @@ init() {
 
 
     cleanup_repos_cron='25 0 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' cleanup_repos #asdf'
-    crontab -l | grep -v 'cron_wrapper.*'"$branch"'cleanup_repos.*' | { cat; echo "$cleanup_repos_cron"; } | crontab -
+    crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
 
 }
 
