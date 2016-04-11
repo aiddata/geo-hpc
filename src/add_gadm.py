@@ -351,7 +351,7 @@ asdf = client[config.asdf_db]
 
 
 # gadm_col_str = "data"
-gadm_col_str = "gadm" + str(gadm_version).replace('.', ''))
+gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
 
 # prep collection if needed
 if not gadm_col_str in asdf.collection_names():
