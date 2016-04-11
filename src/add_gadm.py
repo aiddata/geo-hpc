@@ -163,7 +163,6 @@ dp["options"]["group"] = gadm_name.replace(" ", "_").lower()
 
 
 # boundary group
-dp["options"] = {}
 if "adm0" in gadm_name.lower():
      dp["options"]["group_class"] = "actual"
 else:
