@@ -152,7 +152,8 @@ dp["sources_web"] = "http://www.gadm.org"
 dp["sources_name"] = "Global Administrative Areas (GADM)"
 
 dp["options"] = {}
-dp["options"]["group"] = gadm_name.replace(" ", "_").lower()
+dp["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
+                         str(gadm_version).replace('.', ''))
 
 
 # v = ValidationTools()
@@ -348,16 +349,20 @@ print "\nWriting datapackage to system..."
 client = pymongo.MongoClient(config.server)
 asdf = client[config.asdf_db]
 
-# prep data collection if needed
-if not "data" in asdf.collection_names():
-    c_data = asdf.data
+
+# gadm_col_str = "data"
+gadm_col_str = "gadm" + str(gadm_version).replace('.', ''))
+
+# prep collection if needed
+if not gadm_col_str in asdf.collection_names():
+    c_data = asdf[gadm_col_str]
 
     c_data.create_index("base", unique=True)
     c_data.create_index("name", unique=True)
     c_data.create_index([("spatial", pymongo.GEOSPHERE)])
 
 else:
-    c_data = asdf.data
+    c_data = asdf[gadm_col_str]
 
 
 # update core
