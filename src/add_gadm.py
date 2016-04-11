@@ -8,8 +8,6 @@
 import sys
 import os
 
-print sys.argv
-
 branch = sys.argv[1]
 
 branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
@@ -42,6 +40,7 @@ from resource_utility import ResourceTools
 
 # -----------------------------------------------------------------------------
 
+parent = os.path.dirname(os.path.abspath(__file__))
 script = os.path.basename(sys.argv[0])
 version = "0.4"
 generator = "auto"
@@ -133,7 +132,7 @@ gadm_name = os.path.basename(dp["base"])
 gadm_iso3 = gadm_name[:3]
 gadm_adm = gadm_name[4:]
 
-gadm_lookup_path = 'gadm_iso3.json'
+gadm_lookup_path = parent + '/gadm_iso3.json'
 gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
 
 gadm_country = gadm_lookup[gadm_iso3]
