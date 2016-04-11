@@ -8,6 +8,8 @@
 import sys
 import os
 
+print sys.argv
+
 branch = sys.argv[1]
 
 branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
