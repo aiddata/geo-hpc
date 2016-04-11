@@ -374,7 +374,7 @@ try:
     if dp["options"]["group_class"] == "actual":
 
         # drop boundary tracker if exists
-        if  dp["options"]["group"] in asdf.collection_names()
+        if  dp["options"]["group"] in asdf.collection_names():
             asdf.drop_collection(dp["options"]["group"])
 
         # create new boundary tracker collection
