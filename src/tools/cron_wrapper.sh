@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cron=$1
-branch=$2
+branch=$1
+cron=$2
 
 src="${HOME}"/active/"$branch"
 
@@ -17,10 +17,10 @@ case $cron in
     "cleanup_repos")     bash "$src"/asdf/src/tools/cleanup_repos.sh "$branch" 2>&1 | tee 1>>"$src"/log/cleanup_repos/"$timestamp".cleanup_repos.log
                         exit 0;;
 
-    "db_updates")       bash "$src"/asdf/src/tools/build_db_updates_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/db_updates/"$timestamp".db_updates.log 
+    "db_updates")       bash "$src"/asdf/src/tools/build_db_updates_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/db_updates/"$timestamp".db_updates.log
                         exit 0;;
-    
-    *)                  echo "Invalid cron."; 
+
+    *)                  echo "Invalid cron.";
                         exit 1 ;;
-esac 
+esac
 
