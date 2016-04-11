@@ -2,3 +2,4 @@
  extract-scripts
  mean-surface-rasters
  det-module
+ asdf-datasets
