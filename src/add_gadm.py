@@ -156,6 +156,11 @@ dp["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
                          str(gadm_version).replace('.', ''))
 
 
+dp["gadm_info"] = {}
+dp["gadm_info"]["country"] = gadm_country
+dp["gadm_info"]["iso3"] = gadm_iso3
+dp["gadm_info"]["adm"] = int(gadm_adm[-1:])
+
 # v = ValidationTools()
 
 # probably do not need this
