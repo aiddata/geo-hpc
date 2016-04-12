@@ -1,5 +1,6 @@
- asdf
- extract-scripts
- mean-surface-rasters
- det-module
- asdf-datasets
+itpir/asdf
+itpir/extract-scripts
+itpir/mean-surface-rasters
+itpir/det-module
+itpir/asdf-datasets
+AidData-WM/public_datasets

@@ -32,7 +32,9 @@ yesterday=$(date -d "yesterday" +%Y%m%d)
 
 
 
-for repo in ${repo_list[*]}; do 
+for orgrepo in ${repo_list[*]}; do
+    repo=$(basename(${orgrepo})
+
     echo Cleaning up repo: "$repo"
 
     tmp_rm_list=$(find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep "$repo" | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")

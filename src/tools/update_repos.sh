@@ -100,7 +100,8 @@ check_repo() {
 
 repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
 
-for repo in ${repo_list[*]}; do
+for orgrepo in ${repo_list[*]}; do
+    repo=$(basename ${orgrepo})
     check_repo
 done
 

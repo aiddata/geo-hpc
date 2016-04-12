@@ -31,7 +31,7 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
-    git clone -b "$branch" https://github.com/itpir/"$repo" "$repo"
+    git clone -b "$branch" https://github.com/"$orgrepo" "$repo"
 
     cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
@@ -42,7 +42,8 @@ get_repo() {
 
 repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
 
-for repo in ${repo_list[*]}; do
+for orgrepo in ${repo_list[*]}; do
+    repo=$(basename ${orgrepo})
     get_repo
 done
 
