@@ -352,8 +352,8 @@ client = pymongo.MongoClient(config.server)
 asdf = client[config.asdf_db]
 
 
-# gadm_col_str = "data"
-gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
+gadm_col_str = "data"
+# gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
 
 # prep collection if needed
 if not gadm_col_str in asdf.collection_names():
@@ -375,7 +375,7 @@ print "successful core update"
 #      quit("Error updating core.")
 
 
-# create/update tracker
+# create/initialize tracker
 # try:
 
 if dp["options"]["group_class"] == "actual":
@@ -390,18 +390,18 @@ if dp["options"]["group_class"] == "actual":
     # c_bnd.create_index("base", unique=True)
     c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
-    # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
-    dsets = c_data.find({"type": {"$ne": "boundary"}})
-    for full_dset in dsets:
-        dset = {
-            'name': full_dset["name"],
-            'spatial': full_dset["spatial"],
-            'scale': full_dset["scale"],
-            'status': -1
-        }
-        c_bnd.insert(dset)
+    # # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
+    # dsets = c_data.find({"type": {"$ne": "boundary"}})
+    # for full_dset in dsets:
+    #     dset = {
+    #         'name': full_dset["name"],
+    #         'spatial': full_dset["spatial"],
+    #         'scale': full_dset["scale"],
+    #         'status': -1
+    #     }
+    #     c_bnd.insert(dset)
 
-    print "successful tracker update"
+    print "successful tracker creation"
 
 
 # except:
