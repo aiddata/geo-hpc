@@ -35,6 +35,7 @@ if config.connection_status != 0:
 import datetime
 import json
 import pymongo
+
 from resource_utility import ResourceTools
 
 
@@ -122,10 +123,10 @@ dp["type"] = "boundary"
 dp["file_format"] = "vector"
 dp["file_extension"] = "shp"
 dp["file_mask"] = "None"
-dp["version"] = gadm_version
 
 # -------------------------------------
 
+dp["version"] = gadm_version
 
 gadm_name = os.path.basename(dp["base"])
 
@@ -184,14 +185,14 @@ ru = ResourceTools()
 
 # find all files with file_extension in path
 for root, dirs, files in os.walk(dp["base"]):
-    for file in files:
+    for fname in files:
 
-        file = os.path.join(root, file)
+        fname = os.path.join(root, fname)
 
-        file_check = ru.run_file_check(file, dp["file_extension"])
+        file_check = ru.run_file_check(fname, dp["file_extension"])
 
-        if file_check == True and not file.endswith('simplified.geojson'):
-            ru.file_list.append(file)
+        if file_check == True and not fname.endswith('simplified.geojson'):
+            ru.file_list.append(fname)
 
 
 if len(ru.file_list) == 0:
@@ -246,7 +247,6 @@ if dp["file_extension"] == "shp":
             os.remove(dp["base"] +"/"+ z)
 
 
-
 # clip extents if they are outside global bounding box
 for c in range(len(geo_ext)):
     if geo_ext[c][0] < -180:
@@ -277,7 +277,6 @@ if tsize >= 32400:
 dp["scale"] = scale
 
 
-
 # spatial
 # get generic spatial data for rasters
 # something else for vectors?
@@ -291,7 +290,6 @@ ru.spatial = {
         geo_ext[0]
     ] ]
 }
-
 
 
 # -------------------------------------
@@ -323,7 +321,6 @@ resource_tmp["end"] = 99991231
 
 # update main list
 ru.resources.append(resource_tmp)
-
 
 
 # -------------------------------------
