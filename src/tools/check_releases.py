@@ -3,7 +3,7 @@ import sys
 import os
 import errno
 import pymongo
-
+from distutils.version import StrictVersion
 
 class ReleaseTools():
     """Tools for finding research releases.
@@ -134,12 +134,12 @@ class ReleaseTools():
 
             # find which dataset is latest version
             for j in conflict_releases:
-                tmp_version = float(j[0].split("_")[-1][1:])
+                tmp_version = j[0].split("_")[-1][1:]
 
                 if latest_version == None:
                     latest_version = tmp_version
 
-                elif tmp_version > latest_version:
+                elif StrictVersion(tmp_version) > StrictVersion(latest_version):
                     latest_version = tmp_version
 
             # add latest version dataset to final list
