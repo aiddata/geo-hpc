@@ -3,213 +3,286 @@
 #   - create datapackage
 #   - update mongo database
 
-
+# -----------------------------------------------------------------------------
 import sys
-import os
-import datetime
-import json
-# from collections import OrderedDict
 
-from resource_utility import ResourceTools
-from mongo_utility import MongoUpdate
+def main(args):
+    # import sys
+    import os
 
+    branch = args[0]
 
-# -----------------------------------------------------------------------------
+    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
 
-script = os.path.basename(sys.argv[0])
-version = "0.4"
-generator = "auto"
-
-# -----------------------------------------------------------------------------
+    if not os.path.isdir(branch_dir):
+        raise Exception('Branch directory does not exist')
 
 
-def quit(reason):
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    sys.path.insert(0, config_dir)
 
-    # do error log stuff
-    #
+    from config_utility import BranchConfig
 
-    # output error logs somewhere
-    #
+    config = BranchConfig(branch=branch)
 
-    # if auto, move job file to error location
-    #
+    # -------------------------------------
 
-    sys.exit("add_release.py: terminating script - " + str(reason) + "\n")
+    # check mongodb connection
+    if config.connection_status != 0:
+        sys.exit("connection status error: " + str(config.connection_error))
+
+    # -----------------------------------------------------------------------------
 
 
-# update mongo class instance
-update_db = MongoUpdate()
+    import datetime
+    import json
+    import pymongo
 
-# init data package
-# dp = OrderedDict()
-dp = {}
+    from resource_utility import ResourceTools
 
-# get release base path
-if len(sys.argv) > 1:
+    # -----------------------------------------------------------------------------
 
-    path = sys.argv[1]
+    script = os.path.basename(__file__)
+    version = "0.4"
+    generator = "auto"
 
-    if os.path.isdir(path):
-        dp['base'] = path
+    # -----------------------------------------------------------------------------
+
+
+    def quit(reason):
+
+        # do error log stuff
+        #
+
+        # output error logs somewhere
+        #
+
+        # if auto, move job file to error location
+        #
+
+        sys.exit("add_release.py: terminating script - " + str(reason) + "\n")
+
+
+    # init data package
+    dp = {}
+
+    # get release base path
+    if len(args) > 1:
+
+        path = args[1]
+
+        if os.path.isdir(path):
+            dp['base'] = path
+        else:
+            quit("Invalid base directory provided.")
+
     else:
-        quit("Invalid base directory provided.")
-
-else:
-    quit("no base directory provided")
+        quit("No base directory provided")
 
 
-# optional arg
-# mainly for user to specify manual run
-if len(sys.argv) > 2:
-    if sys.argv[2] in ['auto', 'manual']:
-        generator = sys.argv[2]
+    # optional arg
+    # mainly for user to specify manual run
+    if len(args) > 2:
+        if args[2] in ['auto', 'manual']:
+            generator = args[2]
+        else:
+            quit("Invalid additional inputs")
+
+
+    # exit if too many args
+    if len(args) > 3:
+            quit("Invalid inputs arguments count")
+
+
+    # remove trailing slash from path
+    if dp["base"].endswith("/"):
+        dp["base"] = dp["base"][:-1]
+
+
+    dp["asdf_date_added"] = str(datetime.date.today())
+    dp["asdf_date_updated"] = str(datetime.date.today())
+    dp["asdf_script"] = script
+    dp["asdf_version"] = version
+    dp["asdf_generator"] = generator
+
+    dp["type"] = "release"
+    dp["file_format"] = "release"
+    dp["file_extension"] = ""
+    dp["file_mask"] = "None"
+
+    # -------------------------------------
+
+    # get release datapackage
+    release_path = dp["base"] + '/datapackage.json'
+    release_package =  json.load(open(release_path, 'r'))
+
+    for f in release_package.keys():
+
+        if f not in ['resources', 'extras']:
+            rkey = f.replace (" ", "_").lower()
+            dp[f] = release_package[f]
+
+        elif f == 'extras':
+            for g in release_package['extras']:
+                rkey = g['key'].replace (" ", "_").lower()
+                dp[rkey] = g['value']
+
+
+    dp["active"] = 1
+
+
+    # -----------------------------------------------------------------------------
+
+    # resource utils class instance
+    ru = ResourceTools()
+
+    print "\nProcessing temporal..."
+
+    # set temporal using release datapackage
+    ru.temporal["name"] = dp['temporal_name']
+    ru.temporal["format"] = "%Y"
+    ru.temporal["type"] = "year"
+    ru.temporal["start"] = dp['temporal_start']
+    ru.temporal["end"] = dp['temporal_end']
+
+
+    # -------------------------------------
+    print "\nProcessing spatial..."
+
+    # get extemt
+    loc_table_path = dp['base'] + "/data/locations.csv"
+    geo_ext = ru.release_envelope(loc_table_path)
+
+    # clip extents if they are outside global bounding box
+    for c in range(len(geo_ext)):
+
+        if geo_ext[c][0] < -180:
+            geo_ext[c][0] = -180
+        elif geo_ext[c][0] > 180:
+            geo_ext[c][0] = 180
+
+        if geo_ext[c][1] < -90:
+            geo_ext[c][1] = -90
+        elif geo_ext[c][1] > 90:
+            geo_ext[c][1] = 90
+
+
+    # display datset info to user
+    print "Dataset bounding box: ", geo_ext
+
+    # check bbox size
+    xsize = geo_ext[2][0] - geo_ext[1][0]
+    ysize = geo_ext[0][1] - geo_ext[1][1]
+    tsize = abs(xsize * ysize)
+
+    scale = "regional"
+    if tsize >= 32400:
+        scale = "global"
+
+    dp["scale"] = scale
+
+    # spatial
+    ru.spatial = {
+        "type": "Polygon",
+        "coordinates": [ [
+            geo_ext[0],
+            geo_ext[1],
+            geo_ext[2],
+            geo_ext[3],
+            geo_ext[0]
+        ] ]
+    }
+
+
+    # -------------------------------------
+    print '\nProcessing resources...'
+
+    resource_tmp = {
+        "name": dp['name'],
+        "bytes": 0,
+        "path": "",
+        "start": ru.temporal['start'],
+        "end": ru.temporal['end'],
+        "reliability": False
+    }
+
+    # resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+    # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
+    ru.resources.append(resource_tmp)
+
+
+    # -------------------------------------
+    # add temporal, spatial and resources info
+
+    dp["temporal"] = ru.temporal
+    dp["spatial"] = ru.spatial
+    dp["resources"] = ru.resources
+
+
+    # -----------------------------------------------------------------------------
+    # database update(s) and datapackage output
+
+    print "\nFinal datapackage..."
+    print dp
+
+    # json_out = '/home/userz/Desktop/summary.json'
+    # json_handle = open(json_out, 'w')
+    # json.dump(dp, json_handle, sort_keys=False, indent=4,
+    #           ensure_ascii=False)
+
+    quit("!!!")
+
+    # update mongo
+    print "\nWriting datapackage to mongo..."
+
+
+    # connect to database and asdf collection
+    client = pymongo.MongoClient(config.server)
+    asdf = client[config.asdf_db]
+
+
+    # prep collection if needed
+    if not "data" in asdf.collection_names():
+        c_data = asdf["data"]
+
+        c_data.create_index("base", unique=True)
+        c_data.create_index("name", unique=True)
+        c_data.create_index([("spatial", pymongo.GEOSPHERE)])
+
     else:
-        quit("Invalid additional inputs")
+        c_data = asdf["data"]
 
 
-# exit if too many args
-if len(sys.argv) > 3:
-        quit("Invalid inputs arguments count")
+    # update core
+    # try:
+    c_data.replace_one({"base": dp["base"]}, dp, upsert=True)
+    print "successful core update"
+    # except:
+    #      quit("Error updating core.")
 
 
-# remove trailing slash from path
-if dp["base"].endswith("/"):
-    dp["base"] = dp["base"][:-1]
+    # # update trackers
+    # # add dataset to each boundary collection with "unprocessed" flag
+    # dset = {
+    #     'name': in_data["name"],
+    #     'spatial': in_data["spatial"],
+    #     'scale': in_data["scale"],
+    #     'status': -1
+    # }
+
+    # bnds = self.c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
+    # for bnd in bnds:
+    #     c_bnd = self.asdf[bnd["options"]["group"]]
+    #     # c_bnd.insert(dset)
+    #     c_bnd.replace_one({"name": dset["name"]}, dset, upsert=True)
 
 
-dp["asdf_date_added"] = str(datetime.date.today())
-dp["asdf_date_updated"] = str(datetime.date.today())
-dp["asdf_script"] = script
-dp["asdf_version"] = version
-dp["asdf_generator"] = generator
+    # create mongodb for dataset
+    ru.release_to_mongo(dp['name'], dp['base'])
 
-dp["type"] = "release"
-dp["file_format"] = "release"
-dp["file_extension"] = ""
-dp["file_mask"] = "None"
-
-# -------------------------------------
-
-# get release datapackage
-release_path = dp["base"] + '/datapackage.json'
-release_package =  json.load(open(release_path, 'r'))
-
-for f in release_package.keys():
-
-    if f not in ['resources', 'extras']:
-        rkey = f.replace (" ", "_").lower()
-        dp[f] = release_package[f]
-
-    elif f == 'extras':
-        for g in release_package['extras']:
-            rkey = g['key'].replace (" ", "_").lower()
-            dp[rkey] = g['value']
+    print "\nDone.\n"
 
 
-# -----------------------------------------------------------------------------
 
-# resource utils class instance
-ru = ResourceTools()
-
-print "\nProcessing temporal..."
-
-# set temporal using release datapackage
-ru.temporal["name"] = dp['temporal_name']
-ru.temporal["format"] = "%Y"
-ru.temporal["type"] = "year"
-ru.temporal["start"] = dp['temporal_start']
-ru.temporal["end"] = dp['temporal_end']
-
-
-# -------------------------------------
-print "\nProcessing spatial..."
-
-# get extemt
-geo_ext = ru.release_envelope(dp['base'] + "/data/locations")
-
-# clip extents if they are outside global bounding box
-for c in range(len(geo_ext)):
-
-    if geo_ext[c][0] < -180:
-        geo_ext[c][0] = -180
-    elif geo_ext[c][0] > 180:
-        geo_ext[c][0] = 180
-
-    if geo_ext[c][1] < -90:
-        geo_ext[c][1] = -90
-    elif geo_ext[c][1] > 90:
-        geo_ext[c][1] = 90
-
-
-# display datset info to user
-print "Dataset bounding box: ", geo_ext
-
-# check bbox size
-xsize = geo_ext[2][0] - geo_ext[1][0]
-ysize = geo_ext[0][1] - geo_ext[1][1]
-tsize = abs(xsize * ysize)
-
-scale = "regional"
-if tsize >= 32400:
-    scale = "global"
-
-dp["scale"] = scale
-
-# spatial
-ru.spatial = {
-    "type": "Polygon",
-    "coordinates": [ [
-        geo_ext[0],
-        geo_ext[1],
-        geo_ext[2],
-        geo_ext[3],
-        geo_ext[0]
-    ] ]
-}
-
-
-# -------------------------------------
-print '\nProcessing resources...'
-
-resource_tmp = {
-    "name": dp['name'],
-    "bytes": 0,
-    "path": "",
-    "start": ru.temporal['start'],
-    "end": ru.temporal['end'],
-    "reliability": False
-}
-
-# resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
-# resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
-ru.resources.append(resource_tmp)
-
-
-# -------------------------------------
-# add temporal, spatial and resources info
-
-dp["temporal"] = ru.temporal
-dp["spatial"] = ru.spatial
-dp["resources"] = ru.resources
-
-
-# -----------------------------------------------------------------------------
-# database update(s) and datapackage output
-
-print "\nFinal datapackage..."
-print dp
-
-quit("!!!")
-
-# update mongo
-print "\nWriting datapackage to mongo..."
-
-core_update_status = update_db.update_core(dp)
-
-tracker_update_status = update_db.update_trackers(dp)
-
-# create mongodb for dataset
-ru.release_to_mongo(dp['name'], dp['base'])
-
-print "\nDone.\n"
-
+if __name__ == '__main__':
+    main(sys.argv[1:])

@@ -19,7 +19,7 @@ import pymongo
 
 
 class ResourceTools():
-    """
+    """Functions for working with dataset resources.
 
     Attributes:
 
@@ -28,14 +28,14 @@ class ResourceTools():
         temporal (Dict): x
         spatial (): x
         resources (List): x
-    
+
     """
     def __init__(self):
-        
+
         self.dp = {}
 
         self.file_list = []
-                
+
         self.temporal = {
             "start": 0,
             "end": 0,
@@ -196,12 +196,13 @@ class ResourceTools():
     #     for file in list:
     #         f_env = vectory_envelope(file)
     #         env = self.check_envelope(f_env, env)
-            
+
     #     geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
     #     return geo_ext
 
 
-    # return a point given a pandas row (or any object) which includes longitude and latitude
+    # return a point given a pandas row (or any object) which
+    #   includes longitude and latitude
     # return "None" if valid lon,lat not found
     def point_gen(self, item):
 
@@ -213,21 +214,24 @@ class ResourceTools():
             return "None"
 
 
-    # return envelope given the path to a csv which includes longitude and latitude fields
     def release_envelope(self, path):
 
-        df = self.csv_to_pandas(path)
+        if not os.path.isfile(path):
+            quit("Locations table could not be found.")
 
-        if isinstance(df, tuple):
-            return df
+        try:
+            df = pd.read_csv(path, sep=",", quotechar='\"')
+        except:
+            quit("Error reading locations table.")
+
 
         df['geometry'] = df.apply(self.point_gen, axis=1)
 
         gdf = gpd.GeoDataFrame(df.loc[df.geometry != "None"])
 
         env = gdf.total_bounds
-        
-        # env = (minx, miny, maxx, maxy) 
+
+        # env = (minx, miny, maxx, maxy)
         geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
 
         return geo_ext
@@ -271,12 +275,12 @@ class ResourceTools():
     #         # for sr in reader.shapeRecords():
     #         #     atr = dict(zip(field_names, sr.record))
     #         #     geom = sr.shape.__geo_interface__
-    #         #     buffer.append(dict(type="Feature", geometry=geom, properties=atr)) 
+    #         #     buffer.append(dict(type="Feature", geometry=geom, properties=atr))
 
     #         for (sr, ss) in itertools.izip(reader.iterRecords(), reader.iterShapes()):
     #             atr = dict(zip(field_names, sr))
     #             geom = ss.__geo_interface__
-    #             buffer.append(dict(type="Feature", geometry=geom, properties=atr)) 
+    #             buffer.append(dict(type="Feature", geometry=geom, properties=atr))
 
 
     #         # write the GeoJSON file
@@ -293,7 +297,7 @@ class ResourceTools():
 
     # --------------------------------------------------
     # temporal functions
-    
+
 
     # extract temporal data from file name
     def run_file_mask(self, fmask, fname, fbase=0):
@@ -320,7 +324,7 @@ class ResourceTools():
         elif len(date_obj["year"]) != 4:
             return False, "Invalid year."
 
-        # months must always use 2 digits 
+        # months must always use 2 digits
         elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
             return False, "Invalid month."
 
@@ -334,33 +338,33 @@ class ResourceTools():
 
         return True, None
 
-    
+
     # generate date range and date type from date object
     def get_date_range(self, date_obj, drange=0):
 
         date_type = "None"
-        
+
         # year, day of year (7)
-        if date_obj["month"] == "" and len(date_obj["day"]) == 3:  
+        if date_obj["month"] == "" and len(date_obj["day"]) == 3:
             tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
             tmp_end = tmp_start + relativedelta(days=drange)
             date_type = "day of year"
 
         # year, month, day (8)
-        if date_obj["month"] != "" and len(date_obj["day"]) == 2:   
+        if date_obj["month"] != "" and len(date_obj["day"]) == 2:
             tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
             tmp_end = tmp_start + relativedelta(days=drange)
             date_type = "year month day"
 
         # year, month (6)
-        if date_obj["month"] != "" and date_obj["day"] == "":   
+        if date_obj["month"] != "" and date_obj["day"] == "":
             tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
             month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
             tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
             date_type = "year month"
 
         # year (4)
-        if date_obj["month"] == "" and date_obj["day"] == "":   
+        if date_obj["month"] == "" and date_obj["day"] == "":
             tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
             tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
             date_type = "year"
@@ -372,32 +376,6 @@ class ResourceTools():
     # --------------------------------------------------
     # data format transformation functions
 
-    def csv_to_pandas(self, path):
-
-        if path.endswith('.tsv') and os.path.isfile(path):
-            delim = "\t"
-
-        elif os.path.isfile(path+".tsv"):
-            path = path+".tsv"
-            delim = "\t"
-
-        elif path.endswith('.csv') and os.path.isfile(path):
-            delim = ","
-        
-        elif os.path.isfile(path+".csv"):
-            path = path + ".csv"
-            delim = ","
-
-        else:
-            return (1, "could not identify csv type")
-
-
-        try:
-            df =  pd.read_csv(path, sep=delim, quotechar='\"')
-            return df
-        except:
-            return (1, "error reading csv")
-            
 
     # convert flat tables from release datasets into nested mongo database
     def release_to_mongo(self, name, path):
@@ -429,7 +407,7 @@ class ResourceTools():
 
         # add new data for each project
         for project_row in tables['projects'].iterrows():
-            
+
             project = dict(project_row[1])
             project_id = project["project_id"]
 
@@ -444,7 +422,7 @@ class ResourceTools():
 
 
             location_match = tables['locations'].loc[tables['locations']["project_id"] == project_id]
-                
+
             if len(location_match) > 0:
                 project["locations"] = [dict(x[1]) for x in location_match.iterrows()]
 
