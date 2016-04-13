@@ -65,7 +65,8 @@ latest_repo_releases = [i[0] for i in rtool_repo.get_latest_releases()]
 
 existing_data_releases = os.listdir(data_dir)
 
-new_releases = [i for i in latest_repo_releases if not in existing_data_releases]
+new_releases = [i for i in latest_repo_releases
+                if i not in existing_data_releases]
 
 # unzip any new releases to release data dir
 for i in new_releases:
@@ -81,7 +82,8 @@ rtool_data = ReleaseTools()
 rtool_data.set_dir_releases(data_dir)
 latest_releases = [i[0] for i in rtool_data.get_latest_releases()]
 
-outdated_releases = [i for i in os.listdir(data_dir) if not in latest_releases]
+outdated_releases = [i for i in os.listdir(data_dir)
+                     if i not in latest_releases]
 
 
 # check if already in asdf
