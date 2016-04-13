@@ -134,7 +134,7 @@ class ReleaseTools():
 
             # find which dataset is latest version
             for j in conflict_releases:
-                tmp_version = float(".".join(j[0].split("_")[-2:])[1:])
+                tmp_version = float(j[0].split("_")[-1][1:])
 
                 if latest_version == None:
                     latest_version = tmp_version
