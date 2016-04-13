@@ -33,7 +33,7 @@ yesterday=$(date -d "yesterday" +%Y%m%d)
 
 
 for orgrepo in ${repo_list[*]}; do
-    repo=$(basename(${orgrepo})
+    repo=$(basename ${orgrepo})
 
     echo Cleaning up repo: "$repo"
 
