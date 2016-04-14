@@ -110,21 +110,21 @@ class ReleaseTools():
         print self.all_releases
         # preambles from name which identify country/group data pertains to
         all_preambles = [i[0].split('_')[0] for i in self.all_releases]
-
+        print all_preambles
         # duplicates based on matching preambles
         # means there are multiple versions
         duplicate_preambles = [
             i for i in set(all_preambles)
             if all_preambles.count(i) > 1
         ]
-
+        print duplicate_preambles
         # unique list of latest dataset names
         # initialized here with only datasets that have a single version
         latest_releases = [
             i for i in self.all_releases
             if not i[0].startswith(tuple(duplicate_preambles))
         ]
-
+        print latest_releases
 
         # iterate over each group of conflicting datasets based on preamble
         for i in duplicate_preambles:
