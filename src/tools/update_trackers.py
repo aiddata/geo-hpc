@@ -53,6 +53,8 @@ bnds = c_data.find({"type": "boundary", "options.group_class": "actual"})
 
 active_iso3_list = config.release_gadm.values() + config.other_gadm
 
+print active_iso3_list
+
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
 
@@ -67,7 +69,10 @@ for bnd in bnds:
     # do not process inactive boundaries
     if "gadm_info" in bnd.values() :
 
+        print bnd["gadm_info"]["iso3"]
         is_active_gadm = bnd["gadm_info"]["iso3"].upper() in active_iso3_list
+
+        print "active gadm: "  + str(is_active_gadm)
 
         if bnd["active"] == 0 and is_active_gadm:
             print "setting active"
