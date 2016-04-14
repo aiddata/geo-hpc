@@ -61,6 +61,17 @@ class ReleaseTools():
         self.is_connected = True
 
 
+    def convert_name(self, x):
+
+        # x = release with underscore as version delimiters
+
+        # name with version underscores delimiters replaced with points
+        # to match asdf / release datapackage name format
+        y = x[:x.rindex("v")+1] + x[x.rindex("v")+1:].replace("_", ".")
+
+        return y
+
+
     def set_asdf_releases(self, branch):
         """Set asdf releases based mongo db collection.
 
@@ -73,7 +84,7 @@ class ReleaseTools():
 
         # get names of all research releases from asdf
         self.all_releases = [
-            (i['name'], i['base'])
+            (self.convert_name(i['name']), i['base'])
             for i in self.asdf.find({'type':'release'}, {'name':1, 'base':1})
         ]
 
@@ -153,7 +164,7 @@ class ReleaseTools():
             # add latest version dataset to final list
             latest_releases += [
                 j for j in conflict_releases
-                if j[0].endswith(str(latest_version).replace(".", "_"))
+                if j[0].endswith(str(latest_version))
             ]
 
         print latest_releases
