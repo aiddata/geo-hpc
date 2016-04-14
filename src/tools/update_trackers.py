@@ -57,9 +57,7 @@ active_iso3_list = config.release_gadm.values() + config.other_gadm
 for bnd in bnds:
 
 
-
     ###
-
 
     # manage active state for gadm boundaries based on config settings
     # do not process inactive boundaries
@@ -75,9 +73,7 @@ for bnd in bnds:
         elif bnd["active"] == 0:
             continue
 
-
     ###
-
 
 
     print 'processing ' + bnd['options']['group'] + ' tracker...'
@@ -85,10 +81,7 @@ for bnd in bnds:
     c_bnd = db[bnd["options"]["group"]]
 
 
-
-
     ###
-
 
     # add each non-boundary dataset item to boundary tracker collection with
     #   "unprocessed" flag if it is not already in collection
@@ -105,17 +98,8 @@ for bnd in bnds:
             dset['status'] = -1
             c_bnd.insert(dset)
 
-
     ###
 
-
-
-
-    # get boundary bbox
-    geo = bnd["spatial"]
-
-    # lookup all unprocessed data in boundary tracker
-    uprocs = c_bnd.find({"status": -1})
 
     # lookup unprocessed data in boundary tracker that
     # intersect boundary (first stage search)
@@ -125,7 +109,7 @@ for bnd in bnds:
             {
                 "spatial": {
                     "$geoIntersects": {
-                        "$geometry": geo
+                        "$geometry": bnd["spatial"]
                     }
                 }
             },
@@ -146,6 +130,11 @@ for bnd in bnds:
         bnd_type = bnd['type']
 
         meta = c_data.find({'name':match['name']})[0]
+
+        if "active" in meta and meta["active"] == 0:
+            c_bnd.update_one({"name": match['name']},
+                             {"$set": {"status": -3}}, upsert=False)
+            continue
 
         # dataset base and type
         dset_base = meta['base'] +"/"+ meta["resources"][0]["path"]
@@ -227,9 +216,21 @@ for bnd in bnds:
         #
 
 
+
     # update tracker for all unprocessed dataset not matching first
     # stage search
-    for uproc in uprocs:
-        if uproc['status'] == -1:
-            c_bnd.update_many({"name": uproc['name']},
-                              {"$set": {"status": 0}}, upsert=False)
+    c_bnd.update_many({"status": -1}, {"$set": {"status": 0}}, upsert=False)
+
+    # reset all inactive from placeholder status (-3) to unprocessed (-1)
+    # so that their active state will be rechecked in case it changes
+    #
+    # Warning: datasets that have already been processed which are now inactive
+    #          will be left alone. Applications should do their own checks on
+    #          the active field.
+    #
+    # Note: As it related to this script, we must assume that
+    #       a dataset is inactive because there is an error that may prohibit
+    #       it being properly indexed, so it is continually left out until
+    #       it is removed from data collection or set to active and indexed.
+    c_bnd.update_many({"status": -3}, {"$set": {"status": -1}}, upsert=False)
+
