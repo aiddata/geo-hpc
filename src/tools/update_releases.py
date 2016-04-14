@@ -83,7 +83,7 @@ for i in new_releases:
 
     zpath = repo_dir +"/"+ i
 
-    zobj = zipfile.Zipfile(zpath)
+    zobj = zipfile.ZipFile(zpath)
 
     zobj.extractall(data_dir)
 
