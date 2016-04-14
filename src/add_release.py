@@ -278,7 +278,7 @@ def main(args):
 
 
     # create mongodb for dataset
-    ru.release_to_mongo(dp['name'], dp['base'])
+    ru.release_to_mongo(dp['name'], dp['base'], client)
 
     print "\nDone.\n"
 

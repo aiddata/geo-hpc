@@ -378,9 +378,8 @@ class ResourceTools():
 
 
     # convert flat tables from release datasets into nested mongo database
-    def release_to_mongo(self, name, path):
+    def release_to_mongo(self, name, path, client):
 
-        client = pymongo.MongoClient()
         releases = client.releases
 
         releases.drop_collection(name)
