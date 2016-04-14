@@ -76,12 +76,12 @@ for bnd in bnds:
 
         if bnd["active"] == 0 and is_active_gadm:
             print "setting active"
-            c_data.update_one({bnd["name"]}, {"$set":{"active": 1}})
+            c_data.update_one({"name": bnd["name"]}, {"$set":{"active": 1}})
             is_active = 1
 
         elif bnd["active"] == 1 and is_active_gadm:
             print "setting inactive"
-            c_data.update_one({bnd["name"]}, {"$set":{"active": 0}})
+            c_data.update_one({"name": bnd["name"]}, {"$set":{"active": 0}})
             continue
 
 
