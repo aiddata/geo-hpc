@@ -86,7 +86,7 @@ for bnd in bnds:
     # add each non-boundary dataset item to boundary tracker collection with
     #   "unprocessed" flag if it is not already in collection
     # (no longer done in add gadm/release)
-    dsets = self.c_data.find({"type": {"$ne": "boundary"}, "active": 1})
+    dsets = c_data.find({"type": {"$ne": "boundary"}, "active": 1})
     for full_dset in dsets:
         dset = {
             'name': full_dset["name"],
