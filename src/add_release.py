@@ -230,7 +230,6 @@ def main(args):
     # json.dump(dp, json_handle, sort_keys=False, indent=4,
     #           ensure_ascii=False)
 
-    # quit("!!!")
 
     # update mongo
     print "\nWriting datapackage to mongo..."
