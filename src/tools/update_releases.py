@@ -86,6 +86,9 @@ outdated_releases = [i for i in os.listdir(data_dir)
                      if i not in latest_releases]
 
 
+client = pymongo.MongoClient(config.server)
+asdf = client[config.asdf_db].data
+
 # check if already in asdf
 # run add_release to add if needed
 for i in latest_releases:
@@ -104,8 +107,7 @@ for i in outdated_releases:
 
     ipath = data_dir +"/"+ i
 
-    client = pymongo.MongoClient(config.server)
-    asdf = client[config.asdf_db].data
+
 
     update_outdated = asdf.update_one({"base": ipath}, {"$set": {"active": 0}})
 
