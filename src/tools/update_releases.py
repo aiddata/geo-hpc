@@ -55,16 +55,20 @@ except OSError as exception:
 
 all_repo_releases = os.listdir(repo_dir)
 
+print all_repo_releases
+
 modern_str = ".*AIMS_GeocodedResearchRelease_Level1_v.*\.zip"
 modern_expr = re.compile(modern_str)
 modern_repo_releases = [(i[:-4],) for i in all_repo_releases
                         if modern_expr.match(i)]
 
+print modern_repo_releases
 
 rtool_repo = ReleaseTools()
 rtool_repo.set_user_releases(modern_repo_releases)
 latest_repo_releases = [i[0] for i in rtool_repo.get_latest_releases()]
 
+print rtool_repo.get_latest_releases()
 print latest_repo_releases
 
 # -----------------------------------------------------------------------------
