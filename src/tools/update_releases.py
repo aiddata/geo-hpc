@@ -50,6 +50,8 @@ except OSError as exception:
     if exception.errno != errno.EEXIST:
         raise
 
+# -----------------------------------------------------------------------------
+# find latest version of releases from repo which match current format
 
 all_repo_releases = os.listdir(repo_dir)
 
@@ -64,12 +66,14 @@ rtool_repo.set_user_releases(modern_repo_releases)
 latest_repo_releases = [i[0] for i in rtool_repo.get_latest_releases()]
 
 
+# -----------------------------------------------------------------------------
+# unzip any latest releases which doe not exist in data dir
+
 existing_data_releases = os.listdir(data_dir)
 
 new_releases = [i for i in latest_repo_releases
                 if i not in existing_data_releases]
 
-# unzip any new releases to release data dir
 for i in new_releases:
 
     zpath = repo_dir +"/"+ i
@@ -79,12 +83,15 @@ for i in new_releases:
     zobj.extractall(data_dir)
 
 
-rtool_data = ReleaseTools()
-rtool_data.set_dir_releases(data_dir)
-latest_releases = [i[0] for i in rtool_data.get_latest_releases()]
+# -----------------------------------------------------------------------------
+
+# rtool_data = ReleaseTools()
+# rtool_data.set_dir_releases(data_dir)
+# latest_releases = [i[0] for i in rtool_data.get_latest_releases()]
 
 outdated_releases = [i for i in os.listdir(data_dir)
-                     if i not in latest_releases]
+                     if i not in latest_repo_releases]
+
 
 
 client = pymongo.MongoClient(config.server)
@@ -92,7 +99,7 @@ asdf = client[config.asdf_db].data
 
 # check if already in asdf
 # run add_release to add if needed
-for i in latest_releases:
+for i in latest_repo_releases:
 
     ipath = data_dir +"/"+ i
 
@@ -107,8 +114,6 @@ for i in latest_releases:
 for i in outdated_releases:
 
     ipath = data_dir +"/"+ i
-
-
 
     update_outdated = asdf.update_one({"base": ipath}, {"$set": {"active": 0}})
 
