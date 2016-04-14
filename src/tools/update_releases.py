@@ -81,7 +81,7 @@ print new_releases
 
 for i in new_releases:
 
-    zpath = repo_dir +"/"+ i
+    zpath = repo_dir +"/"+ i + ".zip"
 
     zobj = zipfile.ZipFile(zpath)
 
