@@ -59,6 +59,7 @@ for bnd in bnds:
     print "\n"
     print bnd['options']['group'] + ' tracker'
 
+    print "active flag: " + str(bnd["active"])
 
     is_active = 0
 
@@ -66,12 +67,14 @@ for bnd in bnds:
     # do not process inactive boundaries
     if "gadm_info" in bnd.values() :
 
-        if bnd["active"] == 0 and gadm_iso3.upper() in active_iso3_list:
+        is_active_gadm = bnd["gadm_info"]["iso3"].upper() in active_iso3_list:
+
+        if bnd["active"] == 0 and is_active_gadm:
             print "setting active"
             c_data.update_one({bnd["name"]}, {"$set":{"active": 1}})
             is_active = 1
 
-        elif bnd["active"] == 1 and gadm_iso3.upper() not in active_iso3_list:
+        elif bnd["active"] == 1 and is_active_gadm:
             print "setting inactive"
             c_data.update_one({bnd["name"]}, {"$set":{"active": 0}})
             continue
