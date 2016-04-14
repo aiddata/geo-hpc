@@ -106,6 +106,8 @@ class ReleaseTools():
         Returns:
             latest_releases (list): latest release names
         """
+        print "1"
+        print self.all_releases
         # preambles from name which identify country/group data pertains to
         all_preambles = [i[0].split('_')[0] for i in self.all_releases]
 
