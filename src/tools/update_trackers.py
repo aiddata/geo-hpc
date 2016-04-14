@@ -64,10 +64,10 @@ for bnd in bnds:
     if "gadm_info" in bnd.values() :
 
         if bnd["active"] == 0 and gadm_iso3.upper() in active_iso3_list:
-            c_data.update_one(bnd, {"$set":{"active": 1}})
+            c_data.update_one({bnd["name"]}, {"$set":{"active": 1}})
 
         elif bnd["active"] == 1 and gadm_iso3.upper() not in active_iso3_list:
-            c_data.update_one(bnd, {"$set":{"active": 0}})
+            c_data.update_one({bnd["name"]}, {"$set":{"active": 0}})
             continue
 
         elif bnd["active"] == 0:
