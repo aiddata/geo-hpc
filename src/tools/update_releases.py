@@ -67,8 +67,6 @@ rtool_repo.set_user_releases(modern_repo_releases)
 latest_repo_releases = [i[0] for i in rtool_repo.get_latest_releases()]
 
 
-print latest_repo_releases
-
 # -----------------------------------------------------------------------------
 # unzip any latest releases which doe not exist in data dir
 
@@ -77,7 +75,6 @@ existing_data_releases = os.listdir(data_dir)
 new_releases = [i for i in latest_repo_releases
                 if i not in existing_data_releases]
 
-print new_releases
 
 for i in new_releases:
 
@@ -96,8 +93,6 @@ for i in new_releases:
 
 outdated_releases = [i for i in os.listdir(data_dir)
                      if i not in latest_repo_releases]
-
-print outdated_releases
 
 
 client = pymongo.MongoClient(config.server)
