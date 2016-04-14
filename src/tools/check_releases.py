@@ -150,7 +150,7 @@ class ReleaseTools():
                 if j[0].endswith(str(latest_version).replace(".", "_"))
             ]
 
-
+        print latest_releases
         return latest_releases
 
 

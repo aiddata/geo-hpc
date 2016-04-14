@@ -68,9 +68,9 @@ rtool_repo = ReleaseTools()
 rtool_repo.set_user_releases(modern_repo_releases)
 latest_repo_releases = [i[0] for i in rtool_repo.get_latest_releases()]
 
-print rtool_repo.get_latest_releases()
-
 sys.exit("!!!")
+
+print rtool_repo.get_latest_releases()
 print latest_repo_releases
 
 # -----------------------------------------------------------------------------
