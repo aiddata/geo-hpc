@@ -67,7 +67,7 @@ for bnd in bnds:
 
     # manage active state for gadm boundaries based on config settings
     # do not process inactive boundaries
-    if "gadm_info" in bnd.values() :
+    if "gadm_info" in bnd:
 
         print bnd["gadm_info"]["iso3"]
         is_active_gadm = bnd["gadm_info"]["iso3"].upper() in active_iso3_list
