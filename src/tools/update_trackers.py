@@ -59,7 +59,8 @@ for bnd in bnds:
     print "\n"
     print bnd['options']['group'] + ' tracker'
 
-    ###
+
+    is_active = 0
 
     # manage active state for gadm boundaries based on config settings
     # do not process inactive boundaries
@@ -68,6 +69,7 @@ for bnd in bnds:
         if bnd["active"] == 0 and gadm_iso3.upper() in active_iso3_list:
             print "setting active"
             c_data.update_one({bnd["name"]}, {"$set":{"active": 1}})
+            is_active = 1
 
         elif bnd["active"] == 1 and gadm_iso3.upper() not in active_iso3_list:
             print "setting inactive"
@@ -75,19 +77,19 @@ for bnd in bnds:
             continue
 
 
-    if bnd["active"] == 0:
+    if not is_active and bnd["active"] == 0:
         print "inactive"
         continue
 
 
-    ###
+    # ---------------------------------
 
     print 'processing...'
 
     c_bnd = db[bnd["options"]["group"]]
 
+    # ---------------------------------
 
-    ###
 
     # add each non-boundary dataset item to boundary tracker collection with
     #   "unprocessed" flag if it is not already in collection
@@ -104,7 +106,7 @@ for bnd in bnds:
             dset['status'] = -1
             c_bnd.insert(dset)
 
-    ###
+    # ---------------------------------
 
 
     # lookup unprocessed data in boundary tracker that
