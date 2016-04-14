@@ -1,7 +1,7 @@
 # search and index datasets based on boundary
 
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 import os
@@ -29,7 +29,7 @@ if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
 
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 import pymongo
@@ -40,11 +40,7 @@ from shapely.geometry import Point, shape, box
 from shapely.ops import cascaded_union
 import rasterstats as rs
 
-# user inputs
-# in_trigger = sys.argv[1]
 
-# check trigger that initiated search
-#
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
@@ -54,12 +50,66 @@ c_data = db.data
 # lookup all boundary datasets
 bnds = c_data.find({"type": "boundary", "options.group_class": "actual"})
 
+
+active_iso3_list = config.release_gadm.values() + config.other_gadm
+
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
+
+
+
+    ###
+
+
+    # manage active state for gadm boundaries based on config settings
+    # do not process inactive boundaries
+    if "gadm_info" in bnd.values() :
+
+        if bnd["active"] == 0 and gadm_iso3.upper() in active_iso3_list:
+            c_data.update_one(bnd, {"$set":{"active": 1}})
+
+        elif bnd["active"] == 1 and gadm_iso3.upper() not in active_iso3_list:
+            c_data.update_one(bnd, {"$set":{"active": 0}})
+            continue
+
+        elif bnd["active"] == 0:
+            continue
+
+
+    ###
+
+
 
     print 'processing ' + bnd['options']['group'] + ' tracker...'
 
     c_bnd = db[bnd["options"]["group"]]
+
+
+
+
+    ###
+
+
+    # add each non-boundary dataset item to boundary tracker collection with
+    #   "unprocessed" flag if it is not already in collection
+    # (no longer done in add gadm/release)
+    dsets = self.c_data.find({"type": {"$ne": "boundary"}, "active": 1})
+    for full_dset in dsets:
+        dset = {
+            'name': full_dset["name"],
+            'spatial': full_dset["spatial"],
+            'scale': full_dset["scale"],
+        }
+
+        if c_bnd.find_one(dset) == None:
+            dset['status'] = -1
+            c_bnd.insert(dset)
+
+
+    ###
+
+
+
 
     # get boundary bbox
     geo = bnd["spatial"]
@@ -67,24 +117,26 @@ for bnd in bnds:
     # lookup all unprocessed data in boundary tracker
     uprocs = c_bnd.find({"status": -1})
 
-    # lookup unprocessed data in boundary tracker that intersect boundary (first stage search)
+    # lookup unprocessed data in boundary tracker that
+    # intersect boundary (first stage search)
     matches = c_bnd.find({
-                            "status": -1,
-                            "$or": [
-                                {
-                                    "spatial": {
-                                        "$geoIntersects": {
-                                            "$geometry": geo
-                                        }
-                                    }
-                                },
-                                {
-                                    "scale": "global"
-                                }
-                            ]
-                        })
+        "status": -1,
+        "$or": [
+            {
+                "spatial": {
+                    "$geoIntersects": {
+                        "$geometry": geo
+                    }
+                }
+            },
+            {
+                "scale": "global"
+            }
+        ]
+    })
 
-    # for each unprocessed dataset in boundary tracker matched in first stage search (second stage search)
+    # for each unprocessed dataset in boundary tracker matched in
+    # first stage search (second stage search)
     # search boundary actual vs dataset actual
     for match in matches:
         print '\tchecking ' + match['name'] + ' dataset'
@@ -104,8 +156,10 @@ for bnd in bnds:
 
             if bnd_type == "boundary" and dset_type == "raster":
                 # python raster stats extract
-                # bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-                bnd_geo = cascaded_union([shape(shp.geometry) for shp in pygeoj.load(bnd_base)])
+                # bnd_geo = cascaded_union(
+                #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+                bnd_geo = cascaded_union([shape(shp.geometry)
+                                          for shp in pygeoj.load(bnd_base)])
 
                 extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
 
@@ -116,21 +170,26 @@ for bnd in bnds:
                 result = True
 
             else:
-                print "Error - Dataset type not yet supported (skipping dataset).\n"
+                print ("Error - Dataset type not yet supported (skipping " +
+                       "dataset).\n")
                 continue
 
             # check results and update tracker
             if result == True:
-                c_bnd.update_one({"name": match['name']},{"$set": {"status": 1}}, upsert=False)
+                c_bnd.update_one({"name": match['name']},
+                                 {"$set": {"status": 1}}, upsert=False)
             else:
-                c_bnd.update_one({"name": match['name']},{"$set": {"status": 0}}, upsert=False)
+                c_bnd.update_one({"name": match['name']},
+                                 {"$set": {"status": 0}}, upsert=False)
 
         # elif meta['format'] == "vector":
 
         #   if bnd_type == "boundary" and dset_type == "polydata":
         #       # shapely intersect
-        #       bnd_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-    #           dset_geo = cascaded_union([shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
+        #       bnd_geo = cascaded_union(
+            #       [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+    #           dset_geo = cascaded_union(
+        #           [shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
 
     #           intersect = bnd_geo.intersects(dset_geo)
 
@@ -138,19 +197,24 @@ for bnd in bnds:
         #           result = True
 
         #   else:
-        #       print "Error - Dataset type not yet supported (skipping dataset).\n"
+        #       print ("Error - Dataset type not yet supported (skipping " +
+            #          "dataset).\n")
         #       continue
 
         #   # check results and update tracker
         #   if result == True:
-        #       c_bnd.update({"name": match['name']},{"$set": {"status": 1}}, upsert=False)
+        #       c_bnd.update({"name": match['name']},
+            #                {"$set": {"status": 1}}, upsert=False)
         #   else:
-        #       c_bnd.update({"name": match['name']},{"$set": {"status": 0}}, upsert=False)
+        #       c_bnd.update({"name": match['name']},
+            #                {"$set": {"status": 0}}, upsert=False)
 
         else:
             # update tracker with error status for dataset and continue
-            print "Error - Invalid format for dataset \"" + match['name'] + "\" in \"" + c_bnd + "\" tracker (skipping dataset).\n"
-            c_bnd.update_one({"name": match['name']},{"$set": {"status": -2}}, upsert=False)
+            print ("Error - Invalid format for dataset \"" + match['name'] +
+                  "\" in \"" + c_bnd + "\" tracker (skipping dataset).\n")
+            c_bnd.update_one({"name": match['name']},
+                             {"$set": {"status": -2}}, upsert=False)
             continue
 
 
@@ -163,7 +227,9 @@ for bnd in bnds:
         #
 
 
-    # update tracker for all unprocessed dataset not matching first stage search
+    # update tracker for all unprocessed dataset not matching first
+    # stage search
     for uproc in uprocs:
         if uproc['status'] == -1:
-            c_bnd.update_many({"name": uproc['name']},{"$set": {"status": 0}}, upsert=False)
+            c_bnd.update_many({"name": uproc['name']},
+                              {"$set": {"status": 0}}, upsert=False)

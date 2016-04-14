@@ -7,6 +7,22 @@
     "develop": {
         "server": "devlabs.aiddata.org",
         "det_db": "det-test",
-        "asdf_db": "asdf-test"
+        "asdf_db": "asdf-test",
+        "release_gadm": {
+            "AfghanistanAIMS": "AFG",
+            "ColombiaAIMS": "COL",
+            "DRC-AIMS": "COD",
+            "HondurasAIMS": "HND",
+            "IraqAIMS": "IRQ",
+            "NepalAIMS": "NPL",
+            "NigeriaAIMS": "NGA",
+            "SenegalAIMS": "SEN",
+            "SomaliaAIMS": "SOM",
+            "TimorLesteAIMS": "TLS",
+            "UgandaAIMS": "UGA"
+        },
+        "other_gadm":[
+            "LBR"
+        ]
     }
 }
