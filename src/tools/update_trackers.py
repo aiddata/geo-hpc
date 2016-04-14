@@ -67,7 +67,7 @@ for bnd in bnds:
     # do not process inactive boundaries
     if "gadm_info" in bnd.values() :
 
-        is_active_gadm = bnd["gadm_info"]["iso3"].upper() in active_iso3_list:
+        is_active_gadm = bnd["gadm_info"]["iso3"].upper() in active_iso3_list
 
         if bnd["active"] == 0 and is_active_gadm:
             print "setting active"
