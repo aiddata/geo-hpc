@@ -56,6 +56,8 @@ active_iso3_list = config.release_gadm.values() + config.other_gadm
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
 
+    print "\n"
+    print bnd['options']['group'] + ' tracker'
 
     ###
 
@@ -64,19 +66,23 @@ for bnd in bnds:
     if "gadm_info" in bnd.values() :
 
         if bnd["active"] == 0 and gadm_iso3.upper() in active_iso3_list:
+            print "setting active"
             c_data.update_one({bnd["name"]}, {"$set":{"active": 1}})
 
         elif bnd["active"] == 1 and gadm_iso3.upper() not in active_iso3_list:
+            print "setting inactive"
             c_data.update_one({bnd["name"]}, {"$set":{"active": 0}})
             continue
 
-        elif bnd["active"] == 0:
-            continue
+
+    if bnd["active"] == 0:
+        print "inactive"
+        continue
+
 
     ###
 
-
-    print 'processing ' + bnd['options']['group'] + ' tracker...'
+    print 'processing...'
 
     c_bnd = db[bnd["options"]["group"]]
 
