@@ -113,7 +113,8 @@ for i in latest_repo_releases:
     latest_exists = find_latest != None
 
     if not latest_exists:
-        add_release.main([branch, ipath, "auto"])
+        add_release_instance = add_release
+        add_release_instance.main([branch, ipath, "auto"])
 
 
 # mark as inactive in asdf
