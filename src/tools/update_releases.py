@@ -86,50 +86,26 @@ outdated_releases = [i for i in os.listdir(data_dir)
                      if i not in latest_releases]
 
 
-def convert_names(point_name):
-
-    # point_name = release with points (".") as version delimiters
-
-    # index of i where version chars start
-    char_index = point_name.index("Level1_") + len("Level1_")
-
-    old_version_str = point_name[char_index:]
-    new_version_str = point_name[char_index:].replace(".", "_")
-
-    # name with version points delimiters replaced with underscores
-    # to match asdf / release datapackage name format
-    underscore_name = point_name.replace(old_version_str, new_version_str)
-
-    return underscore_name.lower()
-
-
 # check if already in asdf
 # run add_release to add if needed
 for i in latest_releases:
 
-    ix = convert_names(i)
+    ipath = data_dir +"/"+ i
 
-    find_latest = asdf.find_one({"name": ix})
+    find_latest = asdf.find_one({"base": ipath})
     latest_exists = find_latest != None
 
     if not latest_exists:
-        add_release.main([branch, data_dir +"/"+ i, "auto"])
+        add_release.main([branch, ipath, "auto"])
 
 
 # mark as inactive in asdf
 for i in outdated_releases:
 
-    ix = convert_names(i)
+    ipath = data_dir +"/"+ i
 
     client = pymongo.MongoClient(config.server)
     asdf = client[config.asdf_db].data
 
-    update_outdated = asdf.update_one(
-        {"name": ix},
-        {
-            "$set": {
-                "active": 0
-            }
-        }
-    )
+    update_outdated = asdf.update_one({"base": ipath}, {"$set": {"active": 0}})
 
