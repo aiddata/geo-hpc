@@ -64,7 +64,7 @@ for i in latest_releases:
 
     dataset_info[ix] = {
         'name': i[0],
-        'base': i[1]
+        'base': i[2]
     }
 
     # unique sector list
