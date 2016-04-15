@@ -105,7 +105,7 @@ class ReleaseTools():
                 tmp_item = (tmp_dp["name"], tmp_dp["version"], tmp_dir)
 
             except:
-                tmp_item = (None, None, tmp_dir))
+                tmp_item = (None, None, tmp_dir)
 
             self.all_releases.append(tmp_item)
 
