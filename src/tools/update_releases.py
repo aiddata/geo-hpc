@@ -108,7 +108,8 @@ for i in latest_data_dirnames:
 
     if not latest_exists:
         add_release_instance = add_release
-        add_release_instance.run(path=ipath, generator="auto", client=client)
+        add_release_instance.run(path=ipath, generator="auto",
+                                 client=client, config=config)
 
 
 # mark as inactive in asdf
@@ -116,5 +117,6 @@ for i in outdated_data_dirnames:
 
     ipath = data_dir +"/"+ i
 
-    update_outdated = asdf.update_one({"base": ipath}, {"$set": {"active": 0}})
+    update_outdated = asdf.update_one({"base": ipath},
+                                      {"$set": {"active": 0}})
 

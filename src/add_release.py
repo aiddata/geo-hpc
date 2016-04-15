@@ -14,7 +14,7 @@ import pymongo
 from resource_utility import ResourceTools
 
 
-def run(path=None, generator="auto", client=None):
+def run(path=None, generator="auto", client=None, config=None):
 
 
     script = os.path.basename(__file__)
@@ -63,9 +63,11 @@ def run(path=None, generator="auto", client=None):
         quit("Invalid additional inputs")
 
 
-    # exit if too many args
     if client is None:
         quit("No mongodb client connection provided")
+
+    if config is None:
+        quit("No config object provided")
 
 
     # remove trailing slash from path
@@ -297,4 +299,4 @@ if __name__ == '__main__':
     else:
         main_generator = sys.argv[2]
 
-    run(path=sys.argv[1], generator=main_generator, client=client)
+    run(path=sys.argv[1], generator=main_generator, client=client, config=config)
