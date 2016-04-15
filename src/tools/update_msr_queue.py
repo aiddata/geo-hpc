@@ -172,8 +172,7 @@ for ix in dataset_info.keys():
     # --------------------------------------------------
     # load project data
 
-    dir_data = (dataset_info[ix]['base'] +'/'+
-                os.path.basename(dataset_info[ix]['base']) +'/data')
+    dir_data = (dataset_info[ix]['base'] +'/data')
 
     df_merged = core.prep_data(dir_data)
 
