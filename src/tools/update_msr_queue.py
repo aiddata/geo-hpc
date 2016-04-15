@@ -89,7 +89,10 @@ for i in latest_releases:
 
     ix = i[0]
 
-    print 'Building filter combinations for: ' + str(ix)
+    print '\n'
+    print 'Running ' + str(ix)
+
+    print 'Building filter combinations...'
 
     tmp_collection = releases[ix]
 
@@ -121,10 +124,6 @@ for i in latest_releases:
     #                                 for x in sorted(list(set(tmp_donors)))]
 
 
-    print raw_distinct_sectors
-    print raw_distinct_donors
-
-    raise
 
     max_sector_count = 1
     max_donor_count = 1
