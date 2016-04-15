@@ -11,7 +11,7 @@ import json
 import pymongo
 from bson.objectid import ObjectId
 
-import pandas as pd 
+import pandas as pd
 import geopandas as gpd
 
 # import subprocess as sp
@@ -47,7 +47,7 @@ def make_dir(path):
 # based on priority and submit_time
 # factor how many extracts need to be processed into queue order (?)
 def get_next(status, limit):
-    
+
     try:
         # find all status x jobs and sort by priority then submit_time
         sort = c_extracts.find({"status":status}).sort([("priority", -1), ("submit_time", 1)])
@@ -64,14 +64,14 @@ def get_next(status, limit):
 
 # update status of request
 def update_status(rid, status):
-    
+
     ctime = int(time.time())
 
     updates = {
         "status": long(status),
         "update_time": ctime
     }
-    
+
     # try:
         # # update request document
     c_extracts.update({"_id": ObjectId(rid)}, {"$set": updates})
@@ -101,7 +101,7 @@ def rpy2_extract(raster, output, extract_type):
     make_dir(os.path.dirname(output))
 
     robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
-    
+
     return True, None
 
 # except:
@@ -131,7 +131,7 @@ def rpy2_extract(raster, output, extract_type):
 # sum for each intersect
 def run_reliability(boundary, reliability_geojson, output):
     print "run_reliability"
-# try: 
+# try:
 
     # extract boundary geo dataframe
     bnd_df = gpd.GeoDataFrame.from_file(boundary)
@@ -142,6 +142,7 @@ def run_reliability(boundary, reliability_geojson, output):
 
     # result of mean surface extracted to boundary
     df = pd.DataFrame.from_csv(output)
+    df['ad_id'] = df['ad_id'].astype(str)
 
     # index to merge with bnd_df
     # df['ad_id'] = bnd_df['ad_id']
@@ -158,9 +159,9 @@ def run_reliability(boundary, reliability_geojson, output):
         unique_id = row['ad_id']
         rel_df['intersect'] = rel_df['geometry'].intersects(geom)
         tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
-        
+
         df.loc[df['ad_id'] == unique_id, 'max'] = tmp_series[True]
-        
+
 
     # calculate reliability statistic
     df["ad_extract"] = df['ad_extract']/df['max']
@@ -224,7 +225,7 @@ boundary_path = boundary_data['base'] +'/'+ boundary_data['resources'][0]['path'
 
 
 # check boundary exists
-# 
+#
 
 # initialize boundary using rpy2
 try:
@@ -240,7 +241,7 @@ try:
         boundary_info = (boundary_dirname, boundary_filename)
 
     r_boundary = rlib_rgdal.readOGR(boundary_info[0], boundary_info[1])
-    
+
 except:
     us_error = update_status(rid, -1)
 
@@ -266,7 +267,7 @@ if not 'classification' in request.keys() or request['classification'] == 'exter
             raster_path = raster_data['base'] +'/'+ i['path']
 
     # build output file path
-    extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data['name'] +'/'+ extract_type +'/'+ request['raster'] 
+    extract_output = '/sciclone/aiddata10/REU/extracts/'+ request['boundary'] +'/cache/'+ raster_data['name'] +'/'+ extract_type +'/'+ request['raster']
 
     if request['raster'] == raster_data['options']['mini_name']:
         extract_output += '_'
@@ -290,7 +291,7 @@ else:
 
 
 # check raster exists
-# 
+#
 
 
 

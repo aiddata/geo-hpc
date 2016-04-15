@@ -32,10 +32,10 @@ input:checkbox, input:radio {
 
     #title {
         height: 100px;
-        width: 80%; 
+        width: 80%;
         margin: 0px 10%;
         color:black;
-        font-size: 50px; 
+        font-size: 50px;
         line-height: 100px;
         text-align: left;
         vertical-align: center;
@@ -49,13 +49,13 @@ input:checkbox, input:radio {
     #navigation {
         width:100%;
         background: rgb(100,100,100);
-        text-align: center; 
+        text-align: center;
         /*padding-top: 20px;*/
         /*padding-bottom: 10px; */
     }
 
         #nav_top, #nav_mid, #nav_bot {
-            width: 80%; 
+            width: 80%;
             min-width: 850px;
             position:relative;
             /*height:50px;*/
@@ -100,7 +100,7 @@ input:checkbox, input:radio {
                     }
                     #next {
                         position:absolute;
-                        right:10%;             
+                        right:10%;
                     }
                     #step {
                         float:left;
@@ -131,7 +131,7 @@ input:checkbox, input:radio {
 
     .content {
         min-height: 500px;
-        width: 80%; 
+        width: 80%;
         margin: 0px 10%;
     }
 /*-----------------------------------------------------------------------*/
@@ -152,6 +152,7 @@ input:checkbox, input:radio {
             }
             #bnd_options {
                 width: 100%;
+                height: 380px;
                 display:block;
                 padding:10px;
             }
@@ -194,7 +195,7 @@ input:checkbox, input:radio {
                 width: 45%;
                 height: 100%;
                 border: 1px solid black;
-                
+
             }
 
             #data_bnd {
@@ -363,7 +364,7 @@ input:checkbox, input:radio {
                         height:50%;
                     }
 
-     
+
                         .dataset_icon {
                             position: absolute;
                             top: 0;
@@ -428,7 +429,7 @@ input:checkbox, input:radio {
                                 .dataset_h4 input {
                                     margin: 0px 5px;
                                 }
-    
+
 /*-----------------------------------------------------------------------*/
     #checkout {}
 

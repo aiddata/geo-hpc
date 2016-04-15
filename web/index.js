@@ -5,7 +5,7 @@ $(document).ready(function(){
 	total_data_limit = 10;
 
 	var d1_data_limit, project_count, location_count;
-	
+
 	d1_data_limit = 5;
 	project_count = -1;
 	location_count = -1;
@@ -15,7 +15,7 @@ $(document).ready(function(){
 
 	// current step of process
 	step = 0;
-	
+
 	// final output request
 	request = {
 		"boundary": {},
@@ -53,7 +53,7 @@ $(document).ready(function(){
 	    for (var i=0, ix=_.keys(result).length; i<ix; i++) {
 	    	var grp = _.keys(result)[i];
     		bnd_html += '<optgroup label="'+grp+'">';
-	    	
+
 	    	// sort boundaries by name for each group
 	    	result[grp] = _.sortBy(result[grp], 'name')
 
@@ -67,7 +67,7 @@ $(document).ready(function(){
 	    		bnd_html += 'data-path="'+ path + '" '
 	    		bnd_html += 'data-description="'+ item['description'].replace(/\"/g, "'")  + '" '
 	    		bnd_html += 'data-title="'+ item['title'].replace(/\"/g, "'")  + '" '
-	    		bnd_html += 'data-source_link="'+ item['source_link'].replace(/\"/g, "'")  +'" '
+	    		// bnd_html += 'data-source_link="'+ item['source_link'].replace(/\"/g, "'")  +'" '
 	    		bnd_html += 'data-group="'+grp+'">' + item['name'] + '</option>';
 	    	}
 	    	bnd_html += '</optgroup>';
@@ -86,7 +86,7 @@ $(document).ready(function(){
 	// clear checkout page inputs
     $('#co_email input').val("");
 	$('#co_terms input').attr('checked', false);
- 
+
 	// load terms of use into textarea on checkout page
 	$.ajax({
        url : "termsofuse.txt",
@@ -109,7 +109,7 @@ $(document).ready(function(){
 
 			if (JSON.stringify(request) != JSON.stringify(tmp_request)) {
 				get_datasets();
-			} 
+			}
 
 			if (request["data_valid"] == true) {
 				$('#next button').show();
@@ -124,7 +124,7 @@ $(document).ready(function(){
 			message("Enter email and review selection before submitting");
 			step = 2;
 			valid_checkout()
-			
+
 			if (JSON.stringify(request) != JSON.stringify(tmp_request)) {
 				build_data_request();
 			}
@@ -276,7 +276,7 @@ $(document).ready(function(){
 			// filter_selection['type'] = "release";
 
 			request['d1_data'][tmp_partial_hash] = filter_selection;
-	
+
 			var selection_html = build_d1_html(filter_selection, project_count, location_count, time_stamp, tmp_partial_hash);
 			$('#d1_selected').append(selection_html);
 
@@ -289,7 +289,7 @@ $(document).ready(function(){
 	// d1 remove selected filter
 	$('#data_1').on('click', '.d1_remove', function () {
 		$parent_selection = $(this).closest('.d1_data');
-		var hash = $parent_selection.attr('id'); 
+		var hash = $parent_selection.attr('id');
 		delete request['d1_data'][hash];
 		delete request["counts"][hash];
 		sum_counts();
@@ -348,7 +348,7 @@ $(document).ready(function(){
 	        async: true,
 	        success: function (result) {
 			    callback(result);
-			},    
+			},
 	    	error: function (result, status, error) {
         		callback(result, status, error);
     		}
@@ -365,7 +365,7 @@ $(document).ready(function(){
 	        async: true,
 	        success: function (result) {
 			    callback(result);
-			},    
+			},
 	    	error: function (result, status, error) {
         		callback(result, status, error);
     		}
@@ -468,11 +468,11 @@ $(document).ready(function(){
 
 			$('#data_summary_available').html(_.keys(result['d1']).length + _.keys(result['d2']).length);
 			$('#data_summary_selected').html(0);
-			
+
 			// d1
 			var d1_datasets_html = '<option value="" title="Select a dataset" disabled selected>Select a dataset</option>'
 			_.each(_.values(result['d1']), function(dset){
-				d1_datasets_html += '<option value='+dset['name']+'>'+dset['title']+' - Version '+dset['version']+'</option>'; 
+				d1_datasets_html += '<option value='+dset['name']+'>'+dset['title']+' - Version '+dset['version']+'</option>';
 			})
 			$('#d1_datasets').append(d1_datasets_html)
 
@@ -523,7 +523,7 @@ $(document).ready(function(){
 	}
 
 	function get_filter_selection() {
-		
+
 		var dataset, sectors, donors, years, filter_selection;
 
 		dataset = $('#d1_datasets').val();
@@ -563,7 +563,7 @@ $(document).ready(function(){
 
 		// open data div
 		data_html += '<div class="data d1_data" id="' + partial_hash + '" ' + '" data-type="release">';
-    	
+
 			// dataset header
 	    	data_html += '<div class="dataset_header ui-icon-minusthick">';
 
@@ -573,7 +573,7 @@ $(document).ready(function(){
 			    	data_html += '<button class="d1_remove">Remove</button>';
 			    	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
 				data_html += '</div>'
-		    	
+
 			data_html += '</div>';
 
 			// dataset body
@@ -607,7 +607,7 @@ $(document).ready(function(){
 
 		// open data div
 		data_html += '<div class="data d2_data" id="' + dataset['name'] + '" data-name="' + dataset['name'] + '" data-base="' + dataset['base'] + '" data-type="' + dataset['type'] + '" data-temporal_type="' + dataset['temporal']['type'] + '">';
-    	
+
 		// dataset header
     	data_html += '<div class="dataset_header ui-icon-minusthick">';
 
@@ -616,7 +616,7 @@ $(document).ready(function(){
     	data_html += '<div class="dataset_h1 dataset_name">(' + dataset['name'] +' - '+ dataset['options']['mini_name'] + ')</div>';
     	data_html += '<i class="dataset_icon fa fa-chevron-down fa-2x"></i>';
 		data_html += '</div>'
-    	
+
     	data_html += '<div>'
     	data_html += '<div class="dataset_h2 dataset_type">Type: <span>' + dataset['type'] + '</span></div>';
     	data_html += '<div class="dataset_h2 dataset_range">Range: <span>' + (dataset['temporal']['name'] == "Temporally Invariant" ? dataset['temporal']['name'] : String(dataset['temporal']['start']).substr(0,4) +' - '+ String(dataset['temporal']['end']).substr(0,4)) + '</span></div>';
@@ -659,7 +659,7 @@ $(document).ready(function(){
 		    		   	for (var i=0, ix=dataset['options']['extract_types'].length; i<ix; i++) {
 		    		   		// extract type checkbox - select multiple options
 		    		   		data_html += '<label><input type="checkbox" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
-		    		   		
+
 		    		   		// extract type radio - select single option
 		    		   		// data_html += '<label><input type="radio" name="'+dataset['name']+'" value="'+dataset['options']['extract_types'][i]+'">'+dataset['options']['extract_types'][i]+'</label>';
 
@@ -678,10 +678,10 @@ $(document).ready(function(){
 
 		   		for (var i=0, ix=dataset['resources'].length; i<ix; i++) {
 					data_html += '<label><input type="checkbox" value="'+dataset['resources'][i]['name']+'" ';
-					data_html += 'data-name="'+dataset['resources'][i]["name"]+'" '; 
-					data_html += 'data-path="'+dataset['resources'][i]["path"]+'" '; 
+					data_html += 'data-name="'+dataset['resources'][i]["name"]+'" ';
+					data_html += 'data-path="'+dataset['resources'][i]["path"]+'" ';
 					if (dataset["type"] == "raster") {
-						data_html += 'data-reliability="'+dataset['resources'][i]["reliability"]+'" '; 
+						data_html += 'data-reliability="'+dataset['resources'][i]["reliability"]+'" ';
 					}
 					data_html += '>'+dataset['resources'][i]['name']+'</label>';
 				}
@@ -707,14 +707,14 @@ $(document).ready(function(){
 			for (var i=0, ix=_.values(request["counts"]).length; i<ix; i++) {
 				request["total"] += _.values(request["counts"])[i];
 			}
-		} 
+		}
 		$('#data_summary_selected').html(request["total"]);
 
 		request["data_valid"] = false;
 		if (request["total"] > 0 && request["total"] < total_data_limit) {
 			$('#next button').show();
 			message("Click the \"Next\" button to continue");
-			request["data_valid"] = true;			
+			request["data_valid"] = true;
 		} else if (request["total"] > 0) {
 			message("Too many items selected");
 		} else {
@@ -762,11 +762,11 @@ $(document).ready(function(){
 								request["d2_data"][key]["options"]["extract_types"].push($(this).val());
 							})
 						}
-					})	
+					})
 
 					$dataset.find('.dataset_temporal :checked').each(function () {
 						request["d2_data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path"), reliability:$(this).data("reliability")});
-					})	
+					})
 
 				}
 			}
@@ -806,7 +806,7 @@ $(document).ready(function(){
 
 		// d1 data
 		for (var i=0, ix=_.keys(request["d1_data"]).length; i<ix; i++) {
-			
+
 			var dset = _.values(request["d1_data"])[i];
 			dset_html += '<div class="co_dset">';
 
@@ -824,8 +824,8 @@ $(document).ready(function(){
 		    	dset_html += '</td></tr>';
 		    	dset_html += '</tbody></table>';
 
-			dset_html += '</div>'; 
-		} 
+			dset_html += '</div>';
+		}
 
 		// d2 data
 		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
@@ -851,7 +851,7 @@ $(document).ready(function(){
 		    	dset_html += '</td></tr>';
 		    	dset_html += '</tbody></table>';
 
-			dset_html += '</div>'; 
+			dset_html += '</div>';
 		}
 
 		$('#co_datasets').html(dset_html);
@@ -888,8 +888,8 @@ $(document).ready(function(){
 
 		$('#navigation').hide();
 		$('#checkout').hide();
-		
-		$('#confirmation').show(); 
+
+		$('#confirmation').show();
 
 		$("html, body").animate({ scrollTop: 0 }, 500);
 
@@ -897,7 +897,7 @@ $(document).ready(function(){
 
 		// submit request json and run preprocessing script to generate status page
 		process({call:"request", request:JSON.stringify(request)}, function (result, status, e) {
-			
+
 			console.log(result);
 
 			request_id = result[0];
@@ -911,7 +911,7 @@ $(document).ready(function(){
 				// display error on confirmation page
 				chtml += '<p>There was an error submitting your request. Please try again.</p>';
 				chtml += '<p>'+error+'</p>';
-			
+
 			} else {
 				// confirm success
 				chtml += '<p>Your request has been successfully submitted!</p>';
@@ -935,8 +935,8 @@ $(document).ready(function(){
 			// $('#checkout').hide();
 
 			// stop loading animation
-			// 
-			
+			//
+
 			// $('#confirmation').show();
 
 		});
