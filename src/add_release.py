@@ -256,7 +256,7 @@ def run(path=None, generator="auto", client=None, config=None):
     # create mongodb for dataset
     # ru.release_to_mongo(dp['name'], dp['base'], client)
 
-    release_to_gadm.run(name=dp['name'], path=dp['base'],
+    release_to_mongo.run(name=dp['name'], path=dp['base'],
                         client=client, config=config)
 
     print "\nDone.\n"
