@@ -6,8 +6,8 @@
     },
     "develop": {
         "server": "devlabs.aiddata.org",
-        "det_db": "det-test",
-        "asdf_db": "asdf-test",
+        "det_db": "det",
+        "asdf_db": "asdf",
         "release_gadm": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",

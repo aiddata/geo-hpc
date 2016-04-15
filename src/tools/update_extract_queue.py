@@ -1,7 +1,7 @@
 # update asdf/det extract tracker with all possible extract
 # combinations available from the asdf
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 import os
@@ -29,11 +29,13 @@ if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
 
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 import time
 import pymongo
 import copy
+
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
