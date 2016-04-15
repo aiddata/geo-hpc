@@ -29,7 +29,7 @@ def run(name=None, path=None, client=None, config=None):
 
 
 
-    releases = client.releases
+    releases = client[config.release_db]
 
     releases.drop_collection(name)
     release_collection = releases[name]

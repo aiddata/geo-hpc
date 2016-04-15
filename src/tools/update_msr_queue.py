@@ -60,8 +60,8 @@ latest_releases = rtool_asdf.get_latest_releases()
 
 
 client = pymongo.MongoClient(config.server)
-msr = client[config.det_db].msr
-releases = client.releases
+msr = client[config.msr_db].msr
+releases = client[config.release_db]
 
 
 # -------------------------------------

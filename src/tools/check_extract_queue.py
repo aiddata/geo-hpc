@@ -35,9 +35,9 @@ import pymongo
 
 client = pymongo.MongoClient(config.server)
 
-msr = client[config.det_db].extracts
+extracts = client[config.extracts_db].extracts
 
-request_count = msr.find({'status':0}).count()
+request_count = extracts.find({'status':0}).count()
 
 # make sure request was found
 if request_count > 0:
