@@ -11,7 +11,6 @@ Inputs:
 Data:
 - research release
 - shapefiles
-- dataset_iso3_lookup.json
 """
 
 # =============================================================================
@@ -242,39 +241,32 @@ run_id = run_stage[0:1] + run_version_str
 
 
 # -------------------------------------
-
-# absolute path to script directory
-dir_file = os.path.dirname(os.path.abspath(__file__))
-
-# load dataset to iso3 crosswalk json
-iso3_lookup = json.load(open(dir_file + '/dataset_iso3_lookup.json', 'r'))
-
-# get dataset crosswalk id from request
-dataset_id = request['dataset'].split('_')[0]
-
-# make sure dataset crosswalk id is in crosswalk json
-if dataset_id not in iso3_lookup.keys():
-    quit("no shp crosswalk for dataset: " + dataset_id)
-
-# todo: make sure these exist in lookups first
-abbr = iso3_lookup[dataset_id]
-
-
-# -------------------------------------
 # lookup release path
 
 release_path = None
 
 if job.rank == 0:
     asdf = client[config.asdf_db].data
-    release_path = asdf.find({'name': request['dataset']})[0]['base']
+    release_data = asdf.find({'name': request['dataset']})
+
+    release_preamble = release_data[0]['data_set_preamble']
+    release_path = release_data[0]['base']
+
     print release_path
 
+
+release_preamble = job.comm.bcast(release_preamble, root=0)
 release_path = job.comm.bcast(release_path, root=0)
 
 # make sure release path exists
 if not os.path.isdir(release_path):
     quit("release path specified not found: " + release_path)
+
+if release_preamble not in config.release_gadm:
+    quit("release premable not found in config: " + release_preamble)
+
+iso3 = config.release_gadm[release_preamble]
+
 
 
 # =============================================================================
@@ -303,9 +295,9 @@ if job.rank == 0:
 # all additional ADM shps must be included so that adm_path index corresponds
 # to adm level
 adm_paths = []
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm0.shp")
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm1.shp")
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+abbr+"/"+abbr+"_adm2.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm0.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm1.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm2.shp")
 
 # build list of adm shape lists
 core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
@@ -678,7 +670,7 @@ def complete_options_json():
 
     # dataset info
     add_to_json("dataset", request['dataset'])
-    add_to_json("abbr", abbr)
+    add_to_json("iso3", iso3)
 
     # core run options
     add_to_json("pixel_size", core.pixel_size)
