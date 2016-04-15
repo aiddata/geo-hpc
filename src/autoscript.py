@@ -64,12 +64,9 @@ extract_limit = default_extract_limit
 if extract_limit == -1:
     extract_limit = job.size -1
 
-# client = pymongo.MongoClient('128.239.20.36')
 client = pymongo.MongoClient(config.server)
-
 asdf = client[config.asdf_db].data
-
-extracts = client[config.det_db].extracts
+extracts = client[config.extracts_db].extracts
 
 # --------------------------------------------------
 
@@ -146,7 +143,7 @@ for i in range(extract_limit):
     extract_list.append(request)
 
 
-# extract_list = client[config.det_db].extracts.find(
+# extract_list = client[config.extracts_db].extracts.find(
 #     {'status':0}).sort([
 #         ("priority", -1),
 #         ("submit_time", 1)
