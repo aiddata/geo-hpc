@@ -4,49 +4,25 @@
 #   - update mongo database
 
 # -----------------------------------------------------------------------------
+
 import sys
+import os
+import datetime
+import json
+import pymongo
 
-def main(args):
-    # import sys
-    import os
-
-    branch = args[0]
-
-    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-    if not os.path.isdir(branch_dir):
-        raise Exception('Branch directory does not exist')
+from resource_utility import ResourceTools
 
 
-    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-    sys.path.insert(0, config_dir)
+def run(path=None, generator="auto", client=None):
 
-    from config_utility import BranchConfig
-
-    config = BranchConfig(branch=branch)
-
-    # -------------------------------------
-
-    # check mongodb connection
-    if config.connection_status != 0:
-        sys.exit("connection status error: " + str(config.connection_error))
-
-    # -----------------------------------------------------------------------------
-
-
-    import datetime
-    import json
-    import pymongo
-
-    from resource_utility import ResourceTools
-
-    # -----------------------------------------------------------------------------
 
     script = os.path.basename(__file__)
     version = "0.4"
-    generator = "auto"
+    default_generator = "auto"
 
-    # -----------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------
 
 
     def quit(reason):
@@ -67,9 +43,7 @@ def main(args):
     dp = {}
 
     # get release base path
-    if len(args) > 1:
-
-        path = args[1]
+    if path is not None:
 
         if os.path.isdir(path):
             dp['base'] = path
@@ -82,16 +56,16 @@ def main(args):
 
     # optional arg
     # mainly for user to specify manual run
-    if len(args) > 2:
-        if args[2] in ['auto', 'manual']:
-            generator = args[2]
-        else:
-            quit("Invalid additional inputs")
+    if generator is None:
+        generator = default_generator
+
+    elif generator not in ['auto', 'manual']:
+        quit("Invalid additional inputs")
 
 
     # exit if too many args
-    if len(args) > 3:
-            quit("Invalid inputs arguments count")
+    if client is None:
+        quit("No mongodb client connection provided")
 
 
     # remove trailing slash from path
@@ -284,4 +258,43 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+
+    # if calling script directly, use following input args:
+    #   branch (required)
+    #   absolute path to release (required)
+    #   generator (optional, defaults to "manual")
+
+    # import sys
+    # import os
+
+    branch = sys.argv[0]
+
+    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+    if not os.path.isdir(branch_dir):
+        raise Exception('Branch directory does not exist')
+
+
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    sys.path.insert(0, config_dir)
+
+    from config_utility import BranchConfig
+
+    config = BranchConfig(branch=branch)
+
+    # -------------------------------------
+
+    # check mongodb connection
+    if config.connection_status != 0:
+        sys.exit("connection status error: " + str(config.connection_error))
+
+    # -----------------------------------------------------------------------------
+
+    client = pymongo.MongoClient(config.server)
+
+    if len(generator) < 3:
+        main_generator = "manual"
+    else:
+        main_generator = sys.argv[2]
+
+    run(path=sys.argv[1], generator=main_generator, client=client)
