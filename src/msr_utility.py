@@ -286,15 +286,27 @@ class CoreMSR():
 
     def process_data(self, data_directory, request_object):
 
+        df_merged = self.prep_data(data_directory)
+
+        filters = request_object['options']['filters']
+
+        df_filtered = self.filter_data(df_merged, filters)
+
+        df_adjusted = self.adjust_aid(df_filtered, filters)
+
+        df_final = self.assign_geometries(df_adjusted)
+
+        return df_final
+
+
+    def prep_data(self, data_directory):
+
         df_merged = self.merge_data(
             data_directory,
             "project_id",
             (self.code_field_1, self.code_field_2, "project_location_id"),
             self.only_geocoded)
 
-
-        # -------------------------------------
-        # misc data prep
 
         # get location count for each project
         df_merged['ones'] = (pd.Series(np.ones(len(df_merged)))).values
@@ -321,11 +333,10 @@ class CoreMSR():
         df_merged['split_dollars_pp'] = (
             df_merged[self.aid_field] / df_merged.location_count)
 
+        return df_merged
 
-        # -------------------------------------
-        # filters
 
-        filters = request_object['options']['filters']
+    def filter_data(self, df_merged, filters):
 
         df_filtered = df_merged.copy(deep=True)
 
@@ -355,7 +366,12 @@ class CoreMSR():
                             '|'.join([re.escape(i) for i in tmp_filter]))
                     ].copy(deep=True)
 
+        return df_filtered
 
+
+    def adjust_aid(self, df_filtered, filters):
+
+        df_adjusted = df_filtered.copy(deep=True)
 
         # adjust aid based on ratio of sectors/donors in
         # filter to all sectors/donors listed for project
@@ -370,81 +386,33 @@ class CoreMSR():
         else:
             donor_split_list = filters['donors']
 
-        df_filtered['adjusted_aid'] = df_filtered.apply(
-            lambda z: self.adjust_aid(
+        df_adjusted['adjusted_aid'] = df_adjusted.apply(
+            lambda z: self.calc_adjusted_aid(
                 z.split_dollars_pp, z.ad_sector_names, z.donors,
                 sector_split_list, donor_split_list), axis=1)
 
-
-        # -------------------------------------
-        # filters
-
-        # filter years
-        #
-
-        # # filter sectors and donors
-        # if (request_object['options']['donors'] == ['All'] and
-        #         request_object['options']['sectors'] != ['All']):
-
-        #     df_filtered = df_merged.loc[
-        #         df_merged['ad_sector_names'].str.contains(
-        #             '|'.join(request_object['options']['sectors'])
-        #         )
-        #     ].copy(deep=True)
-
-        # elif (request_object['options']['donors'] != ['All'] and
-        #         request_object['options']['sectors'] == ['All']):
-
-        #     df_filtered = df_merged.loc[
-        #         df_merged['donors'].str.contains(
-        #             '|'.join(request_object['options']['donors'])
-        #         )
-        #     ].copy(deep=True)
-
-        # elif (request_object['options']['donors'] != ['All'] and
-        #         request_object['options']['sectors'] != ['All']):
-
-        #     df_filtered = df_merged.loc[(
-        #         df_merged['ad_sector_names'].str.contains(
-        #             '|'.join(request_object['options']['sectors'])
-        #         )
-        #     ) & (
-        #         df_merged['donors'].str.contains(
-        #             '|'.join(request_object['options']['donors'])
-        #         )
-        #     )].copy(deep=True)
-
-        # else:
-        #     df_filtered = df_merged.copy(deep=True)
+        return df_adjusted
 
 
-        # # adjust aid based on ratio of sectors/donors in
-        # # filter to all sectors/donors listed for project
-        # df_filtered['adjusted_aid'] = df_filtered.apply(
-        #     lambda z: self.adjust_aid(
-        #         z.split_dollars_pp, z.ad_sector_names, z.donors,
-        #         request_object['options']['sectors'],
-        #         request_object['options']['donors']), axis=1)
-
-
+    def assign_geometries(self, df_adjusted):
         # -------------------------------------
         # assign geometries
 
         # add geom columns
-        df_filtered["agg_type"] = pd.Series(["None"] * len(df_filtered))
-        df_filtered["agg_geom"] = pd.Series(["None"] * len(df_filtered))
+        df_adjusted["agg_type"] = pd.Series(["None"] * len(df_adjusted))
+        df_adjusted["agg_geom"] = pd.Series(["None"] * len(df_adjusted))
 
-        df_filtered.agg_type = df_filtered.apply(lambda x: self.get_geom_type(
+        df_adjusted.agg_type = df_adjusted.apply(lambda x: self.get_geom_type(
             x[self.is_geocoded],
             x[self.code_field_1],
             x[self.code_field_2]), axis=1)
 
-        df_filtered.agg_geom = df_filtered.apply(lambda x: self.get_geom_val(
+        df_adjusted.agg_geom = df_adjusted.apply(lambda x: self.get_geom_val(
             x.agg_type, x[self.code_field_1], x[self.code_field_2],
             x.longitude, x.latitude), axis=1)
 
-        df_final = df_filtered.loc[
-            df_filtered.agg_geom != "None"].copy(deep=True)
+        df_final = df_adjusted.loc[
+            df_adjusted.agg_geom != "None"].copy(deep=True)
 
         # df_final['index'] = df_final['project_location_id']
         df_final['task_ids'] = range(0, len(df_final))
@@ -452,7 +420,6 @@ class CoreMSR():
         df_final = df_final.set_index('index')
 
         return df_final
-
 
 
     def get_geom_type(self, is_geo, code_1, code_2):
@@ -671,7 +638,7 @@ class CoreMSR():
             return "None"
 
 
-    def adjust_aid(self, raw_aid,
+    def calc_adjusted_aid(self, raw_aid,
             project_sectors_string, project_donors_string,
             filter_sectors_list, filter_donors_list):
         """Adjusts given aid value based on filter.
