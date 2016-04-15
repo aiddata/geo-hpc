@@ -379,9 +379,9 @@ for i in latest_releases:
     # print '--------------'
     # raise
 
-    # print ('Added ' + str(add_count) + ' items to msr queue (' +
-    #        str(accept_count) + ' acceptable out of ' +
-    #        str(total_count) + ' total possible).')
+    print ('Added ' + str(add_count) + ' items to msr queue (' +
+           str(accept_count) + ' acceptable out of ' +
+           str(total_count) + ' total possible).')
 
 
 
