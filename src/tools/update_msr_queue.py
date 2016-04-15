@@ -210,7 +210,7 @@ for ix in dataset_info.keys():
 
         filters = {
             filter_field: raw_filters[filter_field]
-            for filter_field in filters
+            for filter_field in raw_filters
             if raw_filters[filter_field] and
             'All' not in raw_filters[filter_field]
         }
