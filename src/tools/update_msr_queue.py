@@ -37,6 +37,17 @@ import pymongo
 import itertools
 import numpy as np
 
+import json
+import hashlib
+import pandas as pd
+
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))),
+    'mean-surface-rasters', 'src'))
+
+from msr_utility import CoreMSR
+
 from check_releases import ReleaseTools
 
 
@@ -51,6 +62,26 @@ latest_releases = rtool_asdf.get_latest_releases()
 client = pymongo.MongoClient(config.server)
 msr = client[config.det_db].msr
 releases = client.releases
+
+
+# -------------------------------------
+
+
+# remove any items in queue for old datasets that have
+# not yet been processed
+delete_call = msr.delete_many({
+    'dataset': {'$nin': [i[0] for i in latest_releases]},
+    'status': 0,
+    'priority': -1
+})
+
+deleted_count = delete_call.deleted_count
+print '\n'
+print (str(deleted_count) + ' unprocessed automated msr requests' +
+       ' for outdated released have been removed.')
+
+
+# -------------------------------------
 
 
 dataset_info = {}
@@ -144,25 +175,14 @@ for i in latest_releases:
     #     print j
 
 
-# ============================================================================
-
-import json
-import hashlib
-import pandas as pd
-
-sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))),
-    'mean-surface-rasters', 'src'))
-
-from msr_utility import CoreMSR
+    # =========================================================================
 
 
-# print dataset_info
-# tot_sum = 0
-print '\n'
-for ix in dataset_info.keys():
+    print dataset_info[ix]
 
+    continue
+
+    print '\n'
     print 'Generating jobs for: ' + dataset_info[ix]['name']
 
 
@@ -348,34 +368,23 @@ for ix in dataset_info.keys():
         if exists.upserted_id != None:
             add_count += 1
 
+
+
     # print tmp_sum
     # print empty_sum
     # print count_thresh_sum
     # print aid_thresh_sum
     # print good_sum
     # print '--------------'
-    # tot_sum += tmp_sum
     # raise
-    print ('Added ' + str(add_count) + ' items to msr queue (' +
-           str(accept_count) + ' acceptable out of ' +
-           str(total_count) + ' total possible).')
+
+    # print ('Added ' + str(add_count) + ' items to msr queue (' +
+    #        str(accept_count) + ' acceptable out of ' +
+    #        str(total_count) + ' total possible).')
 
 
 
-# print tot_sum
 
 
 
 
-# remove any items in queue for old datasets that have
-# not yet been processed
-delete_call = msr.delete_many({
-    'dataset': {'$nin': [i[0] for i in latest_releases]},
-    'status': 0,
-    'priority': -1
-})
-
-deleted_count = delete_call.deleted_count
-print '\n'
-print (str(deleted_count) + ' unprocessed automated msr requests' +
-       ' for outdated released have been removed.')
