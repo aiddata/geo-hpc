@@ -112,7 +112,7 @@ for i in latest_data_dirnames:
 
 
 # mark as inactive in asdf
-for i in outdated_releases:
+for i in outdated_data_dirnames:
 
     ipath = data_dir +"/"+ i
 
