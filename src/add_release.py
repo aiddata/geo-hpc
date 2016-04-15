@@ -114,7 +114,7 @@ def main(args):
 
     # get release datapackage
     release_path = dp["base"] + '/datapackage.json'
-    release_package =  json.load(open(release_path, 'r'))
+    release_package = json.load(open(release_path, 'r'))
 
     for f in release_package.keys():
 

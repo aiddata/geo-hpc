@@ -51,48 +51,47 @@ except OSError as exception:
         raise
 
 # -----------------------------------------------------------------------------
-# find latest version of releases from repo which match current format
+# find all versions of releases from repo which match current format
 
 all_repo_releases = os.listdir(repo_dir)
 
 
 modern_str = ".*AIMS_GeocodedResearchRelease_Level1_v.*\.zip"
 modern_expr = re.compile(modern_str)
-modern_repo_releases = [(i[:-4],) for i in all_repo_releases
+modern_repo_dirnames = [i[:-4] for i in all_repo_releases
                         if modern_expr.match(i)]
 
 
-rtool_repo = ReleaseTools()
-rtool_repo.set_user_releases(modern_repo_releases)
-latest_repo_releases = [i[0] for i in rtool_repo.get_latest_releases()]
-
-
 # -----------------------------------------------------------------------------
-# unzip any latest releases which doe not exist in data dir
+# unzip any modern releases which do not exist in data dir
 
-existing_data_releases = os.listdir(data_dir)
+existing_data_dirnames = os.listdir(data_dir)
 
-new_releases = [i for i in latest_repo_releases
-                if i not in existing_data_releases]
+new_repo_dirnames = [i for i in modern_repo_dirnames
+                     if i not in existing_data_dirnames]
 
 
-for i in new_releases:
+for i in new_repo_dirnames:
 
     zpath = repo_dir +"/"+ i + ".zip"
 
     zobj = zipfile.ZipFile(zpath)
-
     zobj.extractall(data_dir)
 
 
 # -----------------------------------------------------------------------------
 
+rtool_repo = ReleaseTools()
+rtool_repo.set_dir_releases(data_dir)
+latest_data_dirnames = [os.path.basename(i[2]) for i in rtool_repo.get_latest_releases()]
+
+
 # rtool_data = ReleaseTools()
 # rtool_data.set_dir_releases(data_dir)
 # latest_releases = [i[0] for i in rtool_data.get_latest_releases()]
 
-outdated_releases = [i for i in os.listdir(data_dir)
-                     if i not in latest_repo_releases]
+outdated_data_dirnames = [i for i in os.listdir(data_dir)
+                          if i not in latest_data_dirnames]
 
 
 client = pymongo.MongoClient(config.server)
@@ -100,7 +99,7 @@ asdf = client[config.asdf_db].data
 
 # check if already in asdf
 # run add_release to add if needed
-for i in latest_repo_releases:
+for i in latest_data_dirnames:
 
     ipath = data_dir +"/"+ i
 
