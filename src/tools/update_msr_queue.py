@@ -1,6 +1,6 @@
 #
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 import os
@@ -28,7 +28,8 @@ if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
 
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 import re
 import time
@@ -36,63 +37,20 @@ import pymongo
 import itertools
 import numpy as np
 
+from check_releases import ReleaseTools
+
+
+rtool_asdf = ReleaseTools()
+rtool_asdf.set_asdf_releases("develop")
+latest_releases = rtool_asdf.get_latest_releases()
+
+
+# -------------------------------------
 
 
 client = pymongo.MongoClient(config.server)
-
-asdf = client[config.asdf_db].data
 msr = client[config.det_db].msr
 releases = client.releases
-
-# get names of all research releases from asdf
-all_releases = [
-    (i['name'], i['base'])
-    for i in asdf.find({'type':'release'}, {'name':1, 'base':1})
-]
-
-
-# preambles from name which identify country/group data pertains to
-all_preambles = [i[0].split('_')[0] for i in all_releases]
-
-# duplicates based on matching preambles
-# means there are multiple versions
-duplicate_preambles = [
-    i for i in set(all_preambles)
-    if all_preambles.count(i) > 1
-]
-
-# unique list of latest dataset names
-# initialized here with only datasets that have a single version
-latest_releases = [
-    i for i in all_releases
-    if not i[0].startswith(tuple(duplicate_preambles))
-]
-
-
-# iterate over each group of conflicting datasets based on preamble
-for i in duplicate_preambles:
-
-    # get full names using preamble
-    conflict_releases = [k for k in all_releases if k[0].startswith(i)]
-
-    latest_version = None
-
-    # find which dataset is latest version
-    for j in conflict_releases:
-
-        tmp_version = float(j[0].split('_')[-1][1:])
-
-        if latest_version == None:
-            latest_version = tmp_version
-
-        elif tmp_version > latest_version:
-            latest_version = tmp_version
-
-    # add latest version dataset to final list
-    latest_releases += [
-        j for j in conflict_releases
-        if j[0].endswith(str(latest_version))
-    ]
 
 
 dataset_info = {}
@@ -217,45 +175,9 @@ for ix in dataset_info.keys():
     dir_data = (dataset_info[ix]['base'] +'/'+
                 os.path.basename(dataset_info[ix]['base']) +'/data')
 
-    merged = core.merge_data(
-        dir_data, "project_id",
-        (core.code_field_1, core.code_field_2, "project_location_id"),
-        core.only_geocoded)
+    df_merged = core.prep_data(dir_data)
 
-    # merged['ad_sector_names'] = [x.encode('UTF8')
-    #                              for x in merged['ad_sector_names']]
-    # merged['donors'] = [x.encode('UTF8') for x in merged['donors']]
-
-    # --------------------------------------------------
-    # misc data prep
-
-    # get location count for each project
-    merged['ones'] = (pd.Series(np.ones(len(merged)))).values
-
-    # get project location count
-    grouped_location_count = merged.groupby('project_id')['ones'].sum()
-
-
-    # create new empty dataframe
-    df_location_count = pd.DataFrame()
-
-    # add location count series to dataframe
-    df_location_count['location_count'] = grouped_location_count
-
-    # add project_id field
-    df_location_count['project_id'] = df_location_count.index
-
-    # merge location count back into data
-    merged = merged.merge(df_location_count, on='project_id')
-
-    # aid field value split evenly across all project locations
-    # based on location count
-    merged[core.aid_field].fillna(0, inplace=True)
-    merged['split_dollars_pp'] = (
-        merged[core.aid_field] / merged.location_count)
-
-
-    tmp_total_aid = sum(merged['split_dollars_pp'])
+    tmp_total_aid = sum(df_merged['split_dollars_pp'])
 
 
     total_count = 0
@@ -281,97 +203,43 @@ for ix in dataset_info.keys():
         # --------------------------------------------------
         # filters
 
-        filter_lists = {
+        raw_filters = {
             'ad_sector_names': filter_sectors,
             'donors': filter_donors,
             'years': []
         }
 
-        filtered = merged.copy(deep=True)
-
-        filter_object = {}
-
-        for filter_field in filter_lists.keys():
-
-            tmp_filter = filter_lists[filter_field]
-
-            if tmp_filter and 'All' not in tmp_filter:
-
-                filter_object[filter_field] = tmp_filter
-
-                if filter_field == "years":
-                    # need to add year filter to check if year is
-                    # between transaction_start_year and
-                    # transaction_end_year
-                    filtered = filtered.loc[
-                        filtered.apply(
-                            lambda z: any(
-                                int(i) >= int(z.transactions_start_year) and
-                                int(i) <= int(z.transactions_end_year)
-                                for i in y),
-                            axis=1)
-                    ].copy(deep=True)
-
-                else:
-
-                    filtered = filtered.loc[
-                        filtered[filter_field].str.contains(
-                            '|'.join([re.escape(i) for i in tmp_filter]))
-                    ].copy(deep=True)
+        filters = {
+            filter_field: raw_filters[filter_field]
+            for filter_field in filters
+            if raw_filters[filter_field] and
+            'All' not in raw_filters[filter_field]
+        }
 
 
-        # --------------------------------------------------
-        # filters
-
-        # tmp_merged = merged.copy(deep=True)
-
-        # # filter sectors and donors
-        # if filter_donors == ['All'] and filter_sectors != ['All']:
-        #     filtered = tmp_merged.loc[
-        #         tmp_merged['ad_sector_names'].str.contains(
-        #             '('+'|'.join(filter_sectors)+')')
-        #     ].copy(deep=True)
-
-        # elif filter_donors != ['All'] and filter_sectors == ['All']:
-        #     filtered = tmp_merged.loc[
-        #         tmp_merged['donors'].str.contains(
-        #             '('+'|'.join(filter_donors)+')')
-        #     ].copy(deep=True)
-
-        # elif filter_donors != ['All'] and filter_sectors != ['All']:
-        #     filtered = tmp_merged.loc[(
-        #         tmp_merged['ad_sector_names'].str.contains(
-        #             '('+'|'.join(filter_sectors)+')')) &
-        #         (tmp_merged['donors'].str.contains(
-        #             '('+'|'.join(filter_donors)+')'))
-        #     ].copy(deep=True)
-
-        # else:
-        #     filtered = tmp_merged.copy(deep=True)
-
-        # --------------------------------------------------
+        df_filtered = core.filter_data(df_merged, filters)
 
 
-        if not 'ad_sector_names' in filter_object.keys():
+        if not 'ad_sector_names' in filters.keys():
             sector_split_list = []
         else:
-            sector_split_list = filter_object['ad_sector_names']
+            sector_split_list = filters['ad_sector_names']
 
-        if not 'donors' in filter_object.keys():
+        if not 'donors' in filters.keys():
             donor_split_list = []
         else:
-            donor_split_list = filter_object['donors']
+            donor_split_list = filters['donors']
 
 
 
-        if len(filtered) == 0:
+        if len(df_filtered) == 0:
             if len(sector_split_list) + len(donor_split_list) <= 1:
                 print sector_split_list
                 print donor_split_list
             # empty_sum += 1
             continue
 
-        if (len(filtered) < 10 and
+        if (len(df_filtered) < 10 and
                 len(sector_split_list) + len(donor_split_list) > 1):
             # count_thresh_sum += 1
             continue
@@ -380,11 +248,12 @@ for ix in dataset_info.keys():
         # filter to all sectors/donors listed for project
 
         try:
-            filtered['adjusted_aid'] = filtered.apply(lambda z: core.adjust_aid(
-                z.split_dollars_pp, z.ad_sector_names, z.donors,
-                sector_split_list, donor_split_list), axis=1)
+            df_filtered['adjusted_aid'] = df_filtered.apply(
+                lambda z: core.calc_adjusted_aid(
+                    z.split_dollars_pp, z.ad_sector_names, z.donors,
+                    sector_split_list, donor_split_list), axis=1)
         except:
-            print filtered
+            print df_filtered
             raise
 
 
@@ -392,7 +261,7 @@ for ix in dataset_info.keys():
         # print filter_donors
         # print '-'
 
-        if sum(filtered['adjusted_aid']) == 0: #sum(filtered['split_dollars_pp']):
+        if sum(df_filtered['adjusted_aid']) == 0: #sum(df_filtered['split_dollars_pp']):
             # aid_thresh_sum +=1
             continue
 
@@ -403,19 +272,19 @@ for ix in dataset_info.keys():
         # using filter, get project count and % total aid for release
         #   - % total aid is used to sort when checking for msr jobs
 
-        filter_count = len(filtered)
+        filter_count = len(df_filtered)
 
         # filter_percentage = np.floor(
-        #     100 * sum(filtered['adjusted_aid']) /
-        #     sum(filtered['split_dollars_pp']))
+        #     100 * sum(df_filtered['adjusted_aid']) /
+        #     sum(df_filtered['split_dollars_pp']))
         filter_percentage = np.floor(
-            100 * 100 * sum(filtered['adjusted_aid']) / tmp_total_aid ) / 100
+            100 * 100 * sum(df_filtered['adjusted_aid']) / tmp_total_aid ) / 100
 
         # print '-'
         # print filter_sectors
         # print filter_donors
         # print filter_count
-        # # print sum(filtered['adjusted_aid'])
+        # # print sum(df_filtered['adjusted_aid'])
         # print filter_percentage
 
 
@@ -425,7 +294,7 @@ for ix in dataset_info.keys():
                 "type" : "release",
                 "version" : 0.1,
                 "resolution" : 0.05,
-                "filters": filter_object
+                "filters": filters
         }
 
 
