@@ -157,7 +157,8 @@ if job.rank == 0:
 
     # import pymongo
     client = pymongo.MongoClient(config.server)
-    msr = client[config.det_db].msr
+    asdf = client[config.asdf_db].data
+    msr = client[config.msr_db].msr
 
     print 'starting request search'
     search_limit = 5
@@ -246,7 +247,6 @@ run_id = run_stage[0:1] + run_version_str
 release_path = None
 
 if job.rank == 0:
-    asdf = client[config.asdf_db].data
     release_data = asdf.find({'name': request['dataset']})
 
     release_preamble = release_data[0]['data_set_preamble']
