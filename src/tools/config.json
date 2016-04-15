@@ -1,13 +1,17 @@
 {
     "master":{
         "server": "labs.aiddata.org",
-        "det_db": "det",
-        "asdf_db": "asdf"
+        "asdf_db": "asdf",
+        "extracts_db": "det",
+        "msr_db": "det",
+        "det_db": "det"
     },
     "develop": {
         "server": "devlabs.aiddata.org",
-        "det_db": "det",
         "asdf_db": "asdf",
+        "extracts_db": "det",
+        "msr_db": "det",
+        "det_db": "det",
         "release_gadm": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",
