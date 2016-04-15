@@ -11,7 +11,7 @@ import datetime
 import json
 import pymongo
 
-import release_to_gadm
+import release_to_mongo
 from resource_utility import ResourceTools
 
 
