@@ -182,8 +182,6 @@ for i in latest_releases:
 
     # print dataset_info[ix]
 
-
-    print '\n'
     print 'Generating jobs...'
 
 
