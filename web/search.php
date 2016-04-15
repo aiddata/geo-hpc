@@ -3,7 +3,7 @@
 set_time_limit(0);
 
 switch ($_POST['call']) {
-	
+
 	case "boundaries":
 
 		// init mongo
@@ -15,7 +15,7 @@ switch ($_POST['call']) {
 		$query = array('type' => 'boundary', 'active' => 1);
 
 		$fields = array(
-			'name' => true, 
+			'name' => true,
 			'title' => true,
 			'description' => true,
 			'source_link' => true,
@@ -33,7 +33,7 @@ switch ($_POST['call']) {
 
 
 		foreach ($cursor as $doc) {
-		    
+
 		    $all[$doc['options']['group']][] = $doc;
 
 		    if ($doc['options']['group_class'] == 'actual') {
@@ -64,15 +64,16 @@ switch ($_POST['call']) {
 
 		// init mongo
 		$m = new MongoClient();
-		$db = $m->selectDB('asdf');
+		$db_asdf = $m->selectDB('asdf');
+        $db_tracker = $m->selectDB('trackers');
 
 		// get valid datasets from tracker
-		$tracker_col = $db->selectCollection($group);
+		$tracker_col = $db_tracker->selectCollection($group);
 
 		$tracker_query = array('status' => 1);
 
 		$tracker_fields = array(
-			'name' => true, 
+			'name' => true,
 		);
 
 		$tracker_cursor = $tracker_col->find($tracker_query, $tracker_fields);
@@ -86,10 +87,10 @@ switch ($_POST['call']) {
 
 
 		// get data for datasets found in tracker
-		$col = $db->selectCollection('data');
+		$col = $db_asdf->selectCollection('data');
 
 		$query = array(
-						'name' => array('$in' => $list), 
+						'name' => array('$in' => $list),
 						'temporal.type' => array('$in' => array('year', 'None')),
 						'type' => array('$in' => array('release', 'raster'))
 		);
@@ -117,7 +118,7 @@ switch ($_POST['call']) {
 				$doc['year_list'] = [];
 
 				// get years based on min transaction_first and max transaction_last
-				// 
+				//
 
 
 				$db_releases = $m->selectDB('releases');
@@ -182,7 +183,7 @@ switch ($_POST['call']) {
 				// 	}
 		  //   	}
 				// sort($doc['donor_list']);
-		    	
+
 
 
 
@@ -268,7 +269,7 @@ switch ($_POST['call']) {
 		$output = array("projects" => $projects, "locations" => $locations, "location_count_1" => $location_count_1, "location_count_2" => $location_count_2 );
 
 		echo json_encode($output);
-		break;		
+		break;
 
 }
 
