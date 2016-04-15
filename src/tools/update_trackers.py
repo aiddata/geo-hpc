@@ -74,14 +74,14 @@ for bnd in bnds:
 
         print "active gadm: "  + str(is_active_gadm)
 
-        if bnd["active"] == 0 and is_active_gadm:
-            print "setting active"
-            c_data.update_one({"name": bnd["name"]}, {"$set":{"active": 1}})
+        if is_active_gadm:
+            print "setting group active"
+            c_data.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
             is_active = 1
 
-        elif bnd["active"] == 1 and not is_active_gadm:
-            print "setting inactive"
-            c_data.update_one({"name": bnd["name"]}, {"$set":{"active": 0}})
+        elif not is_active_gadm:
+            print "setting group inactive"
+            c_data.update_one({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
             continue
 
 
