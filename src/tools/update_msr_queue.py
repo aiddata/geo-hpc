@@ -124,7 +124,6 @@ for i in latest_releases:
     #                                 for x in sorted(list(set(tmp_donors)))]
 
 
-
     max_sector_count = 1
     max_donor_count = 1
 
@@ -181,12 +180,11 @@ for i in latest_releases:
     # =========================================================================
 
 
-    print dataset_info[ix]
+    # print dataset_info[ix]
 
-    continue
 
     print '\n'
-    print 'Generating jobs for: ' + dataset_info[ix]['name']
+    print 'Generating jobs...'
 
 
     # create instance of CoreMSR class
