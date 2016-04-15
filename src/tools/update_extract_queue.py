@@ -39,18 +39,18 @@ import copy
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
-asdf = client[config.asdf_db].data
-extracts = client[config.extract_db].extracts
+c_asdf = client[config.asdf_db].data
+c_extracts = client[config.extract_db].extracts
 
 
 # lookup all boundary datasets
-boundaries = asdf.find({"type": "boundary"})
+boundaries = c_asdf.find({"type": "boundary"})
 
 # get boundary names
 bnds = [b['resources'][0]['name'] for b in boundaries]
 
 # lookup all raster datasets
-rasters = asdf.find({"type": "raster"})
+rasters = c_asdf.find({"type": "raster"})
 
 
 items = []
@@ -92,7 +92,7 @@ for i in items:
 
 
     # update/upsert and check if it exists in extracts queue
-    exists = extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
+    exists = c_extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
 
     if exists.upserted_id != None:
         add_count += 1

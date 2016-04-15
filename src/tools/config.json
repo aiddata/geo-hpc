@@ -2,7 +2,7 @@
     "master":{
         "server": "labs.aiddata.org",
         "release_db": "releases",
-        "tracker_db": "trackers",
+        "tracker_db": "asdf",
         "asdf_db": "asdf",
         "extracts_db": "det",
         "msr_db": "det",
@@ -11,7 +11,7 @@
     "develop": {
         "server": "devlabs.aiddata.org",
         "release_db": "releases",
-        "tracker_db": "trackers",
+        "tracker_db": "asdf",
         "asdf_db": "asdf",
         "extracts_db": "det",
         "msr_db": "det",

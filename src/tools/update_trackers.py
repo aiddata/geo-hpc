@@ -44,11 +44,11 @@ import rasterstats as rs
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
-asdf = client[config.asdf_db]
-c_data = asdf.data
+c_asdf = client[config.asdf_db].data
+db_trackers = client[config.tracker_db]
 
 # lookup all boundary datasets
-bnds = c_data.find({"type": "boundary", "options.group_class": "actual"})
+bnds = c_asdf.find({"type": "boundary", "options.group_class": "actual"})
 
 
 active_iso3_list = config.release_gadm.values() + config.other_gadm
@@ -76,12 +76,12 @@ for bnd in bnds:
 
         if is_active_gadm:
             print "setting group active"
-            c_data.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
+            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
             is_active = 1
 
         elif not is_active_gadm:
             print "setting group inactive"
-            c_data.update_one({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
+            c_asdf.update_one({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
             continue
 
 
@@ -94,7 +94,7 @@ for bnd in bnds:
 
     print 'processing...'
 
-    c_bnd = asdf[bnd["options"]["group"]]
+    c_bnd = db_trackers[bnd["options"]["group"]]
 
     # ---------------------------------
 
@@ -102,7 +102,7 @@ for bnd in bnds:
     # add each non-boundary dataset item to boundary tracker collection with
     #   "unprocessed" flag if it is not already in collection
     # (no longer done in add gadm/release)
-    dsets = c_data.find({"type": {"$ne": "boundary"}, "active": 1})
+    dsets = c_asdf.find({"type": {"$ne": "boundary"}, "active": 1})
     for full_dset in dsets:
         dset = {
             'name': full_dset["name"],
@@ -145,7 +145,7 @@ for bnd in bnds:
         bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
         bnd_type = bnd['type']
 
-        meta = c_data.find({'name':match['name']})[0]
+        meta = c_asdf.find({'name':match['name']})[0]
 
         if "active" in meta and meta["active"] == 0:
             c_bnd.update_one({"name": match['name']},

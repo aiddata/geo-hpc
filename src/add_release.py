@@ -214,24 +214,24 @@ def run(path=None, generator="auto", client=None, config=None):
 
     # connect to database and asdf collection
     client = pymongo.MongoClient(config.server)
-    asdf = client[config.asdf_db]
+    db_asdf = client[config.asdf_db]
 
 
     # prep collection if needed
-    if not "data" in asdf.collection_names():
-        c_data = asdf["data"]
+    if not "data" in db_asdf.collection_names():
+        c_asdf = db_asdf["data"]
 
-        c_data.create_index("base", unique=True)
-        c_data.create_index("name", unique=True)
-        c_data.create_index([("spatial", pymongo.GEOSPHERE)])
+        c_asdf.create_index("base", unique=True)
+        c_asdf.create_index("name", unique=True)
+        c_asdf.create_index([("spatial", pymongo.GEOSPHERE)])
 
     else:
-        c_data = asdf["data"]
+        c_asdf = db_asdf["data"]
 
 
     # update core
     # try:
-    c_data.replace_one({"base": dp["base"]}, dp, upsert=True)
+    c_asdf.replace_one({"base": dp["base"]}, dp, upsert=True)
     print "successful core update"
     # except:
     #      quit("Error updating core.")
@@ -246,7 +246,7 @@ def run(path=None, generator="auto", client=None, config=None):
     #     'status': -1
     # }
 
-    # bnds = self.c_data.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
+    # bnds = self.c_asdf.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
     # for bnd in bnds:
     #     c_bnd = self.asdf[bnd["options"]["group"]]
     #     # c_bnd.insert(dset)

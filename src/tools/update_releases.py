@@ -95,7 +95,7 @@ outdated_data_dirnames = [i for i in os.listdir(data_dir)
 
 
 client = pymongo.MongoClient(config.server)
-asdf = client[config.asdf_db].data
+c_asdf = client[config.asdf_db].data
 
 # check if already in asdf
 # run add_release to add if needed
@@ -103,7 +103,7 @@ for i in latest_data_dirnames:
 
     ipath = data_dir +"/"+ i
 
-    find_latest = asdf.find_one({"base": ipath})
+    find_latest = c_asdf.find_one({"base": ipath})
     latest_exists = find_latest != None
 
     if not latest_exists:
@@ -117,6 +117,6 @@ for i in outdated_data_dirnames:
 
     ipath = data_dir +"/"+ i
 
-    update_outdated = asdf.update_one({"base": ipath},
+    update_outdated = c_asdf.update_one({"base": ipath},
                                       {"$set": {"active": 0}})
 

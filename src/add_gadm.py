@@ -351,22 +351,23 @@ print "\nWriting datapackage to system..."
 
 # connect to database and asdf collection
 client = pymongo.MongoClient(config.server)
-asdf = client[config.asdf_db]
+db_asdf = client[config.asdf_db]
+db_tracker = client[config.tracker_db]
 
 
 gadm_col_str = "data"
 # gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
 
 # prep collection if needed
-if not gadm_col_str in asdf.collection_names():
-    c_data = asdf[gadm_col_str]
+if not gadm_col_str in db_asdf.collection_names():
+    c_data = db_asdf[gadm_col_str]
 
     c_data.create_index("base", unique=True)
     c_data.create_index("name", unique=True)
     c_data.create_index([("spatial", pymongo.GEOSPHERE)])
 
 else:
-    c_data = asdf[gadm_col_str]
+    c_data = db_asdf[gadm_col_str]
 
 
 # update core
@@ -383,11 +384,11 @@ print "successful core update"
 if dp["options"]["group_class"] == "actual":
 
     # drop boundary tracker if exists
-    if dp["options"]["group"] in asdf.collection_names():
-        asdf.drop_collection(dp["options"]["group"])
+    if dp["options"]["group"] in db_tracker.collection_names():
+        db_tracker.drop_collection(dp["options"]["group"])
 
     # create new boundary tracker collection
-    c_bnd = asdf[dp["options"]["group"]]
+    c_bnd = db_tracker[dp["options"]["group"]]
     c_bnd.create_index("name", unique=True)
     # c_bnd.create_index("base", unique=True)
     c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])

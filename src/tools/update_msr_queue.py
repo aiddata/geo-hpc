@@ -60,8 +60,8 @@ latest_releases = rtool_asdf.get_latest_releases()
 
 
 client = pymongo.MongoClient(config.server)
-msr = client[config.msr_db].msr
-releases = client[config.release_db]
+c_msr = client[config.msr_db].msr
+db_releases = client[config.release_db]
 
 
 # -------------------------------------
@@ -69,7 +69,7 @@ releases = client[config.release_db]
 
 # remove any items in queue for old datasets that have
 # not yet been processed
-delete_call = msr.delete_many({
+delete_call = c_msr.delete_many({
     'dataset': {'$nin': [i[0] for i in latest_releases]},
     'status': 0,
     'priority': -1
@@ -94,7 +94,7 @@ for i in latest_releases:
 
     print 'Building filter combinations...'
 
-    tmp_collection = releases[ix]
+    c_release_tmp = db_releases[ix]
 
     dataset_info[ix] = {
         'name': i[0],
@@ -102,7 +102,7 @@ for i in latest_releases:
     }
 
     # unique sector list
-    raw_distinct_sectors = tmp_collection.distinct('ad_sector_names')
+    raw_distinct_sectors = c_release_tmp.distinct('ad_sector_names')
 
     tmp_sectors = []
     for j in raw_distinct_sectors:
@@ -113,7 +113,7 @@ for i in latest_releases:
     #                                for x in sorted(list(set(tmp_sectors)))]
 
     # unique donor list
-    raw_distinct_donors = tmp_collection.distinct('donors')
+    raw_distinct_donors = c_release_tmp.distinct('donors')
 
     tmp_donors = []
     for j in raw_distinct_donors:
@@ -359,7 +359,7 @@ for i in latest_releases:
 
 
         # add to msr tracker if hash does not exist
-        exists = msr.update_one({'hash':mongo_doc['hash']},
+        exists = c_msr.update_one({'hash':mongo_doc['hash']},
                                 {'$setOnInsert': mongo_doc},
                                 upsert=True)
 
