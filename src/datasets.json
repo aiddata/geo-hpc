@@ -100,5 +100,12 @@
         "data_name": "treecover2000",
         "data_mini": "tc00",
         "file_mask": "None"
+    },
+    "loss": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/loss/loss.tif",
+        "data_name": "loss",
+        "data_mini": "loss",
+        "file_mask": "None"
     }
+
 }
