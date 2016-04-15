@@ -4,8 +4,8 @@
         "release_db": "releases",
         "tracker_db": "asdf",
         "asdf_db": "asdf",
-        "extracts_db": "det",
-        "msr_db": "det",
+        "extracts_db": "asdf",
+        "msr_db": "asdf",
         "det_db": "det"
     },
     "develop": {
@@ -13,8 +13,8 @@
         "release_db": "releases",
         "tracker_db": "asdf",
         "asdf_db": "asdf",
-        "extracts_db": "det",
-        "msr_db": "det",
+        "extracts_db": "asdf",
+        "msr_db": "asdf",
         "det_db": "det",
         "release_gadm": {
             "AfghanistanAIMS": "AFG",
