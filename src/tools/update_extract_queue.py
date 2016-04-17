@@ -40,7 +40,7 @@ import copy
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
 c_asdf = client[config.asdf_db].data
-c_extracts = client[config.extract_db].extracts
+c_extracts = client[config.extracts_db].extracts
 
 
 # lookup all boundary datasets

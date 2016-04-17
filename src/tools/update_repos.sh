@@ -28,6 +28,15 @@ check_repo() {
 
     echo 'Checking repo: '"$repo"
 
+    # make sure repo exists
+    # run load repos if it does not
+    if [ ! -d "$src"/"$repo" ]; then
+        echo -e "\n"
+        echo "Found missing repo. Loading repos..."
+        bash "$src"/git/asdf/src/tools/load_repos.sh "$branch"
+        exit 0
+    fi
+
     if [ "$repo" = 'asdf' ]; then
         old_manage_cron_hash=$(md5sum "$src"/git/asdf/src/tools/manage_crons.sh | awk '{ print $1 }')
         old_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
@@ -104,6 +113,7 @@ for orgrepo in ${repo_list[*]}; do
     repo=$(basename ${orgrepo})
     check_repo
 done
+
 
 echo 'Done'
 echo -e "\n"

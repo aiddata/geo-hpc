@@ -37,7 +37,7 @@ for orgrepo in ${repo_list[*]}; do
 
     echo Cleaning up repo: "$repo"
 
-    tmp_rm_list=$(find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep "$repo" | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")
+    tmp_rm_list=$(find "$src"/latest -mindepth 1 -maxdepth 1 -type d | grep "$repo"$ | sort -nr | tail -n +6 | grep -v "$today\|$yesterday")
 
     for i in ${tmp_rm_list[*]}; do
 
