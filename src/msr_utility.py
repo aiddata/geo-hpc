@@ -90,17 +90,6 @@ class CoreMSR():
         # vars that may be added as some type of input
         # (used by functions)
 
-        self.code_type = "iati1.04"
-        # self.code_type = "iati2.01"
-
-
-        self.code_field_1 = "precision_code"
-        self.code_field_2 = "location_type_code"
-
-        self.code_field_3 = "location_class"
-        self.code_field_4 = "geographic_exactness"
-
-
         self.not_geocoded = "country"
 
         if self.only_geocoded:
@@ -110,82 +99,105 @@ class CoreMSR():
         self.agg_types = ["point", "buffer", "adm"]
 
 
-        # location class code > location type code > geographic exactness code
-        self.lookup = {
-            "1": {
-                "default": {
-                    "1": {"type": "buffer", "data": 25000},
-                    "2": {"type": "adm", "data": "0"}
+
+        self.lookup_options = {
+            "iati1.04": {
+                "1": {
+                    "default": {"type": "point", "data": 0}
                 },
-                "ADM1": {
-                    "1": {"type": "adm", "data": "1"},
-                    "2": {"type": "adm", "data": "0"}
+                "2": {
+                    "default": {"type": "buffer", "data": 25000}
                 },
-                "ADM2": {
-                    "1": {"type": "adm", "data": "2"},
-                    "2": {"type": "adm", "data": "0"}
+                "3": {
+                    "default": {"type": "adm", "data": "2"}
                 },
-                "ADM3": {
-                    "1": {"type": "adm", "data": "3"},
-                    "2": {"type": "adm", "data": "0"}
+                "4": {
+                    "default": {"type": "adm", "data": "1"}
                 },
-                "ADM4": {
-                    "1": {"type": "adm", "data": "4"},
-                    "2": {"type": "adm", "data": "0"}
+                "5": {
+                    "default": {"type": "buffer", "data": 25000}
                 },
-                "ADM5": {
-                    "1": {"type": "adm", "data": "5"},
-                    "2": {"type": "adm", "data": "0"}
+                "6": {
+                    "default": {"type": "country", "data": 0}
+                },
+                "7": {
+                    "default": {"type": "country", "data": 0}
+                },
+                "8": {
+                    "default": {"type": "country", "data": 0}
                 }
             },
-            "2": {
-                "default": {
-                    "1":  {"type": "buffer", "data": 1000},
-                    "2":  {"type": "buffer", "data": 25000}
-                }
-            },
-            "3": {
-                "default": {
-                    "1":  {"type": "buffer", "data": 1000},
-                    "2":  {"type": "buffer", "data": 25000}
-                }
-            },
-            "4": {
-                "default": {
-                    "1":  {"type": "buffer", "data": 25000},
-                    "2":  {"type": "buffer", "data": 50000}
+            "iati2.01": {
+                "1": {
+                    "default": {
+                        "1": {"type": "buffer", "data": 25000},
+                        "2": {"type": "adm", "data": "0"}
+                    },
+                    "ADM1": {
+                        "1": {"type": "adm", "data": "1"},
+                        "2": {"type": "adm", "data": "0"}
+                    },
+                    "ADM2": {
+                        "1": {"type": "adm", "data": "2"},
+                        "2": {"type": "adm", "data": "0"}
+                    },
+                    "ADM3": {
+                        "1": {"type": "adm", "data": "3"},
+                        "2": {"type": "adm", "data": "0"}
+                    },
+                    "ADM4": {
+                        "1": {"type": "adm", "data": "4"},
+                        "2": {"type": "adm", "data": "0"}
+                    },
+                    "ADM5": {
+                        "1": {"type": "adm", "data": "5"},
+                        "2": {"type": "adm", "data": "0"}
+                    }
+                },
+                "2": {
+                    "default": {
+                        "1":  {"type": "buffer", "data": 1000},
+                        "2":  {"type": "buffer", "data": 25000}
+                    }
+                },
+                "3": {
+                    "default": {
+                        "1":  {"type": "buffer", "data": 1000},
+                        "2":  {"type": "buffer", "data": 25000}
+                    }
+                },
+                "4": {
+                    "default": {
+                        "1":  {"type": "buffer", "data": 25000},
+                        "2":  {"type": "buffer", "data": 50000}
+                    }
                 }
             }
         }
 
 
-        # precision code > location type code
-        self.lookup = {
-            "1": {
-                "default": {"type": "point", "data": 0}
-            },
-            "2": {
-                "default": {"type": "buffer", "data": 25000}
-            },
-            "3": {
-                "default": {"type": "adm", "data": "2"}
-            },
-            "4": {
-                "default": {"type": "adm", "data": "1"}
-            },
-            "5": {
-                "default": {"type": "buffer", "data": 25000}
-            },
-            "6": {
-                "default": {"type": "country", "data": 0}
-            },
-            "7": {
-                "default": {"type": "country", "data": 0}
-            },
-            "8": {
-                "default": {"type": "country", "data": 0}
-            }
-        }
+        self.code_type = "iati1.04"
+        # self.code_type = "iati2.01"
+
+        if self.code_type == "iati1.04":
+            # precision code > location type code
+            self.code_field_1 = "precision_code"
+
+
+        elif self.code_type == "iati2.01"
+            # location class code > location type code > geographic exactness code
+
+            # self.code_field_1 = "location_class"
+            # self.code_field_3 = "geographic_exactness"
+
+            # fields are currently bugged and switched
+            self.code_field_1 = "geographic_exactness"
+            self.code_field_3 = "location_class"
+
+
+        self.code_field_2 = "location_type_code"
+
+        self.lookup = self.lookup_options[self.code_type]
 
 
         # --------------------------------------------------
