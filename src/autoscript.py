@@ -160,7 +160,7 @@ if job.rank == 0:
     asdf = client[config.asdf_db].data
     msr = client[config.msr_db].msr
 
-    version = config["versions"]["mean-surface-rasters"]
+    version = config.versions["mean-surface-rasters"]
 
     print 'starting request search'
     search_limit = 5
