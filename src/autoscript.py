@@ -160,6 +160,8 @@ if job.rank == 0:
     asdf = client[config.asdf_db].data
     msr = client[config.msr_db].msr
 
+    version = config["version"]["mean-surface-rasters"]
+
     print 'starting request search'
     search_limit = 5
     search_attempt = 0
@@ -231,13 +233,13 @@ elif request == 0:
 # -------------------------------------
 # version info stuff
 
-msr_type = request['options']['type']
-msr_version = request['options']['version']
+# msr_type = request['options']['type']
+# msr_version = request['options']['version']
 
-run_stage = "beta"
-run_version_str = "010"
-run_version = int(run_version_str)
-run_id = run_stage[0:1] + run_version_str
+# run_stage = "beta"
+# run_version_str = "011"
+# run_version = int(run_version_str)
+# run_id = run_stage[0:1] + run_version_str
 
 
 # -------------------------------------
@@ -663,10 +665,12 @@ def complete_options_json():
         options_obj[field] = data
 
     # job / script info
-    add_to_json("run_id", run_id)
-    add_to_json("run_stage", run_stage)
-    add_to_json("run_version_str", run_version_str)
-    add_to_json("run_version", run_version)
+    # add_to_json("run_id", run_id)
+    # add_to_json("run_stage", run_stage)
+    # add_to_json("run_version_str", run_version_str)
+    # add_to_json("run_version", run_version)
+    add_to_json("version", version)
+
     add_to_json("job_size", job.size)
 
     # dataset info
