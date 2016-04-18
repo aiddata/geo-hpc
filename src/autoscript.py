@@ -248,15 +248,15 @@ release_path = None
 if job.rank == 0:
     release_data = asdf.find({'name': request['dataset']})
 
-    release_preamble = release_data[0]['data_set_preamble']
     release_path = release_data[0]['base']
+    release_preamble = release_data[0]['data_set_preamble']
 
-    print release_preamble
     print release_path
+    print release_preamble
 
 
-release_preamble = job.comm.bcast(release_preamble, root=0)
 release_path = job.comm.bcast(release_path, root=0)
+release_preamble = job.comm.bcast(release_preamble, root=0)
 
 # make sure release path exists
 if not os.path.isdir(release_path):
