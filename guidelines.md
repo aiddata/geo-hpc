@@ -83,7 +83,9 @@ manual logging (interface) / automatic logging (using json - not yet available):
 
 ### releases
 
-stuff
+if version of "asdf-releases" changes due to
+    A) pure internal (non data impacting, eg: change logistical field in database collection) reasons: do not update "mean-surface-rasters" version
+    B) changes which impact data (eg: fix bug which was causing donor fields with some character to be imported wrong) then "mean-surface-rasters" version must be incremented to reflect data change
 
 
 ### rasters (internal)

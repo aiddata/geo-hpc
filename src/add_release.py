@@ -19,7 +19,7 @@ def run(path=None, generator="auto", client=None, config=None):
 
 
     script = os.path.basename(__file__)
-    version = "0.4"
+    version = config["version"]["asdf-releases"]
     default_generator = "auto"
 
 

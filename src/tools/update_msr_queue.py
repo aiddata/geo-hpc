@@ -63,6 +63,8 @@ client = pymongo.MongoClient(config.server)
 c_msr = client[config.msr_db].msr
 db_releases = client[config.release_db]
 
+version = config["version"]["mean-surface-rasters"]
+
 
 # -------------------------------------
 
@@ -70,7 +72,10 @@ db_releases = client[config.release_db]
 # remove any items in queue for old datasets that have
 # not yet been processed
 delete_call = c_msr.delete_many({
-    'dataset': {'$nin': [i[0] for i in latest_releases]},
+    '$or': [
+        {'dataset': {'$nin': [i[0] for i in latest_releases]}},
+        {'version': {'$ne': version}}
+    ],
     'status': 0,
     'priority': -1
 })
@@ -310,7 +315,7 @@ for i in latest_releases:
         msr_object = {
                 "dataset" : dataset_info[ix]['name'],
                 "type" : "release",
-                "version" : 0.1,
+                "version" : version,
                 "resolution" : 0.05,
                 "filters": filters
         }

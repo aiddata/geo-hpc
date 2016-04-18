@@ -1,5 +1,6 @@
 {
     "master":{
+        "active": 0,
         "server": "labs.aiddata.org",
         "release_db": "releases",
         "tracker_db": "trackers",
@@ -9,6 +10,7 @@
         "det_db": "det"
     },
     "develop": {
+        "active": 1,
         "server": "devlabs.aiddata.org",
         "release_db": "releases",
         "tracker_db": "trackers",
@@ -29,8 +31,16 @@
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA"
         },
-        "other_gadm":[
+        "other_gadm": [
             "LBR"
-        ]
+        ],
+        "versions": {
+            "asdf": "0.4.0",
+            "asdf-gadm": "0.4.0",
+            "asdf-releases": "0.4",
+            "asdf-generic": "0.3.0",
+            "extract-scripts": "0.1.0",
+            "mean-surface-rasters": "0.11.0"
+        }
     }
 }
