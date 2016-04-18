@@ -168,8 +168,7 @@ if job.rank == 0:
 
         print 'finding request:'
         find_request = msr.find_one({
-            # 'hash': '96bfe47c4a5d173e60d9177ced664299e0d84b54',
-            'hash': '3721f3ca71a8934ac7d0e47926048ceb611fd26d'#,
+            'hash': 'eb27798826174cc7a1b4b17b2c8f55b3a8c43feb'#,
             # 'status': 0
         }, sort=[("priority", -1), ("submit_time", 1)])
 
