@@ -112,6 +112,7 @@ for i in latest_data_dirnames:
     latest_exists = find_latest != None
 
     if not latest_exists:
+        print "adding " + i + "..."
         add_release_instance = add_release
         add_release_instance.run(path=ipath, generator="auto",
                                  client=client, config=config)
