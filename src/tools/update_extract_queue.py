@@ -46,7 +46,7 @@ version = config.versions["extract-scripts"]
 
 # lookup all boundary datasets
 boundaries = c_asdf.find({
-    "type": "boundary"
+    "type": "boundary",
     "active": 1
 })
 
