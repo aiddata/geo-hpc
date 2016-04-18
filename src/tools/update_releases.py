@@ -97,7 +97,7 @@ outdated_data_dirnames = [i for i in os.listdir(data_dir)
 client = pymongo.MongoClient(config.server)
 c_asdf = client[config.asdf_db].data
 
-version = config["versions"]["asdf-releases"]
+version = config.versions["asdf-releases"]
 
 # check if already in asdf
 # run add_release to add if needed
