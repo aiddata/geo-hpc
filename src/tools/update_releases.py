@@ -102,10 +102,6 @@ c_asdf = client[config.asdf_db].data
 version = config.versions["asdf-releases"]
 
 
-print outdated_data_dirnames
-print latest_data_dirnames
-
-
 # check if already in asdf
 # run add_release to add if needed
 for i in latest_data_dirnames:
