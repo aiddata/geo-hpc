@@ -543,19 +543,19 @@ class CoreMSR():
                     print "buffer value could not be converted to float"
                     return 0
 
-                # try:
-                tmp_utm_info = utm.from_latlon(lat, lon)
-                tmp_utm_zone = str(tmp_utm_info[1]) + tmp_utm_info[2]
+                try:
+                    tmp_utm_info = utm.from_latlon(lat, lon)
+                    tmp_utm_zone = str(tmp_utm_info[2]) + str(tmp_utm_info[3])
 
-                # reproject point
-                proj_utm = pyproj.Proj("+proj=utm +zone="
-                    + str(tmp_utm_zone)
-                    + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
-                proj_wgs = pyproj.Proj(init="epsg:4326")
-                # except:
-                #     print "error initializing projs"
-                #     print str(tmp_utm_zone)
-                #     return 0
+                    # reproject point
+                    proj_utm = pyproj.Proj("+proj=utm +zone="
+                        + str(tmp_utm_zone)
+                        + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
+                    proj_wgs = pyproj.Proj(init="epsg:4326")
+                except:
+                    print "error initializing projs"
+                    print str(tmp_utm_zone)
+                    return 0
 
                 try:
                     utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
