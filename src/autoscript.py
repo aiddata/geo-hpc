@@ -251,6 +251,7 @@ if job.rank == 0:
     release_preamble = release_data[0]['data_set_preamble']
     release_path = release_data[0]['base']
 
+    print release_preamble
     print release_path
 
 
@@ -313,7 +314,7 @@ core.set_adm0(tmp_adm0)
 # -------------------------------------
 # load / process data and get task list
 
-dir_data = release_path +'/'+ os.path.basename(release_path) +'/data'
+dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
 
