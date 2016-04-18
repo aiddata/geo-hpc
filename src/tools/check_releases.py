@@ -4,7 +4,8 @@ import os
 import errno
 import pymongo
 import json
-from distutils.version import StrictVersion
+# from distutils.version import StrictVersion
+from pkg_resources import parse_version as V
 
 class ReleaseTools():
     """Tools for finding research releases.
@@ -164,7 +165,7 @@ class ReleaseTools():
                 if latest_version == None:
                     latest_version = tmp_version
 
-                elif StrictVersion(tmp_version) > StrictVersion(latest_version):
+                elif V(tmp_version) > V(latest_version):
                     latest_version = tmp_version
 
 
