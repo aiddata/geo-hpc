@@ -244,6 +244,7 @@ run_id = run_stage[0:1] + run_version_str
 # lookup release path
 
 release_path = None
+release_preamble = None
 
 if job.rank == 0:
     release_data = asdf.find({'name': request['dataset']})
