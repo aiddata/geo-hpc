@@ -42,7 +42,7 @@ client = pymongo.MongoClient(config.server)
 c_asdf = client[config.asdf_db].data
 c_extracts = client[config.extracts_db].extracts
 
-version = config["version"]["extract-scripts"]
+version = config["versions"]["extract-scripts"]
 
 # lookup all boundary datasets
 boundaries = c_asdf.find({

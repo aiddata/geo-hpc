@@ -63,7 +63,7 @@ client = pymongo.MongoClient(config.server)
 c_msr = client[config.msr_db].msr
 db_releases = client[config.release_db]
 
-version = config["version"]["mean-surface-rasters"]
+version = config["versions"]["mean-surface-rasters"]
 
 
 # -------------------------------------
