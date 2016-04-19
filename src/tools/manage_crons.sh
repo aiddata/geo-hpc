@@ -92,6 +92,10 @@ init() {
     cleanup_repos_cron='25 0 * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' cleanup_repos #asdf'
     crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
 
+
+    build_msr_job_cron='*/5 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' build_msr_job #asdf'
+    crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
+
 }
 
 

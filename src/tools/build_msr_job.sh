@@ -3,8 +3,8 @@
 
 branch=$1
 
-# timestamp=$2
-timestamp=$(date +%Y%m%d.%s)
+timestamp=$2
+# timestamp=$(date +%Y%m%d.%s)
 
 
 echo '=================================================='
@@ -64,7 +64,7 @@ cat <<EOF >> "$job_path"
 
 #!/bin/tcsh
 #PBS -N asdf-msr-$branch
-#PBS -l nodes=10:c18c:ppn=4
+#PBS -l nodes=16:c18c:ppn=5
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
@@ -73,7 +73,7 @@ cat <<EOF >> "$job_path"
 echo -e "\nJob id: $PBS_JOBID"
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+mpirun --mca mpi_warn_on_fork 0 -np 80 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
 
 EOF
 

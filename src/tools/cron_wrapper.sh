@@ -20,6 +20,9 @@ case $cron in
     "db_updates")       bash "$src"/asdf/src/tools/build_db_updates_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/db_updates/"$timestamp".db_updates.log
                         exit 0;;
 
+    "build_msr_job")    bash "$src"/asdf/src/tools/build_msr_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/msr/"$timestamp".msr.log
+                        exit 0;;
+
     *)                  echo "Invalid cron.";
                         exit 1 ;;
 esac

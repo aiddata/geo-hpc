@@ -12,7 +12,7 @@ echo Timestamp: $(date) '('"$timestamp"')'
 echo -e "\n"
 
 
-# check if job needs to be run 
+# check if job needs to be run
 echo 'Checking for existing db_updates job (asdf-update-'"$branch"')...'
 /usr/local/torque-2.3.7/bin/qstat -nu $USER
 
@@ -23,10 +23,10 @@ if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-update-'"$branch"
 
 else
 
+    src="${HOME}"/active/"$branch"
+
     echo "No existing job found."
     echo "Building job..."
-
-    src="${HOME}"/active/"$branch"
 
     mkdir -p "$src"/log/db_updates/{tmp,'jobs'}
 
@@ -47,7 +47,7 @@ cat <<EOF >> "$job_path"
 #PBS -q alpha
 #PBS -j oe
 
-bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src 
+bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 
 EOF
 
@@ -55,8 +55,8 @@ EOF
     /usr/local/torque-2.3.7/bin/qsub "$job_path"
 
     echo "Running job..."
-    echo -e "\n" 
-    
+    echo -e "\n"
+
     rm "$job_path"
 
 fi
