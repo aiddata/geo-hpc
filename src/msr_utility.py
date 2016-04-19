@@ -125,19 +125,19 @@ class CoreMSR():
                 "ADM2": {
                     "1": {"type": "adm", "data": "2"},
                     "2": {"type": "adm", "data": "0"}
-                },
-                "ADM3": {
-                    "1": {"type": "adm", "data": "3"},
-                    "2": {"type": "adm", "data": "0"}
-                },
-                "ADM4": {
-                    "1": {"type": "adm", "data": "4"},
-                    "2": {"type": "adm", "data": "0"}
-                },
-                "ADM5": {
-                    "1": {"type": "adm", "data": "5"},
-                    "2": {"type": "adm", "data": "0"}
-                }
+                }#,
+                # "ADM3": {
+                #     "1": {"type": "adm", "data": "3"},
+                #     "2": {"type": "adm", "data": "0"}
+                # },
+                # "ADM4": {
+                #     "1": {"type": "adm", "data": "4"},
+                #     "2": {"type": "adm", "data": "0"}
+                # },
+                # "ADM5": {
+                #     "1": {"type": "adm", "data": "5"},
+                #     "2": {"type": "adm", "data": "0"}
+                # }
             },
             "2": {
                 "default": {
