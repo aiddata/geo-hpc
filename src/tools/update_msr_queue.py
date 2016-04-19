@@ -68,12 +68,7 @@ version = config.versions["mean-surface-rasters"]
 
 # -------------------------------------
 
-f1 = c_msr.find({
-    'dataset': {'$nin': [i[0] for i in latest_releases]},
-    'status': 0,
-    'priority': -1
-}).count()
-print f1
+print version
 
 f2 = c_msr.find({
     'version': {'$ne': version},
@@ -81,15 +76,6 @@ f2 = c_msr.find({
     'priority': -1
 }).count()
 print f2
-
-f3 = c_msr.find({
-    '$or': [
-        {'dataset': {'$nin': [i[0] for i in latest_releases]}}
-    ],
-    'status': 0,
-    'priority': -1
-}).count()
-print f3
 
 f4 = c_msr.find({
     '$or': [
