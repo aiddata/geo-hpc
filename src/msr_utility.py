@@ -459,12 +459,12 @@ class CoreMSR():
             geometry type
         """
         try:
-            is_geo = int(is_geo)
-            code_1 = str(code_1)
+            is_geo = str(int(is_geo))
+            code_1 = str(int(code_1))
             code_2 = str(code_2)
-            code_3 = str(code_3)
+            code_3 = str(int(code_3))
 
-            if is_geo == 1:
+            if is_geo == "1":
 
                 if code_1 not in self.lookup:
                     print "lookup code_1 not recognized: " + code_1
@@ -480,7 +480,7 @@ class CoreMSR():
                 tmp_type = self.lookup[code_1][code_2][code_3]["type"]
                 return tmp_type
 
-            elif is_geo == 0:
+            elif is_geo == "0":
                 return self.not_geocoded
 
             else:
@@ -654,8 +654,11 @@ class CoreMSR():
 
         elif agg_type in self.agg_types:
 
-            tmp_geom = self.get_geom(str(code_1), str(code_2), str(code_3),
-                                     lon, lat)
+            code_1 = str(int(code_1))
+            code_2 = str(code_2)
+            code_3 = str(int(code_3))
+
+            tmp_geom = self.get_geom(code_1, code_2, code_3, lon, lat)
 
             if tmp_geom == 0:
                 return "None"
