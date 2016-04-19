@@ -71,7 +71,7 @@ version = config.versions["mean-surface-rasters"]
 print version
 
 f2 = c_msr.find({
-    'version': {'$ne': version},
+    'options.version': {'$ne': version},
     'status': 0,
     'priority': -1
 }).count()
@@ -79,7 +79,7 @@ print f2
 
 f4 = c_msr.find({
     '$or': [
-        {'version': {'$ne': version}}
+        {'options.version': {'$ne': version}}
     ],
     'status': 0,
     'priority': -1
@@ -89,7 +89,7 @@ print f4
 f5 = c_msr.find({
     '$or': [
         {'dataset': {'$nin': [i[0] for i in latest_releases]}},
-        {'version': {'$ne': version}}
+        {'options.version': {'$ne': version}}
     ],
     'status': 0,
     'priority': -1
@@ -104,7 +104,7 @@ sys.exit("!!!!!")
 delete_call = c_msr.delete_many({
     '$or': [
         {'dataset': {'$nin': [i[0] for i in latest_releases]}},
-        {'version': {'$ne': version}}
+        {'options.version': {'$ne': version}}
     ],
     'status': 0,
     'priority': -1
