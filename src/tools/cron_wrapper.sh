@@ -10,7 +10,7 @@ timestamp=$(date +%Y%m%d)
 # make sure log directories exist
 mkdir -p "$src"/log/{update_repos,cleanup_repos,db_updates}
 
-source "${HOME}"/.cshrc
+export PYTHONPATH="${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
 
 case $cron in
     "update_repos")     bash "$src"/asdf/src/tools/update_repos.sh "$branch" 2>&1 | tee 1>>"$src"/log/update_repos/"$timestamp".update_repos.log
