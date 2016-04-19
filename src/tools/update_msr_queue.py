@@ -68,6 +68,50 @@ version = config.versions["mean-surface-rasters"]
 
 # -------------------------------------
 
+f1 = c_msr.find({
+    'dataset': {'$nin': [i[0] for i in latest_releases]},
+    'status': 0,
+    'priority': -1
+}).count()
+print f1
+
+f2 = c_msr.find({
+    'version': {'$ne': version},
+    'status': 0,
+    'priority': -1
+}).count()
+print f2
+
+f3 = c_msr.find({
+    '$or': [
+        {'dataset': {'$nin': [i[0] for i in latest_releases]}}
+    ],
+    'status': 0,
+    'priority': -1
+}).count()
+print f3
+
+f4 = c_msr.find({
+    '$or': [
+        {'version': {'$ne': version}}
+    ],
+    'status': 0,
+    'priority': -1
+}).count()
+print f4
+
+f5 = c_msr.find({
+    '$or': [
+        {'dataset': {'$nin': [i[0] for i in latest_releases]}},
+        {'version': {'$ne': version}}
+    ],
+    'status': 0,
+    'priority': -1
+}).count()
+print f5
+
+sys.exit("!!!!!")
+
 
 # remove any items in queue for old datasets that have
 # not yet been processed
