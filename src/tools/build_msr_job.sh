@@ -80,6 +80,8 @@ cat <<EOF >> "$job_path"
 
 echo -e "\nJob id: $PBS_JOBID"
 
+setenv PYTHONPATH="${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
+
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
 mpirun --mca mpi_warn_on_fork 0 -np 80 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
 
