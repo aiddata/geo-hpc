@@ -39,7 +39,8 @@ from shapely.prepared import prep
 
 import shapefile
 
-print "@#!@#!@#@!#@!#@!#@!#@!#@!#!@#@!#@!#@#!#@!#"
+sys.path.insert(0, "/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages")
+
 import pymongo
 
 import rasterio
@@ -174,7 +175,7 @@ if job.rank == 0:
         find_request = msr.find_one({
             # 'hash': 'eb27798826174cc7a1b4b17b2c8f55b3a8c43feb'#,
             'status': 0
-        }, sort=[("priority", -1), ("submit_time", 1), ("percentage", -1)])
+        }, sort=[("priority", -1), ("submit_time", 1), ("percentage", 1)])
 
         print find_request
 
