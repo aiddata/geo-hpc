@@ -29,7 +29,6 @@ import shutil
 from copy import deepcopy
 from collections import OrderedDict
 
-sys.path.insert(0, "/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages")
 
 import numpy as np
 import pandas as pd
@@ -40,6 +39,7 @@ from shapely.prepared import prep
 
 import shapefile
 
+print "@#!@#!@#@!#@!#@!#@!#@!#@!#!@#@!#@!#@#!#@!#"
 import pymongo
 
 import rasterio
