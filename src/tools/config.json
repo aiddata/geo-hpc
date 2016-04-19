@@ -7,7 +7,31 @@
         "asdf_db": "asdf",
         "extracts_db": "asdf",
         "msr_db": "asdf",
-        "det_db": "det"
+        "det_db": "det",
+        "release_gadm": {
+            "AfghanistanAIMS": "AFG",
+            "ColombiaAIMS": "COL",
+            "DRC-AIMS": "COD",
+            "HondurasAIMS": "HND",
+            "IraqAIMS": "IRQ",
+            "NepalAIMS": "NPL",
+            "NigeriaAIMS": "NGA",
+            "SenegalAIMS": "SEN",
+            "SomaliaAIMS": "SOM",
+            "TimorLesteAIMS": "TLS",
+            "UgandaAIMS": "UGA"
+        },
+        "other_gadm": [
+            "LBR"
+        ],
+        "versions": {
+            "asdf": "0.4.0",
+            "asdf-gadm": "0.4.0",
+            "asdf-releases": "0.4",
+            "asdf-generic": "0.3.0",
+            "extract-scripts": "0.1.0",
+            "mean-surface-rasters": "0.11.0"
+        }
     },
     "develop": {
         "active": 1,
@@ -27,7 +51,6 @@
             "NepalAIMS": "NPL",
             "NigeriaAIMS": "NGA",
             "SenegalAIMS": "SEN",
-            "SomaliaAIMS": "SOM",
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA"
         },
