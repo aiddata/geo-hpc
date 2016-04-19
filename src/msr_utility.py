@@ -99,105 +99,65 @@ class CoreMSR():
         self.agg_types = ["point", "buffer", "adm"]
 
 
+        # self.code_field_1 = "location_class"
+        # self.code_field_3 = "geographic_exactness"
 
-        self.lookup_options = {
-            "iati1.04": {
-                "1": {
-                    "default": {"type": "point", "data": 0}
-                },
-                "2": {
-                    "default": {"type": "buffer", "data": 25000}
-                },
-                "3": {
-                    "default": {"type": "adm", "data": "2"}
-                },
-                "4": {
-                    "default": {"type": "adm", "data": "1"}
-                },
-                "5": {
-                    "default": {"type": "buffer", "data": 25000}
-                },
-                "6": {
-                    "default": {"type": "country", "data": 0}
-                },
-                "7": {
-                    "default": {"type": "country", "data": 0}
-                },
-                "8": {
-                    "default": {"type": "country", "data": 0}
-                }
-            },
-            "iati2.01": {
-                "1": {
-                    "default": {
-                        "1": {"type": "buffer", "data": 25000},
-                        "2": {"type": "adm", "data": "0"}
-                    },
-                    "ADM1": {
-                        "1": {"type": "adm", "data": "1"},
-                        "2": {"type": "adm", "data": "0"}
-                    },
-                    "ADM2": {
-                        "1": {"type": "adm", "data": "2"},
-                        "2": {"type": "adm", "data": "0"}
-                    },
-                    "ADM3": {
-                        "1": {"type": "adm", "data": "3"},
-                        "2": {"type": "adm", "data": "0"}
-                    },
-                    "ADM4": {
-                        "1": {"type": "adm", "data": "4"},
-                        "2": {"type": "adm", "data": "0"}
-                    },
-                    "ADM5": {
-                        "1": {"type": "adm", "data": "5"},
-                        "2": {"type": "adm", "data": "0"}
-                    }
-                },
-                "2": {
-                    "default": {
-                        "1":  {"type": "buffer", "data": 1000},
-                        "2":  {"type": "buffer", "data": 25000}
-                    }
-                },
-                "3": {
-                    "default": {
-                        "1":  {"type": "buffer", "data": 1000},
-                        "2":  {"type": "buffer", "data": 25000}
-                    }
-                },
-                "4": {
-                    "default": {
-                        "1":  {"type": "buffer", "data": 25000},
-                        "2":  {"type": "buffer", "data": 50000}
-                    }
-                }
-            }
-        }
-
-
-        self.code_type = "iati1.04"
-        # self.code_type = "iati2.01"
-
-        if self.code_type == "iati1.04":
-            # precision code > location type code
-            self.code_field_1 = "precision_code"
-
-
-        elif self.code_type == "iati2.01"
-            # location class code > location type code > geographic exactness code
-
-            # self.code_field_1 = "location_class"
-            # self.code_field_3 = "geographic_exactness"
-
-            # fields are currently bugged and switched
-            self.code_field_1 = "geographic_exactness"
-            self.code_field_3 = "location_class"
+        # fields are currently bugged and switched
+        self.code_field_1 = "geographic_exactness"
+        self.code_field_3 = "location_class"
 
 
         self.code_field_2 = "location_type_code"
 
-        self.lookup = self.lookup_options[self.code_type]
+
+        # based on IATI 2.01 codes
+        # location class code > location type code > geographic exactness code
+        self.lookup = {
+            "1": {
+                "default": {
+                    "1": {"type": "buffer", "data": 25000},
+                    "2": {"type": "adm", "data": "0"}
+                },
+                "ADM1": {
+                    "1": {"type": "adm", "data": "1"},
+                    "2": {"type": "adm", "data": "0"}
+                },
+                "ADM2": {
+                    "1": {"type": "adm", "data": "2"},
+                    "2": {"type": "adm", "data": "0"}
+                },
+                "ADM3": {
+                    "1": {"type": "adm", "data": "3"},
+                    "2": {"type": "adm", "data": "0"}
+                },
+                "ADM4": {
+                    "1": {"type": "adm", "data": "4"},
+                    "2": {"type": "adm", "data": "0"}
+                },
+                "ADM5": {
+                    "1": {"type": "adm", "data": "5"},
+                    "2": {"type": "adm", "data": "0"}
+                }
+            },
+            "2": {
+                "default": {
+                    "1":  {"type": "buffer", "data": 1000},
+                    "2":  {"type": "buffer", "data": 25000}
+                }
+            },
+            "3": {
+                "default": {
+                    "1":  {"type": "buffer", "data": 1000},
+                    "2":  {"type": "buffer", "data": 25000}
+                }
+            },
+            "4": {
+                "default": {
+                    "1":  {"type": "buffer", "data": 25000},
+                    "2":  {"type": "buffer", "data": 50000}
+                }
+            }
+        }
 
 
         # --------------------------------------------------
@@ -463,21 +423,18 @@ class CoreMSR():
 
 
     def assign_geometries(self, df_adjusted):
-        # -------------------------------------
-        # assign geometries
 
         # add geom columns
         df_adjusted["agg_type"] = pd.Series(["None"] * len(df_adjusted))
         df_adjusted["agg_geom"] = pd.Series(["None"] * len(df_adjusted))
 
         df_adjusted.agg_type = df_adjusted.apply(lambda x: self.get_geom_type(
-            x[self.is_geocoded],
-            x[self.code_field_1],
-            x[self.code_field_2]), axis=1)
+            x[self.is_geocoded], x[self.code_field_1], x[self.code_field_2],
+            x[self.code_field_3]), axis=1)
 
         df_adjusted.agg_geom = df_adjusted.apply(lambda x: self.get_geom_val(
             x.agg_type, x[self.code_field_1], x[self.code_field_2],
-            x.longitude, x.latitude), axis=1)
+            x[self.code_field_3], x.longitude, x.latitude), axis=1)
 
         df_final = df_adjusted.loc[
             df_adjusted.agg_geom != "None"].copy(deep=True)
@@ -490,32 +447,38 @@ class CoreMSR():
         return df_final
 
 
-    def get_geom_type(self, is_geo, code_1, code_2):
+    def get_geom_type(self, is_geo, code_1, code_2, code_3):
         """Get geometry type based on lookup table.
 
         Args:
             is_geo : if project has geometry
-            code_1 : precisions code
-            code_2 : location type
+            code_1 (str) : location class code
+            code_2 (str) : location type code
+            code_3 (str) : geographic exactness code
         Returns:
             geometry type
         """
         try:
             is_geo = int(is_geo)
-            code_1 = str(int(code_1))
+            code_1 = str(code_1)
             code_2 = str(code_2)
+            code_3 = str(code_3)
 
             if is_geo == 1:
-                if code_1 in self.lookup:
-                    if code_2 in self.lookup[code_1]:
-                        tmp_type = self.lookup[code_1][code_2]["type"]
-                        return tmp_type
-                    else:
-                        tmp_type = self.lookup[code_1]["default"]["type"]
-                        return tmp_type
-                else:
+
+                if code_1 not in self.lookup:
                     print "lookup code_1 not recognized: " + code_1
                     return "None"
+
+                if code_2 not in self.lookup[code_1]:
+                    code_2 = "default"
+
+                if code_3 not in self.lookup[code_1][code_2]:
+                    print "lookup code_3 not recognized: " + code_3
+                    return "None"
+
+                tmp_type = self.lookup[code_1][code_2][code_3]["type"]
+                return tmp_type
 
             elif is_geo == 0:
                 return self.not_geocoded
@@ -525,7 +488,8 @@ class CoreMSR():
                 return "None"
 
         except:
-            return self.not_geocoded
+            # return self.not_geocoded
+            return "None"
 
 
     def get_shape_within(self, shp, polys):
@@ -573,13 +537,13 @@ class CoreMSR():
 
     # build geometry for point based on code
     # depends on lookup and adm0
-    def get_geom(self, code_1, code_2, lon, lat):
+    def get_geom(self, code_1, code_2, code_3, lon, lat):
         """Get geometry for point using lookup table.
 
         Args:
-            code_1 (str) : primary location identifier (eg: precision code)
-            code_2 (str) : secondary location identifier (eg: location type
-                code)
+            code_1 (str) : location class code
+            code_2 (str) : location type code
+            code_3 (str) : geographic exactness code
             lon : longitude
             lat : latitude
         Returns:
@@ -593,10 +557,10 @@ class CoreMSR():
             return 0
 
         else:
-            if code_2 in self.lookup[code_1]:
-                tmp_lookup = self.lookup[code_1][code_2]
-            else:
-                tmp_lookup = self.lookup[code_1]["default"]
+            if code_2 not in self.lookup[code_1]:
+                code_2 = "default"
+
+            tmp_lookup = self.lookup[code_1][code_2][code_3]
 
             # print tmp_lookup["type"]
 
@@ -666,14 +630,14 @@ class CoreMSR():
                 return 0
 
 
-    def get_geom_val(self, agg_type, code_1, code_2, lon, lat):
+    def get_geom_val(self, agg_type, code_1, code_2, code_3, lon, lat):
         """Manage finding geometry for point based on geometry type.
 
         Args:
             agg_type (str) : geometry type
-            code_1 (str) : primary location identifier (eg: precision code)
-            code_2 (str) : secondary location identifier (eg: location type
-                code)
+            code_1 (str) : location class code
+            code_2 (str) : location type code
+            code_3 (str) : geographic exactness code
             lon : longitude
             lat : latitude
         Returns:
@@ -685,17 +649,19 @@ class CoreMSR():
         Country types can simply return the adm0 attribute.
         Unrecognized types return None.
         """
-        if agg_type in self.agg_types:
-
-            code_1 = str(int(code_1))
-            code_2 = str(code_2)
-
-            tmp_geom = self.get_geom(code_1, code_2, lon, lat)
-
-            if tmp_geom != 0:
-                return tmp_geom
-
+        if agg_type == "None":
             return "None"
+
+        elif agg_type in self.agg_types:
+
+            tmp_geom = self.get_geom(str(code_1), str(code_2), str(code_3),
+                                     lon, lat)
+
+            if tmp_geom == 0:
+                return "None"
+
+            return tmp_geom
+
 
         elif agg_type == "country":
 
