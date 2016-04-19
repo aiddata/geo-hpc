@@ -6,6 +6,8 @@ branch=$1
 timestamp=$2
 # timestamp=$(date +%Y%m%d.%s)
 
+export PYTHONPATH="${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
+
 
 echo '=================================================='
 echo Running mean-surface-rasters job builder for branch: "$branch"
