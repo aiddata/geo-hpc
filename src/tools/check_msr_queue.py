@@ -15,7 +15,7 @@ if not os.path.isdir(branch_dir):
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
 sys.path.insert(0, config_dir)
 
-from config_utility import *
+from config_utility import BranchConfig
 
 config = BranchConfig(branch=branch)
 

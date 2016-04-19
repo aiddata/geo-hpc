@@ -31,20 +31,26 @@ else
     echo "Checking for items in msr queue..."
     queue_status=$(python "$src"/asdf/src/tools/check_msr_queue.py "$branch")
 
-    if [ "$queue_status" = "error" ]; then
-        echo '... error connecting to msr queue'
-        exit 1
+
+    if [ "$queue_status" != "ready" ]; then
+
+        if [ "$queue_status" = "error" ]; then
+            echo '... error connecting to msr queue'
+            exit 1
+        fi
+
+        if [ "$queue_status" = "empty" ]; then
+            echo '... msr queue empty'
+            exit 0
+        fi
+
+        echo '... unknown error checking msr queue'
+        exit 2
+
     fi
 
-    if [ "$queue_status" = "empty" ]; then
-        echo '... msr queue empty'
-        exit 0
-    fi
-
-    if [ "$queue_status" = "ready" ]; then
-        echo '... items found in queue'
-        echo -e "\n"
-    fi
+    echo '... items found in queue'
+    echo -e "\n"
 
     echo "Building job..."
 
@@ -64,7 +70,7 @@ cat <<EOF >> "$job_path"
 
 #!/bin/tcsh
 #PBS -N asdf-msr-$branch
-#PBS -l nodes=16:c18c:ppn=5
+#PBS -l nodes=5:c18c:ppn=16
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
