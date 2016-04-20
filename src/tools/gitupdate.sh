@@ -10,9 +10,10 @@
 # MIT License
 
 # Default to working directory
-LOCAL_REPO="."
+# LOCAL_REPO="."
+
 # Default to git pull with FF merge in quiet mode
-GIT_COMMAND="git pull --quiet"
+# GIT_COMMAND="git pull --quiet"
 
 # User messages
 GU_ERROR_FETCH_FAIL="Unable to fetch the remote repository."
@@ -22,10 +23,8 @@ GU_INFO_REPOS_EQUAL="The local repository is current. No update is needed."
 GU_SUCCESS_REPORT="Update complete."
 
 
-if [ $# -eq 1 ]; then
-    LOCAL_REPO="$1"
-    cd "$LOCAL_REPO"
-fi
+LOCAL_REPO="$1"
+cd "$LOCAL_REPO"
 
 branch="$2"
 
