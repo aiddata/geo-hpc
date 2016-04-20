@@ -81,7 +81,8 @@ cat <<EOF >> "$job_path"
 echo -e "\nJob id: $PBS_JOBID"
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np 80 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+# mpirun --mca mpi_warn_on_fork 0 -np 80 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+mpirun --mca mpi_warn_on_fork 0 -np 80 python-mpi $src/asdf/src/tools/check_msr_queue.py $branch
 
 EOF
 
