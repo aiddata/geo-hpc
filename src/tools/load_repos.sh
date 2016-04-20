@@ -33,6 +33,8 @@ get_repo() {
 
     git clone -b "$branch" https://github.com/"$orgrepo" "$repo"
 
+    git remote set-head origin "$branch"
+
     cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
     ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
