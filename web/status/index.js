@@ -19,7 +19,7 @@ $(document).ready(function(){
 		"search_error": "error searching for requests"
 	};
 
-	// status info for requests 
+	// status info for requests
 	// status: [display name, associated request field with timestamp]
 	var status = {
 		"-2":["error", 0],
@@ -32,7 +32,7 @@ $(document).ready(function(){
 
 	// initialize search field
 	$('#search_input input').val("");
-	
+
 	$("html, body").animate({ scrollTop: 0 }, 500);
 
 	// check hash on page load
@@ -109,7 +109,7 @@ $(document).ready(function(){
 		$('#search_results').hide();
 
 		// if search_val is from hash, set search field value to hash search_val
-		// will allow user to adjust search easily if no results are found 
+		// will allow user to adjust search easily if no results are found
 		// or if they return to search page from a request page
 		if (source == "hash") {
 			$('#search_input input').val(input);
@@ -164,7 +164,7 @@ $(document).ready(function(){
 
 		// look for requests matching search_val
 		// call php to search mongo
-		var call_data = {call:"requests", search_type:type, search_val:search_val};
+		var call_data = {call:"status", search_type:type, search_val:search_val};
 		console.log(call_data);
 		mongo_search(call_data, function (result, status, error){
 
@@ -203,7 +203,7 @@ $(document).ready(function(){
 				if (source == "hash" && type == "id") {
 					message("found");
 
-					// update page with request summary if search is 
+					// update page with request summary if search is
 					// trigger by hash and query is a request id
 					add_request_summary(result[0]);
 
@@ -222,14 +222,14 @@ $(document).ready(function(){
 	// ajax to search.php for mongo related calls
 	function mongo_search(data, callback) {
 		$.ajax ({
-	        url: "search.php",
+	        url: "../search.php",
 	        data: data,
 	        dataType: "json",
 	        type: "post",
 	        async: true,
 	        success: function (result) {
 			    callback(result);
-			},    
+			},
 	    	error: function (result, status, error) {
         		callback(result, status, error);
     		}
@@ -282,7 +282,7 @@ $(document).ready(function(){
 
 		var rd_html = '';
 		if (request['status'] == 1) {
-			// check if request is finished 
+			// check if request is finished
 			// update request download if it is
 			rd_html = '<div><a href="../results/'+request['_id']['$id']+'.zip">Download</a></div>';
 		} else {
@@ -290,7 +290,7 @@ $(document).ready(function(){
 		}
 
 		$('#request_download').html(rd_html);
-		
+
 		// build and update request summary
 		var rs_html = build_request_summary(request);
 		$('#request_summary').html(rs_html);
@@ -351,8 +351,8 @@ $(document).ready(function(){
 		    	html += '</td></tr>';
 		    	html += '</tbody></table>';
 
-			html += '</div>'; 
-		} 
+			html += '</div>';
+		}
 
 		// d2 data
 		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
@@ -378,7 +378,7 @@ $(document).ready(function(){
 		    	html += '</td></tr>';
 		    	html += '</tbody></table>';
 
-			html += '</div>'; 
+			html += '</div>';
 		}
 
 		html += '</div>';

@@ -40,7 +40,7 @@ $(document).ready(function(){
 	// get boundary options from mongo
 	// build select menu
 	// check and active link if given
-	mongo_search({call:"boundaries"}, function (result, status, error){
+	process({call:"boundaries"}, function (result, status, error){
 
 		if (error) {
 			console.log(error);
@@ -338,27 +338,10 @@ $(document).ready(function(){
 	});
 
 
-	// ajax to search.php for mongo related calls
-	function mongo_search(data, callback) {
-		$.ajax ({
-	        url: "search.php",
-	        data: data,
-	        dataType: "json",
-	        type: "post",
-	        async: true,
-	        success: function (result) {
-			    callback(result);
-			},
-	    	error: function (result, status, error) {
-        		callback(result, status, error);
-    		}
-	    });
-	}
-
-	// ajax to process.php for generic calls
+	// ajax to search.php
 	function process(data, callback) {
 		$.ajax ({
-	        url: "process.php",
+	        url: "search.php",
 	        data: data,
 	        dataType: "json",
 	        type: "post",
@@ -454,7 +437,7 @@ $(document).ready(function(){
 
 		// console.log(request["boundary"]["group"]);
 
-		mongo_search({call:"datasets", group:request["boundary"]["group"]}, function (result, status, error){
+		process({call:"datasets", group:request["boundary"]["group"]}, function (result, status, error){
 
 			if (error) {
 				console.log(error);
@@ -497,7 +480,7 @@ $(document).ready(function(){
 
 		project_count = -1
 		location_count = -1;
-		mongo_search({call:"filter_count", filter:filter_selection}, function (result, status, error){
+		process({call:"filter_count", filter:filter_selection}, function (result, status, error){
 
 			if (error) {
 				console.log(error);
