@@ -27,6 +27,8 @@ if [ $# -eq 1 ]; then
     cd "$LOCAL_REPO"
 fi
 
+branch="$2"
+
 if [ -d ".git" ]; then
     # update remote tracking branch
     git remote update >&-
@@ -43,7 +45,7 @@ if [ -d ".git" ]; then
 
             # $GIT_COMMAND
             git fetch
-            git reset --hard origin/HEAD
+            git reset --hard origin/"$branch"
             git clean -f -d
             git pull --all
 

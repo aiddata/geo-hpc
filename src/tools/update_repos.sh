@@ -44,7 +44,7 @@ check_repo() {
         old_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
     fi
 
-    update_status=$(bash "$src"/git/asdf/src/tools/gitupdate.sh "$src"/git/"$repo")
+    update_status=$(bash "$src"/git/asdf/src/tools/gitupdate.sh "$src"/git/"$repo" "$branch")
 
     echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
