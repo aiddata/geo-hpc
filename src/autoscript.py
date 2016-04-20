@@ -39,7 +39,7 @@ from shapely.prepared import prep
 
 import shapefile
 
-sys.path.insert(0, "/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages")
+# sys.path.insert(0, "/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages")
 
 import pymongo
 
