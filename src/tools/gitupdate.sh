@@ -12,8 +12,7 @@
 # Default to working directory
 LOCAL_REPO="."
 # Default to git pull with FF merge in quiet mode
-# GIT_COMMAND="git pull --quiet"
-GIT_COMMAND="git reset --hard HEAD; git clean -f -d; git pull"
+GIT_COMMAND="git pull --quiet"
 
 # User messages
 GU_ERROR_FETCH_FAIL="Unable to fetch the remote repository."
@@ -41,7 +40,13 @@ if [ -d ".git" ]; then
             echo $GU_INFO_REPOS_EQUAL
             exit 0
         else
-            $GIT_COMMAND
+
+            # $GIT_COMMAND
+
+            git reset --hard HEAD
+            git clean -f -d
+            git pull
+
             if (( $? )); then
                 echo $GU_ERROR_UPDATE_FAIL >&2
                 exit 1
