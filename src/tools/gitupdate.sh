@@ -42,10 +42,9 @@ if [ -d ".git" ]; then
         else
 
             # $GIT_COMMAND
+            git fetch
+            git reset --hard
 
-            git reset --hard HEAD
-            git clean -f -d
-            git pull
 
             if (( $? )); then
                 echo $GU_ERROR_UPDATE_FAIL >&2
