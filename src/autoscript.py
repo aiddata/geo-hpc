@@ -39,7 +39,6 @@ from shapely.prepared import prep
 
 import shapefile
 
-import pymongo
 
 import rasterio
 from affine import Affine
@@ -236,18 +235,6 @@ elif request == 0:
 
 
 # -------------------------------------
-# version info stuff
-
-# msr_type = request['options']['type']
-# msr_version = request['options']['version']
-
-# run_stage = "beta"
-# run_version_str = "011"
-# run_version = int(run_version_str)
-# run_id = run_stage[0:1] + run_version_str
-
-
-# -------------------------------------
 # lookup release path
 
 release_path = None
@@ -277,102 +264,6 @@ release_path = job.comm.bcast(release_path, root=0)
 release_preamble = job.comm.bcast(release_preamble, root=0)
 iso3 = job.comm.bcast(iso3, root=0)
 
-
-
-
-# =============================================================================
-# =============================================================================
-
-# -------------------------------------
-
-# create instance of CoreMSR class
-core = CoreMSR()
-
-# full script start time
-core.times['start'] = int(time.time())
-
-if job.rank == 0:
-    print '\n'
-    print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +
-           ' ('+ str(int(time.time())) +')')
-    print 'Starting MSR'
-    print '\n'
-
-
-# -------------------------------------
-# load shapefiles
-
-# must start at and inlcude ADM0
-# all additional ADM shps must be included so that adm_path index corresponds
-# to adm level
-adm_paths = []
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm0.shp")
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm1.shp")
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm2.shp")
-
-# build list of adm shape lists
-core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
-
-# define country shape
-tmp_adm0 = shape(core.adm_shps[0][0])
-core.set_adm0(tmp_adm0)
-
-
-# =============================================================================
-# =============================================================================
-# DATAFRAME INIT
-
-# -------------------------------------
-# load / process data and get task list
-
-dir_data = release_path + '/data'
-
-active_data = core.process_data(dir_data, request)
-
-task_id_list = list(active_data['task_ids'])
-
-
-# =============================================================================
-# =============================================================================
-# GRID INIT
-
-# -------------------------------------
-# set pixel size
-
-if not 'resolution' in request['options']:
-    quit("missing pixel size input from request")
-
-
-core.set_pixel_size(request['options']['resolution'])
-
-
-# -------------------------------------
-# create point grid for country
-master_grid = core.geom_to_colrows(
-                core.adm0, core.pixel_size, grid_buffer=0.5,
-                rounded=True, no_multi=True, return_bounds=True)
-
-cols, rows = master_grid[0]
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = master_grid[1]
-
-# init grid reference object
-grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0,
-                                            round_points=False)
-
-grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat),
-                                   axis=1)
-grid_gdf.set_index('index', inplace=True)
-
-
-# -------------------------------------
-# init for later (only used by master)
-
-sum_mean_surf = 0
-all_mean_surf = []
-
-# dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/'
-               + request['dataset'] +'_'+ request['hash'])
 
 
 # =============================================================================
@@ -848,6 +739,104 @@ def tmp_master_final(self):
 
     print request['_id']
     print update_msr.raw_result
+
+
+
+
+# =============================================================================
+# =============================================================================
+
+# -------------------------------------
+
+# create instance of CoreMSR class
+core = CoreMSR()
+
+# full script start time
+core.times['start'] = int(time.time())
+
+if job.rank == 0:
+    print '\n'
+    print (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +
+           ' ('+ str(int(time.time())) +')')
+    print 'Starting MSR'
+    print '\n'
+
+
+# -------------------------------------
+# load shapefiles
+
+# must start at and inlcude ADM0
+# all additional ADM shps must be included so that adm_path index corresponds
+# to adm level
+adm_paths = []
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm0.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm1.shp")
+adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm2.shp")
+
+# build list of adm shape lists
+core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
+
+# define country shape
+tmp_adm0 = shape(core.adm_shps[0][0])
+core.set_adm0(tmp_adm0)
+
+
+# =============================================================================
+# =============================================================================
+# DATAFRAME INIT
+
+# -------------------------------------
+# load / process data and get task list
+
+dir_data = release_path + '/data'
+
+active_data = core.process_data(dir_data, request)
+
+task_id_list = list(active_data['task_ids'])
+
+
+# =============================================================================
+# =============================================================================
+# GRID INIT
+
+# -------------------------------------
+# set pixel size
+
+if not 'resolution' in request['options']:
+    quit("missing pixel size input from request")
+
+
+core.set_pixel_size(request['options']['resolution'])
+
+
+# -------------------------------------
+# create point grid for country
+master_grid = core.geom_to_colrows(
+                core.adm0, core.pixel_size, grid_buffer=0.5,
+                rounded=True, no_multi=True, return_bounds=True)
+
+cols, rows = master_grid[0]
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = master_grid[1]
+
+# init grid reference object
+grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0,
+                                            round_points=False)
+
+grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat),
+                                   axis=1)
+grid_gdf.set_index('index', inplace=True)
+
+
+# -------------------------------------
+# init for later (only used by master)
+
+sum_mean_surf = 0
+all_mean_surf = []
+
+# dir_working = os.path.join(branch_dir, log, msr, jobs)
+dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/'
+               + request['dataset'] +'_'+ request['hash'])
+
 
 # =============================================================================
 # =============================================================================
