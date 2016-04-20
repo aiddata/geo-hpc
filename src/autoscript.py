@@ -41,7 +41,6 @@ import shapefile
 
 # sys.path.insert(0, "/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages")
 
-import pymongo
 
 import rasterio
 from affine import Affine
@@ -58,6 +57,8 @@ import mpi_utility
 
 job = mpi_utility.NewParallel()
 
+if job.rank == 0:
+    import pymongo
 
 # -------------------------------------
 
