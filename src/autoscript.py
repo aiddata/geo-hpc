@@ -89,6 +89,13 @@ if job.rank == 0:
         sys.exit("connection status error: " + str(config.connection_error))
 
 
+else:
+    config = None
+
+
+config = job.comm.bcast(config, root=0)
+
+
 # =============================================================================
 # =============================================================================
 
