@@ -89,11 +89,6 @@ if job.rank == 0:
         sys.exit("connection status error: " + str(config.connection_error))
 
 
-else:
-    config = None
-
-
-config = job.comm.bcast(config, root=0)
 
 
 # =============================================================================
@@ -258,6 +253,7 @@ elif request == 0:
 
 release_path = None
 release_preamble = None
+iso3 = None
 
 if job.rank == 0:
     release_data = asdf.find({'name': request['dataset']})
@@ -268,18 +264,20 @@ if job.rank == 0:
     print release_path
     print release_preamble
 
+    # make sure release path exists
+    if not os.path.isdir(release_path):
+        quit("release path specified not found: " + release_path)
+
+    if release_preamble not in config.release_gadm:
+        quit("release premable not found in config: " + release_preamble)
+
+    iso3 = config.release_gadm[release_preamble]
+
 
 release_path = job.comm.bcast(release_path, root=0)
 release_preamble = job.comm.bcast(release_preamble, root=0)
+iso3 = job.comm.bcast(iso3, root=0)
 
-# make sure release path exists
-if not os.path.isdir(release_path):
-    quit("release path specified not found: " + release_path)
-
-if release_preamble not in config.release_gadm:
-    quit("release premable not found in config: " + release_preamble)
-
-iso3 = config.release_gadm[release_preamble]
 
 
 
