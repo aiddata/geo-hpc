@@ -332,7 +332,7 @@ class CoreMSR():
         df_merged = self.merge_data(
             data_directory,
             "project_id",
-            (self.code_field_1, self.code_field_2, "project_location_id"),
+            (self.code_field_1, self.code_field_2, self.code_field_3, "project_location_id"),
             self.only_geocoded)
 
 
@@ -458,38 +458,35 @@ class CoreMSR():
         Returns:
             geometry type
         """
-        try:
-            is_geo = str(int(is_geo))
+        is_geo = str(int(is_geo))
+
+        if is_geo == "1":
+
             code_1 = str(int(code_1))
             code_2 = str(code_2)
             code_3 = str(int(code_3))
 
-            if is_geo == "1":
-
-                if code_1 not in self.lookup:
-                    print "lookup code_1 not recognized: " + code_1
-                    return "None"
-
-                if code_2 not in self.lookup[code_1]:
-                    code_2 = "default"
-
-                if code_3 not in self.lookup[code_1][code_2]:
-                    print "lookup code_3 not recognized: " + code_3
-                    return "None"
-
-                tmp_type = self.lookup[code_1][code_2][code_3]["type"]
-                return tmp_type
-
-            elif is_geo == "0":
-                return self.not_geocoded
-
-            else:
-                print "is_geocoded integer code not recognized: "+str(is_geo)
+            if code_1 not in self.lookup:
+                print "lookup code_1 not recognized: " + code_1
                 return "None"
 
-        except:
-            # return self.not_geocoded
+            if code_2 not in self.lookup[code_1]:
+                code_2 = "default"
+
+            if code_3 not in self.lookup[code_1][code_2]:
+                print "lookup code_3 not recognized: " + code_3
+                return "None"
+
+            tmp_type = self.lookup[code_1][code_2][code_3]["type"]
+            return tmp_type
+
+        elif is_geo == "0":
+            return self.not_geocoded
+
+        else:
+            print "is_geocoded integer code not recognized: "+str(is_geo)
             return "None"
+
 
 
     def get_shape_within(self, shp, polys):
