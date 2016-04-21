@@ -25,6 +25,7 @@ import math
 import itertools
 import json
 import shutil
+import re
 
 from copy import deepcopy
 from collections import OrderedDict
