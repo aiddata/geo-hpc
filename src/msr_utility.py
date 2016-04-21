@@ -550,7 +550,7 @@ class CoreMSR():
         tmp_pnt = Point(lon, lat)
 
         if not self.is_in_country(tmp_pnt):
-            print "point not in country"
+            print "point not in country" + str(tmp_pnt)
             return 0
 
         else:
@@ -649,6 +649,9 @@ class CoreMSR():
         if agg_type == "None":
             return "None"
 
+        elif agg_type == "country":
+            return self.adm0
+
         elif agg_type in self.agg_types:
 
             code_1 = str(int(code_1))
@@ -661,11 +664,6 @@ class CoreMSR():
                 return "None"
 
             return tmp_geom
-
-
-        elif agg_type == "country":
-
-            return self.adm0
 
         else:
             print "agg_type not recognized: " + agg_type
