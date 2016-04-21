@@ -56,7 +56,7 @@ class ReleaseTools():
 
         from config_utility import BranchConfig
 
-        self.config = config_utility.BranchConfig(branch=branch)
+        self.config = BranchConfig(branch=branch)
 
         # -------------------------------------
 
