@@ -16,6 +16,8 @@ class ReleaseTools():
         all_releases (list): list of tuples for each release
         is_connected (bool): if connection to mongodb has already been
                              established
+        client
+        config
         asdf (mongo collection): mongodb asdf "data" collection
 
 
@@ -52,21 +54,21 @@ class ReleaseTools():
         config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
         sys.path.insert(0, config_dir)
 
-        import config_utility
+        from config_utility import BranchConfig
 
-        config = config_utility.BranchConfig(branch=branch)
+        self.config = config_utility.BranchConfig(branch=branch)
 
         # -------------------------------------
 
         # check mongodb connection
-        if config.connection_status != 0:
-            sys.exit("connection status error: " + str(config.connection_error))
+        if self.config.connection_status != 0:
+            sys.exit("connection status error: " + str(self.config.connection_error))
 
         # -------------------------------------
 
-        client = pymongo.MongoClient(config.server)
+        self.client = pymongo.MongoClient(self.config.server)
 
-        self.asdf = client[config.asdf_db].data
+        self.asdf = self.client[self.config.asdf_db].data
 
         self.is_connected = True
 

@@ -16,7 +16,7 @@ if not os.path.isdir(branch_dir):
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
 sys.path.insert(0, config_dir)
 
-from config_utility import *
+from config_utility import BranchConfig
 
 config = BranchConfig(branch=branch)
 
@@ -51,9 +51,12 @@ from msr_utility import CoreMSR
 from check_releases import ReleaseTools
 
 
+active_preambles = [i.lower() for i in config.active_gadm]
+
 rtool_asdf = ReleaseTools()
 rtool_asdf.set_asdf_releases("develop")
-latest_releases = rtool_asdf.get_latest_releases()
+latest_releases = [i for i in rtool_asdf.get_latest_releases()
+                   if i.split('_')[0] in active_preambles
 
 
 # -------------------------------------
@@ -64,6 +67,7 @@ c_msr = client[config.msr_db].msr
 db_releases = client[config.release_db]
 
 version = config.versions["mean-surface-rasters"]
+
 
 
 # -------------------------------------
@@ -83,6 +87,10 @@ deleted_count = delete_call.deleted_count
 print '\n'
 print (str(deleted_count) + ' unprocessed automated msr requests' +
        ' for outdated released have been removed.')
+
+
+if len(sys.argv) == 3 and sys.argv[2] == "clean":
+    sys.exit("update_msr_queue: cleaning complete")
 
 
 # -------------------------------------
