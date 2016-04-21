@@ -31,7 +31,6 @@ if config.connection_status != 0:
 
 # ----------------------------------------------------------------------------
 
-print sys.path
 
 import pymongo
 

@@ -84,7 +84,7 @@ class BranchConfig():
         """Test mongodb connection
         """
         try:
-            connection_timeout_ms = 10000
+            connection_timeout_ms = 5000
 
             client = pymongo.MongoClient(
                 self.server, serverSelectionTimeoutMS=connection_timeout_ms)
