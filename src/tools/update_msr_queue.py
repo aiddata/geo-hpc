@@ -51,7 +51,7 @@ from msr_utility import CoreMSR
 from check_releases import ReleaseTools
 
 
-active_preambles = [i.lower() for i in config.active_gadm]
+active_preambles = [i.lower() for i in config.release_gadm]
 
 rtool_asdf = ReleaseTools()
 rtool_asdf.set_asdf_releases("develop")
