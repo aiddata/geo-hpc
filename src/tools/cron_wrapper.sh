@@ -10,7 +10,7 @@ timestamp=$(date +%Y%m%d)
 # make sure log directories exist
 # mkdir -p "$src"/log/{update_repos,cleanup_repos,db_updates,msr}
 
-# export PYTHONPATH="${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
+export PYTHONPATH="${PYTHONPATH}:/usr/local/amd64/seoul/gcc/python-2.7.8/lib/python2.7/site-packages/:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
 
 case $cron in
     "update_repos")     mkdir -p "$src"/log/update_repos

@@ -6,7 +6,6 @@ branch=$1
 timestamp=$2
 # timestamp=$(date +%Y%m%d.%s)
 
-
 echo '=================================================='
 echo Running mean-surface-rasters job builder for branch: "$branch"
 echo Timestamp: $(date) #'('"$timestamp"')'
