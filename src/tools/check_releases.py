@@ -2,10 +2,11 @@
 import sys
 import os
 import errno
-import pymongo
 import json
-# from distutils.version import StrictVersion
-from pkg_resources import parse_version as V
+from distutils.version import StrictVersion as V
+
+# from pkg_resources import parse_version as V
+import pymongo
 
 class ReleaseTools():
     """Tools for finding research releases.
