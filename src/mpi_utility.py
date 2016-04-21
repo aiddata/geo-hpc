@@ -223,7 +223,7 @@ class NewParallel():
         """Run job in parallel or serial.
         """
         if self.parallel:
-            self.run_parallel()
+           self.run_parallel()
         else:
            self.run_serial()
 

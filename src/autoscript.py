@@ -815,6 +815,9 @@ active_data = core.process_data(dir_data, request)
 
 task_id_list = list(active_data['task_ids'])
 
+if job.rank == 0:
+    print str(len(task_id_list)) + " tasks to process..."
+
 
 # =============================================================================
 # =============================================================================
