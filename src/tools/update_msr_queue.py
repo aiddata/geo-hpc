@@ -56,7 +56,7 @@ active_preambles = [i.lower() for i in config.release_gadm]
 rtool_asdf = ReleaseTools()
 rtool_asdf.set_asdf_releases("develop")
 latest_releases = [i for i in rtool_asdf.get_latest_releases()
-                   if i.split('_')[0] in active_preambles]
+                   if i[0].split('_')[0] in active_preambles]
 
 
 # -------------------------------------
