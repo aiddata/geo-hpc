@@ -1,6 +1,6 @@
 {
     "master":{
-        "active": 0,
+        "active": 1,
         "server": "labs.aiddata.org",
         "release_db": "releases",
         "tracker_db": "trackers",
@@ -17,7 +17,6 @@
             "NepalAIMS": "NPL",
             "NigeriaAIMS": "NGA",
             "SenegalAIMS": "SEN",
-            "SomaliaAIMS": "SOM",
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA"
         },
