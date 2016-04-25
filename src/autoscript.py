@@ -657,7 +657,7 @@ def complete_options_json():
     json_out = dir_working+'/summary.json'
     json_handle = open(json_out, 'w')
     json.dump(write_options, json_handle, sort_keys=False, indent=4,
-              ensure_ascii=False)
+              ensure_ascii=True)
     json_handle.close()
 
     return options_obj
