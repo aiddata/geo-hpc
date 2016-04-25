@@ -23,7 +23,8 @@ import time
 import datetime
 import math
 import itertools
-import json
+# import json
+import ujson as json
 import shutil
 import re
 
@@ -524,11 +525,11 @@ def complete_unique_geoms():
     # geometry for each project location
     geo_df["geometry"] = gpd.GeoSeries(active_data["agg_geom"])
 
-    # write full to geojson
-    full_geo_json = geo_df.to_json()
-    full_geo_file = open(dir_working+"/full.geojson", "w")
-    json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
-    full_geo_file.close()
+    # # write full to geojson
+    # full_geo_json = geo_df.to_json()
+    # full_geo_file = open(dir_working+"/full.geojson", "w")
+    # json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
+    # full_geo_file.close()
 
     # string version of geometry used to determine duplicates
     geo_df["str_geo"] = geo_df["geometry"].astype(str)

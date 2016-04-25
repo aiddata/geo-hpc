@@ -83,7 +83,7 @@ class CoreMSR():
 
         self.is_geocoded = "is_geocoded"
 
-        self.only_geocoded = False
+        self.only_geocoded = True
 
 
         # --------------------------------------------------
