@@ -550,7 +550,7 @@ class CoreMSR():
         tmp_pnt = Point(lon, lat)
 
         if not self.is_in_country(tmp_pnt):
-            print "point not in country" + str(tmp_pnt)
+            print "point not in country " + str(tmp_pnt)
             return 0
 
         else:
