@@ -308,7 +308,7 @@ for i in latest_releases:
         #     100 * sum(df_filtered['adjusted_aid']) /
         #     sum(df_filtered['split_dollars_pp']))
         filter_percentage = np.floor(
-            100 * 100 * sum(df_filtered['adjusted_aid']) / tmp_total_aid ) / 100
+            1000 * 100 * sum(df_filtered['adjusted_aid']) / tmp_total_aid ) / 1000
 
         # print '-'
         # print filter_sectors
