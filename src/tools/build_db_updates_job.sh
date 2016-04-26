@@ -46,6 +46,7 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
+#PBS -o $src/log/db_updates/jobs/$timestamp.log
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 
