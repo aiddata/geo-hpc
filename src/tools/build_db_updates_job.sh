@@ -13,10 +13,10 @@ echo -e "\n"
 
 
 # check if job needs to be run
-echo 'Checking for existing db_updates job (asdf-update-'"$branch"')...'
+echo 'Checking for existing db_updates job (ax-update-'"$branch"')...'
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 echo $qstat
-if echo $qstat | grep -q 'asdf-update-'"$branch"; then
+if echo $qstat | grep -q 'ax-update-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -41,7 +41,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N asdf-update-$branch
+#PBS -N ax-update-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=180:00:00
 #PBS -q alpha

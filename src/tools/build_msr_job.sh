@@ -13,10 +13,10 @@ echo -e "\n"
 
 
 # check if job needs to be run
-echo 'Checking for existing msr job (asdf-msr-'"$branch"')...'
+echo 'Checking for existing msr job (ax-msr-'"$branch"')...'
 /usr/local/torque-2.3.7/bin/qstat -nu $USER
 
-if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-msr-'"$branch"; then
+if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'ax-msr-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -74,7 +74,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N asdf-msr-$branch
+#PBS -N ax-msr-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=180:00:00
 #PBS -q alpha
