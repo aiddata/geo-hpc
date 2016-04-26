@@ -27,6 +27,7 @@ import itertools
 import ujson as json
 import shutil
 import re
+import hashlib
 
 from copy import deepcopy
 from collections import OrderedDict
@@ -93,6 +94,14 @@ if job.rank == 0:
 
 # =============================================================================
 # =============================================================================
+
+
+def str_sha1_hash(hash_str):
+
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_str)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
 
 
 def make_dir(path):
@@ -531,23 +540,26 @@ def complete_unique_geoms():
     # json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
     # full_geo_file.close()
 
+
     # string version of geometry used to determine duplicates
-    geo_df["str_geo"] = geo_df["geometry"].astype(str)
+    geo_df["str_geo_hash"] = geo_df["geometry"].astype(str).apply(
+        lambda z: str_sha1_hash(z))
+
     # create and set unique index
     geo_df['index'] = range(0, len(geo_df))
     geo_df = geo_df.set_index('index')
 
-    # group project locations by geometry using str_geo field
+    # group project locations by geometry using str_geo_hash field
     # and for each unique geometry get the sum of dollars for
     # all project locations with that geometry
-    sum_unique = geo_df.groupby(by='str_geo')['dollars'].sum()
+    sum_unique = geo_df.groupby(by='str_geo_hash')['dollars'].sum()
 
     # get count of locations for each unique geom
     geo_df['ones'] = (pd.Series(np.ones(len(geo_df)))).values
-    sum_count = geo_df.groupby(by='str_geo')['ones'].sum()
+    sum_count = geo_df.groupby(by='str_geo_hash')['ones'].sum()
 
     # create list of project location ids for unique geoms
-    cat_plids = geo_df.groupby(by='str_geo')['project_location_id'].apply(
+    cat_plids = geo_df.groupby(by='str_geo_hash')['project_location_id'].apply(
         lambda z: '|'.join(list(z)))
 
     # temporary dataframe with
@@ -560,14 +572,14 @@ def complete_unique_geoms():
     tmp_geo_df['location_count'] = sum_count
     tmp_geo_df['project_location_ids'] = cat_plids
 
-    tmp_geo_df['str_geo'] = tmp_geo_df.index
+    tmp_geo_df['str_geo_hash'] = tmp_geo_df.index
 
     # merge geo_df with tmp_geo_df
-    new_geo_df = geo_df.merge(tmp_geo_df, how='inner', on="str_geo")
+    new_geo_df = geo_df.merge(tmp_geo_df, how='inner', on="str_geo_hash")
     # drops duplicate rows
-    new_geo_df.drop_duplicates(subset="str_geo", inplace=True)
-    # gets rid of str_geo column
-    new_geo_df.drop('str_geo', axis=1, inplace=True)
+    new_geo_df.drop_duplicates(subset="str_geo_hash", inplace=True)
+    # gets rid of str_geo_hash column
+    new_geo_df.drop('str_geo_hash', axis=1, inplace=True)
 
     # create final output geodataframe with index, unique_dollars
     # and unique geometry
