@@ -34,7 +34,7 @@ else
 
     if [ "$updated" == 1 ]; then
         printf "%0.s-" {1..80}
-        printf "%0.s-" {1..80}
+        echo -e "\n"
     fi
 
     echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
@@ -86,9 +86,6 @@ cat <<EOF >> "$job_path"
 #PBS -j oe
 #PBS -o $src/log/msr/jobs/$timestamp.$jobtime.msr.job
 #PBS -V
-
-echo -e "\nJob id: "
-echo $PBS_JOBID
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
 mpirun --mca mpi_warn_on_fork 0 -np $total python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp

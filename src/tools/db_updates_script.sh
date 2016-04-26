@@ -32,3 +32,4 @@ JOBID=$(echo $PBS_JOBID | sed 's/[.].*$//')
 
 
 cat ${HOME}/ax-update-$branch.o$JOBID >> $src/log/db_updates/$timestamp.db_updates.log
+rm ${HOME}/ax-update-$branch.o$JOBID

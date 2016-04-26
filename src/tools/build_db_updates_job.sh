@@ -24,21 +24,9 @@ else
 
     src="${HOME}"/active/"$branch"
 
-    job_dir="$src"/log/db_updates/jobs
+    job_dir="$src"/log/db_updates #/jobs
     mkdir -p $job_dir
 
-    # updated=0
-    # shopt -s nullglob
-    # for i in "$job_dir"/*.job; do
-    #     updated=1
-    #     cat "$i"
-    #     rm "$i"
-    # done
-
-    # if [ "$updated" == 1 ]; then
-    #     printf "%0.s-" {1..80}
-    #     printf "%0.s-" {1..80}
-    # fi
 
     echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
     echo "Building job..."
