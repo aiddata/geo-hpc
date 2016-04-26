@@ -6,36 +6,32 @@ branch=$1
 timestamp=$2
 
 
-echo '=================================================='
-echo Running db_updates job builder for branch: "$branch"
-echo Timestamp: $(date) '('"$timestamp"')'
-echo -e "\n"
-
-
 # check if job needs to be run
-echo 'Checking for existing db_updates job (ax-update-'"$branch"')...'
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
-echo "$qstat"
 
 if echo "$qstat" | grep -q 'ax-update-'"$branch"; then
 
-    echo "Existing job found"
+    echo [$(date) ("$timestamp")] Existing job found
+    echo "$qstat"
     echo -e "\n"
 
 else
 
     src="${HOME}"/active/"$branch"
 
-    echo "No existing job found."
-    echo "Building job..."
-
     job_dir="$src"/log/db_updates/jobs
     mkdir -p $job_dir
 
     for i in "$job_dir"/*.job; do
-        cat "$i" >> "$src"/log/db_updates/$timestamp.db_updates.log
+        cat "$i"
         rm "$i"
     done
+
+    printf "%0.s-" {1..80}
+    printf "%0.s-" {1..80}
+
+    echo [$(date) ("$timestamp")] No existing job found.
+    echo Building job...
 
 
     job_path=$(mktemp)

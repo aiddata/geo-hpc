@@ -3,7 +3,7 @@
 
 branch=$1
 timestamp=$2
-src=$3
+# src=$3
 
 # output_path=$(mktemp -p "$src"/log/db_updates/tmp)
 
