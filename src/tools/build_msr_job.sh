@@ -54,10 +54,14 @@ else
     echo "Building job..."
 
 
-    mkdir -p "$src"/log/msr
-    #/jobs
+    mkdir -p "$src"/log/msr/jobs
 
     job_path=$(mktemp)
+
+
+    nodes=7
+    ppn=16
+    total=$(($nodes * $ppn))
 
 
 # NOTE: just leave this heredoc unindented
@@ -65,25 +69,25 @@ else
 #   heredocs can only be indented with true tabs
 #   (can use cat <<- EOF to strip leading tabs )
 
-cat <<EOF >> "$job_path"
 
+#PBS -o $src/log/msr/$timestamp.msr.log
+
+cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N asdf-msr-$branch
-#PBS -l nodes=7:c18c:ppn=16
+#PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
-#PBS -o $src/log/msr/$timestamp.msr.log
 
 echo -e "\nJob id: $PBS_JOBID"
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np 80 python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+mpirun --mca mpi_warn_on_fork 0 -np $total python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
 
 EOF
 
-
-    # cd "$src"/log/msr/jobs
+    cd "$src"/log/msr/jobs
     /usr/local/torque-2.3.7/bin/qsub "$job_path"
 
     echo "Running job..."
