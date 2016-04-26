@@ -8,8 +8,6 @@ timestamp=$2
 jobtime=$(date +%H%M%S)
 
 
-
-
 # check if job needs to be run
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
@@ -27,6 +25,7 @@ else
     mkdir -p $job_dir
 
     updated=0
+    shopt -s nullglob
     for i in "$job_dir"/*.job; do
         updated=1
         cat "$i"
@@ -66,9 +65,7 @@ else
 
     echo "Building job..."
 
-
     job_path=$(mktemp)
-
 
     nodes=7
     ppn=16

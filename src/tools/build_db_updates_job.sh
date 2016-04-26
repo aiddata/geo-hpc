@@ -7,6 +7,9 @@ timestamp=$2
 
 jobtime=$(date +%H%M%S)
 
+printf "%0.s-" {1..80}
+
+
 # check if job needs to be run
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
@@ -23,25 +26,23 @@ else
     job_dir="$src"/log/db_updates/jobs
     mkdir -p $job_dir
 
-    updated=0
-    shopt -s nullglob
-    for i in "$job_dir"/*.job; do
-        updated=1
-        cat "$i"
-        rm "$i"
-    done
+    # updated=0
+    # shopt -s nullglob
+    # for i in "$job_dir"/*.job; do
+    #     updated=1
+    #     cat "$i"
+    #     rm "$i"
+    # done
 
-    if [ "$updated" == 1 ]; then
-        printf "%0.s-" {1..80}
-        printf "%0.s-" {1..80}
-    fi
+    # if [ "$updated" == 1 ]; then
+    #     printf "%0.s-" {1..80}
+    #     printf "%0.s-" {1..80}
+    # fi
 
     echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
     echo "Building job..."
 
-
     job_path=$(mktemp)
-
 
 
 # NOTE: just leave this heredoc unindented
@@ -59,6 +60,8 @@ cat <<EOF >> "$job_path"
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
+
+cat $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job >> $src/log/db_updates/$timestamp.db_updates.log
 
 EOF
 
