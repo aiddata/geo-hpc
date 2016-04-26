@@ -59,6 +59,7 @@ cat <<EOF >> "$job_path"
 #PBS -k oe
 #PBS -j oe
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
+#PBS -V
 
 echo -e "\nJob id: "
 echo $PBS_JOBID

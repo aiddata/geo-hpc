@@ -85,6 +85,7 @@ cat <<EOF >> "$job_path"
 #PBS -q alpha
 #PBS -j oe
 #PBS -o $src/log/msr/jobs/$timestamp.$jobtime.msr.job
+#PBS -V
 
 echo -e "\nJob id: "
 echo $PBS_JOBID
