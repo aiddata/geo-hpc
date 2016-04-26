@@ -58,6 +58,7 @@ cat <<EOF >> "$job_path"
 #PBS -q alpha
 #PBS -j oe
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
+#PBS -k oe
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 
