@@ -14,9 +14,9 @@ echo -e "\n"
 
 # check if job needs to be run
 echo 'Checking for existing db_updates job (asdf-update-'"$branch"')...'
-/usr/local/torque-2.3.7/bin/qstat -nu $USER
-
-if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-update-'"$branch"; then
+qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
+echo $qstat
+if echo $qstat | grep -q 'asdf-update-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
