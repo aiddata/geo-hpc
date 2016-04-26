@@ -30,7 +30,7 @@ else
     printf "%0.s-" {1..80}
     printf "%0.s-" {1..80}
 
-    echo [$(date) ("$timestamp")] No existing job found.
+    echo [$(date) '('"$timestamp"')'] No existing job found.
     echo Building job...
 
 
