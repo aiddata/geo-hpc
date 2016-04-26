@@ -32,9 +32,9 @@ else
     job_dir="$src"/log/db_updates/jobs
     mkdir -p $job_dir
 
-    for $i in $job_dir; do
-        cat $i >> $src/log/db_updates/$timestamp.db_updates.log
-        rm $i
+    for i in "$job_dir"/*; do
+        cat "$i" >> "$src"/log/db_updates/$timestamp.db_updates.log
+        rm "$i"
     done
 
 

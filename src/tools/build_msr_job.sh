@@ -57,9 +57,9 @@ else
     job_dir="$src"/log/msr/jobs
     mkdir -p $job_dir
 
-    for $i in $job_dir; do
-        cat $i >> $src/log/msr/$timestamp.msr.log
-        rm $i
+    for i in "$job_dir"/*; do
+        cat "$i" >> $src/log/msr/$timestamp.msr.log
+        rm "$i"
     done
 
 
