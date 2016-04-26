@@ -61,13 +61,16 @@ cat <<EOF >> "$job_path"
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
 #PBS -V
 
+echo $PBS_JOBID
+JOBID=`echo $PBS_JOBID | sed 's/[.].*$//'`
+
 echo "\n"
 echo Job id:
-echo $PBS_JOBID
+echo $JOBID
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 
-cat ${HOME}/ax-update-$branch.o$PBS_JOBID >> $src/log/db_updates/$timestamp.db_updates.log
+cat ${HOME}/ax-update-$branch.o$JOBID >> $src/log/db_updates/$timestamp.db_updates.log
 
 EOF
 
