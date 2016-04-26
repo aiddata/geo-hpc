@@ -5,13 +5,14 @@ branch=$1
 
 timestamp=$2
 
+jobtime=$(date +%H%M%S)
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
 if echo "$qstat" | grep -q 'ax-update-'"$branch"; then
 
-    echo [$(date) ("$timestamp")] Existing job found
+    echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
     echo "$qstat"
     echo -e "\n"
 
@@ -22,16 +23,20 @@ else
     job_dir="$src"/log/db_updates/jobs
     mkdir -p $job_dir
 
+    updated=0
     for i in "$job_dir"/*.job; do
+        updated=1
         cat "$i"
         rm "$i"
     done
 
-    printf "%0.s-" {1..80}
-    printf "%0.s-" {1..80}
+    if [ "$updated" == 1 ]; then
+        printf "%0.s-" {1..80}
+        printf "%0.s-" {1..80}
+    fi
 
-    echo '['$(date) '('"$timestamp"')] No existing job found.'
-    echo Building job...
+    echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
+    echo "Building job..."
 
 
     job_path=$(mktemp)
@@ -50,9 +55,9 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
-#PBS -o $src/log/db_updates/jobs/$timestamp.$(date +%H%M%S).db_updates.job
+#PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
 
-bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
+bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp
 
 EOF
 

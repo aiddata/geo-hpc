@@ -5,28 +5,40 @@ branch=$1
 
 timestamp=$2
 
+jobtime=$(date +%H%M%S)
 
-echo '=================================================='
-echo Running mean-surface-rasters job builder for branch: "$branch"
-echo Timestamp: $(date) #'('"$timestamp"')'
-echo -e "\n"
+
 
 
 # check if job needs to be run
-echo 'Checking for existing msr job (ax-msr-'"$branch"')...'
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
-echo "$qstat"
 
 if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
 
-    echo "Existing job found"
+    echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
+    echo "$qstat"
     echo -e "\n"
 
 else
 
     src="${HOME}"/active/"$branch"
 
-    echo "No existing job found."
+    job_dir="$src"/log/msr/jobs
+    mkdir -p $job_dir
+
+    updated=0
+    for i in "$job_dir"/*.job; do
+        updated=1
+        cat "$i"
+        rm "$i"
+    done
+
+    if [ "$updated" == 1 ]; then
+        printf "%0.s-" {1..80}
+        printf "%0.s-" {1..80}
+    fi
+
+    echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
 
     echo "Checking for items in msr queue..."
     queue_status=$(python "$src"/asdf/src/tools/check_msr_queue.py "$branch")
@@ -54,14 +66,6 @@ else
 
     echo "Building job..."
 
-    job_dir="$src"/log/msr/jobs
-    mkdir -p $job_dir
-
-    for i in "$job_dir"/*.job; do
-        cat "$i" >> "$src"/log/msr/$timestamp.msr.log
-        rm "$i"
-    done
-
 
     job_path=$(mktemp)
 
@@ -83,7 +87,7 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
-#PBS -o $src/log/msr/jobs/$timestamp.$(date +%H%M%S).msr.job
+#PBS -o $src/log/msr/jobs/$timestamp.$jobtime.msr.job
 
 echo -e "\nJob id: $PBS_JOBID"
 
