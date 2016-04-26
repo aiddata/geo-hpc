@@ -4,10 +4,17 @@ set_time_limit(0);
 
 switch ($_POST['call']) {
 
-
     // returns geojson at the specified file path
     case "geojson":
+        /*
+        find and returns contents of simplified boundary geojson for web map
 
+        post fields
+            file : path to desired boundary directory (asdf dataset "base" field)
+
+        returns
+            simplified geojson as string
+        */
         $file = dirname($_POST['file']) . "/simplified.geojson";
 
         $output = file_get_contents($file);
@@ -15,11 +22,19 @@ switch ($_POST['call']) {
         echo $output;
         break;
 
-    // inserts request object as document in det->queue mongo db/collection
-    // sends email to user that made request [not working]
-    // returns unique mongoid as request id
-    case "request":
 
+    case "request":
+        /*
+        inserts request object as document in det->queue mongo db/collection
+        sends email to user that made request [not working/enabled at the
+            moment, may have moved this to python queue processing]
+
+        post fields
+            request : json string for request fields
+
+        returns
+            unique mongoid assigned to request
+        */
         $request = json_decode($_POST['request']);
 
         // init mongo
@@ -60,12 +75,19 @@ switch ($_POST['call']) {
         break;
 
 
-
-
-
-
 	case "boundaries":
+        /*
+        find and return all eligible boundaries
 
+        post fields
+            none
+
+        returns
+            json string representing dictionary where keys are boundary
+            group names and values are lists of boundary docs for each
+            boundary in group
+
+        */
 		// init mongo
 		$m = new MongoClient();
 		$db = $m->selectDB('asdf');
@@ -119,7 +141,19 @@ switch ($_POST['call']) {
 
 
 	case "datasets":
+        /*
+        find relevant datasets for specified boundary group
 
+        post fields
+            group : boundary group
+
+        returns
+            json object string with release datasets (d1)
+            and raster datasets (d2)
+
+            d1 and d2 objects contain key value pairs where key is
+            dataset name and value is dataset doc
+        */
 		$group = $_POST['group'];
 
 		// init mongo
@@ -262,7 +296,15 @@ switch ($_POST['call']) {
 
 
 	case "filter_count":
+        /*
+        get counts for release dataset based on filter
 
+        post fields
+            filter : fields and filters
+
+        returns
+            number of projects, locations, loc1?, loc2?
+        */
 		$filter = $_POST['filter'];
 
 		// init mongo
@@ -334,10 +376,17 @@ switch ($_POST['call']) {
 
 
 
-
-    # for status page
     case "status":
+        /*
+        generate request information for status page
 
+        post fields
+            search_type : "id" or "email"
+            search_val : id value or email value
+
+        returns
+            det queue collection docs matching search_type and search_val
+        */
         $search_type = $_POST['search_type'];
         $search_val = $_POST['search_val'];
 
