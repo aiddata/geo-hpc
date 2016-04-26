@@ -4,7 +4,7 @@
 branch=$1
 
 timestamp=$2
-# timestamp=$(date +%Y%m%d.%s)
+
 
 echo '=================================================='
 echo Running mean-surface-rasters job builder for branch: "$branch"
@@ -14,9 +14,10 @@ echo -e "\n"
 
 # check if job needs to be run
 echo 'Checking for existing msr job (ax-msr-'"$branch"')...'
-/usr/local/torque-2.3.7/bin/qstat -nu $USER
+qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
+echo "$qstat"
 
-if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'ax-msr-'"$branch"; then
+if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
 
     echo "Existing job found"
     echo -e "\n"
@@ -53,8 +54,14 @@ else
 
     echo "Building job..."
 
+    job_dir="$src"/log/msr/jobs
+    mkdir -p $job_dir
 
-    mkdir -p "$src"/log/msr/jobs
+    for $i in $job_dir; do
+        cat $i >> $src/log/msr/$timestamp.msr.log
+        rm $i
+    done
+
 
     job_path=$(mktemp)
 
@@ -69,9 +76,6 @@ else
 #   heredocs can only be indented with true tabs
 #   (can use cat <<- EOF to strip leading tabs )
 
-
-#PBS -o $src/log/msr/$timestamp.msr.log
-
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N ax-msr-$branch
@@ -79,6 +83,7 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
+#PBS -o $src/log/msr/jobs/$timestamp.$(date +%H%M%S).msr.job
 
 echo -e "\nJob id: $PBS_JOBID"
 
@@ -87,7 +92,7 @@ mpirun --mca mpi_warn_on_fork 0 -np $total python-mpi $src/mean-surface-rasters/
 
 EOF
 
-    cd "$src"/log/msr/jobs
+    # cd "$src"/log/msr/jobs
     /usr/local/torque-2.3.7/bin/qsub "$job_path"
 
     echo "Running job..."
