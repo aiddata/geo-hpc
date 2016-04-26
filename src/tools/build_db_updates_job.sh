@@ -63,9 +63,9 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo "$PBS_JOBID"
-set JOBID=`echo $PBS_JOBID | sed 's/[.].*$//'`
+echo "$PBS_JOBID" | sed 's/[.].*$//'
+set JOBID=`echo "$PBS_JOBID" | sed 's/[.].*$//'`
 
-echo "\n"
 echo Job id:
 echo "$JOBID"
 echo "$PBS_JOBID"
