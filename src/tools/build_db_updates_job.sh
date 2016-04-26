@@ -24,6 +24,7 @@ else
     mkdir -p $job_dir
 
     updated=0
+    shopt -s nullglob
     for i in "$job_dir"/*.job; do
         updated=1
         cat "$i"
@@ -57,7 +58,7 @@ cat <<EOF >> "$job_path"
 #PBS -j oe
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
 
-bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp
+bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 
 EOF
 
