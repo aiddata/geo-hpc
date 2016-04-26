@@ -8,6 +8,7 @@ timestamp=$2
 jobtime=$(date +%H%M%S)
 
 printf "%0.s-" {1..80}
+echo -e "\n"
 
 
 # check if job needs to be run
@@ -61,12 +62,12 @@ cat <<EOF >> "$job_path"
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
 #PBS -V
 
-echo $PBS_JOBID
+echo "$PBS_JOBID"
 JOBID=`echo $PBS_JOBID | sed 's/[.].*$//'`
 
 echo "\n"
 echo Job id:
-echo $JOBID
+echo "$JOBID"
 
 bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 
