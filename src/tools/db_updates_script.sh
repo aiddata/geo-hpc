@@ -17,7 +17,7 @@ echo -e "\n *** Running update_extract_queue.py... \n"  #>> "$output_path"
 python $src/asdf/src/tools/update_extract_queue.py "$branch" #2>&1 | tee 1>> "$output_path"
 
 echo -e "\n *** Running update_msr_queue.py... \n" #>> "$output_path"
-# python $src/asdf/src/tools/update_msr_queue.py "$branch" 2>&1 | tee 1>> "$output_path"
+python $src/asdf/src/tools/update_msr_queue.py "$branch" #2>&1 | tee 1>> "$output_path"
 
 echo -e "\n" #>> "$output_path"
 echo $(date) #>> "$output_path"
@@ -30,6 +30,7 @@ echo -e "\nDone \n" #>> "$output_path"
 
 JOBID=$(echo $PBS_JOBID | sed 's/[.].*$//')
 
-
+printf "%0.s-" {1..40}
+echo -e "\n"
 cat ${HOME}/ax-update-$branch.o$JOBID >> $src/log/db_updates/$timestamp.db_updates.log
 rm ${HOME}/ax-update-$branch.o$JOBID

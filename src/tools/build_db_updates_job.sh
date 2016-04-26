@@ -7,20 +7,23 @@ timestamp=$2
 
 jobtime=$(date +%H%M%S)
 
-printf "%0.s-" {1..80}
-echo -e "\n"
-
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
 if echo "$qstat" | grep -q 'ax-update-'"$branch"; then
 
+    printf "%0.s-" {1..40}
+    echo -e "\n"
+
     echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
     echo "$qstat"
     echo -e "\n"
 
 else
+
+    printf "%0.s-" {1..80}
+    echo -e "\n"
 
     src="${HOME}"/active/"$branch"
 
