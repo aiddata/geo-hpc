@@ -61,6 +61,20 @@ job = mpi_utility.NewParallel()
 request = 0
 
 if job.rank == 0:
+
+    def get_version():
+        vfile = os.path.join(
+            os.path.dirname(__file__), "_version.py")
+        with open(vfile, "r") as vfh:
+            vline = vfh.read()
+        vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
+        match = re.search(vregex, vline, re.M)
+        if match:
+            return match.group(1)
+        else:
+            raise RuntimeError("Unable to find version string in {}.".format(vfile))
+
+
     import pymongo
 
     # -------------------------------------
@@ -226,19 +240,6 @@ def make_dir(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
-
-
-def get_version():
-    vfile = os.path.join(
-        os.path.dirname(__file__), "_version.py")
-    with open(vfile, "r") as vfh:
-        vline = vfh.read()
-    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    match = re.search(vregex, vline, re.M)
-    if match:
-        return match.group(1)
-    else:
-        raise RuntimeError("Unable to find version string in {}.".format(vfile))
 
 
 def str_sha1_hash(hash_str):
