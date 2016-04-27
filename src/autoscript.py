@@ -51,12 +51,14 @@ from msr_utility import CoreMSR
 
 # =============================================================================
 # =============================================================================
-
+# basic init and find request
 
 # from mpi4py import MPI
 import mpi_utility
 
 job = mpi_utility.NewParallel()
+
+request = 0
 
 if job.rank == 0:
     import pymongo
@@ -90,98 +92,9 @@ if job.rank == 0:
         sys.exit("connection status error: " + str(config.connection_error))
 
 
-
-
-# =============================================================================
-# =============================================================================
-
-
-def str_sha1_hash(hash_str):
-
-    hash_builder = hashlib.sha1()
-    hash_builder.update(hash_str)
-    hash_sha1 = hash_builder.hexdigest()
-    return hash_sha1
-
-
-def make_dir(path):
-    """Make directory.
-
-    Args:
-        path (str): absolute path for directory
-
-    Raise error if error other than directory exists occurs.
-    """
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
-
-
-# def log(msg):
-#     """Add message to msr log.
-
-#     Args:
-#         msg (str): message to add to log
-#     """
-#     msg = str(msg)
-
-
-def quit(msg):
-    """Quit msr job.
-
-    Args:
-        msg (str): message to add to log upon exiting
-
-    Function also manages error reporting and cleans
-    up / moves request files.
-    """
-    # e_request_basename = os.path.basename(request_path)
-
-    # if e_request_basename == '':
-    #     e_request_basename = 'unknown'
-
-    # e_request_basename_split = os.path.splitext(e_request_basename)
-
-    # error_dir = e_request_basename_split[0] +"_"+ str(Ts)
-
-    # make error dir
-    # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
-    # make_dir()
-
-    # if os.path.isfile(request_path):
-        # move request to error_dir
-        #
-
-    # add error file to error_dir
-    #
-
-    sys.exit(msg)
-
-
-def get_version():
-    vfile = os.path.join(
-        os.path.dirname(__file__), "_version.py")
-    with open(vfile, "r") as vfh:
-        vline = vfh.read()
-    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    match = re.search(vregex, vline, re.M)
-    if match:
-        return match.group(1)
-    else:
-        raise RuntimeError("Unable to find version string in {}.".format(vfile))
-
-
-# =============================================================================
-# =============================================================================
-# GENERAL INIT
-
-# validate request and dataset
-# init, inputs and variables
-
-# check for request
-if job.rank == 0:
+    # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # find request
 
     # import pymongo
     client = pymongo.MongoClient(config.server)
@@ -250,60 +163,90 @@ if job.rank == 0:
 
     print 'request found'
 
-    # request = msr.find_one_and_update({
-    #     'hash':"b2076778939df0791f6aa101fcd5582a2d1a789c"
-    # }, {
-    #     '$set': {'status': 2}
-    # }, sort=[("priority", -1), ("submit_time", 1)])
 
-    # print request
-
-else:
-    request = 0
+# ensure workers do not proceed until master successfully finds request
+job.comm.Barrier()
 
 
-request = job.comm.bcast(request, root=0)
+# =============================================================================
+# =============================================================================
+# GENERAL FUNCTIONS
 
-if request is None:
-    quit("no jobs found in queue")
+def quit(msg):
+    """Quit msr job.
 
-elif request == 'Error':
-    quit("error updating request status in mongodb")
+    Args:
+        msg (str): message to add to log upon exiting
 
-elif request == 0:
-    quit("error getting request from master")
+    Function also manages error reporting and cleans
+    up / moves request files.
+    """
+    # e_request_basename = os.path.basename(request_path)
 
+    # if e_request_basename == '':
+    #     e_request_basename = 'unknown'
 
-# -------------------------------------
-# lookup release path
+    # e_request_basename_split = os.path.splitext(e_request_basename)
 
-release_path = None
-release_preamble = None
-iso3 = None
+    # error_dir = e_request_basename_split[0] +"_"+ str(Ts)
 
-if job.rank == 0:
-    release_data = asdf.find({'name': request['dataset']})
+    # make error dir
+    # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
+    # make_dir()
 
-    release_path = release_data[0]['base']
-    release_preamble = release_data[0]['data_set_preamble']
+    # if os.path.isfile(request_path):
+        # move request to error_dir
+        #
 
-    print release_path
-    print release_preamble
+    # add error file to error_dir
+    #
 
-    # make sure release path exists
-    if not os.path.isdir(release_path):
-        quit("release path specified not found: " + release_path)
-
-    if release_preamble not in config.release_gadm:
-        quit("release premable not found in config: " + release_preamble)
-
-    iso3 = config.release_gadm[release_preamble]
+    sys.exit(msg)
 
 
-release_path = job.comm.bcast(release_path, root=0)
-release_preamble = job.comm.bcast(release_preamble, root=0)
-iso3 = job.comm.bcast(iso3, root=0)
+# def log(msg):
+#     """Add message to msr log.
 
+#     Args:
+#         msg (str): message to add to log
+#     """
+#     msg = str(msg)
+
+
+def make_dir(path):
+    """Make directory.
+
+    Args:
+        path (str): absolute path for directory
+
+    Raise error if error other than directory exists occurs.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
+def get_version():
+    vfile = os.path.join(
+        os.path.dirname(__file__), "_version.py")
+    with open(vfile, "r") as vfh:
+        vline = vfh.read()
+    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
+    match = re.search(vregex, vline, re.M)
+    if match:
+        return match.group(1)
+    else:
+        raise RuntimeError("Unable to find version string in {}.".format(vfile))
+
+
+def str_sha1_hash(hash_str):
+
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_str)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
 
 
 # =============================================================================
@@ -360,6 +303,7 @@ def tmp_worker_job(self, task_id):
                 'value'] += tmp_value
 
 
+    # any non-country polygon
     elif pg_type in core.agg_types:
 
         # for each row generate grid based on bounding box of geometry
@@ -788,6 +732,54 @@ def tmp_master_final(self):
 
 # =============================================================================
 # =============================================================================
+# INIT
+
+# validate request and dataset
+# init, inputs and variables
+
+
+request = job.comm.bcast(request, root=0)
+
+if request is None:
+    quit("no jobs found in queue")
+
+elif request == 'Error':
+    quit("error updating request status in mongodb")
+
+elif request == 0:
+    quit("error getting request from master")
+
+
+# -------------------------------------
+# lookup release path
+
+release_path = None
+release_preamble = None
+iso3 = None
+
+if job.rank == 0:
+    release_data = asdf.find({'name': request['dataset']})
+
+    release_path = release_data[0]['base']
+    release_preamble = release_data[0]['data_set_preamble']
+
+    print release_path
+    print release_preamble
+
+    # make sure release path exists
+    if not os.path.isdir(release_path):
+        quit("release path specified not found: " + release_path)
+
+    if release_preamble not in config.release_gadm:
+        quit("release premable not found in config: " + release_preamble)
+
+    iso3 = config.release_gadm[release_preamble]
+
+
+release_path = job.comm.bcast(release_path, root=0)
+release_preamble = job.comm.bcast(release_preamble, root=0)
+iso3 = job.comm.bcast(iso3, root=0)
+
 
 # -------------------------------------
 
@@ -866,7 +858,7 @@ cols, rows = master_grid[0]
 
 # init grid reference object
 grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0,
-                                            round_points=False)
+                                            round_points=True)
 
 grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat),
                                    axis=1)

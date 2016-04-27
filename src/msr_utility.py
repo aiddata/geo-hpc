@@ -182,14 +182,14 @@ class CoreMSR():
         try:
             value = float(value)
         except:
-            sys.exit("pixel size given could not be converted to float: "
-                     + str(value))
+            raise Exception("pixel size given could not be converted to " +
+                            "float: " + str(value))
 
         # check for valid pixel size
         # examples of valid pixel sizes:
         # 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
         if (1/value) != int(1/value):
-            sys.exit("invalid pixel size: "+str(value))
+            raise Exception("invalid pixel size: "+str(value))
 
         self.pixel_size = value
         self.psi = 1/value
@@ -208,7 +208,7 @@ class CoreMSR():
             self.adm0 = shape(shp)
             self.prep_adm0 = prep(self.adm0)
         else:
-            sys.exit("invalid adm0 given")
+            raise Exception("invalid adm0 given")
 
 
     def load_csv(self, path):
@@ -278,12 +278,13 @@ class CoreMSR():
             if type(loc) == str:
                 print loc
 
-            sys.exit("merge_data - error opening files")
+            raise Exception("merge_data - error opening files")
 
 
         # make sure merge id field exists in both files
         if not merge_id in amp or not merge_id in loc:
-            sys.exit("merge_data - merge field not found in amp or loc files")
+            raise Exception("merge_data - merge field not found in amp or " +
+                            "loc files")
 
         # convert merge id field to string to prevent potential type issues
         amp[merge_id] = amp[merge_id].astype(str)
@@ -298,7 +299,8 @@ class CoreMSR():
         # make sure merge dataframe has longitude and latitude fields
         # so it can be converted to geodataframe later
         if not "longitude" in tmp_merged or not "latitude" in tmp_merged:
-            sys.exit("merge_data - latitude and longitude fields not found")
+            raise Exception("merge_data - latitude and longitude fields " +
+                            "not found")
 
         # make sure option fields are present
         if field_ids == None:
@@ -306,7 +308,7 @@ class CoreMSR():
 
         for field_id in field_ids:
             if not field_id in tmp_merged:
-                sys.exit("merge_data - required code field not found")
+                raise Exception("merge_data - required code field not found")
 
         return tmp_merged
 
@@ -330,9 +332,8 @@ class CoreMSR():
     def prep_data(self, data_directory):
 
         df_merged = self.merge_data(
-            data_directory,
-            "project_id",
-            (self.code_field_1, self.code_field_2, self.code_field_3, "project_location_id"),
+            data_directory, "project_id", (self.code_field_1,
+            self.code_field_2, self.code_field_3, "project_location_id"),
             self.only_geocoded)
 
 
@@ -500,10 +501,10 @@ class CoreMSR():
             If not shape is found, return 0.
         """
         if not hasattr(shp, 'geom_type'):
-            sys.exit("CoreMSR [get_shape_within] : invalid shp given")
+            raise Exception("CoreMSR [get_shape_within] : invalid shp given")
 
         if not isinstance(polys, list):
-            sys.exit("CoreMSR [get_shape_within] : invalid polys given")
+            raise Exception("CoreMSR [get_shape_within] : invalid polys given")
 
         for poly in polys:
             tmp_poly = shape(poly)
@@ -524,10 +525,11 @@ class CoreMSR():
         Depends on prep_adm0 being defined in environment.
         """
         if not hasattr(shp, 'geom_type'):
-            sys.exit("CoreMSR [is_in_country] : invalid shp given")
+            raise Exception("CoreMSR [is_in_country] : invalid shp given")
 
         if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
-            sys.exit("CoreMSR [is_in_country] : invalid prep_adm0 found")
+            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 " +
+                            "found")
 
         return self.prep_adm0.contains(shp)
 
@@ -754,7 +756,7 @@ class CoreMSR():
 
 
         if not hasattr(geom, 'geom_type'):
-            sys.exit("CoreMSR [geom_to_colrows] : invalid geom")
+            raise Exception("CoreMSR [geom_to_colrows] : invalid geom")
 
 
         # poly grid pixel size and poly grid pixel size inverse
