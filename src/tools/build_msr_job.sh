@@ -13,6 +13,9 @@ qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
 if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
 
+    printf "%0.s-" {1..40}
+    echo -e "\n"
+
     echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
     echo "$qstat"
     echo -e "\n"
