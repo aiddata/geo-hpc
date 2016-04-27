@@ -312,9 +312,6 @@ iso3 = job.comm.bcast(iso3, root=0)
 
 def tmp_master_init(self):
 
-    # build output directories
-    make_dir(dir_working)
-
     # record runtime of general init
     core.times['init'] = int(time.time())
     core.durations['init'] = core.times['init'] - core.times['start']
@@ -739,6 +736,8 @@ def tmp_master_final(self):
            str(int(core.durations['surf']%60)) +'s')
     print '\n'
 
+    # build output directories
+    make_dir(dir_working)
 
     # run final output gen functions
     complete_final_raster()
