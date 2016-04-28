@@ -736,6 +736,9 @@ def tmp_master_final(self):
     }, upsert=False)
 
     print request['_id']
+    print request['hash']
+    print request
+
     print update_msr.raw_result
 
 
