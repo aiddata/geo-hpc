@@ -265,6 +265,7 @@ class NewParallel():
 
             # distribute work
             while closed_workers < num_workers:
+                active_workers = num_workers - closed_workers
                 worker_data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.status)
                 source = self.status.Get_source()
                 tag = self.status.Get_tag()
@@ -292,7 +293,7 @@ class NewParallel():
                     # ==================================================
 
                 elif tag == self.tags.EXIT:
-                    print("Master - worker %d exited. (%d)" % (source, num_workers))
+                    print("Master - worker %d exited. (%d)" % (source, active_workers))
                     closed_workers += 1
 
                 elif tag == self.tags.ERROR:
