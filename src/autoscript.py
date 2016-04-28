@@ -386,8 +386,8 @@ def tmp_worker_job(self, task_id):
         except:
             for i in agg_df.index:
                 if i not in tmp_grid_gdf.index:
-                print 'bad grid index'
-                print i
+                    print 'bad grid index'
+                    print i
 
 
     # -------------------------------------
