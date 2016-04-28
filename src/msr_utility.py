@@ -34,12 +34,12 @@ class CoreMSR():
                             values in lookup dict
         code_field_2 (str): secondary field name associated with
                             values in lookup dict
-        not_geocoded (str): agg_type definition for non geocoded
+        not_geocoded (str): geom_type definition for non geocoded
                             projects. can either allocated at country
                             level (use: "country") or
                             ignored (use: "None")
 
-        agg_types (List[str]): aggregation types used in lookup dict
+        geom_types (List[str]): aggregation types used in lookup dict
         lookup (dict):  precision and feature code values (uses default
                         if feature code not listed)
                         - buffer values in meters
@@ -96,7 +96,7 @@ class CoreMSR():
             self.not_geocoded = "None"
 
 
-        self.agg_types = ["point", "buffer", "adm"]
+        self.geom_types = ["point", "buffer", "adm"]
 
 
         # self.code_field_1 = "location_class"
@@ -324,9 +324,14 @@ class CoreMSR():
 
         df_adjusted = self.adjust_aid(df_filtered, filters)
 
-        df_final = self.assign_geometries(df_adjusted)
+        df_geom = self.assign_geom_type(df_adjusted)
 
-        return df_final
+        # df_geom['index'] = df_geom['project_location_id']
+        df_geom['task_ids'] = range(0, len(df_geom))
+        df_geom['index'] = range(0, len(df_geom))
+        df_geom = df_geom.set_index('index')
+
+        return df_geom
 
 
     def prep_data(self, data_directory):
@@ -423,29 +428,18 @@ class CoreMSR():
         return df_adjusted
 
 
-    def assign_geometries(self, df_adjusted):
+    def assign_geom_type(self, df_adjusted):
+
+        df_geom = df_adjusted.copy(deep=True)
 
         # add geom columns
-        df_adjusted["agg_type"] = pd.Series(["None"] * len(df_adjusted))
-        df_adjusted["agg_geom"] = pd.Series(["None"] * len(df_adjusted))
+        df_geom["geom_type"] = pd.Series(["None"] * len(df_geom))
 
-        df_adjusted.agg_type = df_adjusted.apply(lambda x: self.get_geom_type(
+        df_geom.geom_type = df_geom.apply(lambda x: self.get_geom_type(
             x[self.is_geocoded], x[self.code_field_1], x[self.code_field_2],
             x[self.code_field_3]), axis=1)
 
-        df_adjusted.agg_geom = df_adjusted.apply(lambda x: self.get_geom_val(
-            x.agg_type, x[self.code_field_1], x[self.code_field_2],
-            x[self.code_field_3], x.longitude, x.latitude), axis=1)
-
-        df_final = df_adjusted.loc[
-            df_adjusted.agg_geom != "None"].copy(deep=True)
-
-        # df_final['index'] = df_final['project_location_id']
-        df_final['task_ids'] = range(0, len(df_final))
-        df_final['index'] = range(0, len(df_final))
-        df_final = df_final.set_index('index')
-
-        return df_final
+        return df_geom
 
 
     def get_geom_type(self, is_geo, code_1, code_2, code_3):
@@ -629,11 +623,11 @@ class CoreMSR():
                 return 0
 
 
-    def get_geom_val(self, agg_type, code_1, code_2, code_3, lon, lat):
+    def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
         """Manage finding geometry for point based on geometry type.
 
         Args:
-            agg_type (str) : geometry type
+            geom_type (str) : geometry type
             code_1 (str) : location class code
             code_2 (str) : location type code
             code_3 (str) : geographic exactness code
@@ -648,13 +642,13 @@ class CoreMSR():
         Country types can simply return the adm0 attribute.
         Unrecognized types return None.
         """
-        if agg_type == "None":
+        if geom_type == "None":
             return "None"
 
-        elif agg_type == "country":
+        elif geom_type == "country":
             return self.adm0
 
-        elif agg_type in self.agg_types:
+        elif geom_type in self.geom_types:
 
             code_1 = str(int(code_1))
             code_2 = str(code_2)
@@ -668,7 +662,7 @@ class CoreMSR():
             return tmp_geom
 
         else:
-            print "agg_type not recognized: " + agg_type
+            print "geom_type not recognized: " + geom_type
             return "None"
 
 

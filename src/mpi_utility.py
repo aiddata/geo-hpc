@@ -292,7 +292,7 @@ class NewParallel():
                     # ==================================================
 
                 elif tag == self.tags.EXIT:
-                    print("Master - worker %d exited." % source)
+                    print("Master - worker %d exited. (%d)" % (source, num_workers))
                     closed_workers += 1
 
                 elif tag == self.tags.ERROR:

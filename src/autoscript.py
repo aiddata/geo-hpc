@@ -142,7 +142,8 @@ if job.rank == 0:
                 # 'hash': 'f1fdd4f63dc52132ece0bda0156d95c5dc0f2db1'#,
                 'status': 0,
                 'priority': {'$lt': 0}
-            }, sort=[("priority", -1), ("percentage", -1)])
+            }, sort=[("priority", -1), ("percentage", 1)])
+            # }, sort=[("priority", -1), ("percentage", -1)])
 
 
         print find_request
@@ -308,14 +309,24 @@ def tmp_worker_job(self, task_id):
     elif pg_type in core.agg_types:
 
         # for each row generate grid based on bounding box of geometry
-        pg_geom = pg_data.agg_geom
+        pg_geom = pg_data.geom_val
+
+
+        pg_geom = core.get_geom_val(
+            pg_data.geom_type, pg_data[core.code_field_1],
+            pg_data[core.code_field_2], pg_data[core.code_field_3],
+            pg_data.longitude, pg_data.latitude)
+
+        if geom_type is None:
+            sys.exit("Geom is none" + str(pg_data['project_location_id']))
 
         try:
             pg_geom = shape(pg_geom)
         except:
+            print str(pg_data['project_location_id'])
             print type(pg_geom)
             print pg_geom
-            sys.exit("!!!")
+            sys.exit("Geom is invalid")
 
         # factor used to determine subgrid size
         # relative to output grid size
@@ -374,9 +385,9 @@ def tmp_worker_job(self, task_id):
 
         except:
             for i in agg_df.index:
-                print 'bad index iters'
+                if i not in tmp_grid_gdf.index:
+                print 'bad grid index'
                 print i
-                print i in tmp_grid_gdf.index
 
 
     # -------------------------------------
@@ -474,7 +485,7 @@ def complete_unique_geoms():
     # that project location could receive
     geo_df["dollars"] = active_data["adjusted_aid"]
     # geometry for each project location
-    geo_df["geometry"] = gpd.GeoSeries(active_data["agg_geom"])
+    geo_df["geometry"] = gpd.GeoSeries(active_data["geom_val"])
 
     # # write full to geojson
     # full_geo_json = geo_df.to_json()
@@ -828,7 +839,27 @@ dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
 
-task_id_list = list(active_data['task_ids'])
+task_id_list = None
+
+if job.rank == 0:
+
+    active_data["geom_val"] = pd.Series(["None"] * len(active_data))
+
+    active_data.geom_val = active_data.apply(lambda x: core.get_geom_val(
+        x.geom_type, x[self.code_field_1], x[self.code_field_2],
+        x[self.code_field_3], x.longitude, x.latitude), axis=1)
+
+    active_data = active_data.loc[
+        active_data.geom_val != "None"].copy(deep=True)
+
+    task_id_list = list(active_data['task_ids'])
+
+
+task_id_list = job.comm.bcast(task_id_list, root=0)
+
+
+if task_id_list is None:
+    quit("task id list is missing")
 
 if job.rank == 0:
     print str(len(task_id_list)) + " tasks to process..."
