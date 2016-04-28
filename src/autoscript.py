@@ -316,7 +316,7 @@ def tmp_worker_job(self, task_id):
             pg_data[core.code_field_2], pg_data[core.code_field_3],
             pg_data.longitude, pg_data.latitude)
 
-        if geom_type is None:
+        if pg_geom is None:
             sys.exit("Geom is none" + str(pg_data['project_location_id']))
 
         try:
@@ -861,7 +861,8 @@ if task_id_list is None:
     quit("task id list is missing")
 
 if job.rank == 0:
-    print str(len(task_id_list)) + " tasks to process..."
+    print str(len(task_id_list)) + " tasks to process."
+    print "Preparing main grid..."
 
 
 # =============================================================================
@@ -912,6 +913,10 @@ dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/'
 # RUN MPI
 
 # init / run job
+
+if job.rank == 0:
+    print "Starting to process tasks..."
+
 
 # job = NewParallel()
 job.set_task_list(task_id_list)
