@@ -846,8 +846,8 @@ if job.rank == 0:
     active_data["geom_val"] = pd.Series(["None"] * len(active_data))
 
     active_data.geom_val = active_data.apply(lambda x: core.get_geom_val(
-        x.geom_type, x[self.code_field_1], x[self.code_field_2],
-        x[self.code_field_3], x.longitude, x.latitude), axis=1)
+        x.geom_type, x[core.code_field_1], x[core.code_field_2],
+        x[core.code_field_3], x.longitude, x.latitude), axis=1)
 
     active_data = active_data.loc[
         active_data.geom_val != "None"].copy(deep=True)
