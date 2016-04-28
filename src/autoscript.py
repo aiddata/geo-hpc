@@ -309,8 +309,7 @@ def tmp_worker_job(self, task_id):
     elif pg_type in core.geom_types:
 
         # for each row generate grid based on bounding box of geometry
-        pg_geom = pg_data.geom_val
-
+        # pg_geom = pg_data.geom_val
 
         pg_geom = core.get_geom_val(
             pg_data.geom_type, pg_data[core.code_field_1],
