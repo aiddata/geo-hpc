@@ -277,7 +277,7 @@ def tmp_worker_job(self, task_id):
     task = task_id_list[task_id]
 
     pg_data = active_data.loc[task]
-    pg_type = pg_data.agg_type
+    pg_type = pg_data.geom_type
 
     print (str(self.rank) + 'running pg_type: ' + pg_type +
            '('+ str(pg_data['project_location_id']) +')')
@@ -306,7 +306,7 @@ def tmp_worker_job(self, task_id):
 
 
     # any non-country polygon
-    elif pg_type in core.agg_types:
+    elif pg_type in core.geom_types:
 
         # for each row generate grid based on bounding box of geometry
         pg_geom = pg_data.geom_val
@@ -581,7 +581,7 @@ def complete_options_json():
     add_to_json("not_geocoded", core.not_geocoded)
     add_to_json("code_field_1", core.code_field_1)
     add_to_json("code_field_2", core.code_field_2)
-    add_to_json("agg_types", core.agg_types)
+    add_to_json("geom_types", core.geom_types)
     add_to_json("lookup", core.lookup)
 
     # resulting spatial / table info
