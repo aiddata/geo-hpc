@@ -58,6 +58,7 @@ rtool_asdf.set_asdf_releases(branch)
 latest_releases = [i for i in rtool_asdf.get_latest_releases()
                    if i[0].split('_')[0] in active_preambles]
 
+print latest_releases
 
 # -------------------------------------
 
@@ -73,7 +74,8 @@ version = config.versions["mean-surface-rasters"]
 # set active datasets that are not in config to inactive
 c_asdf.update_many({
     'dataset': {'$nin': [i[0] for i in latest_releases]},
-    'active': 1
+    'active': 1,
+    'type': 'release'
 }, {
    '$set': {'active': 0}
 })
