@@ -153,12 +153,9 @@ class ExtractObject():
 
     Attributes (variable):
 
-        _extract_method (str): method for performing extracts (python, rpy2, Rscript)
-
         _vector_path (str): path to vector file
         _vector_extension (str): extension for vector file
         _vector_info (Tuple(str, str)): standardized tuple containing vector path/layer info
-        _r_vector : rpy2 vector object
 
         _extract_type (str): selected extract type (mean, max, etc.)
 
@@ -193,12 +190,10 @@ class ExtractObject():
 
         self._builder = builder
 
-        self._extract_method = None
 
         self._vector_path = None
         self._vector_extension = None
         self._vector_info = (None, None)
-        # self._r_vector = None
 
         self._extract_type = None
 
@@ -213,72 +208,6 @@ class ExtractObject():
         # self._raster_path = None
 
 
-    def set_extract_method(self, value):
-        """Set extract method.
-
-        Args:
-            value (str): extract method
-        """
-        # run init for specified extract method
-
-        if value == "python":
-            self._init_python()
-        # elif value == "rpy2":
-        #     self._init_rpy2()
-        # elif value == "rscript":
-        #     self._init_rscript()
-        else:
-            raise Exception("invalid extract method (" + value + ")")
-
-        self._extract_method = value
-
-
-    # load packages and init for specified extract method
-    def _init_python(self):
-        """Initialize python extracts."""
-        pass
-    #     # import rasterstats as rs
-    #     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    #     import rasterstats.main as rs
-
-
-    # def _init_rpy2(self):
-    #     # from rpy2.robjects.packages import importr
-    #     # from rpy2 import robjects
-
-    #     # try loading rpy2 packages, open vector file and other init
-    #     try:
-    #         # load packages
-    #         self.__rlib_rgdal = importr("rgdal")
-    #         self.__rlib_raster = importr("raster")
-
-    #         # list of valid extract types with r functions
-    #         self.__extract_funcs = {
-    #             "sum": robjects.r.sum,
-    #             "max": robjects.r.max,
-    #             "mean": robjects.r.mean
-    #         }
-
-    #         self._set_r_vector()
-
-    #     except:
-    #         raise Exception("rpy2 initialization failed")
-
-
-    # def _init_rscript(self):
-        # """Initialize Rscript extracts."""
-        # pass
-        # #     import subprocess as sp
-
-
-    # def _set_r_vector(self):
-    #     """Set _r_vector attribute.
-
-    #     Makes sure extract method is rpy2 and vector info has
-    #     been set, then sets _r_vector.
-    #     """
-    #     if not self._builder and self._extract_method == "rpy2" and self._vector_info != (None, None):
-    #         self._r_vector = self.__rlib_rgdal.readOGR(self._vector_info[0], self._vector_info[1])
 
 
     def set_vector_path(self, value):
@@ -289,9 +218,6 @@ class ExtractObject():
         Args:
             value (str): vector file path
         """
-        if self._extract_method == None:
-            raise Exception("set_vector_path: no extract method set")
-
         if not os.path.isfile(value):
             raise Exception("set_vector_path: vector does not exist (" + value + ")")
 
@@ -494,32 +420,8 @@ class ExtractObject():
     # --------------------------------------------------------------------
 
 
-    # run proper extract based on extract method
-    def run_extract(self, in_raster, in_output):
-        """Run extract.
-
-        Args:
-            in_raster (str): absolute path of raster file
-            in_output (str): absolute path for csv output of extract
-        """
-        # make sure all options are set
-        #
-
-        # print "running extract: " + in_output
-
-        if self._extract_method == "python":
-            return self._python_extract(in_raster, in_output)
-
-        # elif self._extract_method == "rscript":
-        #     return self._rscript_extract(in_raster, in_output)
-
-        # elif self._extract_method == "rpy2":
-        #     return self._rpy2_extract(in_raster, in_output)
-
-
-
     # run extract user rasterstats
-    def _python_extract(self, raster, output):
+    def run_extract(self, raster, output):
         """Run python extract
 
         Args:
@@ -565,70 +467,6 @@ class ExtractObject():
         Te_run = int(time.time() - Te_start)
 
         return (0, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
-
-
-    # !!! WARNING !!!
-    # Last time I tested this rpy2 was not running properly.
-    # Not sure if it was an issue running (no errors popped) or writing to csv.
-    # Did not look into it since we are switching over to full python for extracts.
-    # !!! WARNING !!!
-    # # run extract using rpy2
-    # def _rpy2_extract(self, raster, output):
-    #     """Set
-
-    #     Args:
-    #         (): x
-    #     """
-    #     try:
-    #         # open raster
-    #         r_raster = self.__rlib_raster.raster(raster)
-
-    #         # *** need to implement different kwargs based on extract type ***
-    #         if self._extract_type == "mean":
-    #             kwargs = {"fun":__extract_funcs[self._extract_type], "sp":True, "na.rm":True, "weights":True, "small":True}
-    #         else:
-    #             kwargs = {"fun":__extract_funcs[self._extract_type], "sp":True, "na.rm":True}
-
-    #         Te_start = int(time.time())
-
-    #         robjects.r.assign('r_extract', self.__rlib_raster.extract(r_raster, self._r_vector, **kwargs))
-
-    #         Te_run = int(time.time() - Te_start)
-    #         print 'extract ('+ output +') completed in '+ str(Te_run) +' seconds'
-
-
-    #         robjects.r.assign('r_output', output+".csv")
-
-    #         robjects.r('colnames(r_extract@data)[length(colnames(r_extract@data))] <- "ad_extract"')
-    #         robjects.r('write.table(r_extract@data, r_output, quote=T, row.names=F, sep=",")')
-
-    #         return 0, None
-
-    #     except:
-    #         return 1, "Rpy2 extract failed"
-
-
-    # # run R extract script using subprocess call
-    # def _rscript_extract(self, raster, output):
-    #     """Set
-
-    #     Args:
-    #         (): x
-    #     """
-    #     try:
-
-    #         # buildt command for Rscript
-    #         cmd = "Rscript extract.R " + self._vector_info[0] +" "+ self._vector_info[1] +" "+ raster +" "+ output +" "+ self._extract_type
-    #         print cmd
-
-    #         # spawn new process for Rscript
-    #         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
-    #         print sts
-    #          return  0, None
-
-    #     except sp.CalledProcessError as sts_err:
-    #         print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
-    #         return 1, "Rscript extract failed"
 
 
 

@@ -13,7 +13,7 @@ import mpi_utility
 
 job = mpi_utility.NewParallel()
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # import sys
 # import os
@@ -41,12 +41,11 @@ if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
 
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 def get_version():
-    vfile = os.path.join(
-        os.path.dirname(__file__), "_version.py")
+    vfile = os.path.join(os.path.dirname(__file__), "_version.py")
     with open(vfile, "r") as vfh:
         vline = vfh.read()
     vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
@@ -66,6 +65,8 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
+                       '/extracts/' + version.replace('.', '_'))
 
 
 default_extract_limit = 2
@@ -73,8 +74,8 @@ default_extract_limit = 2
 # default_extract_minimum = 1
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 
 # if something:
 #   check config/input/request for extract_limit parameter
@@ -89,10 +90,10 @@ if extract_limit == -1:
     extract_limit = job.size -1
 
 client = pymongo.MongoClient(config.server)
-asdf = client[config.asdf_db].data
-extracts = client[config.extracts_db].extracts
+c_asdf = client[config.asdf_db].data
+c_extracts = client[config.extracts_db].extracts
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # build extract list
 
@@ -108,7 +109,7 @@ for i in range(extract_limit):
         while search_attempt < search_limit:
 
             print 'finding request:'
-            find_request = extracts.find_one({
+            find_request = c_extracts.find_one({
                 'status': 0
             }, sort=[("priority", -1), ("submit_time", 1)])
 
@@ -118,7 +119,7 @@ for i in range(extract_limit):
                 request = None
                 break
 
-            request_accept = extracts.update_one({
+            request_accept = c_extracts.update_one({
                 '_id': find_request['_id'],
                 'status': find_request['status']
             }, {
@@ -174,7 +175,7 @@ for i in range(extract_limit):
 #     ]).limit(extract_limit)
 
 
-# --------------------------------------------------
+# -----------------------------------------------------------------------------
 
 qlist = []
 
@@ -185,7 +186,7 @@ for i in extract_list:
 
     tmp['bnd_name'] = i['boundary']
 
-    bnd_info = asdf.find(
+    bnd_info = c_asdf.find(
         {'name': tmp['bnd_name']},
         {'base': 1, 'resources': 1}).limit(1)[0]
 
@@ -196,7 +197,7 @@ for i in extract_list:
 
     tmp['raster_name'] = i['raster']
 
-    data_info = asdf.find(
+    data_info = c_asdf.find(
         {'options.mini_name': tmp['data_mini']},
         {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
 
@@ -212,14 +213,13 @@ for i in extract_list:
 
     tmp['extract_type'] = i['extract_type']
 
-    tmp['extract_method'] = 'python'
-    tmp['output_base'] = '/sciclone/aiddata10/REU/extracts'
+    tmp['output_base'] = general_output_base
 
     qlist.append(tmp)
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 
 
 def tmp_general_init(self):
@@ -271,14 +271,12 @@ def tmp_worker_job(self, task_id):
     task = self.task_list[task_id]
 
 
-    # ==================================================
+    # =================================
 
     # inputs (see jobscript_template comments for detailed
     # descriptions of inputs)
     # * = managed by ExtractObject
 
-    # extract method *
-    extract_method = task['extract_method']
 
     # absolute path of boundary file *
     bnd_absolute = task['bnd_absolute']
@@ -309,11 +307,10 @@ def tmp_worker_job(self, task_id):
     output_base = task['output_base']
 
 
-    # ==================================================
+    # =================================
 
     exo = extract_utility.ExtractObject()
 
-    exo.set_extract_method(extract_method)
     exo.set_vector_path(bnd_absolute)
 
     # exo.set_base_path(data_base)
@@ -323,7 +320,7 @@ def tmp_worker_job(self, task_id):
     exo.set_extract_type(extract_type)
 
 
-    # ==================================================
+    # =================================
 
     output_dir = (output_base + "/" + bnd_name + "/cache/" +
                   data_name +"/"+ exo._extract_type)
@@ -336,7 +333,7 @@ def tmp_worker_job(self, task_id):
             raise
 
 
-    # ==================================================
+    # =================================
 
     # generate raster path
     raster = data_absolute
@@ -363,7 +360,7 @@ def tmp_worker_job(self, task_id):
 
 
     # update status of item in extract queue
-    update_extract = extracts.update_one({
+    update_extract = c_extracts.update_one({
         '_id': task['_id']
     }, {
         '$set': {
