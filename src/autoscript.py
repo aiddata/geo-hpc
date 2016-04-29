@@ -123,6 +123,9 @@ if job.rank == 0:
         raise Exception("Config and src versions do not match")
 
 
+    general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
+
+
     print 'starting request search'
     search_limit = 5
     search_attempt = 0
@@ -205,7 +208,7 @@ def quit(msg):
     # error_dir = e_request_basename_split[0] +"_"+ str(Ts)
 
     # make error dir
-    # '/sciclone/aiddata10/REU/msr/queue/error/' + error_dir
+    #   general_output_base + '/error/' + error_dir
     # make_dir()
 
     # if os.path.isfile(request_path):
@@ -456,7 +459,7 @@ def complete_final_raster():
     out_mean_surf = np.array([sum_mean_surf.astype('float64')])
 
     # write geotif file
-    with rasterio.open(dir_working+"/raster.tif", "w", **meta) as dst:
+    with rasterio.open(dir_working + "/raster.tif", "w", **meta) as dst:
         dst.write(out_mean_surf)
 
 
@@ -487,7 +490,7 @@ def complete_unique_geoms():
 
     # # write full to geojson
     # full_geo_json = geo_df.to_json()
-    # full_geo_file = open(dir_working+"/full.geojson", "w")
+    # full_geo_file = open(dir_working + "/full.geojson", "w")
     # json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
     # full_geo_file.close()
 
@@ -544,7 +547,7 @@ def complete_unique_geoms():
 
     # write unique to geojson
     unique_geo_json = unique_geo_df.to_json()
-    unique_geo_file = open(dir_working+"/unique.geojson", "w")
+    unique_geo_file = open(dir_working + "/unique.geojson", "w")
     json.dump(json.loads(unique_geo_json), unique_geo_file, indent=4)
     unique_geo_file.close()
 
@@ -627,7 +630,7 @@ def complete_options_json():
     write_options["request"] = tmp_request
 
     # write summary.json
-    json_out = dir_working+'/summary.json'
+    json_out = dir_working + '/summary.json'
     json_handle = open(json_out, 'w')
     json.dump(write_options, json_handle, sort_keys=False, indent=4,
               ensure_ascii=True)
@@ -667,13 +670,13 @@ def complete_options_json():
 
 def complete_outputs():
 
-    msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
-                    + request['dataset'] +'/'+ request['hash'])
+    dir_final = (general_output_base + '/done/' +
+                    request['dataset'] + '/' + request['hash'])
 
-    if os.path.isdir(msr_data_dir):
-        shutil.rmtree(msr_data_dir)
+    if os.path.isdir(dir_final):
+        shutil.rmtree(dir_final)
 
-    shutil.move(dir_working, msr_data_dir)
+    shutil.move(dir_working, dir_final)
 
 
 def tmp_master_final(self):
@@ -906,8 +909,8 @@ sum_mean_surf = 0
 all_mean_surf = []
 
 # dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = ('/sciclone/aiddata10/REU/msr/queue/active/'
-               + request['dataset'] +'_'+ request['hash'])
+dir_working = (general_output_base + '/active/' +
+               request['dataset'] +'_'+ request['hash'])
 
 
 # =============================================================================
