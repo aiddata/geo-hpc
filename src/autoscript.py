@@ -63,8 +63,7 @@ request = 0
 if job.rank == 0:
 
     def get_version():
-        vfile = os.path.join(
-            os.path.dirname(__file__), "_version.py")
+        vfile = os.path.join(os.path.dirname(__file__), "_version.py")
         with open(vfile, "r") as vfh:
             vline = vfh.read()
         vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
