@@ -73,7 +73,7 @@ version = config.versions["mean-surface-rasters"]
 
 # set active datasets that are not in config to inactive
 c_asdf.update_many({
-    'dataset': {'$nin': [i[0] for i in latest_releases]},
+    'name': {'$nin': [i[0] for i in latest_releases]},
     'active': 1,
     'type': 'release'
 }, {
