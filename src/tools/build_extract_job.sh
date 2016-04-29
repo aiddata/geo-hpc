@@ -3,56 +3,76 @@
 
 branch=$1
 
-# timestamp=$2
-timestamp=$(date +%Y%m%d.%s)
+timestamp=$2
 
-
-echo '=================================================='
-echo Running extract-scripts job builder for branch: "$branch"
-echo Timestamp: $(date) #'('"$timestamp"')'
-echo -e "\n"
+jobtime=$(date +%H%M%S)
 
 
 # check if job needs to be run
-echo 'Checking for existing extract job (asdf-extract-'"$branch"')...'
-/usr/local/torque-2.3.7/bin/qstat -nu $USER
+qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
-if /usr/local/torque-2.3.7/bin/qstat -nu $USER | grep -q 'asdf-extract-'"$branch"; then
+if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
 
-    echo "Existing job found"
+    printf "%0.s-" {1..40}
+    echo -e "\n"
+
+    echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
+    echo "$qstat"
     echo -e "\n"
 
 else
 
     src="${HOME}"/active/"$branch"
 
-    echo "No existing job found."
+    job_dir="$src"/log/extract/jobs
+    mkdir -p $job_dir
+
+    updated=0
+    shopt -s nullglob
+    for i in "$job_dir"/*.job; do
+        updated=1
+        cat "$i"
+        rm "$i"
+    done
+
+    if [ "$updated" == 1 ]; then
+        printf "%0.s-" {1..80}
+        echo -e "\n"
+    fi
+
+    echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
 
     echo "Checking for items in extract queue..."
     queue_status=$(python "$src"/asdf/src/tools/check_extract_queue.py "$branch")
 
-    if [ "$queue_status" = "error" ]; then
-        echo '... error connecting to extract queue'
-        exit 1
+
+    if [ "$queue_status" != "ready" ]; then
+
+        if [ "$queue_status" = "error" ]; then
+            echo '... error connecting to extract queue'
+            exit 1
+        fi
+
+        if [ "$queue_status" = "empty" ]; then
+            echo '... extract queue empty'
+            exit 0
+        fi
+
+        echo '... unknown error checking extract queue'
+        exit 2
+
     fi
 
-    if [ "$queue_status" = "empty" ]; then
-        echo '... extract queue empty'
-        exit 0
-    fi
-
-    if [ "$queue_status" = "ready" ]; then
-        echo '... items found in queue'
-        echo -e "\n"
-    fi
+    echo '... items found in queue'
+    echo -e "\n"
 
     echo "Building job..."
 
-
-    mkdir -p "$src"/log/extract
-    #/jobs
-
     job_path=$(mktemp)
+
+    nodes=2
+    ppn=16
+    total=$(($nodes * $ppn))
 
 
 # NOTE: just leave this heredoc unindented
@@ -61,22 +81,19 @@ else
 #   (can use cat <<- EOF to strip leading tabs )
 
 cat <<EOF >> "$job_path"
-
 #!/bin/tcsh
-#PBS -N asdf-extract-$branch
-#PBS -l nodes=4:c18c:ppn=16
+#PBS -N ax-ex-$branch
+#PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=180:00:00
 #PBS -q alpha
 #PBS -j oe
-#PBS -o $src/log/extract/$timestamp.extract.log
-
-echo -e "\nJob id: $PBS_JOBID"
+#PBS -o $src/log/extract/jobs/$timestamp.$jobtime.extract.log
+#PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np 32 python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp
+mpirun --mca mpi_warn_on_fork 0 -np $total python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp
 
 EOF
-
 
     # cd "$src"/log/extract/jobs
     /usr/local/torque-2.3.7/bin/qsub "$job_path"

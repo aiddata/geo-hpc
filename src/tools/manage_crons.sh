@@ -93,8 +93,11 @@ init() {
     crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
 
 
-    build_msr_job_cron='*/2 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' build_msr_job #asdf'
-    crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
+    # build_msr_job_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' build_msr_job #asdf'
+    # crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
+
+    # build_extract_job_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/cron_wrapper.sh '"$branch"' build_extract_job #asdf'
+    # crontab -l | grep -v 'cron_wrapper.*'"$branch"'.*build_extract_job' | { cat; echo "$build_extract_job_cron"; } | crontab -
 
 }
 

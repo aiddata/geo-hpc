@@ -11,7 +11,7 @@ jobtime=$(date +%H%M%S)
 # check if job needs to be run
 qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
 
-if echo "$qstat" | grep -q 'ax-update-'"$branch"; then
+if echo "$qstat" | grep -q 'ax-dbu-'"$branch"; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -44,7 +44,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-update-$branch
+#PBS -N ax-dbu-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=180:00:00
 #PBS -q alpha
