@@ -16,22 +16,6 @@ DATA = os.path.join( os.path.dirname( os.path.abspath(__file__) ), 'data' )
 exo = ExtractObject()
 
 
-def test_set_extract_method():
-    print("!!")
-    exo.set_extract_method("python")
-
-    with pytest.raises(Exception):
-        exo.set_extract_method("test")
-
-    exo.set_extract_method("python")
-
-    # remember to set vector path for boundary in
-    # data folder to test loading rpy2 vector
-    # exo.set_extract_method("rpy2")
-    
-    # exo.set_extract_method("rscript")
-
-
 
 def test_set_vector_path():
 
@@ -39,12 +23,12 @@ def test_set_vector_path():
     exo._extract_method = None
     with pytest.raises(Exception):
         exo.set_vector_path('test.test')
-  
+
     # invalid file path
     exo._extract_method = "python"
     with pytest.raises(Exception):
         exo.set_vector_path('test.test')
-    
+
     # valid file path and invalid extenions
     # exo._set_vector_path(os.path.join(DATA, 'test.txt')
 
@@ -181,7 +165,7 @@ def test_set_file_mask():
     exo._base_path = "test"
     exo.set_file_mask("YYYY")
     with pytest.raises(Exception):
-        exo.set_file_mask("None")      
+        exo.set_file_mask("None")
 
 
 def test_extract_type():
