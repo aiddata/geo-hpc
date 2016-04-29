@@ -1,6 +1,10 @@
 guidelines for the aiddata spatial data framework
 
 
+fixed active states (active = 2)
+- will not be overwritten by automated scripts
+- example: manually set gadm bnd to active=2 and bnd is not included as active in config json. will not be set to inactive but is otherwise treated same as active=1 dataset
+
 --------------------------------------------------
 ## data preprocessing and asdf ingestion prep
 
