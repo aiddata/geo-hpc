@@ -694,10 +694,6 @@ def tmp_master_final(self):
     print '\n'
 
 
-    dir_working = (general_output_base + '/active/' +
-                   request['dataset'] +'_'+ request['hash'])
-
-
     # build output directories
     make_dir(dir_working)
 
@@ -779,6 +775,10 @@ release_preamble = None
 iso3 = None
 
 if job.rank == 0:
+
+    dir_working = (general_output_base + '/active/' +
+                   request['dataset'] +'_'+ request['hash'])
+
     release_data = asdf.find({'name': request['dataset']})
 
     release_path = release_data[0]['base']
@@ -917,6 +917,7 @@ if job.rank == 0:
     print "Starting to process tasks..."
     sum_mean_surf = 0
     all_mean_surf = []
+
 
 
 # job = NewParallel()
