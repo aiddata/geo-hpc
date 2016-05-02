@@ -154,21 +154,21 @@ if job.rank == 0:
             request = None
             break
 
-        request_accept = msr.update_one({
-            '_id': find_request['_id'],
-            'status': find_request['status']
-        }, {
-            '$set': {
-                'status': 2,
-                'update_time': int(time.time())
-            }
-        })
+        # request_accept = msr.update_one({
+        #     '_id': find_request['_id'],
+        #     'status': find_request['status']
+        # }, {
+        #     '$set': {
+        #         'status': 2,
+        #         'update_time': int(time.time())
+        #     }
+        # })
 
-        print request_accept.raw_result
+        # print request_accept.raw_result
 
-        if request_accept.acknowledged and request_accept.modified_count == 1:
-            request = find_request
-            break
+        # if request_accept.acknowledged and request_accept.modified_count == 1:
+        #     request = find_request
+        #     break
 
         search_attempt += 1
 
@@ -726,23 +726,23 @@ def tmp_master_final(self):
     output_obj = complete_options_json()
     complete_outputs()
 
-    # update status of request in msr queue
-    # and add output_obj to "output" field
-    update_msr = msr.update_one({
-        '_id': request['_id']
-    }, {
-        '$set': {
-            'status': 1,
-            'update_time': int(time.time()),
-            'info': output_obj
-        }
-    }, upsert=False)
+    # # update status of request in msr queue
+    # # and add output_obj to "output" field
+    # update_msr = msr.update_one({
+    #     '_id': request['_id']
+    # }, {
+    #     '$set': {
+    #         'status': 1,
+    #         'update_time': int(time.time()),
+    #         'info': output_obj
+    #     }
+    # }, upsert=False)
 
-    print request['_id']
-    print request['hash']
-    print request
+    # print request['_id']
+    # print request['hash']
+    # print request
 
-    print update_msr.raw_result
+    # print update_msr.raw_result
 
 
 
