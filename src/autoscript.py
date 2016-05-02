@@ -693,6 +693,11 @@ def tmp_master_final(self):
            str(int(core.durations['surf']%60)) +'s')
     print '\n'
 
+
+    dir_working = (general_output_base + '/active/' +
+                   request['dataset'] +'_'+ request['hash'])
+
+
     # build output directories
     make_dir(dir_working)
 
@@ -902,17 +907,6 @@ grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat),
 grid_gdf.set_index('index', inplace=True)
 
 
-# -------------------------------------
-# init for later (only used by master)
-
-sum_mean_surf = 0
-all_mean_surf = []
-
-# dir_working = os.path.join(branch_dir, log, msr, jobs)
-dir_working = (general_output_base + '/active/' +
-               request['dataset'] +'_'+ request['hash'])
-
-
 # =============================================================================
 # =============================================================================
 # RUN MPI
@@ -921,6 +915,8 @@ dir_working = (general_output_base + '/active/' +
 
 if job.rank == 0:
     print "Starting to process tasks..."
+    sum_mean_surf = 0
+    all_mean_surf = []
 
 
 # job = NewParallel()
