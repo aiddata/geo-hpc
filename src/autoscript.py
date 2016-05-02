@@ -172,6 +172,7 @@ if job.rank == 0:
 
         ###
         request = find_request
+        break
         ###
 
         search_attempt += 1
