@@ -111,8 +111,8 @@ if job.rank == 0:
 
     # import pymongo
     client = pymongo.MongoClient(config.server)
-    asdf = client[config.asdf_db].data
-    msr = client[config.msr_db].msr
+    c_asdf = client[config.asdf_db].data
+    c_msr = client[config.msr_db].msr
 
     tmp_v1 = config.versions["mean-surface-rasters"]
     tmp_v2 = get_version()
@@ -134,14 +134,14 @@ if job.rank == 0:
     while search_attempt < search_limit:
 
         print 'finding request:'
-        find_request = msr.find_one({
+        find_request = c_msr.find_one({
             'status': 0,
             'priority': {'$gte': 0}
         }, sort=[("priority", -1), ("submit_time", 1)])
 
         ###
         if find_request is None:
-            find_request = msr.find_one({
+            find_request = c_msr.find_one({
                 'hash': '980ae30d8cdeb8115ab34093cd49c499cbee4680',
                 # 'status': 0,
                 'priority': {'$lt': 0}
@@ -155,7 +155,7 @@ if job.rank == 0:
             request = None
             break
 
-        request_accept = msr.update_one({
+        request_accept = c_msr.update_one({
             '_id': find_request['_id'],
             'status': find_request['status']
         }, {
@@ -730,7 +730,7 @@ def tmp_master_final(self):
 
     # update status of request in msr queue
     # and add output_obj to "output" field
-    update_msr = msr.update_one({
+    update_msr = c_msr.update_one({
         '_id': request['_id']
     }, {
         '$set': {
@@ -781,7 +781,7 @@ if job.rank == 0:
     dir_working = (general_output_base + '/active/' +
                    request['dataset'] +'_'+ request['hash'])
 
-    release_data = asdf.find({'name': request['dataset']})
+    release_data = c_asdf.find({'name': request['dataset']})
 
     release_path = release_data[0]['base']
     release_preamble = release_data[0]['data_set_preamble']
@@ -936,7 +936,7 @@ job.run()
 # except Exception as err:
 #     print err
 #     # add error status to request in msr queue
-#     update_msr = msr.update_one({'hash': request['hash']},
+#     update_msr = c_msr.update_one({'hash': request['hash']},
 #                                 {'$set': {"status": -1,}},
 #                                 upsert=False)
 
