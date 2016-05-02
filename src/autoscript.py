@@ -134,6 +134,7 @@ if job.rank == 0:
     request = msr.find_one({
         'hash': 'e891e49f187d0d17a4b19d339fc034f0b2af5de8'
     })
+    print request
     ###
 
     # while search_attempt < search_limit:
