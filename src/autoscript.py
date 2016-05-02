@@ -132,7 +132,7 @@ if job.rank == 0:
 
     ###
     request = msr.find_one({
-        'hash': 'e891e49f187d0d17a4b19d339fc034f0b2af5de8'
+        'hash': '980ae30d8cdeb8115ab34093cd49c499cbee4680'
     })
     print request
     ###
