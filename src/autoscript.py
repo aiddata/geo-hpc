@@ -170,6 +170,10 @@ if job.rank == 0:
         #     request = find_request
         #     break
 
+        ###
+        request = find_request
+        ###
+
         search_attempt += 1
 
         print 'looking for another request...'
