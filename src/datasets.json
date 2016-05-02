@@ -106,6 +106,75 @@
         "data_name": "loss",
         "data_mini": "loss",
         "file_mask": "None"
+    },
+    "gain": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/gain/gain.tif",
+        "data_name": "gain",
+        "data_mini": "gain",
+        "file_mask": "None"
+    },
+    "lossyear": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossyear/lossyear.tif",
+        "data_name": "lossyear",
+        "data_mini": "lsyr",
+        "file_mask": "None"
+    },
+    "datamask": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/datamask/datamask.tif",
+        "data_name": "datamask",
+        "data_mini": "dmsk",
+        "file_mask": "None",
+        "categories": {
+            "0": "nodata",
+            "1": "land",
+            "2": "water"
+        }
+    },
+    "00forest25": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/00forest25/00forest25.tif",
+        "data_name": "00forest25",
+        "data_mini": "fc00",
+        "file_mask": "None"
+    },
+    "loss25": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/loss25/loss25.tif",
+        "data_name": "loss25",
+        "data_mini": "ls25",
+        "file_mask": "None"
+    },
+    "lossyr25": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossyr25/lossyr25.tif",
+        "data_name": "lossyr25",
+        "data_mini": "ly25",
+        "file_mask": "None",
+        "categories": {
+            "0": "noloss",
+            "1": "2001",
+            "2": "2002",
+            "3": "2003",
+            "4": "2004",
+            "5": "2005",
+            "6": "2006",
+            "7": "2007",
+            "8": "2008",
+            "9": "2009",
+            "10": "2010",
+            "11": "2011",
+            "12": "2012",
+            "13": "2013",
+            "14": "2014"
+        }
+    },
+    "lossgain": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossgain/lossgain.tif",
+        "data_name": "lossgain",
+        "data_mini": "lsgn",
+        "file_mask": "None",
+        "categories": {
+            "0": "nolossgain",
+            "1": "lossorgain",
+            "2": "lossandgain"
+        }
     }
 
 }

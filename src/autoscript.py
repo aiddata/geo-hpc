@@ -13,6 +13,7 @@ import mpi_utility
 
 job = mpi_utility.NewParallel()
 
+
 # -----------------------------------------------------------------------------
 
 # import sys
@@ -253,7 +254,8 @@ def tmp_master_final(self):
     # T_start2 = time.localtime()
     # print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
 
-    # merge_obj = extract_utility.MergeObject(input_json, os.path.dirname(input_json_path))
+    # merge_obj = extract_utility.MergeObject(input_json,
+    #                                         os.path.dirname(input_json_path))
     # merge_obj.build_merge_list()
     # merge_obj.run_merge()
 

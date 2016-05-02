@@ -1,49 +1,43 @@
 # generic runscript for sciclone extract jobs
 
-
-# from mpi4py import MPI
-from mpi_utility import *
-
 import sys
 import os
+import re
 import errno
-import json
 import time
+import json
 
-from collections import OrderedDict
+import extract_utility
 
-from extract_utility import *
+import mpi_utility
 
-
-# comm = MPI.COMM_WORLD
-# size = comm.Get_size()
-# rank = comm.Get_rank()
+job = mpi_utility.NewParallel()
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # load job and datasets json
 
 input_json_path = sys.argv[1]
 
 if not os.path.isfile(input_json_path):
-    sys.exit("builder.py has terminated : invalid job json path")
+    sys.exit("runscript.py has terminated : invalid input json path")
 
 input_json_path = os.path.abspath(input_json_path)
 
 input_file = open(input_json_path, 'r')
-input_json = json.load(input_file, object_pairs_hook=OrderedDict)
+input_json = json.load(input_file)
 input_file.close()
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-qlist = [(input_json['job']['datasets'].index(i), i['qlist'].index(j)) for i in input_json['job']['datasets'] for j in i['qlist']]
+qlist = [(input_json['job']['datasets'].index(i), i['qlist'].index(j))
+         for i in input_json['job']['datasets'] for j in i['qlist']]
 
 
-
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 
 
 def tmp_general_init(self):
@@ -79,7 +73,8 @@ def tmp_master_final(self):
     print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
 
 
-    merge_obj = MergeObject(input_json, os.path.dirname(input_json_path))
+    merge_obj = extract_utility.MergeObject(input_json,
+                                            os.path.dirname(input_json_path))
     merge_obj.build_merge_list()
     merge_obj.run_merge()
 
@@ -96,7 +91,7 @@ def tmp_master_final(self):
 def tmp_worker_job(self, task_id):
 
     task = self.task_list[task_id]
-        
+
     dataset_index = task[0]
     qlist_index = task[1]
 
@@ -110,11 +105,9 @@ def tmp_worker_job(self, task_id):
     # ==================================================
 
 
-    # inputs (see jobscript_template comments for detailed descriptions of inputs)
+    # inputs (see jobscript_template comments for detailed descriptions
+    #   of inputs)
     # * = managed by ExtractObject
-
-    # extract method *
-    extract_method = settings['extract_method']
 
     # absolute path of boundary file *
     bnd_absolute = settings['bnd_absolute']
@@ -144,9 +137,8 @@ def tmp_worker_job(self, task_id):
     # ==================================================
 
 
-    exo = ExtractObject()
+    exo = extract_utility.ExtractObject()
 
-    exo.set_extract_method(extract_method)
     exo.set_vector_path(bnd_absolute)
 
     exo.set_base_path(data_base)
@@ -159,7 +151,8 @@ def tmp_worker_job(self, task_id):
     # ==================================================
 
 
-    output_dir = output_base + "/" + bnd_name + "/cache/" + data_name +"/"+ exo._extract_type 
+    output_dir = (output_base + "/" + bnd_name + "/cache/" +
+                  data_name +"/"+ exo._extract_type)
 
     # creates directories
     try:
@@ -178,15 +171,19 @@ def tmp_worker_job(self, task_id):
         raster = exo._base_path +"/"+ item[1]
 
     # generate output path
-    # output = output_base + "/extracts/" + bnd_name + "/cache/" + data_name +"/"+ extract_type + "/extract_" + '_'.join([str(e) for e in item[0]])
-    output = output_dir + "/" + data_mini +"_"+ ''.join([str(e) for e in item[0]]) + exo._extract_options[exo._extract_type]
+    output = (output_dir + "/" + data_mini +"_"+
+              ''.join([str(e) for e in item[0]]) +
+              exo._extract_options[exo._extract_type])
 
     # run extract
-    print 'Worker ' + str(self.rank) + ' | Task ' + str(task_id) + ' - running extract: ' + output
+    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
+           ' - running extract: ' + output)
+
     run_status, run_statment = exo.run_extract(raster, output)
 
     if run_status == 0:
-        print 'Worker ' + str(self.rank) + ' | Task ' + str(task_id) + ' - ' + run_statment
+        print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
+               ' - ' + run_statment)
     else:
         raise Exception(run_statment)
 
@@ -195,7 +192,6 @@ def tmp_worker_job(self, task_id):
 
 # init / run job
 
-job = NewParallel()
 job.set_task_list(qlist)
 
 job.set_general_init(tmp_general_init)
