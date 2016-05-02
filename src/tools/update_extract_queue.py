@@ -48,7 +48,7 @@ version = config.versions["extract-scripts"]
 # lookup all boundary datasets
 boundaries = c_asdf.find({
     "type": "boundary",
-    "active": {'gte': 1}
+    "active": {'$gte': 1}
 })
 
 active_iso3_list = config.release_gadm.values() + config.other_gadm
