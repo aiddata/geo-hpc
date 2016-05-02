@@ -130,58 +130,51 @@ if job.rank == 0:
     search_limit = 5
     search_attempt = 0
 
-    ###
-    request = msr.find_one({
-        'hash': '980ae30d8cdeb8115ab34093cd49c499cbee4680'
-    })
-    print request
-    ###
 
-    # while search_attempt < search_limit:
+    while search_attempt < search_limit:
 
-    #     print 'finding request:'
-    #     find_request = msr.find_one({
-    #         # 'hash': 'f1fdd4f63dc52132ece0bda0156d95c5dc0f2db1'#,
-    #         'status': 0,
-    #         'priority': {'$gte': 0}
-    #     }, sort=[("priority", -1), ("submit_time", 1)])
+        print 'finding request:'
+        find_request = msr.find_one({
+            'status': 0,
+            'priority': {'$gte': 0}
+        }, sort=[("priority", -1), ("submit_time", 1)])
 
-    #     if find_request is None:
-    #         find_request = msr.find_one({
-    #             # 'hash': 'f1fdd4f63dc52132ece0bda0156d95c5dc0f2db1'#,
-    #             'status': 0,
-    #             'priority': {'$lt': 0}
-    #         }, sort=[("priority", -1), ("percentage", 1)])
-    #         # }, sort=[("priority", -1), ("percentage", -1)])
+        ###
+        if find_request is None:
+            find_request = msr.find_one({
+                'hash': '980ae30d8cdeb8115ab34093cd49c499cbee4680',
+                # 'status': 0,
+                'priority': {'$lt': 0}
+            }, sort=[("priority", -1), ("percentage", 1)])
+            # }, sort=[("priority", -1), ("percentage", -1)])
+        ###
 
+        print find_request
 
-    #     print find_request
+        if find_request is None:
+            request = None
+            break
 
-    #     if find_request is None:
-    #         request = None
-    #         break
+        request_accept = msr.update_one({
+            '_id': find_request['_id'],
+            'status': find_request['status']
+        }, {
+            '$set': {
+                'status': 2,
+                'update_time': int(time.time())
+            }
+        })
 
-    #     # request_accept = msr.update_one({
-    #     #     '_id': find_request['_id'],
-    #     #     'status': find_request['status']
-    #     # }, {
-    #     #     '$set': {
-    #     #         'status': 2,
-    #     #         'update_time': int(time.time())
-    #     #     }
-    #     # })
+        print request_accept.raw_result
 
-    #     # print request_accept.raw_result
-
-    #     # if request_accept.acknowledged and request_accept.modified_count == 1:
-    #     #     request = find_request
-    #     #     break
+        if request_accept.acknowledged and request_accept.modified_count == 1:
+            request = find_request
+            break
 
 
+        search_attempt += 1
 
-    #     search_attempt += 1
-
-    #     print 'looking for another request...'
+        print 'looking for another request...'
 
 
     if search_attempt == search_limit:
@@ -735,23 +728,23 @@ def tmp_master_final(self):
     output_obj = complete_options_json()
     complete_outputs()
 
-    # # update status of request in msr queue
-    # # and add output_obj to "output" field
-    # update_msr = msr.update_one({
-    #     '_id': request['_id']
-    # }, {
-    #     '$set': {
-    #         'status': 1,
-    #         'update_time': int(time.time()),
-    #         'info': output_obj
-    #     }
-    # }, upsert=False)
+    # update status of request in msr queue
+    # and add output_obj to "output" field
+    update_msr = msr.update_one({
+        '_id': request['_id']
+    }, {
+        '$set': {
+            'status': 1,
+            'update_time': int(time.time()),
+            'info': output_obj
+        }
+    }, upsert=False)
 
-    # print request['_id']
-    # print request['hash']
-    # print request
+    print request['_id']
+    print request['hash']
+    print request
 
-    # print update_msr.raw_result
+    print update_msr.raw_result
 
 
 
