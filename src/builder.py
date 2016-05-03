@@ -17,9 +17,6 @@ import subprocess as sp
 
 from collections import OrderedDict
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(base_dir)
-
 import extract_utility
 
 # =============================================================================
@@ -37,6 +34,8 @@ job_dir = os.path.dirname(job_json_path)
 job_file = open(job_json_path, 'r')
 job_json = json.load(job_file, object_pairs_hook=OrderedDict)
 job_file.close()
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
 
 datasets_file = open(base_dir + '/datasets.json','r')
 datasets_json = json.load(datasets_file)
@@ -352,7 +351,7 @@ lines.append('')
 lines.append('cd $PBS_O_WORKDIR')
 lines.append('')
 
-args = 'python-mpi ' + job_dir + '/runscript.py ' + output_json_path
+args = 'python-mpi ' + base_dir + '/runscript.py ' + output_json_path
 
 if node_type == "xeon":
     lines.append('mvp2run -m cyclic -c ' + str(int(np)) +' '+ args)
