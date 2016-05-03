@@ -17,8 +17,10 @@ import subprocess as sp
 
 from collections import OrderedDict
 
-from extract_utility import *
+base_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(base_dir)
 
+import extract_utility
 
 # =============================================================================
 # =============================================================================
@@ -35,8 +37,6 @@ job_dir = os.path.dirname(job_json_path)
 job_file = open(job_json_path, 'r')
 job_json = json.load(job_file, object_pairs_hook=OrderedDict)
 job_file.close()
-
-base_dir = os.path.dirname(os.path.abspath(__file__))
 
 datasets_file = open(base_dir + '/datasets.json','r')
 datasets_json = json.load(datasets_file)
@@ -120,7 +120,7 @@ for dataset_options in job_json['data']:
 
     # init / setup extract and generate qlist
 
-    exo = ExtractObject(builder=True)
+    exo = extract_utility.ExtractObject(builder=True)
 
     exo.set_vector_path(tmp_config['bnd_absolute'])
 
