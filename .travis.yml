@@ -10,8 +10,14 @@ addons:
     - libgdal-dev
     # - r-base
 install:
+  - sudo pip install conda
+  - sudo conda init
+  - sudo conda update conda --yea
+  - deps='pip pandas'
+  - conda create -p $HOME/py --yes $deps "python=$TRAVIS_PYTHON_VERSION"
+  - export PATH=$HOME/py/bin:$PATH
   - pip install -r requirements.txt
   - pip install -r requirements_dev.txt
-script: 
+script:
   - "coverage run --include src/extract_utility.py -m py.test tests/test_extract_utility.py"
   - "coverage report -m"
