@@ -352,7 +352,7 @@ lines.append('')
 lines.append('cd $PBS_O_WORKDIR')
 lines.append('')
 
-args = 'python-mpi ../../../runscript.py ' + output_json_path
+args = 'python-mpi ' + job_dir + '/runscript.py ' + output_json_path
 
 if node_type == "xeon":
     lines.append('mvp2run -m cyclic -c ' + str(int(np)) +' '+ args)
@@ -433,6 +433,6 @@ os.chdir(output_dir)
 
 
 # submit job via qsub
-# qsub(output_jobscript_path)
+qsub(output_jobscript_path)
 
 
