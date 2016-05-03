@@ -359,7 +359,7 @@ class ExtractObject():
             raise Exception("invalid extract type ("+ value +")")
 
         if value == "categorical" and not isinstance(category_map, dict):
-            raise Exception("invalid category map ("+ category_map +")")
+            raise Exception("invalid category map ("+ str(category_map) +")")
 
         self._extract_type = str(value)
         self._cmap = category_map

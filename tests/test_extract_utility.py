@@ -170,7 +170,11 @@ def test_set_file_mask():
 
 def test_extract_type():
     for i in exo._extract_options.keys():
-        exo.set_extract_type(i)
+        if i == "categorical":
+            exo.set_extract_type(i, {})
+        else:
+            exo.set_extract_type(i)
+
         assert exo._extract_type == i
 
     with pytest.raises(Exception):
