@@ -145,7 +145,11 @@ def tmp_worker_job(self, task_id):
     exo.set_years(year_string)
 
     exo.set_file_mask(file_mask)
-    exo.set_extract_type(extract_type)
+
+    if extract_type == "categorical":
+        exo.set_extract_type(extract_type, settings['categories'])
+    else:
+        exo.set_extract_type(extract_type)
 
 
     # ==================================================

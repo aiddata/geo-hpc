@@ -20,8 +20,8 @@ from collections import OrderedDict
 from extract_utility import *
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # load job and datasets json
 
 job_json_path = sys.argv[1]
@@ -30,6 +30,7 @@ if not os.path.isfile(job_json_path):
     sys.exit("builder.py has terminated : invalid job json path")
 
 job_json_path = os.path.abspath(job_json_path)
+job_dir = os.path.dirname(job_json_path)
 
 job_file = open(job_json_path, 'r')
 job_json = json.load(job_file, object_pairs_hook=OrderedDict)
@@ -42,8 +43,8 @@ datasets_json = json.load(datasets_file)
 datasets_file.close()
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # validate and assess requested data
 
 # prompt to continue function
@@ -57,7 +58,8 @@ def user_prompt_bool(question):
         if choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
+            sys.stdout.write("Please respond with 'yes' or 'no' " +
+                             "(or 'y' or "" 'n').\n")
 
 
 job_summary = OrderedDict()
@@ -65,13 +67,16 @@ job_summary['summary'] = OrderedDict()
 job_summary['datasets'] = []
 
 
-required_options = ["bnd_absolute", "bnd_name", "extract_type", "extract_method", "output_base", "run_hours", "years"]
+required_options = ["bnd_absolute", "bnd_name", "extract_type",
+                    "output_base", "run_hours", "years"]
 
-missing_defaults = [i for i in required_options if i not in job_json['defaults'].keys()]
+missing_defaults = [i for i in required_options
+                    if i not in job_json['defaults'].keys()]
 
 
 if len(missing_defaults) > 0:
-    print "builder.py warning: required option(s) missing from defaults ("+str(missing_defaults)+")"
+    print ("builder.py warning: required option(s) missing from defaults " +
+           "(" + str(missing_defaults) + ")")
 
 
 for dataset_options in job_json['data']:
@@ -83,7 +88,9 @@ for dataset_options in job_json['data']:
     try:
         dataset_info = datasets_json[dataset_name]
     except KeyError:
-        if user_prompt_bool("Dataset ("+str(dataset_name) + ") not found in dataset json. Ignore dataset and continue? [y/n]"):
+        if user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
+                            "in dataset json. Ignore dataset and continue? " +
+                            "[y/n]"):
             continue
         else:
             sys.exit("builder.py has terminated : user's request.")
@@ -91,29 +98,22 @@ for dataset_options in job_json['data']:
 
     tmp_config = {}
 
-    # for k in job_json['boundary'].keys():
-    #     tmp_config[k] = job_json['boundary'][k]
-    #     # lines.append('set '+ str(k) + ' = "' + str(job_json['boundary'][k]) + '"')
-
-
 
     if any([i not in dataset_options for i in missing_defaults]):
-        sys.exit("builder.py has terminated : required option(s) missing from both dataset default options.")
+        sys.exit("builder.py has terminated : required option(s) missing " +
+                 "from both dataset default options.")
 
 
     # gather all relevant options
     for k in required_options:
         if k in dataset_options:
             tmp_config[k] = dataset_options[k]
-            # lines.append('set '+ str(k) + ' = "' + str(dataset_options[k]) + '"')
         else:
             tmp_config[k] = job_json['defaults'][k]
-            # lines.append('set '+ str(k) + ' = "' + str(job_json['defaults'][k]) + '"')
 
 
     for k in dataset_info.keys():
         tmp_config[k] = dataset_info[k]
-        # lines.append('set '+ str(k) + ' = "' + str(dataset_info[k]) + '"')
 
 
     # ==================================================
@@ -122,14 +122,18 @@ for dataset_options in job_json['data']:
 
     exo = ExtractObject(builder=True)
 
-    exo.set_extract_method(tmp_config['extract_method'])
     exo.set_vector_path(tmp_config['bnd_absolute'])
 
     exo.set_base_path(tmp_config['data_base'])
     exo.set_years(tmp_config['years'])
 
     exo.set_file_mask(tmp_config['file_mask'])
-    exo.set_extract_type(tmp_config['extract_type'])
+
+    if tmp_config['extract_type'] == "categorical":
+        exo.set_extract_type(tmp_config['extract_type'], tmp_config['categories'])
+    else:
+        exo.set_extract_type(tmp_config['extract_type'])
+
 
     qlist = exo.gen_data_list()
 
@@ -142,12 +146,16 @@ for dataset_options in job_json['data']:
     tmp_info['info'] = {}
     tmp_info['info']['count'] = len(qlist)
     tmp_info['info']['individual_run_time'] = tmp_config['run_hours']
-    tmp_info['info']['serial_run_time'] = len(qlist) * float(tmp_config['run_hours'])
+    tmp_info['info']['serial_run_time'] = (
+        len(qlist) * float(tmp_config['run_hours']))
     tmp_info['settings'] = tmp_config
     tmp_info['qlist'] = qlist
 
     if len(qlist) == 0:
-        if user_prompt_bool("No data found for dataset ("+str(dataset_name) + ") and given year string ("+ str(tmp_config['years']) +"). Ignore dataset and continue?"):
+        if user_prompt_bool("No data found for dataset " +
+                            "("+str(dataset_name) + ") and given year " +
+                            "string ("+ str(tmp_config['years']) +"). " +
+                            "Ignore dataset and continue?"):
             continue
         else:
             sys.exit("builder.py has terminated: user's request.")
@@ -158,12 +166,13 @@ for dataset_options in job_json['data']:
     job_summary['datasets'].append(tmp_info)
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # determine node specifications for job
 
 total_count = sum([i['info']['count'] for i in job_summary['datasets']]) + 1
-max_individual_run_time = max([i['info']['individual_run_time'] for i in job_summary['datasets']])
+max_individual_run_time = max(
+    [i['info']['individual_run_time'] for i in job_summary['datasets']])
 
 # job_summary['summary']['count'] = total_count
 # job_summary['summary']['max_individual_run_time'] = max_individual_run_time
@@ -232,7 +241,8 @@ else:
 # simple example of optimization
 # scenario:
 # - dataset #1 - temporally invariant (1 extract) estimated at 10 hours
-# - dataset #2 - yearly with 10 years (10 extracts) estimated at 1 hour each (10 hours total)
+# - dataset #2 - yearly with 10 years (10 extracts) estimated at
+#                   1 hour each (10 hours total)
 # - max node count of 2, no ppn override, default ppn of 8
 # current resource use:
 #   two nodes will be requested to run the 11 combined extracts
@@ -244,8 +254,8 @@ else:
 
 # optimization notes
 # - obviously this gets more complicated as we add in more datasets.
-# - estimated run times may be very rough or not even offer enough differentiation
-#   to make meaningful optimizations
+# - estimated run times may be very rough or not even offer enough
+#   differentiation to make meaningful optimizations
 
 
 np = node_count * ppn
@@ -260,23 +270,26 @@ if job_json['config']['walltime_override']:
         run_hours = int(job_json['config']['walltime'])
 
         if run_hours < 1:
-            sys.exit("builder.py has terminated : walltime must be at least 1 hour")
+            sys.exit("builder.py has terminated : walltime must be at " +
+                     "least 1 hour")
 
     except:
         sys.exit("builder.py has terminated : invalid walltime provided")
 
 else:
-    run_hours = int(math.ceil( math.ceil(total_count / np) * max_individual_run_time ))
+    run_hours = int(math.ceil(
+        math.ceil(total_count / np) * max_individual_run_time))
     if run_hours < 1:
         run_hours = 1
 
 
 if run_hours > 180:
-    sys.exit("builder.py has terminated : job walltime cannot exceed 180 hours")
+    sys.exit("builder.py has terminated : job walltime cannot exceed 180 " +
+             "hours")
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # prep job json
 
 # user prefix (used in hpc job name)
@@ -288,14 +301,16 @@ job_name = job_json["config"]["job_name"]
 # folder where jobscripts go
 batch_name = job_json["config"]["batch_name"]
 
-batch_dir = base_dir +'/ioe/'+ batch_name
+batch_dir = job_dir +'/ioe/'+ batch_name
 
 # --------------------------------------------------
 
 Ts = str(time.time())
 
 tmp_time = time.localtime()
-job_summary['summary']['id'] = time.strftime('%Y%m%d', tmp_time) +'_'+ str(int(time.time())) +'_'+ '{0:05d}'.format(int(random.random() * 10**5))
+job_summary['summary']['id'] = (time.strftime('%Y%m%d', tmp_time) +'_'+
+                                str(int(time.time())) +'_'+
+                                '{0:05d}'.format(int(random.random() * 10**5)))
 job_summary['summary']['created'] = time.strftime('%Y-%m-%d  %H:%M:%S', tmp_time)
 job_summary['summary']['results'] = {}
 
@@ -313,15 +328,16 @@ output_dir = batch_dir +"/"+ job_summary['summary']['id'] +"_"+ job_name
 output_json_path = output_dir +'/config.json'
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # build jobscript
 
 lines = []
 
 lines.append('#!/bin/tcsh')
 lines.append('#PBS -N '+user_prefix+':ex:'+job_name)
-lines.append('#PBS -l nodes='+str(int(node_count))+':'+node_spec+':'+'ppn='+str(int(ppn)))
+lines.append('#PBS -l nodes='+str(int(node_count))+':'+node_spec+':'+
+             'ppn='+str(int(ppn)))
 lines.append('#PBS -l walltime='+str(int(run_hours))+':00:00')
 lines.append('#PBS -q alpha')
 lines.append('#PBS -j oe')
@@ -330,22 +346,19 @@ lines.append('')
 # tmp_config['years'] = tmp_config['years'].replace(":", "_to_")
 # tmp_config['years'] = tmp_config['years'].replace("|", "_and_")
 # tmp_config['years'] = tmp_config['years'].replace("!", "_not_")
-# for k in tmp_config.keys():
-#     lines.append('set '+ str(k) + ' = \'' + str(tmp_config[k]) + '\'')
 
 
 lines.append('')
 lines.append('cd $PBS_O_WORKDIR')
-# lines.append('cd ' + base_dir +"/"+ batch_name)
 lines.append('')
 
-# args = 'python-mpi ../../runscript.py "${extract_method}" "${bnd_absolute}" "${bnd_name}" "${data_base}" "${data_name}" "${data_mini}" "${years}" "${file_mask}" "${extract_type}" "${output_base}"'
 args = 'python-mpi ../../../runscript.py ' + output_json_path
 
 if node_type == "xeon":
     lines.append('mvp2run -m cyclic -c ' + str(int(np)) +' '+ args)
 elif node_type in ["vortex", "vortex-alpha"]:
-    lines.append('mpirun --mca mpi_warn_on_fork 0 -np '+ str(int(np)) +' '+ args)
+    lines.append('mpirun --mca mpi_warn_on_fork 0 -np ' +
+                  str(int(np)) +' '+ args)
 
 
 # jobscripts must have newline at end of file
@@ -354,8 +367,8 @@ lines.append('')
 output = '\n'.join(lines)
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # final checks, display job summary, confirm job submission
 
 if len(job_summary.keys()) == 0:
@@ -372,8 +385,8 @@ if not user_prompt_bool("Submit job?"):
     sys.exit("builder.py has terminated: user's request.")
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # create job json
 
 
@@ -390,8 +403,8 @@ output_job_file.write(json.dumps(job_json, indent = 4))
 output_job_file.close()
 
 
-# ===========================================================================
-# ===========================================================================
+# =============================================================================
+# =============================================================================
 # create directory, write jobscript, submit job
 
 # qsub jobscript
@@ -405,8 +418,8 @@ def qsub(jobscript):
         sts = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
         print sts
 
-    except sp.CalledProcessError as sts_err:
-        print ">> subprocess error code:", sts_err.returncode, '\n', sts_err.output
+    except sp.CalledProcessError as err:
+        print ">> subprocess error code:", err.returncode, '\n', err.output
 
 
 
@@ -420,6 +433,6 @@ os.chdir(output_dir)
 
 
 # submit job via qsub
-qsub(output_jobscript_path)
+# qsub(output_jobscript_path)
 
 
