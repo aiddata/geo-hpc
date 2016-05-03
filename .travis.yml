@@ -2,13 +2,15 @@ language: python
 sudo: false
 python:
   - "2.7"
-# addons:
-#   apt:
-#     packages:
-#     - libgdal1h
-#     - gdal-bin
-#     - libgdal-dev
+addons:
+  apt:
+    packages:
+    - libgdal1h
+    - gdal-bin
+    - libgdal-dev
 install:
+  - pip install -r requirements.txt
+  - pip install -r requirements_dev.txt
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
@@ -26,8 +28,6 @@ install:
   - deps='pip pandas'
   - conda create -n test-environment python=$TRAVIS_PYTHON_VERSION $deps
   - source activate test-environment
-  - pip install -r requirements.txt
-  - pip install -r requirements_dev.txt
 script:
   - "coverage run --include src/extract_utility.py -m py.test tests/test_extract_utility.py"
   - "coverage report -m"
