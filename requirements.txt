@@ -1,5 +1,5 @@
 numpy>=1.9
-#pandas
+pandas
 fiona
 rasterio>=0.27
 shapely
