@@ -532,7 +532,10 @@ class ExtractObject():
             tmp_df.rename(columns = {'count': 'excat_count'}, inplace=True)
 
             for i in self._cmap.values():
-                tmp_df[i].fillna('0', inplace=True)
+                if i not in list(tmp_df.columns):
+                    tmp_df[i] = 0
+                else:
+                    tmp_df[i].fillna('0', inplace=True)
 
 
         tmp_df.to_csv(output + ".csv", sep=",", encoding="utf-8", index=False)
