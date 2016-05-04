@@ -356,13 +356,24 @@ class ExtractObject():
         """
         # validate input extract type
         if value not in self._extract_options.keys():
-            raise Exception("invalid extract type ("+ value +")")
+            raise Exception("invalid extract type (" + value + ")")
 
-        if value == "categorical" and not isinstance(category_map, dict):
-            raise Exception("invalid category map ("+ str(category_map) +")")
+        if value == "categorical":
+            if not isinstance(category_map, dict):
+                raise Exception("invalid category map (" +
+                                str(category_map) + ")")
+
+             for k, v in category_map.items():
+                if not isinstance(v, str):
+                    raise Exception("invalid category map value (" + str(v) +
+                                    ") for key '" + str(k) + "'")
+
+        # swap because it is reverse in original json
+        # add ad_ prefix for grep during output
+        tmp_cmap = dict([(v, 'excat_' + k) for k, v in category_map.items()])
 
         self._extract_type = str(value)
-        self._cmap = category_map
+        self._cmap = tmp_cmap
 
 
     def gen_data_list(self):
@@ -474,9 +485,8 @@ class ExtractObject():
         # try:
         Te_start = int(time.time())
 
-        if self._extract_type == "cateogrical":
-            pass
-            stats = rs.zonal_stats(self._vector_path, raster,
+        if self._extract_type == "categorical":
+            stats = rs.zonal_stats(self._vector_path, raster, stats="count"
                                    categorical=True, category_map=self._cmap,
                                    all_touched=True, weights=True,
                                    geojson_out=True)
@@ -514,9 +524,17 @@ class ExtractObject():
         tmp_data = [i['properties'] for i in stats]
 
         tmp_df = pd.DataFrame(tmp_data)
-        tmp_df.rename(columns = {self._extract_type:'ad_extract'}, inplace=True)
-        tmp_df['ad_extract'].fillna('NA', inplace=True)
-        tmp_df.to_csv(output+".csv", sep=",", encoding="utf-8", index=False)
+        if self._extract_type != "categorical":
+            tmp_df.rename(columns = {self._extract_type: 'ad_extract'}, inplace=True)
+            tmp_df['ad_extract'].fillna('NA', inplace=True)
+        else:
+            tmp_df.rename(columns = {'count': 'excat_count'}, inplace=True)
+
+            for i in self._cmap.values():
+                tmp_df[i].fillna('0', inplace=True)
+
+
+        tmp_df.to_csv(output + ".csv", sep=",", encoding="utf-8", index=False)
 
 
         Te_run = int(time.time() - Te_start)
@@ -685,8 +703,9 @@ class MergeObject():
 
                         # --------------------------------------------------
 
-                        extract_dir = (extract_base + "/" + bnd_name + "/cache/" +
-                                       data_name +"/"+ extract_type)
+                        extract_dir = (extract_base + "/" + bnd_name +
+                                       "/cache/" + data_name + "/" +
+                                       extract_type)
 
                         print "\tChecking for extracts in: " + extract_dir
 
@@ -699,7 +718,8 @@ class MergeObject():
                             sys.exit("Directory for specified bnd_name does " +
                                      "not exist (bnd_name: "+bnd_name+")")
                         elif not os.path.isdir(
-                            extract_base + "/" + bnd_name + "/cache/" + data_name):
+                            extract_base + "/" + bnd_name + "/cache/" +
+                            data_name):
                                 sys.exit("Directory for specified dataset " +
                                          "does not exists (data_name: " +
                                          data_name+")")
@@ -764,30 +784,57 @@ class MergeObject():
                             merge_output_csv = answer
                             break
                         else:
-                            sys.stdout.write("Invalid file extension (must end with \".csv\").\n")
+                            sys.stdout.write("Invalid file extension (must " +
+                                             "end with \".csv\").\n")
 
                     else:
-                        sys.stdout.write("Directory specified does not exist.\n")
+                        sys.stdout.write("Directory specified does not " +
+                                         "exist.\n")
 
 
             else:
-                merge_output_csv =  self.merge_output_dir + "/merge_" + bnd_name + ".csv"
+                merge_output_csv =  (self.merge_output_dir + "/merge_" +
+                                     bnd_name + ".csv")
 
 
             merge = 0
 
             for result_csv in file_list:
 
-                result_df = pd.read_csv(result_csv, quotechar='\"', na_values='', keep_default_na=False)
+                result_df = pd.read_csv(result_csv, quotechar='\"',
+                                        na_values='', keep_default_na=False)
 
                 tmp_field = result_csv[result_csv.rindex('/')+1:-4]
 
                 if not isinstance(merge, pd.DataFrame):
                     merge = result_df.copy(deep=True)
-                    merge.rename(columns={"ad_extract": tmp_field}, inplace=True)
+
+                    if tmp_field.endswith("c"):
+                        cat_fields = [
+                            cname for cname in list(merge.columns)
+                            if cname.startswith("excat_")
+                        ]
+                        for c in cat_fields:
+                            new_cat_field = tmp_field + cat_fields[2:]
+                            merge.rename(columns={cat_field: new_cat_field},
+                                         inplace=True)
+                    else:
+                        merge.rename(columns={"ad_extract": tmp_field},
+                                     inplace=True)
 
                 else:
-                    merge[tmp_field] = result_df["ad_extract"]
+                    if tmp_field.endswith("c"):
+                        cat_fields = [
+                            cname for cname in list(result_df.columns)
+                            if cname.startswith("excat_")
+                        ]
+                        for c in cat_fields:
+                            new_cat_field = tmp_field + cat_fields[2:]
+                            merge[new_cat_field] = result_df[cat_field]
+
+                    else:
+                        merge[tmp_field] = result_df["ad_extract"]
+
 
 
             if isinstance(merge, pd.DataFrame):
@@ -798,7 +845,8 @@ class MergeObject():
                 print '\tResults output to ' + merge_output_csv
 
             else:
-                print '\tWarning: no extracts merged for bnd_name = ' + bnd_name
+                print ('\tWarning: no extracts merged for bnd_name = ' +
+                       bnd_name)
 
 
         # T_run = int(time.time() - Ts)
