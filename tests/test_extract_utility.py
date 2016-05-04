@@ -171,7 +171,7 @@ def test_set_file_mask():
 def test_extract_type():
     for i in exo._extract_options.keys():
         if i == "categorical":
-            exo.set_extract_type(i, {})
+            exo.set_extract_type(i, {'a': 1})
         else:
             exo.set_extract_type(i)
 
