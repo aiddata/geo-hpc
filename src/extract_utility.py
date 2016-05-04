@@ -833,7 +833,7 @@ class MergeObject():
                             if cname.startswith("excat_")
                         ]
                         for c in cat_fields:
-                            new_cat_field = tmp_field + c[2:]
+                            new_cat_field = tmp_field + c[5:]
                             merge[new_cat_field] = result_df[c]
 
                     else:
