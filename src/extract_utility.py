@@ -364,7 +364,7 @@ class ExtractObject():
                                 str(category_map) + ")")
 
             for k, v in category_map.items():
-                if not isinstance(v, str):
+                if not isinstance(v, (int, float)):
                     raise Exception("invalid category map value (" + str(v) +
                                     ") for key '" + str(k) + "'")
 
