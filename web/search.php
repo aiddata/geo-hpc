@@ -4,7 +4,6 @@ set_time_limit(0);
 
 switch ($_POST['call']) {
 
-    // returns geojson at the specified file path
     case "geojson":
         /*
         find and returns contents of simplified boundary geojson for web map
@@ -343,8 +342,6 @@ switch ($_POST['call']) {
 		$projects = $project_cursor->count();
 
 
-
-
 		// get number of locations (filter non geocoded + filter geocoded with locations unwind)
 
 		$location_query_1 = $project_query;
@@ -366,14 +363,11 @@ switch ($_POST['call']) {
 		$location_count_2 = count($location_cursor_2["result"]);
 
 
-
 		$locations = $location_count_1 + $location_count_2;
 		$output = array("projects" => $projects, "locations" => $locations, "location_count_1" => $location_count_1, "location_count_2" => $location_count_2 );
 
 		echo json_encode($output);
 		break;
-
-
 
 
     case "status":

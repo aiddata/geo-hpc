@@ -190,10 +190,19 @@ extract_funcs = {
     "sum": robjects.r.sum
 }
 
-extract_options_path = os.path.dirname(os.path.abspath(__file__)) + '/extract_options.json'
-extract_options = json.load(open(extract_options_path, 'r'))
+# extract_options_path = os.path.dirname(os.path.abspath(__file__)) + '/extract_options.json'
+# extract_options = json.load(open(extract_options_path, 'r'))
 
+# moved from json to here so i can delete json
+# as we deprecate old queue processing in order
+# to move to sciclone processing. this entire script
+# will be gone soon
+extract_options = {
+    "mean": "e",
+    "max": "x",
+    "sum": "s"
 
+}
 
 
 gn_status, gn_item = get_next(0, 1)
