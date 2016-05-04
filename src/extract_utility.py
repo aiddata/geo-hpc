@@ -368,12 +368,13 @@ class ExtractObject():
                     raise Exception("invalid category map value (" + str(v) +
                                     ") for key '" + str(k) + "'")
 
-        # swap because it is reverse in original json
-        # add ad_ prefix for grep during output
-        tmp_cmap = dict([(v, 'excat_' + k) for k, v in category_map.items()])
+            # swap because it is reverse in original json
+            # add ad_ prefix for grep during output
+            category_map = dict([(v, 'excat_' + k) for k, v in category_map.items()])
+
 
         self._extract_type = str(value)
-        self._cmap = tmp_cmap
+        self._cmap = category_map
 
 
     def gen_data_list(self):
