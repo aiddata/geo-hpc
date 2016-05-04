@@ -363,7 +363,7 @@ class ExtractObject():
                 raise Exception("invalid category map (" +
                                 str(category_map) + ")")
 
-             for k, v in category_map.items():
+            for k, v in category_map.items():
                 if not isinstance(v, str):
                     raise Exception("invalid category map value (" + str(v) +
                                     ") for key '" + str(k) + "'")
@@ -486,7 +486,7 @@ class ExtractObject():
         Te_start = int(time.time())
 
         if self._extract_type == "categorical":
-            stats = rs.zonal_stats(self._vector_path, raster, stats="count"
+            stats = rs.zonal_stats(self._vector_path, raster, stats="count",
                                    categorical=True, category_map=self._cmap,
                                    all_touched=True, weights=True,
                                    geojson_out=True)
