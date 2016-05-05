@@ -142,8 +142,8 @@ if job.rank == 0:
         ###
         if find_request is None:
             find_request = c_msr.find_one({
-                'hash': '980ae30d8cdeb8115ab34093cd49c499cbee4680',
-                # 'status': 0,
+                # 'hash': '980ae30d8cdeb8115ab34093cd49c499cbee4680',
+                'status': 0,
                 'priority': {'$lt': 0}
             }, sort=[("priority", -1), ("percentage", 1)])
             # }, sort=[("priority", -1), ("percentage", -1)])
