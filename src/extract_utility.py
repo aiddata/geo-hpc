@@ -396,7 +396,7 @@ class ExtractObject():
 
             # swap because it is reverse in original json
             # add ad_ prefix for grep during output
-            category_map = dict([(v, 'excat_' + k) for k, v in category_map.items()])
+            category_map = dict([(v, k) for k, v in category_map.items()])
 
 
         self._extract_type = str(value)
@@ -550,7 +550,8 @@ class ExtractObject():
 
         if self._extract_type == "categorical":
             tmp_df = pd.DataFrame(
-                rs.zonal_stats(self._vector_path, raster, stats="count",
+                rs.zonal_stats(self._vector_path, raster,
+                    prefix="excat_", stats="count",
                     categorical=True, category_map=self._cmap,
                     all_touched=True, weights=True,
                     save_properties=True))
@@ -558,7 +559,7 @@ class ExtractObject():
         else:
             tmp_df = pd.DataFrame(
                 rs.zonal_stats(self._vector_path, raster,
-                    stats=self._extract_type,
+                    prefix="ad_", stats=self._extract_type,
                     all_touched=True, weights=True,
                     save_properties=True))
 
@@ -572,16 +573,7 @@ class ExtractObject():
         #     return False
 
 
-        # # try:
-        # for i in stats:
-        #     i["ad_extract"] = i.pop(self._extract_type)
-        #     try:
-        #         if isnan(i["ad_extract"]):
-        #             i["ad_extract"] = "NA"
-        #     except:
-        #         i["ad_extract"] = "NA"
-
-
+        # # OLD
         # out = open(output+".csv", "w")
         # out.write(rs.utils.stats_to_csv(stats))
 
@@ -591,12 +583,11 @@ class ExtractObject():
         # tmp_df = pd.DataFrame(tmp_data)
 
         if self._extract_type != "categorical":
-            tmp_df.rename(columns = {self._extract_type: 'ad_extract'},
+            tmp_df.rename(columns = {'ad_' + self._extract_type: 'ad_extract'},
                           inplace=True)
             tmp_df['ad_extract'].fillna('NA', inplace=True)
-        else:
-            tmp_df.rename(columns = {'count': 'excat_count'}, inplace=True)
 
+        else:
             for i in self._cmap.values():
                 if i not in list(tmp_df.columns):
                     tmp_df[i] = 0
