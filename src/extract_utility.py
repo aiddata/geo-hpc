@@ -589,10 +589,11 @@ class ExtractObject():
 
         else:
             for i in self._cmap.values():
-                if i not in list(tmp_df.columns):
-                    tmp_df[i] = 0
+                colname = 'excat_' + i
+                if colname not in list(tmp_df.columns):
+                    tmp_df[colname] = 0
                 else:
-                    tmp_df[i].fillna('0', inplace=True)
+                    tmp_df[colname].fillna('0', inplace=True)
 
 
         tmp_df.to_csv(output + ".csv", sep=",", encoding="utf-8", index=False)
