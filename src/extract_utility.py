@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import test_rasterstats as rs
 
 import pandas as pd
+import geopandas as gpd
 
 # from rpy2.robjects.packages import importr
 # from rpy2 import robjects
