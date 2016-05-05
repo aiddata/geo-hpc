@@ -500,13 +500,14 @@ class ExtractObject():
     # --------------------------------------------------------------------
 
 
-    # reliability calcs for extract
-    # intersect for every single boundary that intersects with unique ones from geojson
-    # sum for each intersect
     def run_reliability(self, boundary, reliability_geojson, output):
-        print "run_reliability"
-    # try:
+        """run reliability calcs for extract
 
+        intersect for every single boundary that intersects with unique ones
+        from geojson
+
+        sum for each intersect
+        """
         # extract boundary geo dataframe
         bnd_df = gpd.GeoDataFrame.from_file(boundary)
 
@@ -516,34 +517,24 @@ class ExtractObject():
 
         # result of mean surface extracted to boundary
         df = pd.read_csv(output + '.csv')
-        df['ad_id'] = df['ad_id'].astype(str)
-
-        # index to merge with bnd_df
-        # df['ad_id'] = bnd_df['ad_id']
 
         # init max column
-        df['max'] = 0 *len(df)
+        df['ad_max'] = 0
 
         # iterate over shapes in boundary dataframe
-        for row_raw in bnd_df.iterrows():
+        for row in bnd_df.iterrows():
 
-            row = row_raw[1]
-            geom = row['geometry']
-            # id field common to both dfs
-            unique_id = row['ad_id']
-            rel_df['intersect'] = rel_df['geometry'].intersects(geom)
+            rel_df['intersect'] = rel_df['geometry'].intersects(row[1]['geometry'])
             tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
 
-            df.loc[df['ad_id'] == unique_id, 'max'] = tmp_series[True]
+            df.loc[row[0], 'ad_max'] = tmp_series[True]
 
 
         # calculate reliability statistic
-        df["ad_extract"] = df['ad_extract']/df['max']
+        df["ad_extract"] = df['ad_extract'] / df['ad_max']
 
         # output to reliability csv
-        df.to_csv(output[:-1]+"r.csv")
-
-        return True
+        df.to_csv(output[:-1] + "r.csv")
 
 
     # run extract user rasterstats
