@@ -83,9 +83,6 @@ for dataset_options in job_json['data']:
 
     tmp_config = {}
 
-    dataset_name = dataset_options['name']
-    print dataset_name
-
     if 'type' in dataset_options and dataset_options['type'] == 'msr':
 
         if any([i not in dataset_options for i in ['branch', 'release', 'hash']]):
@@ -95,6 +92,11 @@ for dataset_options in job_json['data']:
             else:
                 sys.exit("builder.py has terminated : user's request.")
 
+
+        dataset_name = (dataset_options['release'] + '_' +
+                        dataset_options['hash'])
+
+        print dataset_name
 
         msr_dir = ('/sciclone/aiddata10/REU/outputs/' +
                    dataset_options['branch'] + '/msr/done/' +
@@ -129,9 +131,7 @@ for dataset_options in job_json['data']:
             tmp_config['reliability'] = False
 
 
-        tmp_config['name'] = (dataset_options['release'] + '_' +
-                              dataset_options['hash'])
-
+        tmp_config['name'] = dataset_name
         tmp_config['data_base'] = msr_dir + '/raster.tif'
         tmp_config['data_mini'] = 'msr_' + str(msr_count)
         tmp_config["file_mask"] = "None"
@@ -139,6 +139,8 @@ for dataset_options in job_json['data']:
         msr_count += 1
 
     else:
+        dataset_name = dataset_options['name']
+        print dataset_name
 
         tmp_config['reliability'] = False
 
