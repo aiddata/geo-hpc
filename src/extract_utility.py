@@ -218,6 +218,8 @@ class ExtractObject():
         self._file_mask = None
         self._run_option = None
 
+        self._reliability = False
+        self._reliability_geojson = None
         # self._raster_path = None
 
 
@@ -288,6 +290,20 @@ class ExtractObject():
             raise Exception("check_file_mask: invalid use of temporal " +
                             "file_mask based on base_path")
 
+    def _check_reliability(self):
+        """Verify that files needed to run reliability exist.
+        """
+        if self._reliability != False and self._base_path != None:
+            if os.path.isfile(self._base_path):
+                base_path_dir = os.path.dirname(self._base_path)
+            else:
+                base_path_dir = self._base_path
+            if not os.path.isfile(base_path_dir + "/unique.geojson"):
+                raise Exception("check_reliability: reliability geojson" +
+                                " does not exist.")
+            else:
+                self._reliability_geojson = base_path_dir + "/unique.geojson"
+
 
     def set_base_path(self, value):
         """Set data base path.
@@ -303,6 +319,15 @@ class ExtractObject():
         self._base_path = value
 
         self._check_file_mask()
+        self._check_reliability()
+
+
+    def set_reliability(self, value):
+        if value in [True, 1, "True"]:
+            self._reliability = True
+            self._check_reliability()
+        else:
+            self._reliability = False
 
 
     def set_years(self, value):
@@ -422,8 +447,7 @@ class ExtractObject():
 
 
             years = [
-                        name
-                        for name in os.listdir(self._base_path)
+                        name for name in os.listdir(self._base_path)
                         if os.path.isdir(os.path.join(self._base_path, name))
                         and name in self._years
                     ]
@@ -473,6 +497,52 @@ class ExtractObject():
 
     # --------------------------------------------------------------------
     # --------------------------------------------------------------------
+
+
+    # reliability calcs for extract
+    # intersect for every single boundary that intersects with unique ones from geojson
+    # sum for each intersect
+    def run_reliability(self, boundary, reliability_geojson, output):
+        print "run_reliability"
+    # try:
+
+        # extract boundary geo dataframe
+        bnd_df = gpd.GeoDataFrame.from_file(boundary)
+
+        # mean surface unique polygon dataframe
+        rel_df = gpd.GeoDataFrame.from_file(reliability_geojson)
+
+
+        # result of mean surface extracted to boundary
+        df = pd.read_csv(output)
+        df['ad_id'] = df['ad_id'].astype(str)
+
+        # index to merge with bnd_df
+        # df['ad_id'] = bnd_df['ad_id']
+
+        # init max column
+        df['max'] = 0 *len(df)
+
+        # iterate over shapes in boundary dataframe
+        for row_raw in bnd_df.iterrows():
+
+            row = row_raw[1]
+            geom = row['geometry']
+            # id field common to both dfs
+            unique_id = row['ad_id']
+            rel_df['intersect'] = rel_df['geometry'].intersects(geom)
+            tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
+
+            df.loc[df['ad_id'] == unique_id, 'max'] = tmp_series[True]
+
+
+        # calculate reliability statistic
+        df["ad_extract"] = df['ad_extract']/df['max']
+
+        # output to reliability csv
+        df.to_csv(output[:-1]+"r.csv")
+
+        return True
 
 
     # run extract user rasterstats
@@ -526,7 +596,8 @@ class ExtractObject():
 
         tmp_df = pd.DataFrame(tmp_data)
         if self._extract_type != "categorical":
-            tmp_df.rename(columns = {self._extract_type: 'ad_extract'}, inplace=True)
+            tmp_df.rename(columns = {self._extract_type: 'ad_extract'},
+                          inplace=True)
             tmp_df['ad_extract'].fillna('NA', inplace=True)
         else:
             tmp_df.rename(columns = {'count': 'excat_count'}, inplace=True)
@@ -539,6 +610,11 @@ class ExtractObject():
 
 
         tmp_df.to_csv(output + ".csv", sep=",", encoding="utf-8", index=False)
+
+
+        if self._reliability:
+            self.run_reliability(self._vector_path,
+                                 self._reliability_geojson, output)
 
 
         Te_run = int(time.time() - Te_start)

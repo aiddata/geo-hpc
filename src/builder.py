@@ -110,6 +110,10 @@ for dataset_options in job_json['data']:
         else:
             tmp_config[k] = job_json['defaults'][k]
 
+    if 'reliability' in dataset_options:
+        tmp_config['reliability'] = dataset_options['reliability']
+    else:
+        tmp_config['reliability'] = False
 
     for k in dataset_info.keys():
         tmp_config[k] = dataset_info[k]
@@ -124,6 +128,8 @@ for dataset_options in job_json['data']:
     exo.set_vector_path(tmp_config['bnd_absolute'])
 
     exo.set_base_path(tmp_config['data_base'])
+    exo.set_reliability(tmp_config['reliability'])
+
     exo.set_years(tmp_config['years'])
 
     exo.set_file_mask(tmp_config['file_mask'])

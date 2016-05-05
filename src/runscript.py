@@ -142,6 +142,8 @@ def tmp_worker_job(self, task_id):
     exo.set_vector_path(bnd_absolute)
 
     exo.set_base_path(data_base)
+    exo.set_reliability(settings['reliability'])
+
     exo.set_years(year_string)
 
     exo.set_file_mask(file_mask)

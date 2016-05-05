@@ -216,6 +216,11 @@ for i in extract_list:
 
     tmp['output_base'] = general_output_base
 
+    if 'reliability' in i:
+        tmp['reliability'] = i['reliability']
+    else:
+        tmp['reliability'] = False
+
     qlist.append(tmp)
 
 
@@ -300,7 +305,7 @@ def tmp_worker_job(self, task_id):
     # year_string = task['years']
 
     # file mask for dataset files *
-    file_mask = task['file_mask']
+    # file_mask = task['file_mask']
 
     # extract type *
     extract_type = task['extract_type']
@@ -315,7 +320,9 @@ def tmp_worker_job(self, task_id):
 
     exo.set_vector_path(bnd_absolute)
 
-    # exo.set_base_path(data_base)
+    exo.set_base_path(data_absolute)
+    exo.set_reliability(task['reliability'])
+
     # exo.set_years(year_string)
 
     # exo.set_file_mask(file_mask)
