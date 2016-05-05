@@ -102,15 +102,15 @@ def read_features(obj, layer=0):
     elif isinstance(obj, bytes):
         # Single binary object, probably a wkb
         features_iter = [parse_feature(obj)]
-    elif isinstance(obj, Iterable):
-        # Iterable of feature-like objects
-        features_iter = (parse_feature(x) for x in obj)
     elif hasattr(obj, '__geo_interface__'):
         mapping = obj.__geo_interface__
         if mapping['type'] == 'FeatureCollection':
             features_iter = mapping['features']
         else:
             features_iter = [parse_feature(mapping)]
+    elif isinstance(obj, Iterable):
+        # Iterable of feature-like objects
+        features_iter = (parse_feature(x) for x in obj)
 
     if not features_iter:
         raise ValueError("Object is not a recognized source of Features")
@@ -193,27 +193,34 @@ def boundless_array(arr, window, nodata, masked=False):
 class Raster(object):
     """ Raster abstraction for data access to 2/3D array-like things
 
-    Use as a context manager to ensure dataset gets closed properly.
-        with Raster(path) as rast:
-            ...
+    Use as a context manager to ensure dataset gets closed properly::
+
+        >>> with Raster(path) as rast:
+        ...
+
+    Parameters
+    ----------
+    raster: 2/3D array-like data source, required
+        Currently supports paths to rasterio-supported rasters and
+        numpy arrays with Affine transforms.
+
+    affine: Affine object
+        Maps row/col to coordinate reference system
+        required if raster is ndarray
+
+    nodata: nodata value, optional
+        Overrides the datasource's internal nodata if specified
+
+    band: integer
+        raster band number, optional (default: 1)
+
+    Methods
+    -------
+    index
+    read
     """
 
     def __init__(self, raster, affine=None, nodata=None, band=1):
-        """ Initialize Raster object
-
-        Parameters
-        ----------
-        raster: 2/3D array-like data source, required
-            Currently supports paths to rasterio-supported rasters and
-            numpy arrays with Affine transforms.
-
-        affine: Affine object for going from crs to row/col, required if raster is ndarray
-
-        nodata: nodata value, optional
-            Overrides the datasource's internal nodata if specified
-
-        band: raster band number, optional (default: 1)
-        """
         self.drivers = None
         self.array = None
         self.src = None
@@ -244,17 +251,21 @@ class Raster(object):
         col, row = [math.floor(a) for a in (~self.affine * (x, y))]
         return row, col
 
-
-    def read(self, bounds=None, window=None, masked=False):
+    def read(self, bounds=None, window=None, masked=False, nan_as_nodata=False):
         """ Performs a boundless read against the underlying array source
 
         Parameters
         ----------
-        bounds: bounding box in w, s, e, n order, iterable, optional
+        bounds: bounding box
+            in w, s, e, n order, iterable, optional
         window: rasterio-style window, optional
+            bounds OR window are required,
+            specifying both or neither will raise exception
+        masked: boolean
+            return a masked numpy array, default: False
             bounds OR window are required, specifying both or neither will raise exception
-
-        masked: return a masked numpy array, default: False
+        nan_as_nodata: boolean
+            Treat NaN values as nodata, default: False
 
         Returns
         -------
@@ -286,6 +297,15 @@ class Raster(object):
         elif self.src:
             # It's an open rasterio dataset
             new_array = self.src.read(self.band, window=win, boundless=True, masked=masked)
+
+        if nan_as_nodata:
+            nans = np.isnan(new_array)
+            if nans.any():
+                if masked:
+                    # TODO would need to set nan = nodata and remask
+                    raise NotImplementedError("specify nan_as_nodata OR masked")
+                else:
+                    new_array[nans] = nodata
 
         return Raster(new_array, new_affine, nodata)
 

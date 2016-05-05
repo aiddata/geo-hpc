@@ -18,6 +18,13 @@ def raster_stats(*args, **kwargs):
 
 
 def zonal_stats(*args, **kwargs):
+    """The primary zonal statistics entry point.
+
+    All arguments are passed directly to ``gen_zonal_stats``.
+    See its docstring for details.
+
+    The only difference is that ``zonal_stats`` will
+    return a list rather than a generator."""
     return list(gen_zonal_stats(*args, **kwargs))
 
 
@@ -34,8 +41,9 @@ def gen_zonal_stats(
     add_stats=None,
     raster_out=False,
     prefix=None,
+    save_properties=False,
     geojson_out=False,
-    weights=False, 
+    weights=False,
     **kwargs):
     """Zonal statistics of raster values aggregated to vector geometries.
 
@@ -44,7 +52,7 @@ def gen_zonal_stats(
     vectors: path to an vector source or geo-like python objects
 
     raster: ndarray or path to a GDAL raster source
-        If ndarray is passed, the `transform` kwarg is required.
+        If ndarray is passed, the ``affine`` kwarg is required.
 
     layer: int or string, optional
         If `vectors` is a path to an fiona source,
@@ -61,13 +69,13 @@ def gen_zonal_stats(
         If `None`, the file's metadata's NODATA value (if any) will be used.
         defaults to `None`.
 
-    affine: Affine object or 6 tuple in Affine order NOT GDAL order
+    affine: Affine instance
         required only for ndarrays, otherwise it is read from src
 
     stats:  list of str, or space-delimited str, optional
         Which statistics to calculate for each zone.
-        All possible choices are listed in `utils.VALID_STATS`.
-        defaults to `DEFAULT_STATS`, a subset of these.
+        All possible choices are listed in ``utils.VALID_STATS``.
+        defaults to ``DEFAULT_STATS``, a subset of these.
 
     all_touched: bool, optional
         Whether to include every raster cell touched by a geometry, or only
@@ -76,21 +84,31 @@ def gen_zonal_stats(
 
     categorical: bool, optional
 
-    category_map: A dictionary mapping raster values to human-readable categorical names
+    category_map: dict
+        A dictionary mapping raster values to human-readable categorical names.
         Only applies when categorical is True
 
-    add_stats: dict with names and functions of additional stats to compute, optional
+    add_stats: dict
+        with names and functions of additional stats to compute, optional
 
-    raster_out: Include the masked numpy array for each feature, optional
+    raster_out: boolean
+        Include the masked numpy array for each feature?, optional
+
         Each feature dictionary will have the following additional keys:
         mini_raster_array: The clipped and masked numpy array
         mini_raster_affine: Affine transformation
         mini_raster_nodata: NoData Value
 
-    prefix: add a prefix to the keys (default: None )
+    prefix: string
+        add a prefix to the keys (default: None)
 
-    geojson_out: Return list of geojson-like features (default: False)
-        original feautur geometry and properties will be retained
+    save_properties: boolean
+        Returns original features along with specified stats when
+        geojson_out is set to False.
+
+    geojson_out: boolean
+        Return list of GeoJSON-like features (default: False)
+        Original feature geometry and properties will be retained
         with zonal stats appended as additional properties.
         Use with `prefix` to ensure unique and meaningful property names.
 
@@ -99,11 +117,12 @@ def gen_zonal_stats(
 
     Returns
     -------
-    list of dicts (if geojson_out is False)
+    generator of dicts (if geojson_out is False)
         Each item corresponds to a single vector feature and
         contains keys for each of the specified stats.
+        If save_properties is True, also contains original properties
 
-    list of geojson features (if geojson_out is True)
+    generator of geojson features (if geojson_out is True)
         GeoJSON-like Feature as python dict
     """
     stats, run_count = check_stats(stats, categorical)
@@ -125,7 +144,7 @@ def gen_zonal_stats(
 
     cp = kwargs.get('copy_properties')
     if cp:
-        warnings.warn("Use `geojson_out` to preserve feature properties",
+        warnings.warn("Use `geojson_out` or `save_properties` to preserve feature properties",
                       DeprecationWarning)
 
     tmp_weights = weights
@@ -148,7 +167,8 @@ def gen_zonal_stats(
             # create ndarray of rasterized geometry
             rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
             # print rv_array
-            
+            assert rv_array.shape == fsrc.shape
+
             # Mask the source data array with our current feature
             # we take the logical_not to flip 0<->1 for the correct mask effect
             # we also mask out nodata values explicitly
@@ -180,44 +200,18 @@ def gen_zonal_stats(
                 else:
                     feature_stats = {}
 
-
                 if tmp_weights:
                     pctcover = rasterize_pctcover(geom, atrans=fsrc.affine, shape=fsrc.shape)
-
-                    # weighted_masked =  masked * pctcover
-                    # print masked
-                    # print weighted_masked
-
 
                 if 'min' in stats:
                     feature_stats['min'] = float(masked.min())
                 if 'max' in stats:
                     feature_stats['max'] = float(masked.max())
                 if 'mean' in stats:
-
-                    # print "==="
-                    # print masked
-
                     if tmp_weights:
-                        # print '!'
-                        # print np.sum(np.sum(pctcover, axis=0), axis=0)
-                        # print pctcover / np.sum(np.sum(pctcover, axis=0), axis=0)
-                        # print masked * pctcover / np.sum(np.sum(pctcover, axis=0), axis=0)
-                        # print  "$"
-                        
-                        # print pctcover
-
-                        # print masked * pctcover
-
-                        # print np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)
-                        # feature_stats['mean'] = float((masked * pctcover).mean())
-
                         feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
-                        # print feature_stats['mean']
                     else:
                         feature_stats['mean'] = float(masked.mean())
-
-                    # print 'x- ' + str(feature_stats['mean'])
                 if 'count' in stats:
                     feature_stats['count'] = int(masked.count())
                 # optional
@@ -251,8 +245,7 @@ def gen_zonal_stats(
 
             if 'nodata' in stats:
                 featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
-                nodata_count = float((featmasked == fsrc.nodata).sum())
-                feature_stats['nodata'] = nodata_count
+                feature_stats['nodata'] = float((featmasked == fsrc.nodata).sum())
 
             if add_stats is not None:
                 for stat_name, stat_func in add_stats.items():
@@ -270,11 +263,15 @@ def gen_zonal_stats(
                     prefixed_feature_stats[newkey] = val
                 feature_stats = prefixed_feature_stats
 
-            if geojson_out:
+            if geojson_out or save_properties:
                 for key, val in feature_stats.items():
                     if 'properties' not in feat:
                         feat['properties'] = {}
                     feat['properties'][key] = val
-                yield feat
+
+                if geojson_out:
+                    yield feat
+                else:
+                    yield feat['properties']
             else:
                 yield feature_stats

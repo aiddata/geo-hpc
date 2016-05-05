@@ -549,16 +549,18 @@ class ExtractObject():
         Te_start = int(time.time())
 
         if self._extract_type == "categorical":
-            stats = rs.zonal_stats(self._vector_path, raster, stats="count",
-                                   categorical=True, category_map=self._cmap,
-                                   all_touched=True, weights=True,
-                                   geojson_out=True)
+            tmp_df = pd.DataFrame(
+                rs.zonal_stats(self._vector_path, raster, stats="count",
+                    categorical=True, category_map=self._cmap,
+                    all_touched=True, weights=True,
+                    save_properties=True))
 
         else:
-            stats = rs.zonal_stats(self._vector_path, raster,
-                                   stats=self._extract_type,
-                                   all_touched=True, weights=True,
-                                   geojson_out=True)
+            tmp_df = pd.DataFrame(
+                rs.zonal_stats(self._vector_path, raster,
+                    stats=self._extract_type,
+                    all_touched=True, weights=True,
+                    save_properties=True))
 
 
         # except:
@@ -584,9 +586,10 @@ class ExtractObject():
         # out.write(rs.utils.stats_to_csv(stats))
 
 
-        tmp_data = [i['properties'] for i in stats]
 
-        tmp_df = pd.DataFrame(tmp_data)
+        # tmp_data = [i['properties'] for i in stats]
+        # tmp_df = pd.DataFrame(tmp_data)
+
         if self._extract_type != "categorical":
             tmp_df.rename(columns = {self._extract_type: 'ad_extract'},
                           inplace=True)
@@ -715,6 +718,20 @@ class MergeObject():
                                 data_mini +'_'+ ''.join(j[0]) + extract_abbr + '.csv'
                             )
                             for j in i['qlist']
+                        ]
+
+                        # add reliability calc results
+                        bnd_merge_list += [
+                            os.path.join(
+                                output_base,
+                                bnd_name,
+                                'cache',
+                                data_name,
+                                extract_type,
+                                data_mini +'_'+ ''.join(j[0]) + 'r.csv'
+                            )
+                            for j in i['qlist']
+                            if i['settings']['reliability'] == True
                         ]
 
 
