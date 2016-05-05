@@ -10,12 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import test_rasterstats as rs
 
 import pandas as pd
-import geopandas as gpd
 
-# from rpy2.robjects.packages import importr
-# from rpy2 import robjects
-
-# import subprocess as sp
+# import geopandas as gpd
+import fiona
+from shapely.geometry import shape
 
 
 def str_to_range(value):
@@ -509,7 +507,8 @@ class ExtractObject():
         sum for each intersect
         """
         # extract boundary geo dataframe
-        bnd_df = gpd.GeoDataFrame.from_file(boundary)
+        # bnd_df = gpd.GeoDataFrame.from_file(boundary)
+        bnd_iter = fiona.open(boundary)
 
         # mean surface unique polygon dataframe
         rel_df = gpd.GeoDataFrame.from_file(reliability_geojson)
@@ -522,16 +521,25 @@ class ExtractObject():
         df['ad_max'] = 0
 
         # iterate over shapes in boundary dataframe
-        for row in bnd_df.iterrows():
+        # for row in bnd_df.iterrows():
 
-            rel_df['intersect'] = rel_df['geometry'].intersects(row[1]['geometry'])
+        #     row_id = row[0]
+        #     row_geom = row[1]['geometry']
+
+        for row in bnd_iter:
+
+            row_id = row['id']
+            row_geom = shape(row['geometry'])
+
+            rel_df['intersect'] = rel_df['geometry'].intersects(row_geom)
             tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
 
-            df.loc[row[0], 'ad_max'] = tmp_series[True]
+            df.loc[row_id, 'ad_max'] = tmp_series[True]
 
 
         # calculate reliability statistic
-        df["ad_extract"] = df['ad_extract'] / df['ad_max']
+        df['ad_sum'] = df['ad_extract']
+        df['ad_extract'] = df['ad_sum'] / df['ad_max']
 
         # output to reliability csv
         df.to_csv(output[:-1] + "r.csv")
