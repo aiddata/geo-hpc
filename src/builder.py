@@ -78,24 +78,84 @@ if len(missing_defaults) > 0:
            "(" + str(missing_defaults) + ")")
 
 
+msr_count = 0
 for dataset_options in job_json['data']:
+
+    tmp_config = {}
 
     dataset_name = dataset_options['name']
     print dataset_name
 
-    # make sure dataset exists in datasets_json
-    try:
-        dataset_info = datasets_json[dataset_name]
-    except KeyError:
-        if user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
-                            "in dataset json. Ignore dataset and continue? " +
-                            "[y/n]"):
-            continue
+    if 'type' in dataset_options and dataset_options['type'] == 'msr':
+
+        if any([i not in dataset_options for i in ['branch', 'release', 'hash']]):
+            if user_prompt_bool("MSR dataset required options not found. " +
+                                "Ignore dataset and continue? [y/n]"):
+                continue
+            else:
+                sys.exit("builder.py has terminated : user's request.")
+
+
+        msr_dir = ('/sciclone/aiddata10/REU/outputs/' +
+                   dataset_options['branch'] + '/msr/done/' +
+                   dataset_options['release'] + '/' +
+                   dataset_options['hash'])
+
+        if (not os.path.isdir(msr_dir) or
+                not os.path.isfile(msr_dir + '/raster.tif')):
+
+            if user_prompt_bool("MSR dataset not found. " +
+                                "Ignore dataset and continue? [y/n]"):
+                continue
+            else:
+                sys.exit("builder.py has terminated : user's request.")
+
+
+        if ('reliability' in dataset_options and
+                dataset_options['reliability'] in [True, 'True', 1]):
+
+            if not os.path.isfile(msr_dir + '/unique.geojson'):
+
+                if user_prompt_bool("MSR reliability geojson not found. " +
+                                        "Run without reliability calcs? [y/n]"):
+                    tmp_config['reliability'] = False
+
+                else:
+                    sys.exit("builder.py has terminated : user's request.")
+            else:
+                tmp_config['reliability'] = True
+
         else:
-            sys.exit("builder.py has terminated : user's request.")
+            tmp_config['reliability'] = False
 
 
-    tmp_config = {}
+        tmp_config['name'] = (dataset_options['release'] + '_' +
+                              dataset_options['hash'])
+
+        tmp_config['data_base'] = msr_dir + '/raster.tif'
+        tmp_config['data_mini'] = 'msr_' + str(msr_count)
+        tmp_config["file_mask"] = "None"
+
+        msr_count += 1
+
+    else:
+
+        tmp_config['reliability'] = False
+
+        # make sure dataset exists in datasets_json
+        try:
+            dataset_info = datasets_json[dataset_name]
+
+            for k in dataset_info.keys():
+                tmp_config[k] = dataset_info[k]
+
+        except KeyError:
+            if user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
+                                "in dataset json. Ignore dataset and continue? " +
+                                "[y/n]"):
+                continue
+            else:
+                sys.exit("builder.py has terminated : user's request.")
 
 
     if any([i not in dataset_options for i in missing_defaults]):
@@ -109,14 +169,6 @@ for dataset_options in job_json['data']:
             tmp_config[k] = dataset_options[k]
         else:
             tmp_config[k] = job_json['defaults'][k]
-
-    if 'reliability' in dataset_options:
-        tmp_config['reliability'] = dataset_options['reliability']
-    else:
-        tmp_config['reliability'] = False
-
-    for k in dataset_info.keys():
-        tmp_config[k] = dataset_info[k]
 
 
     # ==================================================
