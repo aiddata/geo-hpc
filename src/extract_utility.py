@@ -515,7 +515,7 @@ class ExtractObject():
 
 
         # result of mean surface extracted to boundary
-        df = pd.read_csv(output)
+        df = pd.read_csv(output + '.csv')
         df['ad_id'] = df['ad_id'].astype(str)
 
         # index to merge with bnd_df
