@@ -602,10 +602,11 @@ class ExtractObject():
 
                 # reliability header
                 if self._reliability:
+                    rel_fieldnames = fieldnames + ['ad_sum', 'ad_max']
                     rel_csvwriter = csv.DictWriter(rel_fh,
                                                    delimiter=str(","),
-                                                   fieldnames=fieldnames)
-                    rel_csvwriter.writerow(dict((fn, fn) for fn in fieldnames))
+                                                   fieldnames=rel_fieldnames)
+                    rel_csvwriter.writerow(dict((fn, fn) for fn in rel_fieldnames))
 
 
             extract_csvwriter.writerow(ex_data)
