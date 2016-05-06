@@ -84,7 +84,7 @@ cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N ax-ex-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
-#PBS -l walltime=180:00:00
+#PBS -l walltime=24:00:00
 #PBS -q alpha
 #PBS -j oe
 #PBS -o $src/log/extract/jobs/$timestamp.$jobtime.extract.log
