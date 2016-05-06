@@ -567,72 +567,72 @@ class ExtractObject():
 
     def export_extract(self, stats, output):
 
-        # extract_fh = open(output + ".csv", "w")
+        extract_fh = open(output + ".csv", "w")
 
-        # # open reliability csv
-        # if self._reliability:
-        #     rel_fh = open(output[:-1] + "r.csv", "w")
+        # open reliability csv
+        if self._reliability:
+            rel_fh = open(output[:-1] + "r.csv", "w")
 
-        # import csv
+        import csv
 
-        # header = True
+        header = True
         for feat in stats:
             ex_data = feat['properties']
-            print ex_data
-        #     if header:
-        #         header = False
 
-        #         fieldnames = sorted(list(ex_data.keys()), key=str)
+            if header:
+                header = False
 
-        #         extract_csvwriter = csv.DictWriter(extract_fh,
-        #                                            delimiter=str(","),
-        #                                            fieldnames=fieldnames)
-        #         extract_csvwriter.writeheader()
+                fieldnames = sorted(list(ex_data.keys()), key=str)
 
-        #         # reliability header
-        #         if self._reliability:
-        #             rel_fieldnames = fieldnames + ['ad_sum', 'ad_max']
-        #             rel_csvwriter = csv.DictWriter(rel_fh,
-        #                                            delimiter=str(","),
-        #                                            fieldnames=rel_fieldnames)
-        #             rel_csvwriter.writeheader()
+                extract_csvwriter = csv.DictWriter(extract_fh,
+                                                   delimiter=str(","),
+                                                   fieldnames=fieldnames)
+                extract_csvwriter.writeheader()
 
-
-        #     extract_csvwriter.writerow(ex_data)
+                # reliability header
+                if self._reliability:
+                    rel_fieldnames = fieldnames + ['ad_sum', 'ad_max']
+                    rel_csvwriter = csv.DictWriter(rel_fh,
+                                                   delimiter=str(","),
+                                                   fieldnames=rel_fieldnames)
+                    rel_csvwriter.writeheader()
 
 
-        #     # run reliability calcs and write to csv
-        #     if self._reliability:
-
-        #         # reliability geojson
-        #         # mean surface features with aid info
-        #         rgeo = fiona.open(self._reliability_geojson)
-
-        #         feat_id = feat['id']
-        #         feat_geom = shape(feat['geometry'])
-
-        #         max_dollars = 0
-        #         for r in rgeo:
-        #             r_intersects = shape(r['geometry']).intersects(feat_geom)
-
-        #             if r_intersects:
-        #                 unique_dollars = r['properties']['unique_dollars']
-        #                 max_dollars += unique_dollars
+            extract_csvwriter.writerow(ex_data)
 
 
-        #         # calculate reliability statistic
-        #         ex_data['ad_max'] = max_dollars
-        #         ex_data['ad_sum'] = ex_data['ad_extract']
-        #         ex_data['ad_extract'] = ex_data['ad_sum'] / ex_data['ad_max']
+            # run reliability calcs and write to csv
+            if self._reliability:
 
-        #         rel_csvwriter.writerow(ex_data)
+                # reliability geojson
+                # mean surface features with aid info
+                rgeo = fiona.open(self._reliability_geojson)
+
+                feat_id = feat['id']
+                feat_geom = shape(feat['geometry'])
+
+                max_dollars = 0
+                for r in rgeo:
+                    r_intersects = shape(r['geometry']).intersects(feat_geom)
+
+                    if r_intersects:
+                        unique_dollars = r['properties']['unique_dollars']
+                        max_dollars += unique_dollars
 
 
-        # extract_fh.close()
+                # calculate reliability statistic
+                ex_data['ad_max'] = max_dollars
+                ex_data['ad_sum'] = ex_data['ad_extract']
+                ex_data['ad_extract'] = ex_data['ad_sum'] / ex_data['ad_max']
 
-        # # close reliability csv
-        # if self._reliability:
-        #     rel_fh.close()
+                rel_csvwriter.writerow(ex_data)
+
+
+        extract_fh.close()
+
+        # close reliability csv
+        if self._reliability:
+            rel_fh.close()
 
 
 
