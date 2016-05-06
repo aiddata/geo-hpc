@@ -107,6 +107,8 @@ def stats_to_csv(stats, file_object=None):
 
     Does not work with generator object for stats, must use list.
     If invalid file_object is given, creates a temporary file.
+    If writing to file, returns path to file. Otherwise returns
+    csv output as string.
     """
     if file_object is None:
 
