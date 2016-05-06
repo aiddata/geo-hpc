@@ -206,9 +206,7 @@ class ExtractObject():
     _raster_extensions = [".tif", ".asc"]
 
     def __init__(self, builder=False):
-
         self._builder = builder
-
 
         self._vector_path = None
         self._vector_extension = None
@@ -227,8 +225,6 @@ class ExtractObject():
         self._reliability = False
         self._reliability_geojson = None
         # self._raster_path = None
-
-
 
 
     def set_vector_path(self, value):
@@ -261,8 +257,6 @@ class ExtractObject():
         else:
             raise Exception("invalid vector extension " +
                             "(" + self._vector_extension + ")")
-
-        # self._set_r_vector()
 
 
     def _set_vector_extension(self, value):
@@ -419,7 +413,6 @@ class ExtractObject():
 
             qlist = [[['',''], self._base_path]]
 
-
         # year
         elif self._run_option == "2":
 
@@ -440,7 +433,6 @@ class ExtractObject():
                     if y == id_char and x.isdigit()
                 ]) in self._years
             ]
-
 
         # year month/day
         elif self._run_option in ["3", "4"]:
@@ -478,15 +470,12 @@ class ExtractObject():
                     and name.endswith(tuple(self._raster_extensions))
                 ]
 
-
         else:
             raise Exception("Invalid run_option value: " +
                             str(self._run_option))
 
-
         # if len(qlist) == 0:
         #     raise Exception("No rasters found based on input parameters")
-
 
         # sort qlist
         qlist = sorted(qlist)
@@ -598,7 +587,7 @@ class ExtractObject():
                 extract_csvwriter = csv.DictWriter(extract_fh,
                                                    delimiter=str(","),
                                                    fieldnames=fieldnames)
-                extract_csvwriter.writerow(dict((fn, fn) for fn in fieldnames))
+                extract_csvwriter.writeheader()
 
                 # reliability header
                 if self._reliability:
@@ -606,13 +595,11 @@ class ExtractObject():
                     rel_csvwriter = csv.DictWriter(rel_fh,
                                                    delimiter=str(","),
                                                    fieldnames=rel_fieldnames)
-                    rel_csvwriter.writerow(dict((fn, fn) for fn in rel_fieldnames))
+                    rel_csvwriter.writeheader()
 
 
             extract_csvwriter.writerow(ex_data)
 
-
-            ###
 
             # run reliability calcs and write to csv
             if self._reliability:
@@ -640,7 +627,6 @@ class ExtractObject():
 
                 rel_csvwriter.writerow(ex_data)
 
-            ###
 
         extract_fh.close()
 
