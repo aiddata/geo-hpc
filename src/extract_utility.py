@@ -548,13 +548,13 @@ class ExtractObject():
                             prefix="excat_", stats="count",
                             categorical=True, category_map=self._cmap,
                             all_touched=True, weights=True,
-                            geojson_out=True))
+                            geojson_out=True)
 
         else:
             raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
                             prefix="ad_", stats=self._extract_type,
                             all_touched=True, weights=True,
-                            geojson_out=True))
+                            geojson_out=True)
 
 
         stats = self.format_extract(raw_stats)
