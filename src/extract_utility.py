@@ -582,7 +582,7 @@ class ExtractObject():
 
         # open reliability csv
         if self._reliability:
-            rel_fh(output[:-1] + "r.csv")
+            rel_fh = open(output[:-1] + "r.csv", "w")
 
         import csv
 
