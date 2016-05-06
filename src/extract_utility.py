@@ -600,7 +600,7 @@ class ExtractObject():
 
             print ex_data
             extract_csvwriter.writerow(ex_data)
-
+            print "bye"
 
             # run reliability calcs and write to csv
             if self._reliability:
