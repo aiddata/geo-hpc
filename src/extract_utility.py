@@ -579,12 +579,13 @@ class ExtractObject():
         for feat in stats:
             ex_data = feat['properties']
             print "hi"
+            print header
 
             if header:
                 header = False
 
                 fieldnames = sorted(list(ex_data.keys()), key=str)
-
+                print fieldnames
                 extract_csvwriter = csv.DictWriter(extract_fh,
                                                    delimiter=str(","),
                                                    fieldnames=fieldnames)
