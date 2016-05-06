@@ -2,6 +2,7 @@
 
 import sys
 import os
+import warnings
 import time
 from numpy import isnan
 
@@ -14,6 +15,9 @@ import pandas as pd
 # import geopandas as gpd
 import fiona
 from shapely.geometry import shape
+
+
+# -----------------------------------------------------------------------------
 
 
 def str_to_range(value):
@@ -138,6 +142,9 @@ def get_years(value):
     return tmp_years
 
 
+# -----------------------------------------------------------------------------
+
+
 class ExtractObject():
     """Contains variables and functions needed to validate and run extracts.
 
@@ -240,7 +247,8 @@ class ExtractObject():
         self._set_vector_extension(value)
 
         vector_dirname = os.path.dirname(value)
-        vector_filename, self._vector_extension = os.path.splitext(os.path.basename(value))
+        vector_filename, self._vector_extension = os.path.splitext(
+            os.path.basename(value))
 
         # break vector down into path and layer
         # different for shapefiles and geojsons
@@ -276,8 +284,8 @@ class ExtractObject():
         Makes sure that:
         1) temporally invariant file masks (ie "None") are not used with
         a base path that indicates temporal data (ie base_path is directory)
-        2) temporal file masks (ie not "None") are not used with a base path that
-        indicates temporally invariant data (ie base_path is file)
+        2) temporal file masks (ie not "None") are not used with a base path
+        that indicates temporally invariant data (ie base_path is file)
         """
         if (self._file_mask == "None" and self._base_path != None and
                 not self._base_path.endswith(tuple(self._raster_extensions))):
@@ -494,128 +502,154 @@ class ExtractObject():
     #     """
 
 
-    # --------------------------------------------------------------------
-    # --------------------------------------------------------------------
+    def format_extract(self, stats):
+
+        if self._extract_type == "categorical":
+            for feat in stats:
+                for i in self._cmap.values():
+                    colname = 'excat_' + i
+                    if (colname not in feat['properties'].keys() or
+                            isnan(feat['properties'][colname])):
+                        feat['properties'][colname] = 0
+
+                yield feat
+
+        else:
+            for feat in stats:
+                colname = 'ad_' + self._extract_type
+                if colname in feat['properties'].keys():
+                    if isnan(feat['properties'][colname]):
+                        feat['properties'][colname] = 'NA'
+
+                    feat['properties']['ad_extract'] = feat['properties'][colname]
+                    del feat['properties'][colname]
+
+                else:
+                    warnings.warn('Extract field missing from feature properties')
+                    print str(feat['properties'])
+                    feat['properties']['ad_extract'] = 'NA'
+
+                yield feat
 
 
-    def run_reliability(self, boundary, reliability_geojson, output):
-        """run reliability calcs for extract
-
-        intersect for every single boundary that intersects with unique ones
-        from geojson
-
-        sum for each intersect
-        """
-        # extract boundary geo dataframe
-        # bnd_df = gpd.GeoDataFrame.from_file(boundary)
-        bnd_iter = fiona.open(boundary)
-
-        # mean surface unique polygon dataframe
-        rel_df = gpd.GeoDataFrame.from_file(reliability_geojson)
-
-
-        # result of mean surface extracted to boundary
-        df = pd.read_csv(output + '.csv')
-
-        # init max column
-        df['ad_max'] = 0
-
-        # iterate over shapes in boundary dataframe
-        # for row in bnd_df.iterrows():
-
-        #     row_id = row[0]
-        #     row_geom = row[1]['geometry']
-
-        for row in bnd_iter:
-
-            row_id = row['id']
-            row_geom = shape(row['geometry'])
-
-            rel_df['intersect'] = rel_df['geometry'].intersects(row_geom)
-            tmp_series = rel_df.groupby(by = 'intersect')['unique_dollars'].sum()
-
-            df.loc[row_id, 'ad_max'] = tmp_series[True]
-
-
-        # calculate reliability statistic
-        df['ad_sum'] = df['ad_extract']
-        df['ad_extract'] = df['ad_sum'] / df['ad_max']
-
-        # output to reliability csv
-        df.to_csv(output[:-1] + "r.csv")
-
-
-    # run extract user rasterstats
     def run_extract(self, raster, output):
-        """Run python extract
+        """Run python extract using rasterstats
 
         Args:
             raster (str): path of raster file relative to base path
             output (str): absolute path for csv output of extract
         """
-        # try:
         Te_start = int(time.time())
 
+        # try:
+
         if self._extract_type == "categorical":
-            tmp_df = pd.DataFrame(
-                rs.zonal_stats(self._vector_path, raster,
-                    prefix="excat_", stats="count",
-                    categorical=True, category_map=self._cmap,
-                    all_touched=True, weights=True,
-                    save_properties=True))
+            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
+                            prefix="excat_", stats="count",
+                            categorical=True, category_map=self._cmap,
+                            all_touched=True, weights=True,
+                            geojson_out=True))
 
         else:
-            tmp_df = pd.DataFrame(
-                rs.zonal_stats(self._vector_path, raster,
-                    prefix="ad_", stats=self._extract_type,
-                    all_touched=True, weights=True,
-                    save_properties=True))
+            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
+                            prefix="ad_", stats=self._extract_type,
+                            all_touched=True, weights=True,
+                            geojson_out=True))
 
 
-        # except:
-        #     print "error with python_extract: " + output
+        stats = self.format_extract(raw_stats)
 
+        self.export_extract(stats, output)
+
+
+        # except Exception as extract_error:
+        #     print "error running extract for " + output
+        #     print extract_error
         #     if os.path.isfile(output+".csv"):
         #         os.remove(output+".csv")
 
-        #     return False
-
-
-        # # OLD
-        # out = open(output+".csv", "w")
-        # out.write(rs.utils.stats_to_csv(stats))
-
-
-
-        # tmp_data = [i['properties'] for i in stats]
-        # tmp_df = pd.DataFrame(tmp_data)
-
-        if self._extract_type != "categorical":
-            tmp_df.rename(columns = {'ad_' + self._extract_type: 'ad_extract'},
-                          inplace=True)
-            tmp_df['ad_extract'].fillna('NA', inplace=True)
-
-        else:
-            for i in self._cmap.values():
-                colname = 'excat_' + i
-                if colname not in list(tmp_df.columns):
-                    tmp_df[colname] = 0
-                else:
-                    tmp_df[colname].fillna('0', inplace=True)
-
-
-        tmp_df.to_csv(output + ".csv", sep=",", encoding="utf-8", index=False)
-
-
-        if self._reliability:
-            self.run_reliability(self._vector_path,
-                                 self._reliability_geojson, output)
+        #     return (1, 'Error runing extract')
 
 
         Te_run = int(time.time() - Te_start)
 
         return (0, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
 
+
+    def export_extract(self, stats, output):
+
+        extract_fh = open(output + ".csv", "w")
+
+        # open reliability csv
+        if self._reliability:
+            rel_fh(output[:-1] + "r.csv")
+
+        import csv
+
+        header = True
+        for feat in stats:
+            ex_data = feat['properties']
+
+            if header:
+                header = False
+
+                fieldnames = sorted(list(ex_data.keys()), key=str)
+
+                extract_csvwriter = csv.DictWriter(extract_fh,
+                                                   delimiter=str(","),
+                                                   fieldnames=fieldnames)
+                extract_csvwriter.writerow(dict((fn, fn) for fn in fieldnames))
+
+                # reliability header
+                if self._reliability:
+                    rel_csvwriter = csv.DictWriter(rel_fh,
+                                                   delimiter=str(","),
+                                                   fieldnames=fieldnames)
+                    rel_csvwriter.writerow(dict((fn, fn) for fn in fieldnames))
+
+
+            extract_csvwriter.writerow(ex_data)
+
+
+            ###
+
+            # run reliability calcs and write to csv
+            if self._reliability:
+
+                # reliability geojson
+                # mean surface features with aid info
+                rgeo = fiona.open(reliability_geojson)
+
+                feat_id = feat['id']
+                feat_geom = shape(feat['geometry'])
+
+                max_dollars = 0
+                for r in rgeo:
+                    r_intersects = shape(r['geometry']).intersects(feat_geom)
+
+                    if r_intersects:
+                        unique_dollars = r['properties']['unique_dollars']
+                        max_dollars += unique_dollars
+
+
+                # calculate reliability statistic
+                ex_data['ad_max'] = max_dollars
+                ex_data['ad_sum'] = ex_data['ad_extract']
+                ex_data['ad_extract'] = ex_data['ad_sum'] / ex_data['ad_max']
+
+                rel_csvwriter.writerow(ex_data)
+
+            ###
+
+        extract_fh.close()
+
+        # close reliability csv
+        if self._reliability:
+            rel_fh.close()
+
+
+
+# -----------------------------------------------------------------------------
 
 
 # class ValidateObject():
@@ -635,6 +669,8 @@ class ExtractObject():
 
 #         self._interface = interface
 
+
+# -----------------------------------------------------------------------------
 
 
 class MergeObject():

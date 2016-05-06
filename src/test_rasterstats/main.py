@@ -166,7 +166,7 @@ def gen_zonal_stats(
 
             # create ndarray of rasterized geometry
             rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
-            # print rv_array
+
             assert rv_array.shape == fsrc.shape
 
             # Mask the source data array with our current feature
@@ -184,9 +184,6 @@ def gen_zonal_stats(
                 if 'count' in stats:  # special case, zero makes sense here
                     feature_stats['count'] = 0
 
-                # print fsrc.array
-                # print rv_array
-                # print 'z'
             else:
                 if run_count:
                     keys, counts = np.unique(masked.compressed(), return_counts=True)
