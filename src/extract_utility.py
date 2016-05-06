@@ -578,14 +578,12 @@ class ExtractObject():
         header = True
         for feat in stats:
             ex_data = feat['properties']
-            print "hi"
-            print header
 
             if header:
                 header = False
 
                 fieldnames = sorted(list(ex_data.keys()), key=str)
-                print fieldnames
+
                 extract_csvwriter = csv.DictWriter(extract_fh,
                                                    delimiter=str(","),
                                                    fieldnames=fieldnames)
@@ -599,9 +597,9 @@ class ExtractObject():
                                                    fieldnames=rel_fieldnames)
                     rel_csvwriter.writeheader()
 
-            print ex_data
+
             extract_csvwriter.writerow(ex_data)
-            print "bye"
+
 
             # run reliability calcs and write to csv
             if self._reliability:
