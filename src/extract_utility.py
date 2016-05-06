@@ -578,6 +578,7 @@ class ExtractObject():
         header = True
         for feat in stats:
             ex_data = feat['properties']
+            print "hi"
 
             if header:
                 header = False
@@ -597,7 +598,7 @@ class ExtractObject():
                                                    fieldnames=rel_fieldnames)
                     rel_csvwriter.writeheader()
 
-
+            print ex_data
             extract_csvwriter.writerow(ex_data)
 
 
