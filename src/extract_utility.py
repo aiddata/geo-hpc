@@ -618,7 +618,7 @@ class ExtractObject():
 
                 # reliability geojson
                 # mean surface features with aid info
-                rgeo = fiona.open(reliability_geojson)
+                rgeo = fiona.open(self._reliability_geojson)
 
                 feat_id = feat['id']
                 feat_geom = shape(feat['geometry'])
