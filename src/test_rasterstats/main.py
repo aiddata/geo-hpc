@@ -165,20 +165,27 @@ def gen_zonal_stats(
 
             geom_bounds = tuple(geom.bounds)
 
-            print geom.bounds
-
             fsrc = rast.read(bounds=geom_bounds)
-            print fsrc.array.dtype
-            print fsrc.array.nbytes
-            print fsrc.array.shape
+            # print fsrc.array.dtype
+            # print fsrc.array.nbytes
+            # print fsrc.array.shape
+
+            fsrc_nodata = fsrc.nodata
+            fsrc_affine = fsrc.affine
+            fsrc_shape = fsrc.shape
+
+            if 'nodata' in stats:
+                featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
+                feature_stats['nodata'] = float((featmasked == fsrc_nodata).sum())
+
 
             # create ndarray of rasterized geometry
             rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
-            print rv_array.dtype
-            print rv_array.nbytes
-            print rv_array.shape
+            # print rv_array.dtype
+            # print rv_array.nbytes
+            # print rv_array.shape
 
-            assert rv_array.shape == fsrc.shape
+            assert rv_array.shape == fsrc_shape
 
             # Mask the source data array with our current feature
             # we take the logical_not to flip 0<->1 for the correct mask effect
@@ -186,11 +193,13 @@ def gen_zonal_stats(
             masked = np.ma.MaskedArray(
                 fsrc.array,
                 mask=np.logical_or(
-                    fsrc.array == fsrc.nodata,
+                    fsrc.array == fsrc_nodata,
                     np.logical_not(rv_array)))
 
-            print masked.nbytes
-            print masked.shape
+            # print masked.nbytes
+            # print masked.shape
+
+            del fsrc
 
             if masked.compressed().size == 0:
                 # nothing here, fill with None and move on
@@ -212,7 +221,7 @@ def gen_zonal_stats(
                     feature_stats = {}
 
                 if active_weights:
-                    pctcover = rasterize_pctcover(geom, atrans=fsrc.affine, shape=fsrc.shape)
+                    pctcover = rasterize_pctcover(geom, atrans=fsrc_affine, shape=fsrc_shape)
 
                 if 'min' in stats:
                     feature_stats['min'] = float(masked.min())
@@ -256,9 +265,6 @@ def gen_zonal_stats(
                     pctarr = masked.compressed()
                     feature_stats[pctile] = np.percentile(pctarr, q)
 
-            if 'nodata' in stats:
-                featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
-                feature_stats['nodata'] = float((featmasked == fsrc.nodata).sum())
 
             if add_stats is not None:
                 for stat_name, stat_func in add_stats.items():
@@ -266,8 +272,8 @@ def gen_zonal_stats(
 
             if raster_out:
                 feature_stats['mini_raster_array'] = masked
-                feature_stats['mini_raster_affine'] = fsrc.affine
-                feature_stats['mini_raster_nodata'] = fsrc.nodata
+                feature_stats['mini_raster_affine'] = fsrc_affine
+                feature_stats['mini_raster_nodata'] = fsrc_nodata
 
             if prefix is not None:
                 prefixed_feature_stats = {}
