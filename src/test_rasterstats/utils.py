@@ -13,7 +13,7 @@ DEFAULT_STATS = ['count', 'min', 'max', 'mean']
 VALID_STATS = DEFAULT_STATS + \
     ['sum', 'std', 'median', 'majority', 'minority', 'unique', 'range', 'nodata']
 #  also percentile_{q} but that is handled as special case
-WEIGHTED_STATS = ['mean']
+WEIGHTS_STATS = ['mean']
 
 def get_percentile(stat):
     if not stat.startswith('percentile_'):
@@ -151,7 +151,7 @@ def stats_to_csv(stats, file_object=None):
         return abs_path
 
 
-def check_stats(stats, categorical):
+def check_stats(stats, categorical, weights):
     if not stats:
         if not categorical:
             stats = DEFAULT_STATS
@@ -177,8 +177,13 @@ def check_stats(stats, categorical):
         run_count = True
 
     valid_weights = False
-    if any([s in WEIGHTED_STATS for s in stats]):
+    if any([s in WEIGHTS_STATS for s in stats]):
         valid_weights = True
+
+    if weights and not valid_weights:
+           warnings.warn("The weights option was provided but no stats which "
+                         "can use weights were given. The following stats can "
+                         "use weights: \n\r" % WEIGHTS_STATS, UserWarning)
 
     return stats, run_count, valid_weights
 

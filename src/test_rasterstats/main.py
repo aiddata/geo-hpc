@@ -125,7 +125,7 @@ def gen_zonal_stats(
     generator of geojson features (if geojson_out is True)
         GeoJSON-like Feature as python dict
     """
-    stats, run_count, valid_weights = check_stats(stats, categorical)
+    stats, run_count, valid_weights = check_stats(stats, categorical, weights)
 
     if not valid_weights:
         weights = False
@@ -150,7 +150,7 @@ def gen_zonal_stats(
         warnings.warn("Use `geojson_out` or `save_properties` to preserve feature properties",
                       DeprecationWarning)
 
-    tmp_weights = weights
+    active_weights = weights
     if weights:
         all_touched = True
 
@@ -160,7 +160,7 @@ def gen_zonal_stats(
             geom = shape(feat['geometry'])
 
             if 'Point' in geom.type:
-                tmp_weights = False
+                active_weights = False
                 geom = boxify_points(geom, rast)
 
             geom_bounds = tuple(geom.bounds)
@@ -211,7 +211,7 @@ def gen_zonal_stats(
                 else:
                     feature_stats = {}
 
-                if tmp_weights:
+                if active_weights:
                     pctcover = rasterize_pctcover(geom, atrans=fsrc.affine, shape=fsrc.shape)
 
                 if 'min' in stats:
@@ -219,7 +219,7 @@ def gen_zonal_stats(
                 if 'max' in stats:
                     feature_stats['max'] = float(masked.max())
                 if 'mean' in stats:
-                    if tmp_weights:
+                    if active_weights:
                         feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
                     else:
                         feature_stats['mean'] = float(masked.mean())
