@@ -604,7 +604,13 @@ class ExtractObject():
                     rel_csvwriter.writeheader()
 
 
-            extract_csvwriter.writerow(ex_data)
+            try:
+                extract_csvwriter.writerow(ex_data)
+            except:
+                for k in ex_data:
+                    ex_data[k] = ex_data[k].encode('utf-8')
+
+                extract_csvwriter.writerow(ex_data)
 
 
             # run reliability calcs and write to csv
