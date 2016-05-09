@@ -183,7 +183,7 @@ def check_stats(stats, categorical, weights):
     if weights and not valid_weights:
            warnings.warn("The weights option was provided but no stats which "
                          "can use weights were given. The following stats can "
-                         "use weights: \n\r" % WEIGHTS_STATS, UserWarning)
+                         "use weights: \n\r" % str(WEIGHTS_STATS), UserWarning)
 
     return stats, run_count, valid_weights
 

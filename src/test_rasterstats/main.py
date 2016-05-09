@@ -157,6 +157,7 @@ def gen_zonal_stats(
     with Raster(raster, affine, nodata, band_num) as rast:
         features_iter = read_features(vectors, layer)
         for i, feat in enumerate(features_iter):
+            print "Feature #" + str(i)
             geom = shape(feat['geometry'])
 
             if 'Point' in geom.type:
@@ -166,9 +167,6 @@ def gen_zonal_stats(
             geom_bounds = tuple(geom.bounds)
 
             fsrc = rast.read(bounds=geom_bounds)
-            # print fsrc.array.dtype
-            # print fsrc.array.nbytes
-            # print fsrc.array.shape
 
             fsrc_nodata = fsrc.nodata
             fsrc_affine = fsrc.affine
@@ -178,12 +176,8 @@ def gen_zonal_stats(
                 featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
                 feature_stats['nodata'] = float((featmasked == fsrc_nodata).sum())
 
-
             # create ndarray of rasterized geometry
             rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
-            # print rv_array.dtype
-            # print rv_array.nbytes
-            # print rv_array.shape
 
             assert rv_array.shape == fsrc_shape
 
@@ -196,10 +190,12 @@ def gen_zonal_stats(
                     fsrc.array == fsrc_nodata,
                     np.logical_not(rv_array)))
 
+            # print masked.dtype
             # print masked.nbytes
             # print masked.shape
 
             del fsrc
+            del rv_array
 
             if masked.compressed().size == 0:
                 # nothing here, fill with None and move on
@@ -236,9 +232,7 @@ def gen_zonal_stats(
                     feature_stats['count'] = int(masked.count())
                 # optional
                 if 'sum' in stats:
-                    print 'start sum'
                     feature_stats['sum'] = float(masked.sum())
-                    print 'end sum'
                 if 'std' in stats:
                     feature_stats['std'] = float(masked.std())
                 if 'median' in stats:
