@@ -507,8 +507,14 @@ class ExtractObject():
             for feat in stats:
                 colname = 'ad_' + self._extract_type
                 if colname in feat['properties'].keys():
-                    if feat['properties'][colname] in ['nan', 'NaN'] or isnan(feat['properties'][colname]):
+                    try:
+                        if feat['properties'][colname] in ['nan', 'NaN'] or isnan(feat['properties'][colname]):
+                            feat['properties'][colname] = 'NA'
+                    except:
+                        print feat['properties'][colname]
+                        print type(feat['properties'][colname])
                         feat['properties'][colname] = 'NA'
+
 
                     feat['properties']['ad_extract'] = feat['properties'][colname]
                     del feat['properties'][colname]
