@@ -163,9 +163,13 @@ def gen_zonal_stats(
             geom_bounds = tuple(geom.bounds)
 
             fsrc = rast.read(bounds=geom_bounds)
+            print fsrc.dtype
+            print fsrc.nbytes
 
             # create ndarray of rasterized geometry
             rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
+            print rv_array.dtype
+            print rv_array.nbytes
 
             assert rv_array.shape == fsrc.shape
 
@@ -177,6 +181,8 @@ def gen_zonal_stats(
                 mask=np.logical_or(
                     fsrc.array == fsrc.nodata,
                     np.logical_not(rv_array)))
+
+            print masked.nbytes
 
             if masked.compressed().size == 0:
                 # nothing here, fill with None and move on

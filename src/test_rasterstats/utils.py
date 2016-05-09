@@ -95,11 +95,8 @@ def rasterize_pctcover(geom, atrans, shape):
         pctcover[r, c] = coverage
         # print pctcover[r, c]
 
-    # print pctcover
-    out = pctcover.astype('float32') / 100
-    # print out
-    # print 'x'
-    return out
+
+    return pctcover.astype('float32') / 100
 
 
 def stats_to_csv(stats, file_object=None):
