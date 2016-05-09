@@ -508,7 +508,7 @@ class ExtractObject():
                 colname = 'ad_' + self._extract_type
                 if colname in feat['properties'].keys():
                     try:
-                        if feat['properties'][colname] in ['nan', 'NaN'] or isnan(feat['properties'][colname]):
+                        if feat['properties'][colname] in [None, 'nan', 'NaN'] or isnan(feat['properties'][colname]):
                             feat['properties'][colname] = 'NA'
                     except:
                         print feat['properties'][colname]
