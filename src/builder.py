@@ -85,7 +85,8 @@ for dataset_options in job_json['data']:
 
     if 'type' in dataset_options and dataset_options['type'] == 'msr':
 
-        if any([i not in dataset_options for i in ['branch', 'release', 'hash']]):
+        msr_fields = ['branch', 'release', 'hash']
+        if any([i not in dataset_options for i in msr_fields]):
             if user_prompt_bool("MSR dataset required options not found. " +
                                 "Ignore dataset and continue? [y/n]"):
                 continue
@@ -152,7 +153,14 @@ for dataset_options in job_json['data']:
                 tmp_config[k] = dataset_info[k]
 
         except KeyError:
-            if user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
+
+            dataset_fields = ['data_base', 'data_name', 'data_mini', 'file_mask']
+            if all([i in dataset_options for i in dataset_fields]):
+
+                for j in dataset_fields:
+                    tmp_config[k] = dataset_options[k]
+
+            elif user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
                                 "in dataset json. Ignore dataset and continue? " +
                                 "[y/n]"):
                 continue
