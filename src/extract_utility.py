@@ -609,7 +609,7 @@ class ExtractObject():
             except:
                 for k in ex_data:
                     if isinstance(ex_data[k], str):
-                        ex_data[k] = ex_data[k].encode('utf-8')
+                        ex_data[k] = ex_data[k].decode('utf-8').encode('utf-8')
 
                 extract_csvwriter.writerow(ex_data)
 
