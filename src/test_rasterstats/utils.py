@@ -13,6 +13,7 @@ DEFAULT_STATS = ['count', 'min', 'max', 'mean']
 VALID_STATS = DEFAULT_STATS + \
     ['sum', 'std', 'median', 'majority', 'minority', 'unique', 'range', 'nodata']
 #  also percentile_{q} but that is handled as special case
+WEIGHTED_STATS = ['mean']
 
 def get_percentile(stat):
     if not stat.startswith('percentile_'):
@@ -175,7 +176,11 @@ def check_stats(stats, categorical):
         # run the counter once, only if needed
         run_count = True
 
-    return stats, run_count
+    valid_weights = False
+    if any([s in WEIGHTED_STATS for s in stats]):
+        valid_weights = True
+
+    return stats, run_count, valid_weights
 
 
 def remap_categories(category_map, stats):

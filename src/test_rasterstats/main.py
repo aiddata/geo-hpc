@@ -125,7 +125,10 @@ def gen_zonal_stats(
     generator of geojson features (if geojson_out is True)
         GeoJSON-like Feature as python dict
     """
-    stats, run_count = check_stats(stats, categorical)
+    stats, run_count, valid_weights = check_stats(stats, categorical)
+
+    if not valid_weights:
+        weights = False
 
     # Handle 1.0 deprecations
     transform = kwargs.get('transform')
@@ -161,6 +164,8 @@ def gen_zonal_stats(
                 geom = boxify_points(geom, rast)
 
             geom_bounds = tuple(geom.bounds)
+
+            print geom.bounds
 
             fsrc = rast.read(bounds=geom_bounds)
             print fsrc.array.dtype
@@ -219,7 +224,9 @@ def gen_zonal_stats(
                     feature_stats['count'] = int(masked.count())
                 # optional
                 if 'sum' in stats:
+                    print 'start sum'
                     feature_stats['sum'] = float(masked.sum())
+                    print 'end sum'
                 if 'std' in stats:
                     feature_stats['std'] = float(masked.std())
                 if 'median' in stats:
