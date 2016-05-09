@@ -158,7 +158,7 @@ for dataset_options in job_json['data']:
             if all([i in dataset_options for i in dataset_fields]):
 
                 for j in dataset_fields:
-                    tmp_config[k] = dataset_options[k]
+                    tmp_config[j] = dataset_options[j]
 
             elif user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
                                 "in dataset json. Ignore dataset and continue? " +
