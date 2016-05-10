@@ -9,15 +9,17 @@ import os
 import sys
 import time
 
-sys.stdout = sys.stderr = open(os.path.dirname(os.path.abspath(__file__)) +'/processing.log', 'a')
+sys.stdout = sys.stderr = open(
+    os.path.dirname(os.path.abspath(__file__)) + '/processing.log', 'a')
 
-from queue import queue
-from cache import cache
-from documentation import doc
+from request_tools import QueueCheck, CacheTools
+from documentation_tool import DocBuilder
 
-queue = queue()
-cache = cache()
-doc = doc()
+# =============================================================================
+
+queue = QueueCheck()
+cache = CacheTools()
+doc = DocBuilder()
 
 queue.cache = cache
 queue.doc = doc
@@ -45,7 +47,8 @@ if len(sys.argv) == 2:
     request_objects[request_id] = request_obj
 
 else:
-    # get list of requests in queue (status: 0) based on priority and submit time
+    # get list of requests in queue (status: 0) based on priority and
+    #   submit time
     # returns status of search and request data objecft
 
     gn_status, request_objects = queue.get_next(0, 0)
@@ -70,8 +73,14 @@ for request_id in request_objects.keys():
 
     if request_obj['status'] == -1:
         # send initial email
-        p_message = "Your data extraction request (" + request_id + ") has been received. You can check on the status of the request via devlabs.aiddata.wm.edu/DET/status/#"+request_id +". Results can be downloaded from the same page when they are ready."
-        queue.send_email("aiddatatest2@gmail.com", request_obj["email"], "AidData Data Extraction Tool Request Received ("+request_id+")", p_message)
+        p_message = ("Your data extraction request (" + request_id +
+                     ") has been received. You can check on the status " +
+                     "of the request via devlabs.aiddata.wm.edu/DET/status/#" +
+                     request_id +". Results can be downloaded from the same " +
+                     "page when they are ready.")
+        queue.send_email("aiddatatest2@gmail.com", request_obj["email"],
+                         "AidData Data Extraction Tool Request Received (" +
+                         request_id + ")", p_message)
 
 
     # check results for cached data

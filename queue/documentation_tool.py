@@ -12,12 +12,14 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
 import pymongo
 
-class doc():
+# =============================================================================
+
+class DocBuilder():
 
 
     def __init__(self):
         self.dir_base = os.path.dirname(os.path.abspath(__file__))
-        
+
         self.doc = 0
 
         self.request = 0
@@ -52,7 +54,7 @@ class doc():
         # self.doc = SimpleDocTemplate('/sciclone/aiddata10/REU/det/results/documentation.pdf', pagesize=letter)
 
         self.doc = SimpleDocTemplate('/sciclone/aiddata10/REU/det/results/'+rid+'/documentation.pdf', pagesize=letter)
-        
+
         # build doc call all functions
         self.add_header()
         self.add_info()
@@ -70,7 +72,7 @@ class doc():
 
 
 
-    # documentation header 
+    # documentation header
     def add_header(self):
         # aiddata logo
         logo = self.dir_base + '/templates/logo.png'
@@ -99,7 +101,7 @@ class doc():
 
         t = Table(data)
 
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                                 ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
         self.Story.append(t)
@@ -146,7 +148,7 @@ class doc():
                 ['Source Link',  self.request['boundary']['source_link']]]
 
         t = Table(data)
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                               ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
         self.Story.append(t)
         self.Story.append(Spacer(1, 0.1*inch))
@@ -172,7 +174,7 @@ class doc():
                     ]
 
             t = Table(data)
-            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                                     ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
             self.Story.append(t)
@@ -197,7 +199,7 @@ class doc():
                 data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
 
             t = Table(data)
-            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                                     ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
             self.Story.append(t)
@@ -235,20 +237,20 @@ class doc():
             data.append(['Temporal End', meta['temporal']['end']])
             data.append(['Temporal Format', meta['temporal']['format']])
 
-            
+
         data.append(['Bounding Box', Paragraph(str(meta['spatial']['coordinates']), self.styles['Normal'])])
 
 
         for i in range(len(meta['sources'])):
             data.append(['Source #'+str(i+1), Paragraph('<i>name:</i> '+meta['sources'][i]['name']+'<br /><i>web:</i> '+meta['sources'][i]['web'], self.styles['Normal'])])
-        
+
         for i in range(len(meta['licenses'])):
             data.append(['License #'+str(i+1), Paragraph('<i>name:</i> '+meta['licenses'][i]['name']+'<br /><i>version:</i> '+meta['licenses'][i]['version']+'<br /><i>url:</i> '+meta['licenses'][i]['url'], self.styles['Normal'])])
-            
+
 
         for i in range(len(meta['maintainers'])):
             data.append(['Maintainer #'+str(i+1), Paragraph('<i>name:</i> '+meta['maintainers'][i]['name']+'<br /><i>web:</i> '+meta['maintainers'][i]['web']+'<br /><i>email:</i> '+meta['maintainers'][i]['email'], self.styles['Normal'])])
-            
+
         for i in range(len(meta['publishers'])):
             data.append(['Publisher #'+str(i+1), Paragraph('<i>name:</i> '+meta['publishers'][i]['name']+'<br /><i>web:</i> '+meta['publishers'][i]['web']+'<br /><i>email:</i> '+meta['publishers'][i]['email'], self.styles['Normal'])])
 
@@ -267,7 +269,7 @@ class doc():
             data.append(['Resolution', meta['options']['resolution']])
             data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
             data.append(['Factor', meta['options']['factor']])
-        
+
         elif item_type == 'release':
             download_link = 'http://aiddata.org/geocoded-datasets'
             # download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' #+ meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
@@ -294,7 +296,7 @@ class doc():
 
 
         t = Table(data)
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                                 ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
         self.Story.append(t)
@@ -305,7 +307,7 @@ class doc():
 
         d1_meta_log = []
         for dset in self.request['d1_data'].values():
-            
+
             if dset['dataset'] not in d1_meta_log:
                 d1_meta_log.append(dset['dataset'])
 
@@ -317,7 +319,7 @@ class doc():
                 data = self.build_meta(dset['dataset'], dset['type'])
 
                 t = Table(data)
-                t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+                t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                                       ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
                 self.Story.append(t)
@@ -325,7 +327,7 @@ class doc():
 
 
         for dset in self.request['d2_data'].values():
-            
+
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
@@ -335,7 +337,7 @@ class doc():
             data = self.build_meta(dset['name'], dset['type'])
 
             t = Table(data)
-            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                                   ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
             self.Story.append(t)
@@ -347,7 +349,7 @@ class doc():
 
 
 
-    # full request timeline / other processing info 
+    # full request timeline / other processing info
     def add_timeline(self):
 
         ptext = '<b><font size=12>request timeline info</font></b>'
@@ -362,7 +364,7 @@ class doc():
 
         t = Table(data)
 
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), 
+        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                               ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
 
         self.Story.append(t)
