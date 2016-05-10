@@ -40,7 +40,7 @@ $(document).ready(function(){
 	// get boundary options from mongo
 	// build select menu
 	// check and active link if given
-	process({call:"boundaries"}, function (result, status, error){
+	process({call:"find_boundaries"}, function (result, status, error){
 
 		if (error) {
 			console.log(error);
@@ -381,7 +381,7 @@ $(document).ready(function(){
 
 		var process_call = 0
 
-		process({call:"geojson", file:file}, function (result, status, e) {
+		process({call:"get_boundary_geojson", file:file}, function (result, status, e) {
 			geojsonFeature = result;
 			error = e;
 			// console.log(result);
@@ -437,7 +437,7 @@ $(document).ready(function(){
 
 		// console.log(request["boundary"]["group"]);
 
-		process({call:"datasets", group:request["boundary"]["group"]}, function (result, status, error){
+		process({call:"find_datasets", group:request["boundary"]["group"]}, function (result, status, error){
 
 			if (error) {
 				console.log(error);
@@ -480,7 +480,7 @@ $(document).ready(function(){
 
 		project_count = -1
 		location_count = -1;
-		process({call:"filter_count", filter:filter_selection}, function (result, status, error){
+		process({call:"get_filter_count", filter:filter_selection}, function (result, status, error){
 
 			if (error) {
 				console.log(error);
@@ -879,7 +879,7 @@ $(document).ready(function(){
 		var request_id, error;
 
 		// submit request json and run preprocessing script to generate status page
-		process({call:"request", request:JSON.stringify(request)}, function (result, status, e) {
+		process({call:"add_request", request:JSON.stringify(request)}, function (result, status, e) {
 
 			console.log(result);
 
