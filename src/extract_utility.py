@@ -939,8 +939,8 @@ class MergeObject():
                             if cname.startswith("excat_")
                         ]
                         for c in cat_fields:
-                            new_cat_field = tmp_field + cat_fields[2:]
-                            merge.rename(columns={cat_field: new_cat_field},
+                            new_cat_field = tmp_field + c[5:]
+                            merge.rename(columns={c: new_cat_field},
                                          inplace=True)
                     else:
                         merge.rename(columns={"ad_extract": tmp_field},
