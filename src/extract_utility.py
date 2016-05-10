@@ -607,8 +607,8 @@ class ExtractObject():
                 extract_csvwriter.writerow(ex_data)
             except:
                 for k in ex_data:
-                    if isinstance(ex_data[k], str):
-                        ex_data[k] = ex_data[k].decode('utf-8')
+                    if isinstance(ex_data[k], unicode):
+                        ex_data[k] = ex_data[k].encode('utf-8')
 
                 extract_csvwriter.writerow(ex_data)
 
