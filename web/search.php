@@ -208,9 +208,9 @@ switch ($_POST['call']) {
         $col = $db_asdf->selectCollection('data');
 
         $query = array(
-                        'name' => array('$in' => $list),
-                        'temporal.type' => array('$in' => array('year', 'None')),
-                        'type' => array('$in' => array('release', 'raster'))
+            'name' => array('$in' => $list),
+            'temporal.type' => array('$in' => array('year', 'None')),
+            'type' => array('$in' => array('release', 'raster'))
         );
 
         $cursor = $col->find($query);
@@ -235,7 +235,8 @@ switch ($_POST['call']) {
                 // placeholder for no year selection (only 'All')
                 $doc['year_list'] = [];
 
-                // get years based on min transaction_first and max transaction_last
+                // get years based on min transaction_first and max
+                // transaction_last
                 //
 
 
@@ -297,7 +298,8 @@ switch ($_POST['call']) {
 
     case "get_boundary_geojson":
         /*
-        find and returns contents of simplified boundary geojson for web map
+        find and returns contents of simplified boundary geojson
+        for web map
 
         post fields
             name : boundary
@@ -306,8 +308,8 @@ switch ($_POST['call']) {
             simplified geojson as json
 
 
-        change this to find geojson using boundaries name to lookup base path,
-        instead of getting file from post
+        change this to find geojson using boundaries name to lookup
+        base path, instead of getting file from post
 
         */
         $name = $_POST['name'];
@@ -438,15 +440,21 @@ switch ($_POST['call']) {
         $project_query = array();
 
         if (!in_array("All", $filter['sectors'])) {
-            $project_query['ad_sector_names'] = array('$in' => array_map($regex_map, $filter['sectors']));
+            $project_query['ad_sector_names'] = array(
+                '$in' => array_map($regex_map, $filter['sectors'])
+            );
         }
 
         if (!in_array("All", $filter['donors'])) {
-            $project_query['donors'] = array('$in' => array_map($regex_map, $filter['donors']));
+            $project_query['donors'] = array(
+                '$in' => array_map($regex_map, $filter['donors'])
+            );
         }
 
         if (!in_array("All", $filter['years'])) {
-            $project_query['transactions.transaction_year'] = array('$in' => array_map('intval', $filter['years']));
+            $project_query['transactions.transaction_year'] = array(
+                '$in' => array_map('intval', $filter['years'])
+            );
         }
 
 
@@ -455,7 +463,8 @@ switch ($_POST['call']) {
 
         $projects = $project_cursor->count();
 
-        // get number of locations (filter non geocoded + filter geocoded with locations unwind)
+        // get number of locations (filter non geocoded + filter geocoded
+        // with locations unwind)
 
         $location_query_1 = $project_query;
         $location_query_1['is_geocoded'] = 0;
@@ -469,7 +478,9 @@ switch ($_POST['call']) {
 
         $location_aggregate = array();
         $location_aggregate[] = array('$match' => $location_query_2);
-        $location_aggregate[] = array('$project' => array("project_id"=>1, 'locations'=>1));
+        $location_aggregate[] = array(
+            '$project' => array("project_id"=>1, 'locations'=>1)
+        );
         $location_aggregate[] = array('$unwind' => '$locations');
 
         $location_cursor_2 = $col->aggregate($location_aggregate);
@@ -477,7 +488,12 @@ switch ($_POST['call']) {
 
 
         $locations = $location_count_1 + $location_count_2;
-        $output = array("projects" => $projects, "locations" => $locations, "location_count_1" => $location_count_1, "location_count_2" => $location_count_2 );
+        $output = array(
+            "projects" => $projects,
+            "locations" => $locations,
+            "location_count_1" => $location_count_1,
+            "location_count_2" => $location_count_2
+        );
 
         echo json_encode($output);
         break;

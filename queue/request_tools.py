@@ -155,7 +155,8 @@ class QueueCheck():
 
         try:
             # source:
-            # http://stackoverflow.com/questions/64505/sending-mail-from-python-using-smtp
+            # http://stackoverflow.com/questions/64505/
+            #   sending-mail-from-python-using-smtp
 
             msg = MIMEMultipart()
 
@@ -248,7 +249,8 @@ class CacheTools():
         self.c_msr = self.client.asdf.msr
 
         self.extract_options = json.load(open(
-            os.path.dirname(os.path.abspath(__file__)) + '/extract_options.json', 'r'))
+            os.path.dirname(
+                os.path.abspath(__file__)) + '/extract_options.json', 'r'))
 
         self.merge_lists = {}
 
@@ -306,7 +308,8 @@ class CacheTools():
                                   ".csv")
 
             # check if msr exists in tracker and is completed
-            msr_exists, msr_completed = self.msr_exists(data['dataset'], data_hash)
+            msr_exists, msr_completed = self.msr_exists(data['dataset'],
+                                                        data_hash)
 
             print "MSR STATE:" + str(msr_completed)
 
@@ -322,9 +325,10 @@ class CacheTools():
 
                     if not extract_exists:
                         # add to extract queue
-                        self.add_to_extract_queue(request["boundary"]["name"],
-                                                  data['dataset']+"_"+data_hash,
-                                                  True, msr_extract_type, "msr")
+                        self.add_to_extract_queue(
+                            request["boundary"]["name"],
+                            data['dataset']+"_"+data_hash,
+                            True, msr_extract_type, "msr")
 
             else:
 
@@ -337,8 +341,10 @@ class CacheTools():
 
 
             # add to merge list
-            self.merge_lists[rid].append(('d1_data', msr_extract_output, msr_field_id))
-            self.merge_lists[rid].append(('d1_data', msr_extract_output[:-5]+"r.csv", msr_field_id))
+            self.merge_lists[rid].append(
+                ('d1_data', msr_extract_output, msr_field_id))
+            self.merge_lists[rid].append(
+                ('d1_data', msr_extract_output[:-5]+"r.csv", msr_field_id))
 
             msr_field_id += 1
 
@@ -363,12 +369,16 @@ class CacheTools():
                     else:
                         output_name = df_name
 
-                    # output file string without file type identifier or file extension
+                    # output file string without file type identifier
+                    # or file extension
                     base_output = ("/sciclone/aiddata10/REU/extracts/" +
                                    request["boundary"]["name"] + "/cache/" +
                                    data["name"] + "/" + extract_type + "/" +
                                    output_name)
-                    extract_output = base_output + self.extract_options[extract_type] + ".csv"
+
+                    extract_output = (base_output +
+                                      self.extract_options[extract_type] +
+                                      ".csv")
 
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = self.extract_exists(
@@ -392,7 +402,8 @@ class CacheTools():
                     # add to merge list
                     self.merge_lists[rid].append(('d2_data', extract_output, None))
                     if is_reliability_raster:
-                        self.merge_lists[rid].append(('d2_data', extract_output[:-5]+"r.csv", None))
+                        self.merge_lists[rid].append(
+                            ('d2_data', extract_output[:-5]+"r.csv", None))
 
 
         return 1, extract_count, msr_count
@@ -445,10 +456,11 @@ class CacheTools():
 
 
     # 1) check if extract exists in extract queue
-    #    run redundancy check on actual extract file and delete extract queue entry
-    #    if file is missing
+    #    run redundancy check on actual extract file and delete extract
+    #    queue entry if file is missing
     #    also check for reliability calc if field is specified
-    # 2) check if extract is completed, waiting to be run, or encountered an error
+    # 2) check if extract is completed, waiting to be run, or
+    #    encountered an error
     def extract_exists(self, boundary, raster, extract_type, reliability,
                        csv_path):
         print "exists_in_extract_queue"
