@@ -168,8 +168,10 @@ $(document).ready(function(){
 		$('#bnd_description, #data_bnd_description').html(sel.data('description'));
 		$('#bnd_link, #data_bnd_link').html(sel.data('source_link'));
 
-		var file = sel.data('path');
-		addCountry(file);
+
+        var name = sel.data('name');
+        addCountry(name);
+
 
 		$('#bnd_lock').show();
 	});
@@ -375,13 +377,13 @@ $(document).ready(function(){
 	}
 
 	// add geojson to map
-	function addCountry(file) {
+	function addCountry(name) {
 
 		var geojsonFeature, error;
 
 		var process_call = 0
 
-		process({call:"get_boundary_geojson", file:file}, function (result, status, e) {
+		process({call:"get_boundary_geojson", name:name}, function (result, status, e) {
 			geojsonFeature = result;
 			error = e;
 			// console.log(result);
@@ -437,7 +439,7 @@ $(document).ready(function(){
 
 		// console.log(request["boundary"]["group"]);
 
-		process({call:"find_datasets", group:request["boundary"]["group"]}, function (result, status, error){
+		process({call:"find_relevant_datasets", group:request["boundary"]["group"]}, function (result, status, error){
 
 			if (error) {
 				console.log(error);

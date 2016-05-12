@@ -5,6 +5,44 @@ set_time_limit(300);
 $m = new MongoClient();
 
 
+function is_clean_val($input) {
+    // verify valid value
+    if (!is_string($input) || !is_int($input) || !is_float($input)
+        || !is_bool($input)
+    ) {
+        return False
+    }
+    // verify string does not contain null bytes
+    if (is_string($input) && strpos("\0", $input) != False) {
+        return False;
+    }
+    return True;
+}
+
+// https://stackoverflow.com/questions/173400/how-to-check-if-php-
+//      array-is-associative-or-sequential/173479#173479
+function is_assoc($arr) {
+    return array_keys($arr) !== range(0, count($arr) - 1);
+}
+
+function is_clean_array($input) {
+    // check if array
+    if (!is_array($input)) {
+        return False;
+    }
+    // check if associative array
+    if (is_assoc($input)) {
+        return False;
+    }
+    foreach ($input as $i) {
+        if (!is_clean_val($i)) {
+            return False;
+        }
+    }
+    return True;
+}
+
+
 switch ($_POST['call']) {
 
 // ============================================================================
@@ -12,7 +50,7 @@ switch ($_POST['call']) {
 
     case "find_requests":
         /*
-        generate request information for status page
+        generate request information for det status page
 
         post fields
             search_type : "id" or "email" or "status"
@@ -23,6 +61,11 @@ switch ($_POST['call']) {
         */
         $search_type = $_POST['search_type'];
         $search_val = $_POST['search_val'];
+
+        if (!is_clean_val($search_type) || !is_clean_val($search_val)) {
+            echo json_encode('invalid inputs');
+            break;
+        }
 
         $db = $m->selectDB('det');
         $col = $db->selectCollection('queue');
@@ -58,13 +101,35 @@ switch ($_POST['call']) {
 
     case "update_request_status":
         /*
-        update status
-        */
-        $query = json_decode($_POST['query']);
-        $update = json_decode($_POST['update']);
+        update status of det request
 
-        // validate $update
-        //
+        post fields
+            rid: request doc's mongo id
+            status: new status for request
+            stage: field indicating request's progress with timestamp
+            timestamp: value for field indicated by stage
+        */
+        $rid = $_POST['rid'];
+        $status = $_POST['status'];
+        $stage = $_POST['update'];
+        $timestamp = $_POST['timestamp'];
+
+        $valid_stages = array("prep_time", "process_time", "complete_time");
+
+        if (!is_clean_val($rid) || !is_int($status)
+            || !is_clean_val($stage) || !in_array($stage, $valid_stages)
+            || !is_int($timestamp)
+        ) {
+            echo json_encode('invalid inputs');
+            break;
+        }
+
+        $query = array('_id' => new MongoId($rid));
+
+        $update = array();
+        $update['status'] = $status;
+        $update[$stage] = $timestamp;
+
 
         $db = $m->selectDB('det');
         $col = $db->selectCollection('queue');
@@ -106,11 +171,11 @@ switch ($_POST['call']) {
         */
         $request = json_decode($_POST['request']);
 
-        $db = $m->selectDB('det');
-        $col = $db->selectCollection('queue');
-
         // validate $request
         //
+
+        $db = $m->selectDB('det');
+        $col = $db->selectCollection('queue');
 
         // write request json to request db
         $col->insert($request);
@@ -167,7 +232,7 @@ switch ($_POST['call']) {
         break;
 
 
-    case "find_datasets":
+    case "find_relevant_datasets":
         /*
         find relevant datasets for specified boundary group
 
@@ -182,6 +247,11 @@ switch ($_POST['call']) {
             dataset name and value is dataset doc
         */
         $group = $_POST['group'];
+
+        if (!is_clean_val($group)) {
+            echo json_encode('invalid inputs');
+            break;
+        }
 
         $db_asdf = $m->selectDB('asdf');
         $db_tracker = $m->selectDB('trackers');
@@ -290,10 +360,25 @@ switch ($_POST['call']) {
         break;
 
 
-    // case "find_data":
+    case "find_dataset":
+        /*
+        find individual dataset from asdf>data using generic open ended query
 
-    //     echo $output;
-    //     break;
+        post fields
+            query
+
+        returns
+            doc for match
+        */
+        $query = $_POST['query'];
+
+        $db_asdf = $m->selectDB('asdf');
+        $col = $db_asdf->selectCollection('data');
+
+        $output = $col->findOne($query);
+
+        echo json_encode($output);
+        break;
 
 
     case "get_boundary_geojson":
@@ -306,13 +391,13 @@ switch ($_POST['call']) {
 
         returns
             simplified geojson as json
-
-
-        change this to find geojson using boundaries name to lookup
-        base path, instead of getting file from post
-
         */
         $name = $_POST['name'];
+
+        if (!is_clean_val($name)) {
+            echo json_encode('invalid inputs');
+            break;
+        }
 
         $db = $m->selectDB('asdf');
         $col = $db->selectCollection('data');
@@ -341,7 +426,12 @@ switch ($_POST['call']) {
 
     case "extracts":
         /*
-        stuff
+        find or insert extract doc
+
+        post fields
+            method
+            query
+            insert
         */
         $method = $_POST['method'];
 
@@ -351,6 +441,19 @@ switch ($_POST['call']) {
         if ($method == 'find') {
 
             $query = json_decode($_POST['query']);
+
+            // validate $query
+            $valid_query_keys = array('boundary', 'raster', 'extract_type', 'reliability')
+            foreach ($query as $k => $v) {
+                if (!in_array($k, $valid_query_keys)
+                    || $k == 'reliability' && !is_bool($v)
+                    || $k !== 'reliability' && !is_clean_val($v)
+                ){
+                    echo json_encode('invalid inputs');
+                    break;
+                }
+            }
+
             $cursor = $col->find($query);
             $output = $cursor->snapshot();
 
@@ -378,7 +481,12 @@ switch ($_POST['call']) {
 
     case "msr":
         /*
-        stuff
+        find or insert msr doc
+
+        post fields
+            method
+            query
+            insert
         */
         $method = $_POST['method'];
 
@@ -388,6 +496,16 @@ switch ($_POST['call']) {
         if ($method == 'find') {
 
             $query = json_decode($_POST['query']);
+
+            // validate $query
+            $valid_query_keys = array('dataset', 'hash')
+            foreach ($query as $k => $v) {
+                if (!in_array($k, $valid_query_keys) || !is_clean_val($v)){
+                    echo json_encode('invalid inputs');
+                    break;
+                }
+            }
+
             $cursor = $col->find($query);
             $output = $cursor->snapshot();
 
@@ -424,6 +542,24 @@ switch ($_POST['call']) {
             number of projects, locations, loc1?, loc2?
         */
         $filter = $_POST['filter'];
+
+        // validate $filter
+        foreach ($filter as $k => $v) {
+            if (in_array($k, array("dataset", "type"))) {
+                // dataset and type field must be str
+                if (!is_clean_val($filter[$k])) {
+                    echo json_encode('invalid inputs');
+                    break;
+                }
+            } else {
+                // all other fields must be arrays of strings
+                if (!is_clean_array($filter[$k])) {
+                    echo json_encode('invalid inputs');
+                    break;
+                }
+            }
+        }
+
 
         $db = $m->selectDB('releases');
         $col = $db->selectCollection($filter['dataset']);

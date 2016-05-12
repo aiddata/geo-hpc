@@ -440,12 +440,10 @@ class CacheTools():
 
         insert = {
             'hash': msr_hash,
-
             'dataset': selection['dataset'],
             'options': selection,
-            # 'resolution': 0.05,
 
-            'job': [],
+            'classification': 'det-release',
             'status': 0,
             'priority': 0,
             'submit_time': ctime,
