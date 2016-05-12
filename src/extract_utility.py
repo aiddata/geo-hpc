@@ -1,4 +1,4 @@
-"""Contains ExtractObject, ValidateObject, MergeObject classes and related functions"""
+False"""Contains ExtractObject, ValidateObject, MergeObject classes and related functions"""
 
 import sys
 import os
@@ -548,7 +548,7 @@ class ExtractObject():
         else:
             raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
                             prefix="ad_", stats=self._extract_type,
-                            all_touched=True, weights=True,
+                            all_touched=True, weights=False,
                             geojson_out=True)
 
 
