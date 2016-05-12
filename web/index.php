@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>AidData DET 2.0 Alpha</title> 
+    <title>AidData DET 2.0 Alpha</title>
 
     <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -16,16 +16,16 @@
 
     <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox.js/v2.1.2/mapbox.css' />
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
-  
 
-    <link rel="stylesheet" href="index.css?<?php echo filectime('index.css') ?>" />    
+
+    <link rel="stylesheet" href="index.css?<?php echo filectime('index.css') ?>" />
 </head>
 
 <body>
 
     <div id="header">
         <div id="title">Data Extraction Tool</div>
-    
+
         <div id="navigation">
             <ul id="nav_top">
                 <li>Boundary</li>
@@ -42,7 +42,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="main">
 
         <div id="boundary" class="content">
@@ -78,7 +78,7 @@
                         <div>Datasets Available: <span id="data_summary_available">#</span></div>
                         <div>Items Selected: <span id="data_summary_selected">#</span></div>
                     </div>
-                </div>    
+                </div>
             </div>
 
             <div id="data_tabs">
@@ -87,7 +87,7 @@
                 <!-- <div data-tab="data_3">Additional Data</div> -->
             </div>
 
-            
+
             <div id="data_1" class="data_section data_section_active">
                 <div id="d1_filter">
 
@@ -113,17 +113,17 @@
                             Sectors<br>
                             <select id="d1_sectors" multiple size=10></select>
                         </div>
-                        
+
                         <div id="d1_c2">
                             Donors<br>
                             <select id="d1_donors" multiple size=10></select>
                         </div>
-                        
+
                         <div id="d1_c3">
                             Years<br>
                             <select id="d1_years" multiple size=10></select>
                         </div>
-                        
+
                         <div id="d1_c4">
                             <br>
                             <div id="d1_info">
@@ -141,10 +141,10 @@
                     </div>
 
                 </div>
-                
+
                 Currently Selected:
                 <div id="d1_selected">
-                    
+
                 </div>
             </div>
 
@@ -156,7 +156,7 @@
                 </div>
                 <div id="d2_bot"></div>
             </div>
-                    
+
             <div id="data_3" class="data_section">
                 Coming soon...
             </div>
@@ -204,15 +204,8 @@
 
     <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.2/mapbox.js'></script>
 
-    <!-- // <script src="http://code.highcharts.com/highcharts.js"></script> -->
-    <!-- // <script src="http://code.highcharts.com/modules/exporting.js"></script> -->
-
-    <script src="/libs/underscoremin.js"></script>
-
-    <!-- // <script src="/aiddata/libs/spin.min.js"></script>     -->
-    <!-- // <script src="/aiddata/libs/simple_statistics.js"></script> -->
-    <!-- // <script src="/aiddata/libs/URI.js"></script> -->
-    <script src="/DET/libs/crypto-js-sha1.js"></script>
+    <script src="libs/underscoremin.js"></script>
+    <script src="libs/crypto-js-sha1.js"></script>
 
     <script src="index.js"></script>
 

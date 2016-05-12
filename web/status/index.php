@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>AidData DET Status Page</title> 
+    <title>AidData DET Status Page</title>
 
     <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -15,20 +15,20 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" />
 
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" />
-  
-    <link rel="stylesheet" href="index.css?<?php echo filectime('index.css') ?>" />    
+
+    <link rel="stylesheet" href="index.css?<?php echo filectime('index.css') ?>" />
 </head>
 
 <body>
 
     <div id="header">
         <div id="title">DET - Status Page</div>
-    
+
 	    <div id="navigation">
 	        <div id="message"></div>
 	    </div>
     </div>
-    
+
     <div id="main">
 
     	<div id="search">
@@ -76,7 +76,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
 
-    <script src="/libs/underscoremin.js"></script>
+    <script src="../libs/underscoremin.js"></script>
 
     <script src="index.js"></script>
 
