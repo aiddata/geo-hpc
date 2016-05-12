@@ -7,13 +7,13 @@ $m = new MongoClient();
 
 function is_clean_val($input) {
     // verify valid value
-    if (!is_string($input) || !is_int($input) || !is_float($input)
-        || !is_bool($input)
+    if (!is_string($input) && !is_int($input) && !is_float($input)
+        && !is_bool($input)
     ) {
-        return False
+        return False;
     }
     // verify string does not contain null bytes
-    if (is_string($input) && strpos("\0", $input) != False) {
+    if (is_string($input) && strpos("\0", $input) !== False) {
         return False;
     }
     return True;
@@ -443,7 +443,7 @@ switch ($_POST['call']) {
             $query = json_decode($_POST['query']);
 
             // validate $query
-            $valid_query_keys = array('boundary', 'raster', 'extract_type', 'reliability')
+            $valid_query_keys = array('boundary', 'raster', 'extract_type', 'reliability');
             foreach ($query as $k => $v) {
                 if (!in_array($k, $valid_query_keys)
                     || $k == 'reliability' && !is_bool($v)
@@ -498,7 +498,7 @@ switch ($_POST['call']) {
             $query = json_decode($_POST['query']);
 
             // validate $query
-            $valid_query_keys = array('dataset', 'hash')
+            $valid_query_keys = array('dataset', 'hash');
             foreach ($query as $k => $v) {
                 if (!in_array($k, $valid_query_keys) || !is_clean_val($v)){
                     echo json_encode('invalid inputs');
