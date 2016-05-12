@@ -1,4 +1,4 @@
-False"""Contains ExtractObject, ValidateObject, MergeObject classes and related functions"""
+"""Contains ExtractObject, ValidateObject, MergeObject classes and related functions"""
 
 import sys
 import os
