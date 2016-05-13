@@ -46,7 +46,7 @@ import shapefile
 import rasterio
 from affine import Affine
 
-from msr_utility import CoreMSR
+from msr_utility import CoreMSR, MasterStack
 
 
 # =============================================================================
@@ -399,48 +399,6 @@ def tmp_worker_job(self, task_id):
     mean_surf = np.array(tmp_grid_gdf['value'])
 
     return mean_surf
-
-
-class MasterStack:
-    def __init__(self):
-        self.all_mean_surf = []
-
-
-    def get_stack_size(self):
-        """Get size of all_mean_surf
-
-        Returns:
-            size (int)
-        """
-        return len(self.all_mean_surf)
-
-
-    def append_stack(self, data):
-        """Append new data to all_mean_surf
-
-        Args:
-            data: new data for all_mean_surf
-        """
-        self.all_mean_surf.append(data)
-
-
-    def sum_stack(self):
-        """Create stack from all_mean_surf and sums
-
-        Returns:
-            sum of all_mean_surf stack
-        """
-        stack_mean_surf = np.vstack(self.all_mean_surf)
-        sum_mean_surf = np.sum(stack_mean_surf, axis=0)
-        return sum_mean_surf
-
-
-    def reduce_stack(self):
-        """Reduce items in all_mean_surf by summing
-
-        Used to reduce memory footprint
-        """
-        self.all_mean_surf = [self.sum_stack()]
 
 
 def tmp_master_process(self, worker_data):
