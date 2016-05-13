@@ -854,9 +854,7 @@ grid_gdf.set_index('index', inplace=True)
 
 # =============================================================================
 # =============================================================================
-# RUN MPI
-
-# init / run job
+# RUN MPI (init / run job)
 
 if job.rank == 0:
     print "Starting to process tasks..."
@@ -865,9 +863,6 @@ if job.rank == 0:
     mstack = MasterStack()
 
 
-
-
-# job = NewParallel()
 job.set_task_list(task_id_list)
 
 # job.set_general_init(tmp_general_init)
