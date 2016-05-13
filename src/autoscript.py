@@ -408,38 +408,8 @@ def tmp_master_process(self, worker_data):
         all_mean_surf = [np.sum(np.vstack(all_mean_surf), axis=0)]
 
 
-
-
 def complete_final_raster():
     # build and output final raster
-
-
-    # # initialize asc file output
-    # asc = ""
-    # asc += "NCOLS " + str(len(cols)) + "\n"
-    # asc += "NROWS " + str(len(rows)) + "\n"
-
-    # # asc += "XLLCORNER " + str(adm0_minx-core.pixel_size*0.5) + "\n"
-    # # asc += "YLLCORNER " + str(adm0_miny-core.pixel_size*0.5) + "\n"
-
-    # asc += "XLLCENTER " + str(adm0_minx) + "\n"
-    # asc += "YLLCENTER " + str(adm0_miny) + "\n"
-
-    # asc += "CELLSIZE " + str(core.pixel_size) + "\n"
-    # asc += "NODATA_VALUE " + str(core.nodata) + "\n"
-
-
-    # # calc results
-    # stack_mean_surf = np.vstack(all_mean_surf)
-    # sum_mean_surf = np.sum(stack_mean_surf, axis=0)
-
-    # # write asc file
-    # sum_mean_surf_str = ' '.join(np.char.mod('%f', sum_mean_surf))
-    # asc_sum_mean_surf_str = asc + sum_mean_surf_str
-    # fout_sum_mean_surf = open(dir_working+"/raster.asc", "w")
-    # fout_sum_mean_surf.write(asc_sum_mean_surf_str)
-
-    # --------------------------
 
     # calc results
     stack_mean_surf = np.vstack(all_mean_surf)
@@ -646,35 +616,6 @@ def complete_options_json():
     return options_obj
 
 
-# def complete_outputs():
-#     # move entire dir for job from msr queue "active" dir to "done" dir
-#     # and copy data files to msr data dir
-
-#     # move entire dir for job from msr queue "active" dir to "done" dir
-#     dir_final = dir_working.replace('/active/', '/done/')
-
-#     if os.path.isdir(dir_final):
-#         shutil.rmtree(dir_final)
-
-#     shutil.move(dir_working, dir_final)
-
-
-#     # make msr data dir and move raster.asc, unique.geojson, output.json there
-#     msr_data_dir = ('/sciclone/aiddata10/REU/data/rasters/internal/msr/'
-#                     + request['dataset'] +'/'+ request['hash'])
-#     make_dir(msr_data_dir)
-
-#     msr_data_files = ['raster.asc', 'unique.geojson', 'output.json']
-#     for f in msr_data_files:
-#         msr_data_file = dir_final +'/'+ f
-
-#         # if os.path.isfile(msr_data_dst_file):
-#             # os.remove(msr_data_dst_file)
-
-#         shutil.copy(msr_data_file, msr_data_dir)
-#         os.remove(msr_data_file)
-
-
 def complete_outputs():
 
     dir_final = (general_output_base + '/done/' +
@@ -750,8 +691,6 @@ def tmp_master_final(self):
     print request
 
     print update_msr.raw_result
-
-
 
 
 # =============================================================================
