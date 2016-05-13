@@ -401,19 +401,60 @@ def tmp_worker_job(self, task_id):
     return mean_surf
 
 
-def tmp_master_process(self, worker_data):
-    all_mean_surf.append(worker_data)
+class MasterStack:
+    def __init__(self, value):
+        self.all_mean_surf = []
 
-    # if len(all_mean_surf) == 20:
-    #     all_mean_surf = [np.sum(np.vstack(all_mean_surf), axis=0)]
+
+    def get_stack_size(self):
+        """Get size of all_mean_surf
+
+        Returns:
+            size (int)
+        """
+        return len(self.all_mean_surf)
+
+
+    def append_stack(self, data):
+        """Append new data to all_mean_surf
+
+        Args:
+            data: new data for all_mean_surf
+        """
+        self.all_mean_surf.append(data)
+
+
+    def sum_stack(self):
+        """Create stack from all_mean_surf and sums
+
+        Returns:
+            sum of all_mean_surf stack
+        """
+        stack_mean_surf = np.vstack(all_mean_surf)
+        sum_mean_surf = np.sum(stack_mean_surf, axis=0)
+        return sum_mean_surf
+
+
+    def reduce_stack(self):
+        """Reduce items in all_mean_surf by summing
+
+        Used to reduce memory footprint
+        """
+        self.all_mean_surf = self.sum_stack()
+
+
+def tmp_master_process(self, worker_data):
+    mstack.append_stack(worker_data)
+
+    if mstack.get_stack_size == 20:
+        mstack.reduce_stack()
 
 
 def complete_final_raster():
     # build and output final raster
 
     # calc results
-    stack_mean_surf = np.vstack(all_mean_surf)
-    sum_mean_surf = np.sum(stack_mean_surf, axis=0)
+    sum_mean_surf = mstack.sum_stack()
 
     # affine takes upper left
     # (writing to asc directly used lower left)
@@ -862,7 +903,9 @@ grid_gdf.set_index('index', inplace=True)
 if job.rank == 0:
     print "Starting to process tasks..."
     sum_mean_surf = 0
-    all_mean_surf = []
+
+    mstack = MasterStack()
+
 
 
 
