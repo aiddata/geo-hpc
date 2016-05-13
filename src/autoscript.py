@@ -404,6 +404,11 @@ def tmp_worker_job(self, task_id):
 def tmp_master_process(self, worker_data):
     all_mean_surf.append(worker_data)
 
+    if len(all_mean_surf) == 20:
+        all_mean_surf = [np.sum(np.vstack(all_mean_surf), axis=0)]
+
+
+
 
 def complete_final_raster():
     # build and output final raster
