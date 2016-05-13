@@ -430,7 +430,7 @@ class MasterStack:
         Returns:
             sum of all_mean_surf stack
         """
-        stack_mean_surf = np.vstack(all_mean_surf)
+        stack_mean_surf = np.vstack(self.all_mean_surf)
         sum_mean_surf = np.sum(stack_mean_surf, axis=0)
         return sum_mean_surf
 
@@ -440,7 +440,7 @@ class MasterStack:
 
         Used to reduce memory footprint
         """
-        self.all_mean_surf = self.sum_stack()
+        self.all_mean_surf = [self.sum_stack()]
 
 
 def tmp_master_process(self, worker_data):
