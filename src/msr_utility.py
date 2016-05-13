@@ -45,7 +45,7 @@ class MasterStack:
         self.all_mean_surf.append(data)
 
 
-    def sum_stack(self):
+    def get_stack_sum(self):
         """Create stack from all_mean_surf and sums
 
         Returns:

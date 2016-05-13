@@ -404,7 +404,7 @@ def tmp_worker_job(self, task_id):
 def tmp_master_process(self, worker_data):
     mstack.append_stack(worker_data)
 
-    if mstack.get_stack_size == 20:
+    if mstack.get_stack_size() == 20:
         mstack.reduce_stack()
 
 
@@ -412,7 +412,7 @@ def complete_final_raster():
     # build and output final raster
 
     # calc results
-    sum_mean_surf = mstack.sum_stack()
+    sum_mean_surf = mstack.get_stack_sum()
 
     # affine takes upper left
     # (writing to asc directly used lower left)
