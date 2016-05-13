@@ -402,7 +402,7 @@ def tmp_worker_job(self, task_id):
 
 
 class MasterStack:
-    def __init__(self, value):
+    def __init__(self):
         self.all_mean_surf = []
 
 
