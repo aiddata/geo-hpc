@@ -404,7 +404,8 @@ def tmp_worker_job(self, task_id):
 def tmp_master_process(self, worker_data):
     mstack.append_stack(worker_data)
 
-    if mstack.get_stack_size() == 20:
+    if mstack.get_stack_size() > 10:
+	print "reducing stack"
         mstack.reduce_stack()
 
 
