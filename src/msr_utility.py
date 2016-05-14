@@ -61,7 +61,7 @@ class MasterStack:
 
         Used to reduce memory footprint
         """
-        self.all_mean_surf = [self.sum_stack()]
+        self.all_mean_surf = [self.get_sum_stack()]
 
 
 
