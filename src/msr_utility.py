@@ -163,15 +163,15 @@ class CoreMSR():
             "1": {
                 "default": {
                     "1": {"type": "buffer", "data": 25000},
-                    "2": {"type": "adm", "data": "0"}
+                    "2": {"type": "country", "data": 0}
                 },
                 "ADM1": {
                     "1": {"type": "adm", "data": "1"},
-                    "2": {"type": "adm", "data": "0"}
+                    "2": {"type": "country", "data": 0}
                 },
                 "ADM2": {
                     "1": {"type": "adm", "data": "2"},
-                    "2": {"type": "adm", "data": "0"}
+                    "2": {"type": "country", "data": 0}
                 }#,
                 # "ADM3": {
                 #     "1": {"type": "adm", "data": "3"},
