@@ -275,8 +275,8 @@ def tmp_master_init(self):
 
 def tmp_worker_job(self, task_id):
 
-    tmp_grid_gdf = grid_gdf.copy(deep=True)
-    tmp_grid_gdf['value'] = 0
+    # grid_gdf = grid_gdf.copy(deep=True)
+    grid_gdf['value'] = 0
 
     task = task_id_list[task_id]
 
@@ -289,8 +289,8 @@ def tmp_worker_job(self, task_id):
 
     if pg_type == "country":
 
-        tmp_grid_gdf['value'] = (
-            tmp_grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count))
+        grid_gdf['value'] = (
+            grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count))
 
 
     elif pg_type == "point":
@@ -302,8 +302,8 @@ def tmp_worker_job(self, task_id):
         tmp_value = pg_data['adjusted_aid']
 
         if tmp_value != 0:
-            tmp_grid_gdf.loc[
-                tmp_grid_gdf['geometry'] == Point(
+            grid_gdf.loc[
+                grid_gdf['geometry'] == Point(
                     round(tmp_point.y * core.psi) / core.psi,
                     round(tmp_point.x * core.psi) / core.psi),
                 'value'] += tmp_value
@@ -384,11 +384,11 @@ def tmp_worker_job(self, task_id):
 
 
         try:
-            tmp_grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
+            grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
 
         except:
             for i in agg_df.index:
-                if i not in tmp_grid_gdf.index:
+                if i not in grid_gdf.index:
                     print 'bad grid index'
                     print i
 
@@ -396,7 +396,7 @@ def tmp_worker_job(self, task_id):
     # -------------------------------------
     # send np arrays back to master
 
-    mean_surf = np.array(tmp_grid_gdf['value'])
+    mean_surf = np.array(grid_gdf['value'])
 
     return mean_surf
 
@@ -404,7 +404,7 @@ def tmp_worker_job(self, task_id):
 def tmp_master_process(self, worker_data):
     mstack.append_stack(worker_data)
 
-    if mstack.get_stack_size() > 10:
+    if mstack.get_stack_size() > 1:
 	print "reducing stack"
         mstack.reduce_stack()
 
