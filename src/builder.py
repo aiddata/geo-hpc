@@ -419,13 +419,15 @@ lines.append('')
 lines.append('cd $PBS_O_WORKDIR')
 lines.append('')
 
-args = 'python-mpi ' + base_dir + '/runscript.py ' + output_json_path
+args = base_dir + '/runscript.py ' + output_json_path
 
 if node_type == "xeon":
-    lines.append('mvp2run -m cyclic -c ' + str(int(np)) +' '+ args)
+    lines.append('mvp2run -m cyclic -c ' + str(int(np)) +' python-mpi '+ args)
 elif node_type in ["vortex", "vortex-alpha"]:
-    lines.append('mpirun --mca mpi_warn_on_fork 0 -np ' +
-                  str(int(np)) +' '+ args)
+    # lines.append('mpirun --mca mpi_warn_on_fork 0 -np ' +
+    #               str(int(np)) +' python-mpi '+ args)
+    lines.append('mpirun -np ' + str(int(np)) +' python -m mpi4py '+ args)
+
 
 
 # jobscripts must have newline at end of file
