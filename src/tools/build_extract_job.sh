@@ -91,7 +91,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 -np $total python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp
+mpirun -np $total python -m mpi4py $src/extract-scripts/src/autoscript.py $branch $timestamp
 
 EOF
 
