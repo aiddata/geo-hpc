@@ -91,7 +91,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
-mpirun -np $total python -m mpi4py $src/extract-scripts/src/autoscript.py $branch $timestamp
+mpirun --map-by node -np $total python $src/extract-scripts/src/autoscript.py $branch $timestamp
 
 EOF
 

@@ -70,7 +70,7 @@ else
 
     job_path=$(mktemp)
 
-    nodes=7
+    nodes=5
     ppn=16
     total=$(($nodes * $ppn))
 
@@ -91,7 +91,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun -np $total python -m mpi4py $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+mpirun --map-by node -np $total python $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
 
 EOF
 
