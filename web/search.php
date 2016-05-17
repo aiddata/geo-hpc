@@ -5,14 +5,13 @@ set_time_limit(300);
 $m = new MongoClient();
 
 
+// ===========================================================================
+// functions for validating data being input into mongo collections
+
 function is_clean_val($input) {
-    // verify valid value
-    if (!is_string($input) && !is_int($input) && !is_float($input)
-        && !is_bool($input)
-    ) {
+    if (!is_string($input) && !is_numeric($input) && !is_bool($input)) {
         return False;
     }
-    // verify string does not contain null bytes
     if (is_string($input) && strpos("\0", $input) !== False) {
         return False;
     }
@@ -26,11 +25,9 @@ function is_assoc($arr) {
 }
 
 function is_clean_array($input) {
-    // check if array
     if (!is_array($input)) {
         return False;
     }
-    // check if associative array
     if (is_assoc($input)) {
         return False;
     }
@@ -43,9 +40,12 @@ function is_clean_array($input) {
 }
 
 
+// ===========================================================================
+// manage posts
+
 switch ($_POST['call']) {
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // det:queue
 
     case "find_requests":
@@ -79,16 +79,14 @@ switch ($_POST['call']) {
             $cursor = $col->find($query);
 
         } else if ($search_type == "status") {
-            $query = array('status' => $search_val);
+            $query = array('status' => intval($search_val));
             $cursor = $col->find($query);
-            $cursor->sort(array('priority' => -1, 'submit_time' => 1));
+            $cursor->sort(array('priority'  -1, 'submit_time' => 1));
 
         } else {
             echo json_encode([]);
             break;
         }
-
-        $cursor->snapshot();
 
         $output = array();
         foreach ($cursor as $doc) {
@@ -111,47 +109,56 @@ switch ($_POST['call']) {
         */
         $rid = $_POST['rid'];
         $status = $_POST['status'];
-        $stage = $_POST['update'];
+        $stage = $_POST['stage'];
         $timestamp = $_POST['timestamp'];
 
         $valid_stages = array("prep_time", "process_time", "complete_time");
 
-        if (!is_clean_val($rid) || !is_int($status)
-            || !is_clean_val($stage) || !in_array($stage, $valid_stages)
-            || !is_int($timestamp)
+        if (!is_string($rid) || !is_numeric($status) || !is_numeric($timestamp)
+            || !is_string($stage) || !in_array($stage, $valid_stages)
         ) {
-            echo json_encode('invalid inputs');
+            $output = array(
+                'status'=> 'error',
+                'error' => 'invalid inputs',
+                'data' => $_POST
+            );
+
+            echo json_encode($output);
             break;
         }
 
         $query = array('_id' => new MongoId($rid));
 
         $update = array();
-        $update['status'] = $status;
-        $update[$stage] = $timestamp;
+        $update['status'] = intval($status);
+        $update[$stage] = intval($timestamp);
 
 
         $db = $m->selectDB('det');
         $col = $db->selectCollection('queue');
 
-        $cursor = $col->update($query, $update);
+        $doc = $col->findAndModify($query, array('$set' => $update), null, array("new" => true));
 
-        $output = "good";
 
 
         // send email based on status (received / completed)
-        // $mail_to = "sgoodman@aiddata.org";
+        $mail_to = $doc['email'];
 
-        // $mail_subject = "Test";
+        $mail_subject = "AidData Data Extract Tool Update";
 
-        // $mail_message = "Your data request has been received and will be ";
-        // $mail_message .= "processed soon. <br><br>";
+        $mail_message = "Your data request has been updated.<br><br>";
 
-        // $mail_headers = 'MIME-Version: 1.0' . "\r\n";
-        // $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+        $mail_headers = 'MIME-Version: 1.0' . "\r\n";
+        $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 
-        // $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+        $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
 
+
+        $output = array(
+            'status'=> 'success',
+            'data' => $_POST,
+            'request' => $doc
+        );
 
         echo json_encode($output);
         break;
@@ -183,12 +190,19 @@ switch ($_POST['call']) {
         // get unique mongoid which will serve as request id
         $request_id = (string) $request->_id;
 
-        // return request id
-        echo json_encode(array($request_id));
+
+        $output = array(
+            'status'=> 'success',
+            'request_id' => $request_id,
+            'data' => $_POST,
+            'request' => $request
+        );
+
+        echo json_encode($output);
         break;
 
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // asdf:data
 
     case "find_boundaries":
@@ -421,7 +435,7 @@ switch ($_POST['call']) {
         break;
 
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // asdf:extracts
 
     case "extracts":
@@ -476,7 +490,7 @@ switch ($_POST['call']) {
         break;
 
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // asdf:msr
 
     case "msr":
@@ -528,7 +542,7 @@ switch ($_POST['call']) {
         break;
 
 
-// ============================================================================
+// ----------------------------------------------------------------------------
 // releases:any
 
     case "get_filter_count":

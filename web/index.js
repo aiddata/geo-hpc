@@ -885,7 +885,7 @@ $(document).ready(function(){
 
 			console.log(result);
 
-			request_id = result[0];
+			request_id = result['request_id'];
 			error = e;
 
 			chtml = '';
