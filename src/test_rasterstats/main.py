@@ -151,7 +151,6 @@ def gen_zonal_stats(
     with Raster(raster, affine, nodata, band_num) as rast:
         features_iter = read_features(vectors, layer)
         for i, feat in enumerate(features_iter):
-            print "Feature #" + str(i)
             geom = shape(feat['geometry'])
 
             if 'Point' in geom.type:
@@ -160,47 +159,64 @@ def gen_zonal_stats(
 
             geom_bounds = tuple(geom.bounds)
 
-            fsrc = rast.read(bounds=geom_bounds)
 
-            fsrc_nodata = copy(fsrc.nodata)
-            fsrc_affine = copy(fsrc.affine)
-            fsrc_shape = copy(fsrc.shape)
+            try:
+                fsrc = rast.read(bounds=geom_bounds)
+
+                fsrc_nodata = copy(fsrc.nodata)
+                fsrc_affine = copy(fsrc.affine)
+                fsrc_shape = copy(fsrc.shape)
+
+            except MemoryError:
+                print "Memory Error (fsrc): \n"
+                print feat['properties']
+                continue
+
 
             if 'nodata' in stats:
                 featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
                 feature_stats['nodata'] = float((featmasked == fsrc_nodata).sum())
 
-            # create ndarray of rasterized geometry
-            rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
 
-            assert rv_array.shape == fsrc_shape
+            try:
+                # create ndarray of rasterized geometry
+                rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
 
-            # Mask the source data array with our current feature
-            # we take the logical_not to flip 0<->1 for the correct mask effect
-            # we also mask out nodata values explicitly
-            masked = np.ma.MaskedArray(
-                fsrc.array,
-                mask=np.logical_or(
-                    fsrc.array == fsrc_nodata,
-                    np.logical_not(rv_array)))
+                assert rv_array.shape == fsrc_shape
+
+            except MemoryError:
+                print "Memory Error (rv_array): \n"
+                print feat['properties']
+                continue
+
+
+            try:
+                # Mask the source data array with our current feature
+                # we take the logical_not to flip 0<->1 for the correct mask effect
+                # we also mask out nodata values explicitly
+                masked = np.ma.MaskedArray(
+                    fsrc.array,
+                    mask=np.logical_or(
+                        fsrc.array == fsrc_nodata,
+                        np.logical_not(rv_array)))
+
+            except MemoryError:
+                print "Memory Error (masked): \n"
+                print feat['properties']
+                continue
+
 
             del fsrc
             del rv_array
 
-            print 'masked'
-            print masked.size
-            print masked.shape
-            print masked.dtype
-            print masked.nbytes
 
+            try:
+                compressed = masked.compressed()
 
-            compressed = masked.compressed()
-
-            print 'compressed'
-            print compressed.size
-            print compressed.shape
-            print compressed.dtype
-            print compressed.nbytes
+            except MemoryError:
+                print "Memory Error (compressed): \n"
+                print feat['properties']
+                continue
 
 
             if len(compressed) == 0:
@@ -221,7 +237,12 @@ def gen_zonal_stats(
                             feature_stats = remap_categories(category_map, feature_stats)
 
                 if weights:
-                    pctcover = rasterize_pctcover(geom, atrans=fsrc_affine, shape=fsrc_shape)
+                    try:
+                        pctcover = rasterize_pctcover(geom, atrans=fsrc_affine, shape=fsrc_shape)
+                    except MemoryError:
+                        print "Memory Error (pctcover): \n"
+                        print feat['properties']
+                        continue
 
                 if 'weighted_mean' in stats:
                     feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
