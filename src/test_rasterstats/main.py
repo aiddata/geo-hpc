@@ -184,14 +184,16 @@ def gen_zonal_stats(
                     fsrc.array == fsrc_nodata,
                     np.logical_not(rv_array)))
 
+            del fsrc
+            del rv_array
+
             compressed = masked.compressed()
+
 
             # print masked.dtype
             # print masked.nbytes
             # print masked.shape
 
-            del fsrc
-            del rv_array
 
             if len(compressed) == 0:
                 # nothing here, fill with None and move on
