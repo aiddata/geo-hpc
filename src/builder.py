@@ -296,10 +296,11 @@ ppn = get_ppn(ppn_override, node_type)
 
 # adjust node count if needed (reduce from max nodes if possible)
 full_cycle_node_count = math.ceil( total_count / float(ppn) )
-if full_cycle_node_count < max_node_count:
-    node_count = full_cycle_node_count
-else:
-    node_count = max_node_count
+# if full_cycle_node_count < max_node_count:
+#     node_count = full_cycle_node_count
+# else:
+#     node_count = max_node_count
+node_count = max_node_count
 
 
 # optimize node calcs
