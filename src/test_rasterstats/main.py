@@ -187,14 +187,20 @@ def gen_zonal_stats(
             del fsrc
             del rv_array
 
+            print 'masked'
+            print masked.size
+            print masked.shape
+            print masked.dtype
+            print masked.nbytes
+
+
             compressed = masked.compressed()
 
-            print len(compressed)
+            print 'compressed'
+            print compressed.size
+            print compressed.shape
             print compressed.dtype
-
-            # print masked.dtype
-            # print masked.nbytes
-            # print masked.shape
+            print compressed.nbytes
 
 
             if len(compressed) == 0:
