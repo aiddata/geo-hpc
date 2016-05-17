@@ -8,7 +8,7 @@ from shapely.geometry import shape
 from .io import read_features, Raster
 from .utils import (rasterize_geom, rasterize_pctcover, get_percentile, check_stats,
                     remap_categories, key_assoc_val, boxify_points)
-
+from copy import copy
 
 def raster_stats(*args, **kwargs):
     """Deprecated. Use zonal_stats instead."""
@@ -162,9 +162,9 @@ def gen_zonal_stats(
 
             fsrc = rast.read(bounds=geom_bounds)
 
-            fsrc_nodata = fsrc.nodata
-            fsrc_affine = fsrc.affine
-            fsrc_shape = fsrc.shape
+            fsrc_nodata = copy(fsrc.nodata)
+            fsrc_affine = copy(fsrc.affine)
+            fsrc_shape = copy(fsrc.shape)
 
             if 'nodata' in stats:
                 featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
