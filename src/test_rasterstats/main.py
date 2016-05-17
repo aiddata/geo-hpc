@@ -189,6 +189,8 @@ def gen_zonal_stats(
 
             compressed = masked.compressed()
 
+            print len(compressed)
+            print compressed.dtype
 
             # print masked.dtype
             # print masked.nbytes
