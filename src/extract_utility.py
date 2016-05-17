@@ -196,7 +196,8 @@ class ExtractObject():
         # "min": "m",
         "mean": "e",
         "count": "n",
-        "categorical": "c"
+        "categorical": "c",
+        "weighted_mean": "E"
     }
 
     # accepted vector file extensions

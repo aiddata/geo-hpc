@@ -43,7 +43,6 @@ def gen_zonal_stats(
     prefix=None,
     save_properties=False,
     geojson_out=False,
-    weights=False,
     **kwargs):
     """Zonal statistics of raster values aggregated to vector geometries.
 
@@ -112,8 +111,6 @@ def gen_zonal_stats(
         with zonal stats appended as additional properties.
         Use with `prefix` to ensure unique and meaningful property names.
 
-    weights: bool of whether to use weights for calculating mean
-
 
     Returns
     -------
@@ -125,10 +122,8 @@ def gen_zonal_stats(
     generator of geojson features (if geojson_out is True)
         GeoJSON-like Feature as python dict
     """
-    stats, run_count, valid_weights = check_stats(stats, categorical, weights)
+    stats, run_count, weights = check_stats(stats, categorical)
 
-    if not valid_weights:
-        weights = False
 
     # Handle 1.0 deprecations
     transform = kwargs.get('transform')
@@ -150,7 +145,6 @@ def gen_zonal_stats(
         warnings.warn("Use `geojson_out` or `save_properties` to preserve feature properties",
                       DeprecationWarning)
 
-    active_weights = weights
     if weights:
         all_touched = True
 
@@ -161,7 +155,7 @@ def gen_zonal_stats(
             geom = shape(feat['geometry'])
 
             if 'Point' in geom.type:
-                active_weights = False
+                weights = False
                 geom = boxify_points(geom, rast)
 
             geom_bounds = tuple(geom.bounds)
@@ -190,6 +184,8 @@ def gen_zonal_stats(
                     fsrc.array == fsrc_nodata,
                     np.logical_not(rv_array)))
 
+            compressed = masked.compressed()
+
             # print masked.dtype
             # print masked.nbytes
             # print masked.shape
@@ -197,46 +193,46 @@ def gen_zonal_stats(
             del fsrc
             del rv_array
 
-            if masked.compressed().size == 0:
+            if len(compressed) == 0:
                 # nothing here, fill with None and move on
                 feature_stats = dict([(stat, None) for stat in stats])
                 if 'count' in stats:  # special case, zero makes sense here
                     feature_stats['count'] = 0
 
             else:
+                feature_stats = {}
                 if run_count:
-                    keys, counts = np.unique(masked.compressed(), return_counts=True)
+                    keys, counts = np.unique(compressed, return_counts=True)
                     pixel_count = dict(zip([np.asscalar(k) for k in keys],
                                        [np.asscalar(c) for c in counts]))
+                    if categorical:
+                        feature_stats = dict(pixel_count)
+                        if category_map:
+                            feature_stats = remap_categories(category_map, feature_stats)
 
-                if categorical:
-                    feature_stats = dict(pixel_count)
-                    if category_map:
-                        feature_stats = remap_categories(category_map, feature_stats)
-                else:
-                    feature_stats = {}
-
-                if active_weights:
+                if weights:
                     pctcover = rasterize_pctcover(geom, atrans=fsrc_affine, shape=fsrc_shape)
 
-                if 'min' in stats:
-                    feature_stats['min'] = float(masked.min())
-                if 'max' in stats:
-                    feature_stats['max'] = float(masked.max())
+                if 'weighted_mean' in stats:
+                    feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
+                if 'weighted_count' in stats:
+                    feature_stats['count'] = float(np.sum(pctcover))
+                if 'weighted_sum' in stats:
+                    feature_stats['sum'] = float(np.sum(masked * pctcover))
                 if 'mean' in stats:
-                    if active_weights:
-                        feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
-                    else:
-                        feature_stats['mean'] = float(masked.mean())
+                    feature_stats['mean'] = float(compressed.mean())
                 if 'count' in stats:
-                    feature_stats['count'] = int(masked.count())
-                # optional
+                    feature_stats['count'] = int(len(compressed))
                 if 'sum' in stats:
-                    feature_stats['sum'] = float(masked.sum())
+                    feature_stats['sum'] = float(compressed.sum())
+                if 'min' in stats:
+                    feature_stats['min'] = float(compressed.min())
+                if 'max' in stats:
+                    feature_stats['max'] = float(compressed.max())
                 if 'std' in stats:
-                    feature_stats['std'] = float(masked.std())
+                    feature_stats['std'] = float(compressed.std())
                 if 'median' in stats:
-                    feature_stats['median'] = float(np.median(masked.compressed()))
+                    feature_stats['median'] = float(np.median(compressed))
                 if 'majority' in stats:
                     feature_stats['majority'] = float(key_assoc_val(pixel_count, max))
                 if 'minority' in stats:
@@ -247,16 +243,16 @@ def gen_zonal_stats(
                     try:
                         rmin = feature_stats['min']
                     except KeyError:
-                        rmin = float(masked.min())
+                        rmin = float(compressed.min())
                     try:
                         rmax = feature_stats['max']
                     except KeyError:
-                        rmax = float(masked.max())
+                        rmax = float(compressed.max())
                     feature_stats['range'] = rmax - rmin
 
                 for pctile in [s for s in stats if s.startswith('percentile_')]:
                     q = get_percentile(pctile)
-                    pctarr = masked.compressed()
+                    pctarr = compressed
                     feature_stats[pctile] = np.percentile(pctarr, q)
 
 
