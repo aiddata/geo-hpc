@@ -190,20 +190,20 @@ def gen_zonal_stats(
                 continue
 
 
-            try:
-                # Mask the source data array with our current feature
-                # we take the logical_not to flip 0<->1 for the correct mask effect
-                # we also mask out nodata values explicitly
-                masked = np.ma.MaskedArray(
-                    fsrc.array,
-                    mask=np.logical_or(
-                        fsrc.array == fsrc_nodata,
-                        np.logical_not(rv_array)))
+            # try:
+            #     # Mask the source data array with our current feature
+            #     # we take the logical_not to flip 0<->1 for the correct mask effect
+            #     # we also mask out nodata values explicitly
+            #     masked = np.ma.MaskedArray(
+            #         fsrc.array,
+            #         mask=np.logical_or(
+            #             fsrc.array == fsrc_nodata,
+            #             np.logical_not(rv_array)))
 
-            except MemoryError:
-                print "Memory Error (masked): \n"
-                print feat['properties']
-                continue
+            # except MemoryError:
+            #     print "Memory Error (masked): \n"
+            #     print feat['properties']
+            #     continue
 
 
             del fsrc
@@ -211,7 +211,14 @@ def gen_zonal_stats(
 
 
             try:
-                compressed = masked.compressed()
+                # compressed = masked.compressed()
+
+                compressed = np.ma.MaskedArray(
+                    fsrc.array,
+                    mask=np.logical_or(
+                        fsrc.array == fsrc_nodata,
+                        np.logical_not(rv_array))).compressed()
+
 
             except MemoryError:
                 print "Memory Error (compressed): \n"
