@@ -427,7 +427,7 @@ if node_type == "xeon":
 elif node_type in ["vortex", "vortex-alpha"]:
     # lines.append('mpirun --mca mpi_warn_on_fork 0 -np ' +
     #               str(int(np)) +' python-mpi '+ args)
-    lines.append('mpirun --map-by node -np ' + str(int(np)) +' python '+ args)
+    lines.append('mpirun --map-by node -np ' + str(int(np)) +' python-mpi '+ args)
 
 
 
