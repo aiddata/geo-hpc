@@ -189,15 +189,28 @@ class ExtractObject():
     """
     # available extract types and associated identifiers
     _extract_options = {
-        # "var": "v",
-        # "std": "d",
-        "sum": "s",
-        "max": "x",
-        # "min": "m",
+        "categorical": "c",
+        "weighted_mean": "E",
+        "weighted_count": "N",
+        "weighted_sum": "S",
         "mean": "e",
         "count": "n",
-        "categorical": "c",
-        "weighted_mean": "E"
+        "sum": "s",
+        "min": "m",
+        "max": "x",
+        "std": "d"
+
+        # "median": "?"
+        # "majority": "?"
+        # "minority": "?"
+        # "unique": "u"
+        # "range": "r"
+
+        # "percentile_?": "?"
+        # "custom_?": "?"
+
+        # "var": "v"
+        # "mode": "?"
     }
 
     # accepted vector file extensions
