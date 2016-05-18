@@ -64,20 +64,17 @@ def tmp_master_final(self):
     print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
     print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
     print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
-
-
     print '\n\n'
+
 
     Ts2 = int(time.time())
     T_start2 = time.localtime()
     print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start2)
 
-
     merge_obj = extract_utility.MergeObject(input_json,
                                             os.path.dirname(input_json_path))
     merge_obj.build_merge_list()
     merge_obj.run_merge()
-
 
     # stop job timer
     T_run2 = int(time.time() - Ts2)
@@ -103,7 +100,6 @@ def tmp_worker_job(self, task_id):
 
 
     # ==================================================
-
 
     # inputs (see jobscript_template comments for detailed descriptions
     #   of inputs)

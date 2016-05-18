@@ -284,7 +284,6 @@ def tmp_worker_job(self, task_id):
     # descriptions of inputs)
     # * = managed by ExtractObject
 
-
     # absolute path of boundary file *
     bnd_absolute = task['bnd_absolute']
 
@@ -304,7 +303,7 @@ def tmp_worker_job(self, task_id):
     # # string containing year information *
     # year_string = task['years']
 
-    # file mask for dataset files *
+    # # file mask for dataset files *
     # file_mask = task['file_mask']
 
     # extract type *
