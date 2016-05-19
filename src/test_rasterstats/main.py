@@ -152,6 +152,7 @@ def gen_zonal_stats(
         features_iter = read_features(vectors, layer)
         for i, feat in enumerate(features_iter):
             geom = shape(feat['geometry'])
+            feature_stats = {}
 
             if 'Point' in geom.type:
                 weights = False
@@ -173,11 +174,6 @@ def gen_zonal_stats(
                 continue
 
 
-            if 'nodata' in stats:
-                featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
-                feature_stats['nodata'] = float((featmasked == fsrc_nodata).sum())
-
-
             try:
                 # create ndarray of rasterized geometry
                 rv_array = rasterize_geom(geom, like=fsrc, all_touched=all_touched)
@@ -189,6 +185,9 @@ def gen_zonal_stats(
                 print feat['properties']
                 continue
 
+            if 'nodata' in stats:
+                featmasked = np.ma.MaskedArray(fsrc.array, mask=np.logical_not(rv_array))
+                feature_stats['nodata'] = float((featmasked == fsrc_nodata).sum())
 
             try:
                 # Mask the source data array with our current feature
@@ -226,7 +225,6 @@ def gen_zonal_stats(
                     feature_stats['count'] = 0
 
             else:
-                feature_stats = {}
                 if run_count:
                     keys, counts = np.unique(compressed, return_counts=True)
                     pixel_count = dict(zip([np.asscalar(k) for k in keys],
@@ -245,11 +243,11 @@ def gen_zonal_stats(
                         continue
 
                 if 'weighted_mean' in stats:
-                    feature_stats['mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
+                    feature_stats['weighted_mean'] = float(np.sum(masked * pctcover / np.sum(np.sum(~masked.mask * pctcover, axis=0), axis=0)))
                 if 'weighted_count' in stats:
-                    feature_stats['count'] = float(np.sum(pctcover))
+                    feature_stats['weighted_count'] = float(np.sum(pctcover))
                 if 'weighted_sum' in stats:
-                    feature_stats['sum'] = float(np.sum(masked * pctcover))
+                    feature_stats['weighted_sum'] = float(np.sum(masked * pctcover))
                 if 'mean' in stats:
                     feature_stats['mean'] = float(compressed.mean())
                 if 'count' in stats:
