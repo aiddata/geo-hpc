@@ -15,6 +15,10 @@ from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
 from shapely.ops import transform
 from shapely.prepared import prep
 
+import rasterio
+from rasterio import features
+from affine import Affine
+import warnings
 
 
 class MasterStack:
@@ -215,6 +219,11 @@ class CoreMSR():
         self.adm_shps = 0
         self.adm0 = 0
         self.prep_adm0 = 0
+
+        self.bounds = None
+        self.shape = None
+        self.affine = None
+        self.topleft = None
 
 
     def set_pixel_size(self, value):
@@ -767,127 +776,97 @@ class CoreMSR():
         return adjusted_aid
 
 
-    def geom_to_colrows(self, geom, step, grid_buffer=None,
-        rounded=True, no_multi=False, return_bounds=False):
-        """Generate column/row lists for grid based on geometry.
-
-        Args:
-            geom (shape): geometry to be used (must be shape or be able to
-                be converted to shape)
-            step (float): grid pixel size
-            rounded (bool): flag to round output column/row values
-            no_multi (bool): flag to allow using multipolygons
-        Returns:
-            for valid geom: tuple of lists for columns (longitude) and
-                rows (latitude) of grid - (columns, rows)
-            for invalid geom: 1
+    def set_grid_info(self, geom):
         """
-        # # check if geom is polygon
-        # if geom != Polygon:
-        #     try:
-        #         # make polygon if needed and possible
-        #         geom = shape(geom)
-
-        #         # if no_multi == True and geom != Polygon:
-        #         #     return 2
-
-        #     except:
-        #         # cannot convert geom to polygon
-        #         return 1
-
-
+        """
         if not hasattr(geom, 'geom_type'):
-            raise Exception("CoreMSR [geom_to_colrows] : invalid geom")
+            raise Exception("CoreMSR [rasterize_geom] : invalid geom")
+
+        pixel_size = self.pixel_size
+        psi = 1 / pixel_size
+
+        (minx, miny, maxx, maxy) = geom.bounds
+
+        (minx, miny, maxx, maxy) = (
+            np.floor(minx * psi) / psi,
+            np.floor(miny * psi) / psi,
+            np.ceil(maxx * psi) / psi,
+            np.ceil(maxy * psi) / psi)
+
+        top_left_lon = minx
+        top_left_lat = maxy
+        affine = Affine(pixel_size, 0, top_left_lon, 
+                             0, -pixel_size, top_left_lat)
+
+        nrows = int(psi * (maxy - miny))
+        ncols = int(psi * (maxx - minx))
+
+        shape = (nrows, ncols)
+
+        self.bounds = (minx, miny, maxx, maxy)
+        self.affine = affine
+        self.shape = shape
+        self.topleft = (top_left_lon, top_left_lat)
 
 
-        # poly grid pixel size and poly grid pixel size inverse
-        # poly grid pixel size is 1 order of magnitude higher
-        #   resolution than output pixel_size
-        tmp_pixel_size = float(step)
-
-        if grid_buffer is not None:
-            tmp_psi = grid_buffer
-        else:
-            tmp_psi = 1/tmp_pixel_size
-
-        (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = geom.bounds
-
-        (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy) = (
-            math.floor(tmp_minx*tmp_psi)/tmp_psi,
-            math.floor(tmp_miny*tmp_psi)/tmp_psi,
-            math.ceil(tmp_maxx*tmp_psi)/tmp_psi,
-            math.ceil(tmp_maxy*tmp_psi)/tmp_psi)
-
-        tmp_cols = np.arange(tmp_minx,
-                             tmp_maxx+tmp_pixel_size*0.5,
-                             tmp_pixel_size)
-
-        tmp_rows = np.arange(tmp_miny,
-                             tmp_maxy+tmp_pixel_size*0.5,
-                             tmp_pixel_size)
-
-        if rounded == True:
-            tmp_sig = 10 ** len(
-                str(tmp_pixel_size)[str(tmp_pixel_size).index('.')+1:])
-
-            tmp_cols = [round(i * tmp_sig) / tmp_sig for i in tmp_cols]
-            tmp_rows = [round(i * tmp_sig) / tmp_sig for i in tmp_rows]
+    # https://stackoverflow.com/questions/8090229/
+    #   resize-with-averaging-or-rebin-a-numpy-2d-array/8090605#8090605
+    def rebin_sum(self, a, shape, dtype):
+        sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
+        return a.reshape(sh).sum(-1, dtype=dtype).sum(1, dtype=dtype)
 
 
-        tmp_colrows = (tmp_cols, tmp_rows)
-        tmp_bounds = (tmp_minx, tmp_miny, tmp_maxx, tmp_maxy)
-
-        if return_bounds:
-            return tmp_colrows, tmp_bounds
-        else:
-            return tmp_colrows
-
-
-    def colrows_to_grid(self, cols, rows, geom, round_points=True):
-
-        colrows_product = list(itertools.product(cols, rows))
-        grid_gdf = gpd.GeoDataFrame()
-        grid_gdf['within'] = [0] * len(colrows_product)
-        grid_gdf['geometry'] = colrows_product
-        grid_gdf['geometry'] = grid_gdf.apply(lambda z: Point(z.geometry),
-                                              axis=1)
-
-        if round_points:
-            # round to reference grid points and fix -0.0
-            grid_gdf['lat'] = grid_gdf.apply(lambda z: self.positive_zero(
-                round(z.geometry.y * self.psi) / self.psi), axis=1)
-            grid_gdf['lon'] = grid_gdf.apply(lambda z: self.positive_zero(
-                round(z.geometry.x * self.psi) / self.psi), axis=1)
-        else:
-            grid_gdf['lat'] = grid_gdf.apply(lambda z: z.geometry.y, axis=1)
-            grid_gdf['lon'] = grid_gdf.apply(lambda z: z.geometry.x, axis=1)
-
-        geom_prep = prep(geom)
-        grid_gdf['within'] = [geom_prep.contains(i)
-                              for i in grid_gdf['geometry']]
-
-
-        geom_count = sum(grid_gdf['within'])
-        grid_gdf['value'] = 0
-
-        grid_gdf.sort(['lat', 'lon'], ascending=[False, True], inplace=True)
-
-        return grid_gdf, geom_count
-
-
-    def positive_zero(self, val):
-        """Convert "negative" zero values to +0.0
-
-        Args:
-            val: number (should be float, but not checked)
-        Returns:
-            If val equals zero return +0.0 to make sure val was
-            not a "negative" zero, otherwise return val.
-
-        Needed as a result of how binary floating point works.
+    def rasterize_geom(self, geom, scale=1):
         """
-        if val == 0:
-            return +0.0
+        """
+        if not hasattr(geom, 'geom_type'):
+            raise Exception("CoreMSR [rasterize_geom] : invalid geom")
+
+        try:
+            fscale = float(scale)
+
+            if fscale < 1:
+                raise Exception("CoreMSR [rasterize_geom] : scale must be >=1")
+
+            iscale = int(scale)
+
+            if float(iscale) != fscale:
+                warnings.warn("CoreMSR [rasterize_geom] : scale float ("+str(fscale)+") converted to int ("+str(iscale)+")")
+            
+        except:
+            raise Exception("CoreMSR [rasterize_geom] : invalid scale type")
+
+
+        scale = iscale
+
+        if scale == 1:
+            pixel_size = self.pixel_size
+        elif scale % 2 != 0 or scale % 5 != 0:
+            raise Exception("CoreMSR [rasterize_geom] : invalid scale")
         else:
-            return val
+            pixel_size = self.pixel_size / scale
+
+
+        affine = Affine(pixel_size, 0, self.topleft[0], 
+                        0, -pixel_size, self.topleft[1])
+
+        nrows = self.shape[0] * scale
+        ncols = self.shape[1] * scale
+
+        shape = (nrows, ncols)
+
+        rasterized = features.rasterize(
+            [(geom, 1)], 
+            out_shape=shape, 
+            transform=affine,
+            fill=0, 
+            all_touched=False)
+
+        if scale != 1:
+            min_dtype = np.min_scalar_type(scale**2)
+            rv_array = self.rebin_sum(rasterized, self.shape, min_dtype)
+            return rv_array
+        else:
+            return rasterized
+
 

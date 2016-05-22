@@ -42,7 +42,7 @@ from shapely.prepared import prep
 
 import shapefile
 
-
+import warnings
 import rasterio
 from affine import Affine
 
@@ -275,9 +275,6 @@ def tmp_master_init(self):
 
 def tmp_worker_job(self, task_id):
 
-    # grid_gdf = grid_gdf.copy(deep=True)
-    grid_gdf['value'] = 0
-
     task = task_id_list[task_id]
 
     pg_data = active_data.loc[task]
@@ -288,28 +285,8 @@ def tmp_worker_job(self, task_id):
 
 
     if pg_type == "country":
+        mean_surf = master_grid
 
-        grid_gdf['value'] = (
-            grid_gdf['within'] * (pg_data['adjusted_aid'] / adm0_count))
-
-
-    elif pg_type == "point":
-
-        # round new grid points to old grid points and update old grid
-
-        tmp_point = Point(round(pg_data.latitude * core.psi) / core.psi,
-                          round(pg_data.longitude * core.psi) / core.psi)
-        tmp_value = pg_data['adjusted_aid']
-
-        if tmp_value != 0:
-            grid_gdf.loc[
-                grid_gdf['geometry'] == Point(
-                    round(tmp_point.y * core.psi) / core.psi,
-                    round(tmp_point.x * core.psi) / core.psi),
-                'value'] += tmp_value
-
-
-    # any non-country polygon
     elif pg_type in core.geom_types:
 
         # for each row generate grid based on bounding box of geometry
@@ -333,72 +310,16 @@ def tmp_worker_job(self, task_id):
 
         # factor used to determine subgrid size
         # relative to output grid size
-        # sub grid res = output grid res * sub_grid_factor
-        sub_grid_factor = 0.1
-        pg_pixel_size = core.pixel_size * sub_grid_factor
+        # sub grid res = output grid res / sub_grid_factor
+        subgrid_scale = 10
+
+        # rasterized sub grid
+        mean_surf = core.rasterize_geom(geom, scale=subgrid_scale)
 
 
-        if pg_geom.geom_type == 'MultiPolygon':
-
-            pg_cols = []
-            pg_rows = []
-
-            for pg_geom_part in pg_geom:
-
-                tmp_pg_cols, tmp_pg_rows = core.geom_to_colrows(
-                    pg_geom_part, pg_pixel_size, grid_buffer=None,
-                    rounded=True, no_multi=True)
-
-                pg_cols = np.append(pg_cols, tmp_pg_cols)
-                pg_rows = np.append(pg_rows, tmp_pg_rows)
-
-
-            pg_cols = set(pg_cols)
-            pg_rows = set(pg_rows)
-
-        else:
-
-            pg_cols, pg_rows = core.geom_to_colrows(
-                pg_geom, pg_pixel_size, grid_buffer=None,
-                rounded=True, no_multi=False)
-
-
-        # evenly split the aid for that row
-        # ( active_data['adjusted_aid'] field ) among new grid points
-
-        tmp_gdf, pg_count = core.colrows_to_grid(pg_cols, pg_rows, pg_geom,
-                                                 round_points=True)
-
-
-        tmp_gdf['value'] = (
-            tmp_gdf['within'] * (pg_data['adjusted_aid'] / pg_count))
-
-        # tmp_gdf.sort(['lat','lon'], ascending=[False, True], inplace=True)
-        aggregated_total = tmp_gdf.groupby(['lat', 'lon'])['value'].sum()
-
-        agg_df = aggregated_total.reset_index()
-
-        agg_df['index'] = agg_df.apply(lambda z: str(z.lon) +'_'+ str(z.lat),
-                                       axis=1)
-        agg_df.set_index('index', inplace=True)
-
-
-        try:
-            grid_gdf.loc[agg_df.index, 'value'] += agg_df['value']
-
-        except:
-            for i in agg_df.index:
-                if i not in grid_gdf.index:
-                    print 'bad grid index'
-                    print i
-
-
-    # -------------------------------------
-    # send np arrays back to master
-
-    mean_surf = np.array(grid_gdf['value'])
-
-    return mean_surf
+    mean_surf = mean_surf.astype('float64')
+    mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
+    return mean_surf.flatten()
 
 
 def tmp_master_process(self, worker_data):
@@ -421,17 +342,15 @@ def complete_final_raster():
         'count': 1,
         'crs': {'init': 'epsg:4326'},
         'dtype': 'float64',
-        'affine': Affine(
-            core.pixel_size, 0.0, (adm0_minx-core.pixel_size/2),
-            0.0, -core.pixel_size, (adm0_maxy+core.pixel_size/2)),
+        'affine': core.affine,
         'driver': 'GTiff',
-        'height': len(rows),
-        'width': len(cols),
+        'height': core.shape[0],
+        'width': core.shape[1],
         'nodata': core.nodata#,
         # 'compress': 'lzw'
     }
 
-    sum_mean_surf.shape = (len(rows), len(cols))
+    sum_mean_surf.shape = core.shape
 
     out_mean_surf = np.array([sum_mean_surf.astype('float64')])
 
@@ -567,8 +486,8 @@ def complete_options_json():
     add_to_json("adm0_miny", adm0_miny)
     add_to_json("adm0_maxx", adm0_maxx)
     add_to_json("adm0_maxy", adm0_maxy)
-    add_to_json("rows", len(rows))
-    add_to_json("cols", len(cols))
+    add_to_json("rows", nrows)
+    add_to_json("cols", ncols)
     add_to_json("locations", len(active_data))
 
     # status
@@ -835,22 +754,16 @@ if not 'resolution' in request['options']:
 core.set_pixel_size(request['options']['resolution'])
 
 
+
 # -------------------------------------
-# create point grid for country
-master_grid = core.geom_to_colrows(
-                core.adm0, core.pixel_size, grid_buffer=0.5,
-                rounded=True, no_multi=True, return_bounds=True)
+# create grid for country
+core.set_grid_info(big_geom)
+master_grid = core.rasterize_geom(core.adm0)
 
-cols, rows = master_grid[0]
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = master_grid[1]
+nrows, ncols = core.shape
+(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.bounds
+adm0_count = master_grid.sum()
 
-# init grid reference object
-grid_gdf, adm0_count = core.colrows_to_grid(cols, rows, core.adm0,
-                                            round_points=True)
-
-grid_gdf['index'] = grid_gdf.apply(lambda z: str(z.lon) +'_'+ str(z.lat),
-                                   axis=1)
-grid_gdf.set_index('index', inplace=True)
 
 
 # =============================================================================
