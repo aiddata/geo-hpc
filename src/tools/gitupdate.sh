@@ -35,7 +35,7 @@ if [ -d ".git" ]; then
         echo $GU_ERROR_FETCH_FAIL >&2
         exit 1
     else
-        if [[ $(git branch | grep "$branch") ]]; then
+        if [[ ! $(git branch | grep "$branch") ]]; then
             echo 'branch ('"$branch"') does not exist. using master.'
             branch=master
         fi
