@@ -36,7 +36,7 @@ if [ -d ".git" ]; then
         exit 1
     else
         if [[ $(git branch | grep "$branch") ]]; then
-            echo branch ("$branch") does not exist. using master.
+            echo 'branch ('"$branch"') does not exist. using master.'
             branch=master
         fi
 
