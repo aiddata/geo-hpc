@@ -35,8 +35,14 @@ if [ -d ".git" ]; then
         echo $GU_ERROR_FETCH_FAIL >&2
         exit 1
     else
+        if [[ $(git branch | grep "$branch") ]]; then
+            echo branch ("$branch") does not exist. using master.
+            branch=master
+        fi
+
         LOCAL_SHA=$(git rev-parse --verify HEAD)
         REMOTE_SHA=$(git rev-parse --verify origin/"$branch")
+
         if [ $LOCAL_SHA = $REMOTE_SHA ]; then
             echo $GU_INFO_REPOS_EQUAL
             exit 0
