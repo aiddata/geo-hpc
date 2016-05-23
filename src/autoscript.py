@@ -314,7 +314,7 @@ def tmp_worker_job(self, task_id):
         subgrid_scale = 10
 
         # rasterized sub grid
-        mean_surf = core.rasterize_geom(geom, scale=subgrid_scale)
+        mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
 
     mean_surf = mean_surf.astype('float64')
@@ -757,7 +757,7 @@ core.set_pixel_size(request['options']['resolution'])
 
 # -------------------------------------
 # create grid for country
-core.set_grid_info(big_geom)
+core.set_grid_info(core.adm0)
 master_grid = core.rasterize_geom(core.adm0)
 
 nrows, ncols = core.shape
