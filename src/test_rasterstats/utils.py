@@ -5,9 +5,11 @@ import sys
 import os
 import warnings
 from rasterio import features
+from affine import Affine
 from shapely.geometry import box, MultiPolygon, Polygon
 from .io import window_bounds
 import numpy as np
+
 
 DEFAULT_STATS = ['count', 'min', 'max', 'mean']
 VALID_STATS = DEFAULT_STATS + \
@@ -38,66 +40,35 @@ def rasterize_geom(geom, like, all_touched=False):
     return rv_array
 
 
-def _rasterize_geom(geom, shape, affinetrans, all_touched):
-    indata = [(geom, 1)]
-    rv_array = features.rasterize(
-        indata,
-        out_shape=shape,
-        transform=affinetrans,
-        fill=0,
-        all_touched=all_touched)
-    return rv_array
+# https://stackoverflow.com/questions/8090229/
+#   resize-with-averaging-or-rebin-a-numpy-2d-array/8090605#8090605
+def rebin_sum(a, shape, dtype):
+    sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
+    return a.reshape(sh).sum(-1, dtype=dtype).sum(1, dtype=dtype)
 
 
 def rasterize_pctcover(geom, atrans, shape):
-    alltouched = _rasterize_geom(geom, shape, atrans, all_touched=True)
+    scale = 10
 
-    if 'Multi' in geom.type:
+    pixel_size = atrans[0]/scale
+    topleftlon = atrans[2]
+    topleftlat = atrans[5]
 
-        multi_exterior = np.array([_rasterize_geom(Polygon(g).exterior, shape, atrans, all_touched=True) for g in geom])
-        exterior = multi_exterior.sum(axis=0)
-        exterior[np.where(exterior > 1)] = 1
+    new_affine = Affine(pixel_size, 0, topleftlon,
+                    0, -pixel_size, topleftlat)
 
-    else:
-        exterior = _rasterize_geom(geom.exterior, shape, atrans, all_touched=True)
+    new_shape = (shape[0]*scale, shape[1]*scale)
 
+    rasterized = features.rasterize(
+        [(geom, 1)],
+        out_shape=new_shape,
+        transform=new_affine,
+        fill=0,
+        all_touched=True)
 
-    # print alltouched
-    # print exterior
-
-    # Create percent cover grid as the difference between them
-    # at this point all cells are known 100% coverage,
-    # we'll update this array for exterior points
-    pctcover = (alltouched - exterior) * 100
-    pctcover = pctcover.astype('float32')
-    # print pctcover
-
-    # loop through indicies of all exterior cells
-    for r, c in zip(*np.where(exterior == 1)):
-
-        # Find cell bounds, from rasterio DatasetReader.window_bounds
-        window = ((r, r+1), (c, c+1))
-        ((row_min, row_max), (col_min, col_max)) = window
-        x_min, y_min = (col_min, row_max) * atrans
-        x_max, y_max = (col_max, row_min) * atrans
-        bounds = (x_min, y_min, x_max, y_max)
-
-        # Construct shapely geometry of cell
-        cell = box(*bounds)
-
-        # Intersect with original shape
-        cell_overlap = cell.intersection(geom)
-        # update pctcover with percentage based on area proportion
-        coverage = (float(cell_overlap.area) / cell.area) * 100
-        # print cell_overlap.area
-        # print cell.area
-        # print coverage
-        # print '-'
-        pctcover[r, c] = coverage
-        # print pctcover[r, c]
-
-
-    return pctcover.astype('float32') / 100
+    min_dtype = np.min_scalar_type(scale**2)
+    rv_array = rebin_sum(rasterized, shape, min_dtype)
+    return rv_array.astype('float32') / (scale**2)
 
 
 def stats_to_csv(stats, file_object=None):

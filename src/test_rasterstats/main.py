@@ -124,7 +124,6 @@ def gen_zonal_stats(
     """
     stats, run_count, weights = check_stats(stats, categorical)
 
-
     # Handle 1.0 deprecations
     transform = kwargs.get('transform')
     if transform:
