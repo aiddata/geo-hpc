@@ -6,49 +6,45 @@ import errno
 import time
 import json
 import shutil
+from requests import post
 
 import hashlib
 
-import pymongo
-from bson.objectid import ObjectId
-
 import pandas as pd
 import geopandas as gpd
-import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
 
-class MongoAccess():
-    """Access mongo.
 
-    Will be replaced with posts to server that handles this.
+from documentation_tool import DocBuilder
+
+
+def make_dir(path):
+    """creates directories
+
+    does not raise error if directory exists
     """
-    def __init__(self):
-        self.client = pymongo.MongoClient()
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
-    def mongo_find(self, find=None, return=None):
-        pass
 
-    def mongo_update(self, find=None, update=None, options=None):
-        pass
+def json_sha1_hash(hash_obj):
+    hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii=False,
+                           separators=(',', ':'))
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_json)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
+
 
 
 class QueueCheck():
     """utilty functions for processing requests in queue
     """
     def __init__(self):
-        self.client = pymongo.MongoClient()
-
-        self.c_queue = self.client.det.queue
-        self.c_email = self.client.det.email
-        self.c_extracts = self.client.asdf.extracts
-        self.c_msr = self.client.asdf.msr
-
-        self.cache = 0
-        self.doc = 0
-
-        # self.request_id = 0
-        # self.request_obj = 0
+        self.cache = CacheTools()
+        self.doc = DocBuilder()
 
         self.request_objects = {}
 
@@ -56,138 +52,130 @@ class QueueCheck():
     # exit function used for errors
     def quit(self, rid, status, message):
         self.update_status(rid, int(status))
-        sys.exit(">> det processing error: \n\t\t" + str(message))
+        sys.exit(">> det processing error ("+str(status)+"): \n\t\t" + str(message))
 
 
-    # verify request with id exists
-    def check_id(self, rid):
 
+    def get_requests(self, search_type, search_val, limit=0):
+        """get requests from queue
+
+        Args
+            search_type (str):
+            search_val (str, int):
+            limit (int):
+
+        Returns
+            tuple (function status, list of request objects)
+        """
+        post_data = {
+            'call': 'get_requests',
+            'search_type': search_type,
+            'search_val': search_val,
+            'limit': limit
+        }
         try:
-            # check document with request id exists
-            search = self.c_queue.find({"_id":ObjectId(rid)})
-            exists = search.count()
+            r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
+            return 1, r
+        except Exception as e:
+            print e
+            return 0, None
 
-            # self.request_id = rid
-            # self.request_obj = search[0]
+        # try:
+        #     # find all status 1 jobs and sort by priority then submit_time
+        #     sort = self.c_queue.find({
+        #         "status":status
+        #     }).sort([("priority", -1), ("submit_time", 1)])
 
-            self.request_objects[rid] = search[0]
+        #     if sort.count() > 0:
+        #         if limit == 0 or limit > sort.count():
+        #             limit = sort.count()
 
-            return 1, exists, search[0]
+        #         for i in range(limit):
+        #             rid = str(sort[i]["_id"])
+        #             self.request_objects[rid] = sort[i]
 
-        except:
+        #         return 1, self.request_objects
+        #     else:
+        #         return 1, None
+        # except:
+        #     return 0, None
+
+
+    def check_id(self, rid):
+        """verify request with given id exists
+
+        Args
+            rid (str): request id
+        Returns
+            tuple: (function status, request exists, request object)
+        """
+        request = self.get_requests('id', rid, 1)
+
+        if request[0]:
+            exists = len(request[1])
+            return 1, exists, request[1][0]
+        else:
             return 0, None, None
 
 
-    # get id of next job in queue
-    # based on priority and submit_time
-    # factor how many extracts need to be processed into queue order (?)
-    def get_next(self, status, limit):
+    def get_status(self, rid):
+        """get status of request.
 
-        try:
-            # find all status 1 jobs and sort by priority then submit_time
-            sort = self.c_queue.find({
-                "status":status
-            }).sort([("priority", -1), ("submit_time", 1)])
+        Args
+            rid (str): request id
+        Returns
+            tuple (function status, request status)
+        """
+        request = self.get_requests('id', rid, 1)
 
-            if sort.count() > 0:
-
-                if limit == 0 or limit > sort.count():
-                    limit = sort.count()
-
-                for i in range(limit):
-                    rid = str(sort[i]["_id"])
-                    self.request_objects[rid] = sort[i]
-
-                return 1, self.request_objects
-
-            else:
-                return 1, None
-
-        except:
+        if request[0]:
+            return 1, = r[0]['status']
+        else:
             return 0, None
 
 
-    # update status of request
-    def update_status(self, rid, status):
-
+    def update_status(self, rid, status, send_email=False):
+        """update status of request
+        """
         ctime = int(time.time())
 
-        updates = {
-            "status": long(status)
+        stage_options = {
+            1: "complete_time",
+            2: "prep_time",
+            3: "process_time"
         }
 
-        if status == 2:
-            updates["prep_time"] = ctime
-            self.request_objects[rid]["prep_time"] = ctime
-        elif status == 3:
-            updates["process_time"] = ctime
-            self.request_objects[rid]["process_time"] = ctime
-
-        elif status == 1:
-            updates["complete_time"] = ctime
-            self.request_objects[rid]["complete_time"] = ctime
-
-
         try:
-            # update request document
-            self.c_queue.update({"_id": ObjectId(rid)}, {"$set": updates})
-            return True, ctime
+            stage = stage_options[stage]
+
+            post_data = {
+                'call': 'update_request_status',
+                'rid': rid
+                'status': status,
+                'stage': stage,
+                'timestamp': ctime,
+                'send_email': send_email
+            }
+
+            r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
+
+            if r['status'] == 'success':
+                return True, ctime
+            else:
+                return False, ctime
 
         except:
             return False, None
 
 
-    # sends an email
-    def send_email(self, sender, receiver, subject, message):
+###
 
-        try:
-            pw_search = self.c_email.find({"address": sender},
-                                                   {"password":1})
-
-            if pw_search.count() > 0:
-                passwd = str(pw_search[0]["password"])
-            else:
-                return 0, "Specified email does not exist"
-
-        except:
-            return 0, "Error looking up email"
-
-
-        try:
-            # source:
-            # http://stackoverflow.com/questions/64505/
-            #   sending-mail-from-python-using-smtp
-
-            msg = MIMEMultipart()
-
-            msg['From'] = sender
-            msg['To'] = receiver
-            msg['Subject'] = subject
-            msg.attach(MIMEText(message))
-
-            mailserver = smtplib.SMTP('smtp.gmail.com', 587)
-            # identify ourselves to smtp gmail client
-            mailserver.ehlo()
-            # secure our email with tls encryption
-            mailserver.starttls()
-            # re-identify ourselves as an encrypted connection
-            mailserver.ehlo()
-
-            mailserver.login(sender, passwd)
-            mailserver.sendmail(sender, receiver, msg.as_string())
-            mailserver.quit()
-
-            return 1, None
-
-        except:
-            return 0, "Error generating or sending email"
-
-
-    # build output
-    # merge extracts, generate documentation, update status,
-    #   cleanup working directory, send final email
     def build_output(self, request_id, run_extract):
+        """build output
 
+        merge extracts, generate documentation, update status,
+            cleanup working directory, send final email
+        """
         # merge cached results if all are available
         merge_status = self.cache.merge(request_id,
                                         self.request_objects[request_id])
@@ -229,7 +217,7 @@ class QueueCheck():
             "AidData Data Extraction Tool Request Completed ("+request_id+")",
             c_message)
 
-
+###
 
 
 class CacheTools():
@@ -239,15 +227,6 @@ class CacheTools():
         boolean
     """
     def __init__(self):
-        # connect to mongodb
-        self.client = pymongo.MongoClient()
-
-        # extract queue
-        self.c_extracts = self.client.asdf.extracts
-
-        # msr tracker
-        self.c_msr = self.client.asdf.msr
-
         self.extract_options = json.load(open(
             os.path.dirname(
                 os.path.abspath(__file__)) + '/extract_options.json', 'r'))
@@ -258,26 +237,9 @@ class CacheTools():
         self.msr_version = 0.1
 
 
-    # creates directories
-    def make_dir(self, path):
-        try:
-            os.makedirs(path)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
-
-
-    def json_sha1_hash(self, hash_obj):
-        hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii=False,
-                               separators=(',', ':'))
-        hash_builder = hashlib.sha1()
-        hash_builder.update(hash_json)
-        hash_sha1 = hash_builder.hexdigest()
-        return hash_sha1
-
-
-    # check entire request object for cache
     def check_request(self, rid, request, extract=False):
+        """check entire request object for cache
+        """
         print "check_request"
 
         self.merge_lists[rid] = []
@@ -297,7 +259,7 @@ class CacheTools():
             data['version'] = self.msr_version
 
             # get hash
-            data_hash = self.json_sha1_hash(data)
+            data_hash = json_sha1_hash(data)
 
             msr_extract_type = "sum"
             msr_extract_output = ("/sciclone/aiddata10/REU/extracts/" +
@@ -409,9 +371,11 @@ class CacheTools():
         return 1, extract_count, msr_count
 
 
-    # add extract item to det->extracts mongodb collection
     def add_to_extract_queue(self, boundary, raster, reliability,
                              extract_type, classification):
+        """
+        add extract item to det->extracts mongodb collection
+        """
         print "add_to_extract_queue"
 
         ctime = int(time.time())
@@ -432,8 +396,9 @@ class CacheTools():
         self.c_extracts.insert(insert)
 
 
-    # add msr item to det->msr mongodb collection
     def add_to_msr_tracker(self, selection, msr_hash):
+        """add msr item to det->msr mongodb collection
+        """
         print "add_to_msr_tracker"
 
         ctime = int(time.time())
@@ -453,14 +418,17 @@ class CacheTools():
         self.c_msr.insert(insert)
 
 
-    # 1) check if extract exists in extract queue
-    #    run redundancy check on actual extract file and delete extract
-    #    queue entry if file is missing
-    #    also check for reliability calc if field is specified
-    # 2) check if extract is completed, waiting to be run, or
-    #    encountered an error
+
     def extract_exists(self, boundary, raster, extract_type, reliability,
                        csv_path):
+        """
+        1) check if extract exists in extract queue
+           run redundancy check on actual extract file and delete extract
+           queue entry if file is missing
+           also check for reliability calc if field is specified
+        2) check if extract is completed, waiting to be run, or
+           encountered an error
+        """
         print "exists_in_extract_queue"
 
         check_data = {
@@ -507,11 +475,14 @@ class CacheTools():
         return valid_exists, valid_completed
 
 
-    # 1) check if msr exists in msr tracker
-    #    run redundancy check on actual msr raster file and delete msr
-    #    tracker entry if file is missing
-    # 2) check if msr is completed, waiting to be run, or encountered an error
+
     def msr_exists(self, dataset_name, msr_hash):
+        """
+        1) check if msr exists in msr tracker
+           run redundancy check on actual msr raster file and delete msr
+           tracker entry if file is missing
+        2) check if msr is completed, waiting to be run, or encountered an error
+        """
         print "exists_in_msr_tracker"
 
         check_data = {"dataset": dataset_name, "hash": msr_hash}
@@ -553,11 +524,10 @@ class CacheTools():
         return valid_exists, valid_completed
 
 
-# ---------------------------------------------------------------------------
-
-
-    # merge extracts when all are completed
     def merge(self, rid, request):
+        """
+        merge extracts when all are completed
+        """
         print "merge"
 
         # # generate list of csv files to merge (including relability calcs)
@@ -634,7 +604,7 @@ class CacheTools():
                          "/results.csv")
 
         # generate output folder for merged df using request id
-        self.make_dir(os.path.dirname(merged_output))
+        make_dir(os.path.dirname(merged_output))
 
         # write merged df to csv
         merged_df.to_csv(merged_output, index=False)
@@ -643,86 +613,5 @@ class CacheTools():
 
     # except:
     #     return False, "error writing merged dataframe"
-
-
-
-# ---------------------------------------------------------------------------
-
-
-
-    # # generate merge list for request
-    # def generate_merge_list(self, request):
-    #     print "generate_merge_list"
-
-    #     tmp_merge_list =  []
-
-    #     boundary_path = request['boundary']['path']
-
-
-    #     for name, data in request['d1_data'].iteritems():
-    #         print name
-
-    #         msr_raster_path = ''
-    #         msr_extract_output = ''
-    #         msr_field = ''
-
-    #         tmp_merge_item = {
-    #             'boundary': boundary_path,
-    #             'raster': msr_raster_path,
-    #             'extract': 'sum',
-    #             'reliability': True,
-    #             'field': msr_field,
-    #             'output': msr_extract_output,
-    #             'type': 'raster',
-    #             'source': 'd1_data'
-    #         }
-
-    #         tmp_merge_list.append(tmp_merge_item)
-
-
-    #     for name, data in request["d2_data"].iteritems():
-    #         print name
-
-    #         for i in data["files"]:
-
-    #             df_name = i["name"]
-    #             raster_path = data["base"] +"/"+ i["path"]
-    #             is_reliability_raster = i["reliability"]
-
-    #             for extract_type in data["options"]["extract_types"]:
-
-    #                 # core basename for output file
-    #                 # does not include file type identifier (...e.ext for extracts and ...r.ext for reliability) or file extension
-    #                 if data["temporal_type"] == "None":
-    #                     output_name = df_name + "_"
-    #                 else:
-    #                     output_name = df_name
-
-    #                 # output file string without file type identifier or file extension
-    #                 base_output = "/sciclone/aiddata10/REU/extracts/" + request["boundary"]["name"] +"/cache/"+ data["name"] +"/"+ extract_type +"/"+ output_name
-    #                 extract_output = base_output + self.extract_options[extract_type] + ".csv"
-
-
-    #                 tmp_merge_item = {
-    #                     'boundary': boundary_path,
-    #                     'raster': raster_path,
-    #                     'extract': extract_type,
-    #                     'reliability': is_reliability_raster,
-    #                     'field': os.path.basename(extract_output),
-    #                     'output': extract_output,
-    #                     'type': 'raster',
-    #                     'source': 'd2_data'
-    #                 }
-
-    #                 tmp_merge_list.append(tmp_merge_item)
-
-
-    #     self.merge_list = tmp_merge_list
-
-    #     return len(merge_list)
-
-
-
-
 
 

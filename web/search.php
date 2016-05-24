@@ -48,7 +48,7 @@ switch ($_POST['call']) {
 // ----------------------------------------------------------------------------
 // det:queue
 
-    case "find_requests":
+    case "get_requests":
         /*
         generate request information for det status page
 
@@ -61,8 +61,11 @@ switch ($_POST['call']) {
         */
         $search_type = $_POST['search_type'];
         $search_val = $_POST['search_val'];
+        $limit = $_POST['limit'];
 
-        if (!is_clean_val($search_type) || !is_clean_val($search_val)) {
+        if (!is_clean_val($search_type) || !is_clean_val($search_val)
+            || !is_clean_val($limit)
+        ) {
             echo json_encode('invalid inputs');
             break;
         }
@@ -72,15 +75,15 @@ switch ($_POST['call']) {
 
         if ($search_type == "email") {
             $query = array('email' => $search_val);
-            $cursor = $col->find($query);
+            $cursor = $col->find($query)->limit($limit);
 
         } else if ($search_type == "id") {
             $query = array('_id' => new MongoId($search_val));
-            $cursor = $col->find($query);
+            $cursor = $col->find($query)->limit($limit);
 
         } else if ($search_type == "status") {
             $query = array('status' => intval($search_val));
-            $cursor = $col->find($query);
+            $cursor = $col->find($query)->limit($limit);
             $cursor->sort(array('priority'  -1, 'submit_time' => 1));
 
         } else {
@@ -95,6 +98,7 @@ switch ($_POST['call']) {
 
         echo json_encode($output);
         break;
+
 
 
     case "update_request_status":
@@ -137,22 +141,30 @@ switch ($_POST['call']) {
         $db = $m->selectDB('det');
         $col = $db->selectCollection('queue');
 
-        $doc = $col->findAndModify($query, array('$set' => $update), null, array("new" => true));
+        $doc = $col->findAndModify(
+            $query,
+            array('$set' => $update),
+            null,
+            array("new" => false));
+
+        $old_status = $doc['status'];
 
 
-
-        // send email based on status (received / completed)
         $mail_to = $doc['email'];
-
-        $mail_subject = "AidData Data Extract Tool Update";
-
-        $mail_message = "Your data request has been updated.<br><br>";
 
         $mail_headers = 'MIME-Version: 1.0' . "\r\n";
         $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 
-        $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+        // send email based on status
+        if ($status == 1) {
 
+            $mail_subject = "AidData Data Extract Tool - Request Completed";
+
+            $mail_message = "something";
+
+            $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+
+        }
 
         $output = array(
             'status'=> 'success',
@@ -205,7 +217,7 @@ switch ($_POST['call']) {
 // ----------------------------------------------------------------------------
 // asdf:data
 
-    case "find_boundaries":
+    case "get_boundaries":
         /*
         find and return all eligible boundaries
 
@@ -235,7 +247,7 @@ switch ($_POST['call']) {
         );
 
         $cursor = $col->find($query, $fields);
-        $cursor->snapshot();
+        // $cursor->snapshot();
 
         $output = array();
         foreach ($cursor as $doc) {
@@ -246,7 +258,7 @@ switch ($_POST['call']) {
         break;
 
 
-    case "find_relevant_datasets":
+    case "get_relevant_datasets":
         /*
         find relevant datasets for specified boundary group
 
@@ -314,7 +326,8 @@ switch ($_POST['call']) {
 
 
                 // get years from datapackage
-                // $doc['year_list'] = range($doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
+                // $doc['year_list'] = range(
+                //    $doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
 
                 // placeholder for no year selection (only 'All')
                 $doc['year_list'] = [];
@@ -374,7 +387,7 @@ switch ($_POST['call']) {
         break;
 
 
-    case "find_dataset":
+    case "get_dataset":
         /*
         find individual dataset from asdf>data using generic open ended query
 
@@ -457,7 +470,8 @@ switch ($_POST['call']) {
             $query = json_decode($_POST['query']);
 
             // validate $query
-            $valid_query_keys = array('boundary', 'raster', 'extract_type', 'reliability');
+            $valid_query_keys = array('boundary', 'raster',
+                                      'extract_type', 'reliability');
             foreach ($query as $k => $v) {
                 if (!in_array($k, $valid_query_keys)
                     || $k == 'reliability' && !is_bool($v)

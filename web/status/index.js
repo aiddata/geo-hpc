@@ -164,7 +164,7 @@ $(document).ready(function(){
 
 		// look for requests matching search_val
 		// call php to search mongo
-		var call_data = {call:"find_requests", search_type:type, search_val:search_val};
+		var call_data = {call:"get_requests", search_type:type, search_val:search_val};
 		console.log(call_data);
 		mongo_search(call_data, function (result, status, error){
 

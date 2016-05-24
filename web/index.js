@@ -40,7 +40,7 @@ $(document).ready(function(){
 	// get boundary options from mongo
 	// build select menu
 	// check and active link if given
-	process({call:"find_boundaries"}, function (result, status, error){
+	process({call:"get_boundaries"}, function (result, status, error){
 
 		if (error) {
 			console.log(error);
@@ -439,7 +439,7 @@ $(document).ready(function(){
 
 		// console.log(request["boundary"]["group"]);
 
-		process({call:"find_relevant_datasets", group:request["boundary"]["group"]}, function (result, status, error){
+		process({call:"get_relevant_datasets", group:request["boundary"]["group"]}, function (result, status, error){
 
 			if (error) {
 				console.log(error);

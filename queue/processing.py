@@ -8,21 +8,16 @@
 import os
 import sys
 import time
+import requests
 
 sys.stdout = sys.stderr = open(
     os.path.dirname(os.path.abspath(__file__)) + '/processing.log', 'a')
 
-from request_tools import QueueCheck, CacheTools
-from documentation_tool import DocBuilder
+from request_tools import QueueCheck
 
 # =============================================================================
 
 queue = QueueCheck()
-cache = CacheTools()
-doc = DocBuilder()
-
-queue.cache = cache
-queue.doc = doc
 
 request_id = 0
 
@@ -51,7 +46,9 @@ else:
     #   submit time
     # returns status of search and request data objecft
 
-    gn_status, request_objects = queue.get_next(0, 0)
+    gn_status, request_objects = queue.get_requests('status', -1, 0)
+
+    gn_status, request_objects = queue.get_requests('status', 0, 0)
 
     if not gn_status:
        sys.exit("Error while searching for next request in queue")
@@ -65,6 +62,44 @@ for request_id in request_objects.keys():
     request_obj = request_objects[request_id]
 
     print '\nRequest id: ' + request_id
+
+
+
+    ###
+    """
+
+    status = queue.get_status(request_id)
+
+    if status == "error":
+        continue
+    # set status 2, no email
+    #
+
+    new_items = None
+    if status == -1:
+        # check request and add extract/msr items to queue, return # added
+        new_items = add items
+
+    if new_items in [None, 0]:
+        # check if extracts/msr are all ready, return # not ready
+        unprocessed_items = check items
+
+        if unprocessed_items == 0:
+            # build request
+            #
+
+            # set status 1, email request is ready
+            #
+
+        else:
+            # set status 0, no email
+            #
+
+
+
+    """
+    ###
+
 
 
     # update status to being processed
@@ -85,7 +120,7 @@ for request_id in request_objects.keys():
 
     # check results for cached data
     # run missing extracts if run_extract is True
-    cr_status, cr_extract_count, cr_msr_count = cache.check_request(
+    cr_status, cr_extract_count, cr_msr_count = queue.cache.check_request(
         request_id, request_obj, True)
 
 
