@@ -1,19 +1,13 @@
 
 import os
 import sys
-
 import errno
 import time
 import json
 import shutil
-from requests import post
-
 import hashlib
-
 import pandas as pd
-import geopandas as gpd
-
-
+from requests import post
 from documentation_tool import DocBuilder
 
 
@@ -38,7 +32,6 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
-
 class QueueCheck():
     """utilty functions for processing requests in queue
     """
@@ -53,7 +46,6 @@ class QueueCheck():
     def quit(self, rid, status, message):
         self.update_status(rid, int(status))
         sys.exit(">> det processing error ("+str(status)+"): \n\t\t" + str(message))
-
 
 
     def get_requests(self, search_type, search_val, limit=0):
@@ -113,7 +105,7 @@ class QueueCheck():
 
         if request[0]:
             exists = len(request[1])
-            return 1, exists, request[1][0]
+            return 1, exists, request[1]
         else:
             return 0, None, None
 
@@ -129,7 +121,7 @@ class QueueCheck():
         request = self.get_requests('id', rid, 1)
 
         if request[0]:
-            return 1, = r[0]['status']
+            return 1, r[0]['status']
         else:
             return 0, None
 
@@ -150,7 +142,7 @@ class QueueCheck():
 
             post_data = {
                 'call': 'update_request_status',
-                'rid': rid
+                'rid': rid,
                 'status': status,
                 'stage': stage,
                 'timestamp': ctime,
@@ -169,7 +161,6 @@ class QueueCheck():
 
 
 ###
-
     def build_output(self, request_id, run_extract):
         """build output
 
@@ -216,7 +207,6 @@ class QueueCheck():
             self.request_objects[request_id]["email"],
             "AidData Data Extraction Tool Request Completed ("+request_id+")",
             c_message)
-
 ###
 
 
@@ -227,9 +217,9 @@ class CacheTools():
         boolean
     """
     def __init__(self):
-        self.extract_options = json.load(open(
-            os.path.dirname(
-                os.path.abspath(__file__)) + '/extract_options.json', 'r'))
+        # self.extract_options = json.load(open(
+        #     os.path.dirname(
+        #         os.path.abspath(__file__)) + '/extract_options.json', 'r'))
 
         self.merge_lists = {}
 
@@ -418,7 +408,6 @@ class CacheTools():
         self.c_msr.insert(insert)
 
 
-
     def extract_exists(self, boundary, raster, extract_type, reliability,
                        csv_path):
         """
@@ -473,7 +462,6 @@ class CacheTools():
 
 
         return valid_exists, valid_completed
-
 
 
     def msr_exists(self, dataset_name, msr_hash):
