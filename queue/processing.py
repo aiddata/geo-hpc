@@ -1,10 +1,5 @@
 # process queue requests
 
-# need better error handling /notification for
-# what are currently "fatal" errors
-# at minimum: update request status so
-# we are aware and can check it or restart it
-
 import os
 import sys
 import time
@@ -13,11 +8,11 @@ import warnings
 # sys.stdout = sys.stderr = open(
 #     os.path.dirname(os.path.abspath(__file__)) + '/processing.log', 'a')
 
-from request_tools import QueueCheck
+from request_tools import QueueToolBox
 
 # =============================================================================
 
-queue = QueueCheck()
+queue = QueueToolBox()
 
 request_id = 0
 
@@ -27,23 +22,23 @@ print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
 # run given a request_id via input
 if len(sys.argv) == 2:
-    request_id = sys.argv[1]
+    request_id = str(sys.argv[1])
 
     # check if request with id exists
     # return status of check, boolean of exists and request data if exists
-    ci_status, ci_exists, request_objects = queue.check_id(sys.argv[1])
+    ci_status, ci_exists, request_objects = queue.check_id(request_id)
 
     if not ci_status:
-        sys.exit("Error while checking request id")
+        sys.exit("Error while checking request id (" + request_id + ")")
     elif not ci_exists:
-        sys.exit("Request with id does not exist")
+        sys.exit("Request with id does not exist (" + request_id + ")")
 
 else:
     # get list of requests in queue (status: 0) based on priority and
     #   submit time
     # returns status of search and request data objecft
 
-    gr_status_1, request_objects_1 = queue.get_requests('status', -1, 0)
+    gr_status_1, request_objects_1 = queue.get_requests('status', -2, 0)
 
     if not gr_status_1:
         warnings.warn('could not get check requests for status "-1"')
@@ -67,86 +62,68 @@ else:
 
 
 for request_obj in request_objects:
-    print request_obj
 
     request_id = str(request_obj['_id']['$id'])
 
     print '\nRequest id: ' + request_id
+    print request_obj
 
 
-
-    ###
-    """
 
     status = queue.get_status(request_id)
 
-    if status == "error":
+    if not status[0]:
+        warnings.warn("error retrieving status of request")
         continue
-    # set status 2, no email
-    #
 
-    new_items = None
-    if status == -1:
-        # check request and add extract/msr items to queue, return # added
-        new_items = add items
+    status = status[1]
+    print "Current status: " + str(status)
 
-    if new_items in [None, 0]:
-        # check if extracts/msr are all ready, return # not ready
-        unprocessed_items = check items
+    # # set status 2 (no email)
+    # update_status = queue.update_status(request_id, 2)
+    # if not update_status[0]:
+    #     warnings.warn("unable to update status of request (2)")
+    #     continue
+    # print "processing request"
 
-        if unprocessed_items == 0:
-            # build request
-            #
+    # new_items = None
+    # if status == -1:
+    #     # check request and add extract/msr items to queue, return # added
+    #     # new_items = queue.add_items(123)
 
-            # set status 1, email request is ready
-            #
+    #     ### status, extract_count, msr_count = queue.cache.check_request(
+    #     ###     request_id, request_obj, True)
 
-        else:
-            # set status 0, no email
-            #
+    # if new_items in [None, 0]:
+    #     # check if extracts/msr are all ready, return # not ready
+    #     # unprocessed_items = queue.check_items(123)
 
+    #     if unprocessed_items == 0:
+    #         # build request
+    #         # result = queue.build_output(123)
 
+    #         ### queue.build_output(request_id, True)
 
-    """
-    ###
+    #         if not result[0]:
+    #             warnings.warn("error building request output")
+    #             continue
 
+    #         # set status 1 (email request is ready)
+    #         update_status = queue.update_status(request_id, 1)
+    #         if not update_status[0]:
+    #             warnings.warn("unable to update status of request (1)")
+    #             continue
+    #         print "request completed"
 
-
-    # # update status to being processed
-    # # (without running extracts: 2, with runnning extracts: 3)
-    # us = queue.update_status(request_id, 3)
-
-    # if request_obj['status'] == -1:
-    #     # send initial email
-    #     p_message = ("Your data extraction request (" + request_id +
-    #                  ") has been received. You can check on the status " +
-    #                  "of the request via devlabs.aiddata.wm.edu/DET/status/#" +
-    #                  request_id +". Results can be downloaded from the same " +
-    #                  "page when they are ready.")
-    #     queue.send_email("aiddatatest2@gmail.com", request_obj["email"],
-    #                      "AidData Data Extraction Tool Request Received (" +
-    #                      request_id + ")", p_message)
-
-
-    # # check results for cached data
-    # # run missing extracts if run_extract is True
-    # cr_status, cr_extract_count, cr_msr_count = queue.cache.check_request(
-    #     request_id, request_obj, True)
+    #     else:
+    #         # set status 0 (no email)
+    #         update_status = queue.update_status(request_id, 0)
+    #         if not update_status[0]:
+    #             warnings.warn("unable to update status of request (0)")
+    #             continue
+    #         print "request not ready"
 
 
-    # if not cr_status:
-    #     queue.quit(request_id, -2, "Error while checking request cache")
 
-    # # if extracts are cached then build output
-    # if cr_extract_count == 0:
-    #     print "finishing request"
-    #     # merge results and generate documentation
-    #     queue.build_output(request_id, True)
-
-    # else:
-    #     print "request not ready"
-
-    #     # update status 0 (ready for processing)
-    #     us = queue.update_status(request_id, 0)
-
-
+print "\nFinished checking requests"
+print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())

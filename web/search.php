@@ -2,8 +2,32 @@
 
 set_time_limit(300);
 
-$m = new MongoClient();
 
+class Output {
+    private $output = [
+        'status'=> 'success',
+        'error'=> null,
+        'params'=> null,
+        'data'=> null
+    ];
+
+    public function __construct() {
+        if (!empty($_POST)) {
+            $this->output['params'] = $_POST;
+        }
+    }
+
+    public function error($error = null) {
+        $this->output['status'] = 'error';
+        $this->output['error'] = $error;
+        return $this;
+    }
+
+    public function send($data = null) {
+        $this->output['data'] = $data;
+        echo json_encode($this->output);
+    }
+}
 
 // ===========================================================================
 // functions for validating data being input into mongo collections
@@ -40,6 +64,11 @@ function is_clean_array($input) {
 }
 
 
+$m = new MongoClient();
+
+$output = new Output();
+
+
 // ===========================================================================
 // manage posts
 
@@ -61,12 +90,17 @@ switch ($_POST['call']) {
         */
         $search_type = $_POST['search_type'];
         $search_val = $_POST['search_val'];
-        $limit = $_POST['limit'];
+
+        if (isset($_POST['limit'])) {
+            $limit = $_POST['limit'];
+        } else {
+            $limit = 0;
+        }
 
         if (!is_clean_val($search_type) || !is_clean_val($search_val)
             || !is_clean_val($limit)
         ) {
-            echo json_encode('invalid inputs');
+            $output->error('invalid inputs')->send([]);
             break;
         }
 
@@ -78,8 +112,13 @@ switch ($_POST['call']) {
             $cursor = $col->find($query)->limit($limit);
 
         } else if ($search_type == "id") {
-            $query = array('_id' => new MongoId($search_val));
-            $cursor = $col->find($query)->limit($limit);
+            try {
+                $query = array('_id' => new MongoId($search_val));
+                $cursor = $col->find($query);
+            } catch (Exception $e) {
+                $output->error('invalid id')->send([]);
+                break;
+            }
 
         } else if ($search_type == "status") {
             $query = array('status' => intval($search_val));
@@ -87,18 +126,13 @@ switch ($_POST['call']) {
             $cursor->sort(array('priority'  -1, 'submit_time' => 1));
 
         } else {
-            echo json_encode([]);
+            $output->error('invalid search type')->send([]);
             break;
         }
 
-        $output = array();
-        foreach ($cursor as $doc) {
-            $output[] = $doc;
-        }
-
-        echo json_encode($output);
+        $result = iterator_to_array($cursor, false);
+        $output->send($result);
         break;
-
 
 
     case "update_request_status":
@@ -113,30 +147,42 @@ switch ($_POST['call']) {
         */
         $rid = $_POST['rid'];
         $status = $_POST['status'];
-        $stage = $_POST['stage'];
         $timestamp = $_POST['timestamp'];
 
-        $valid_stages = array("prep_time", "process_time", "complete_time");
+        $valid_stages = array(
+            "-2" => null,
+            "-1" => null,
+            "0" => "prep_time",
+            "1" => "complete_time",
+            "2" => "process_time"
+        );
+
+        if (is_numeric($status) and intval($status) < 0) {
+            $timestamp = 0;
+        }
 
         if (!is_string($rid) || !is_numeric($status) || !is_numeric($timestamp)
-            || !is_string($stage) || !in_array($stage, $valid_stages)
+            || !array_key_exists($status, $valid_stages)
         ) {
-            $output = array(
-                'status'=> 'error',
-                'error' => 'invalid inputs',
-                'data' => $_POST
-            );
-
-            echo json_encode($output);
+            $output->error('invalid inputs')->send();
             break;
         }
 
-        $query = array('_id' => new MongoId($rid));
+        $stage = $valid_stages[$status];
+
+        try {
+            $query = array('_id' => new MongoId($rid));
+        } catch (Exception $e) {
+            $output->error('invalid id')->send();
+            break;
+        }
 
         $update = array();
         $update['status'] = intval($status);
-        $update[$stage] = intval($timestamp);
 
+        if ($stage != null) {
+           $update[$stage] = intval($timestamp);
+        }
 
         $db = $m->selectDB('det');
         $col = $db->selectCollection('queue');
@@ -152,27 +198,27 @@ switch ($_POST['call']) {
 
         $mail_to = $doc['email'];
 
-        $mail_headers = 'MIME-Version: 1.0' . "\r\n";
+        $mail_headers .= "";
+        $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
+        $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
+        $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
         $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 
         // send email based on status
-        if ($status == 1) {
+        if ($status == "1") {
 
             $mail_subject = "AidData Data Extract Tool - Request Completed";
 
-            $mail_message = "something";
+            $mail_message = "Your request has been completed. ";
+            $mail_message .= "The results can be accessed using the following link: ";
+            // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
+            $mail_message .= "http://google.com";
 
             $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
 
         }
 
-        $output = array(
-            'status'=> 'success',
-            'data' => $_POST,
-            'request' => $doc
-        );
-
-        echo json_encode($output);
+        $output->send($doc);
         break;
 
 
@@ -202,15 +248,12 @@ switch ($_POST['call']) {
         // get unique mongoid which will serve as request id
         $request_id = (string) $request->_id;
 
-
-        $output = array(
-            'status'=> 'success',
+        $result =  [
             'request_id' => $request_id,
-            'data' => $_POST,
             'request' => $request
-        );
+        ];
 
-        echo json_encode($output);
+        $output->send($result);
         break;
 
 
@@ -222,7 +265,7 @@ switch ($_POST['call']) {
         find and return all eligible boundaries
 
         post fields
-            none
+            None
 
         returns
             json string representing dictionary where keys are boundary
@@ -247,14 +290,14 @@ switch ($_POST['call']) {
         );
 
         $cursor = $col->find($query, $fields);
-        // $cursor->snapshot();
+        //// $cursor->snapshot();
 
-        $output = array();
+        $result = array();
         foreach ($cursor as $doc) {
-            $output[$doc['options']['group']][] = $doc;
+            $result[$doc['options']['group']][] = $doc;
         }
 
-        echo json_encode($output);
+        echo json_encode($result);
         break;
 
 
@@ -292,7 +335,7 @@ switch ($_POST['call']) {
         );
 
         $tracker_cursor = $tracker_col->find($tracker_query, $tracker_fields);
-        $tracker_cursor->snapshot();
+        //$tracker_cursor->snapshot();
 
         // put tracker results into array
         $list = array();
@@ -310,10 +353,10 @@ switch ($_POST['call']) {
         );
 
         $cursor = $col->find($query);
-        $cursor->snapshot();
+        //$cursor->snapshot();
 
 
-        $output = array('d1' => array(), 'd2' => array());
+        $result = array('d1' => array(), 'd2' => array());
 
         foreach ($cursor as $doc) {
 
@@ -374,16 +417,16 @@ switch ($_POST['call']) {
                 $doc['donor_list'] = array_unique($donors);
                 sort($doc['donor_list']);
 
-                $output['d1'][$doc['name']] = $doc;
+                $result['d1'][$doc['name']] = $doc;
 
             } else if ($doc['type'] == "raster") {
-                $output['d2'][$doc['name']] = $doc;
+                $result['d2'][$doc['name']] = $doc;
 
             }
 
         }
 
-        echo json_encode($output);
+        echo json_encode($result);
         break;
 
 
@@ -402,9 +445,9 @@ switch ($_POST['call']) {
         $db_asdf = $m->selectDB('asdf');
         $col = $db_asdf->selectCollection('data');
 
-        $output = $col->findOne($query);
+        $result = $col->findOne($query);
 
-        echo json_encode($output);
+        echo json_encode($result);
         break;
 
 
@@ -442,9 +485,9 @@ switch ($_POST['call']) {
 
         $file = $base . "/simplified.geojson";
 
-        $output = file_get_contents($file);
+        $result = file_get_contents($file);
 
-        echo $output;
+        echo $result;
         break;
 
 
@@ -476,14 +519,15 @@ switch ($_POST['call']) {
                 if (!in_array($k, $valid_query_keys)
                     || $k == 'reliability' && !is_bool($v)
                     || $k !== 'reliability' && !is_clean_val($v)
-                ){
-                    echo json_encode('invalid inputs');
+                ) {
+                    $output->error('invalid inputs')->send();
                     break;
                 }
             }
 
             $cursor = $col->find($query);
-            $output = $cursor->snapshot();
+            $result = iterator_to_array($cursor, false);
+            echo json_encode($result);
 
         } else if ($method == 'insert') {
 
@@ -494,13 +538,13 @@ switch ($_POST['call']) {
 
             $col->insert($insert);
             $request_id = (string) $request->_id;
-            $output = array($request_id);
+
+            $output->send($request_id);
 
         } else {
-            $output = "invalid method";
+            $output->error('invalid method')->send();
         }
 
-        echo json_encode($output);
         break;
 
 
@@ -528,14 +572,15 @@ switch ($_POST['call']) {
             // validate $query
             $valid_query_keys = array('dataset', 'hash');
             foreach ($query as $k => $v) {
-                if (!in_array($k, $valid_query_keys) || !is_clean_val($v)){
-                    echo json_encode('invalid inputs');
+                if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
+                    $output->error('invalid inputs')->send();
                     break;
                 }
             }
 
             $cursor = $col->find($query);
-            $output = $cursor->snapshot();
+            $result = iterator_to_array($cursor, false);
+            echo json_encode($result);
 
         } else if ($method == 'insert') {
 
@@ -546,13 +591,13 @@ switch ($_POST['call']) {
 
             $col->insert($insert);
             $request_id = (string) $request->_id;
-            $output = array($request_id);
+
+            $output->send($request_id);
 
         } else {
-            $output = "invalid method";
-        }
+            $output->error('invalid method')->send();
 
-        echo json_encode($output);
+        }
         break;
 
 
@@ -623,7 +668,7 @@ switch ($_POST['call']) {
 
 
         $project_cursor = $col->find($project_query);
-        // $project_cursor->snapshot();
+        //// $project_cursor->snapshot();
 
         $projects = $project_cursor->count();
 
@@ -652,14 +697,14 @@ switch ($_POST['call']) {
 
 
         $locations = $location_count_1 + $location_count_2;
-        $output = array(
+        $result = array(
             "projects" => $projects,
             "locations" => $locations,
             "location_count_1" => $location_count_1,
             "location_count_2" => $location_count_2
         );
 
-        echo json_encode($output);
+        echo json_encode($result);
         break;
 
 

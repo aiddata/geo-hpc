@@ -32,14 +32,26 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
-class QueueCheck():
+class QueueToolBox():
     """utilty functions for processing requests in queue
+
+    old cachetools descrip:
+    Accepts request object and checks if all extracts have been processed
     """
     def __init__(self):
-        self.cache = CacheTools()
         self.doc = DocBuilder()
 
         self.request_objects = {}
+
+
+        # self.extract_options = json.load(open(
+        #     os.path.dirname(
+        #         os.path.abspath(__file__)) + '/extract_options.json', 'r'))
+
+        self.merge_lists = {}
+
+        self.msr_resolution = 0.05
+        self.msr_version = 0.1
 
 
     # exit function used for errors
@@ -67,7 +79,11 @@ class QueueCheck():
         }
         try:
             r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
-            return 1, r
+
+            if r['status'] == 'error':
+                warnings.warn(r['error'])
+
+            return 1, r['data']
         except Exception as e:
             print e
             return 0, None
@@ -119,36 +135,25 @@ class QueueCheck():
             tuple (function status, request status)
         """
         request = self.get_requests('id', rid, 1)
-
         if request[0]:
-            return 1, r[0]['status']
+            return 1, request[1][0]['status']
         else:
             return 0, None
 
 
-    def update_status(self, rid, status, send_email=False):
+    def update_status(self, rid, status):
         """update status of request
         """
         ctime = int(time.time())
 
-        stage_options = {
-            1: "complete_time",
-            2: "prep_time",
-            3: "process_time"
+        post_data = {
+            'call': 'update_request_status',
+            'rid': rid,
+            'status': status,
+            'timestamp': ctime
         }
 
         try:
-            stage = stage_options[stage]
-
-            post_data = {
-                'call': 'update_request_status',
-                'rid': rid,
-                'status': status,
-                'stage': stage,
-                'timestamp': ctime,
-                'send_email': send_email
-            }
-
             r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
 
             if r['status'] == 'success':
@@ -160,7 +165,9 @@ class QueueCheck():
             return False, None
 
 
-###
+# =============================================================================
+
+
     def build_output(self, request_id, run_extract):
         """build output
 
@@ -168,7 +175,7 @@ class QueueCheck():
             cleanup working directory, send final email
         """
         # merge cached results if all are available
-        merge_status = self.cache.merge(request_id,
+        merge_status = self.merge(request_id,
                                         self.request_objects[request_id])
 
         # handle merge error
@@ -207,24 +214,6 @@ class QueueCheck():
             self.request_objects[request_id]["email"],
             "AidData Data Extraction Tool Request Completed ("+request_id+")",
             c_message)
-###
-
-
-class CacheTools():
-    """Accepts request object and checks if all extracts have been processed
-
-    Returns:
-        boolean
-    """
-    def __init__(self):
-        # self.extract_options = json.load(open(
-        #     os.path.dirname(
-        #         os.path.abspath(__file__)) + '/extract_options.json', 'r'))
-
-        self.merge_lists = {}
-
-        self.msr_resolution = 0.05
-        self.msr_version = 0.1
 
 
     def check_request(self, rid, request, extract=False):
@@ -383,7 +372,28 @@ class CacheTools():
             'update_time': ctime
         }
 
-        self.c_extracts.insert(insert)
+
+        post_data = {
+            'call': 'extracts',
+            'method': 'insert',
+            'insert': json.dumps(insert)
+        }
+
+        try:
+            r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
+
+            if r['status'] == 'success':
+                return True, ctime
+            else:
+                return False, ctime
+
+        except:
+            return False, None
+
+
+
+
+
 
 
     def add_to_msr_tracker(self, selection, msr_hash):

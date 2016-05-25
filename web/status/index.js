@@ -174,24 +174,25 @@ $(document).ready(function(){
 				return 1;
 			}
 
+            data = result['data']
 			console.log(result);
 
 			// store search results in external variable for later reference
-			for (var i=0, ix=result.length; i<ix; i++) {
-				var tmp_rid = result[i]['_id']['$id'];
-				search_results[tmp_rid] = result[i];
+			for (var i=0, ix=data.length; i<ix; i++) {
+				var tmp_rid = data[i]['_id']['$id'];
+				search_results[tmp_rid] = data[i];
 			}
 
 			console.log(search_results);
 			// check if requests were found
-			requests_exist = result.length > 0;
+			requests_exist = data.length > 0;
 
 			// update search results sentence with count and query
-			$('#count_span').html(result.length);
+			$('#count_span').html(data.length);
 			$('#query_span').html(search_val);
 
 			// build and update search results
-			var sr_html = build_search_results(result);
+			var sr_html = build_search_results(data);
 			console.log(sr_html);
 			$('#sr_table tbody').html(sr_html);
 
@@ -205,7 +206,7 @@ $(document).ready(function(){
 
 					// update page with request summary if search is
 					// trigger by hash and query is a request id
-					add_request_summary(result[0]);
+					add_request_summary(data[0]);
 
 				} else {
 					message("select");
