@@ -97,6 +97,7 @@ if (!empty($_POST['call']) && strpos($_POST['call'], 'update_') === 0) {
 // manage post requests
 
 //  options:
+//      "file_exists"
 //      "add_request"
 //      "get_requests"
 //      "get_boundaries"
