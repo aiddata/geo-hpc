@@ -885,7 +885,6 @@ $(document).ready(function(){
 
 			console.log(result);
 
-			request_id = result['data']['request_id'];
 			error = e;
 
 			chtml = '';
@@ -898,6 +897,8 @@ $(document).ready(function(){
 				chtml += '<p>'+error+'</p>';
 
 			} else {
+                request_id = result['data']['request_id'];
+
 				// confirm success
 				chtml += '<p>Your request has been successfully submitted!</p>';
 
@@ -905,7 +906,7 @@ $(document).ready(function(){
 				chtml += '<br><p>Request id: ' +request_id+'</p><br>';
 
 				// notify that email has been sent
-				chtml += '<p>An email has been sent to '+request['email']+' and an additional email will be sent when your request has been completed.</p>';
+				chtml += '<p>An email will be sent soon to '+request['email']+' with your request details and status page link. An additional email will be sent when your request has been completed.</p>';
 
 				// link to status page with request id
 				chtml += '<p>You can check the status of your request and download the results when it has been completed using this link:';

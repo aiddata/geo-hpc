@@ -1,7 +1,5 @@
 <?php
 
-set_time_limit(300);
-
 
 class Output {
     private $output = [
@@ -28,6 +26,7 @@ class Output {
         echo json_encode($this->output);
     }
 }
+
 
 // ===========================================================================
 // functions for validating data being input into mongo collections
@@ -64,15 +63,87 @@ function is_clean_array($input) {
 }
 
 
+set_time_limit(300);
+
 $m = new MongoClient();
 
 $output = new Output();
 
 
+if (!empty($_POST['call']) && strpos($_POST['call'], 'update_') === 0) {
+
+    if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+        header('WWW-Authenticate: Basic realm="My Realm"');
+        header('HTTP/1.0 401 Unauthorized');
+        exit;
+    }
+
+    $auth_user = $_SERVER['PHP_AUTH_USER'];
+    $auth_hash = sha1($_SERVER['PHP_AUTH_PW']);
+
+    $users = $m->selectDB('det')->selectCollection('users');
+
+    $valid = $users->find(['user' => $auth_user, 'hash' => $auth_hash])->count();
+
+    if ($valid == 0) {
+        $output->error('invalid auth')->send();
+        exit;
+    }
+
+}
+
+
 // ===========================================================================
-// manage posts
+// manage post requests
+
+//  options:
+//      "add_request"
+//      "get_requests"
+//      "get_boundaries"
+//      "get_relevant_datasets"
+//      "get_dataset"
+//      "get_boundary_geojson"
+//      "get_filter_count"
+//      "update_request_status"
+//      "update_extracts"
+//      "update_msr"
 
 switch ($_POST['call']) {
+
+
+    case "file_exists":
+        /*
+        check if file or directory exists
+
+        post fields
+            type : "file" or "dir"
+            path : absolute path to file or directory
+
+        returns
+            bool
+        */
+        $file_type = $_POST['type'];
+        $path = $_POSTS['path'];
+
+        if (!is_clean_val($type) || !is_clean_val($path)) {
+            $output->error('invalid inputs')->send();
+            break;
+        }
+
+        if ($type == "file") {
+            $exists = is_file($path);
+            $output->send($exists);
+
+        } else if ($type == "dir") {
+            $exists = is_dir($path);
+            $output->send($exists);
+
+        } else {
+            $output->error('invalid type')->send();
+        }
+
+        break;
+
 
 // ----------------------------------------------------------------------------
 // det:queue
@@ -198,16 +269,29 @@ switch ($_POST['call']) {
 
         $mail_to = $doc['email'];
 
-        $mail_headers .= "";
+        $mail_headers = "";
         $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
         $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
         $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
         $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 
         // send email based on status
-        if ($status == "1") {
+        if ($status == "0") {
 
-            $mail_subject = "AidData Data Extract Tool - Request Completed";
+            $mail_subject = "AidData Data Extract Tool - Request 123456.. Received";
+
+            $mail_message = "Your request has been received. ";
+            $mail_message .= "You will receive an additional email when the request has been completed. ";
+            $mail_message .= "The status of your request can be viewed using the following link: ";
+            // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
+            $mail_message .= "http://google.com";
+
+            $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+
+
+        } else if ($status == "1") {
+
+            $mail_subject = "AidData Data Extract Tool - Request 123456.. Completed";
 
             $mail_message = "Your request has been completed. ";
             $mail_message .= "The results can be accessed using the following link: ";
@@ -255,6 +339,7 @@ switch ($_POST['call']) {
 
         $output->send($result);
         break;
+
 
 
 // ----------------------------------------------------------------------------
@@ -494,7 +579,7 @@ switch ($_POST['call']) {
 // ----------------------------------------------------------------------------
 // asdf:extracts
 
-    case "extracts":
+    case "update_extracts":
         /*
         find or insert extract doc
 
@@ -536,10 +621,14 @@ switch ($_POST['call']) {
             // validate $insert
             //
 
-            $col->insert($insert);
-            $request_id = (string) $request->_id;
+            $col->update(
+                $insert,
+                array('$setOnInsert' => $insert),
+                array('upsert' => true)
+            );
+            $id = (string) $insert->_id;
 
-            $output->send($request_id);
+            $output->send($id);
 
         } else {
             $output->error('invalid method')->send();
@@ -551,7 +640,7 @@ switch ($_POST['call']) {
 // ----------------------------------------------------------------------------
 // asdf:msr
 
-    case "msr":
+    case "update_msr":
         /*
         find or insert msr doc
 
@@ -675,11 +764,11 @@ switch ($_POST['call']) {
         // get number of locations (filter non geocoded + filter geocoded
         // with locations unwind)
 
-        $location_query_1 = $project_query;
-        $location_query_1['is_geocoded'] = 0;
+        // $location_query_1 = $project_query;
+        // $location_query_1['is_geocoded'] = 0;
 
-        $location_cursor_1 = $col->find($location_query_1);
-        $location_count_1 = $location_cursor_1->count();
+        // $location_cursor_1 = $col->find($location_query_1);
+        // $location_count_1 = $location_cursor_1->count();
 
 
         $location_query_2 = $project_query;
@@ -695,13 +784,13 @@ switch ($_POST['call']) {
         $location_cursor_2 = $col->aggregate($location_aggregate);
         $location_count_2 = count($location_cursor_2["result"]);
 
-
-        $locations = $location_count_1 + $location_count_2;
+        $locations = $location_count_2;
+        // $locations = $location_count_1 + $location_count_2;
         $result = array(
             "projects" => $projects,
-            "locations" => $locations,
-            "location_count_1" => $location_count_1,
-            "location_count_2" => $location_count_2
+            "locations" => $locations
+            // "location_count_1" => $location_count_1,
+            // "location_count_2" => $location_count_2
         );
 
         echo json_encode($result);

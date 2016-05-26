@@ -10,7 +10,6 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
-import pymongo
 
 # =============================================================================
 
@@ -30,10 +29,6 @@ class DocBuilder():
         self.styles = getSampleStyleSheet()
         self.styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
         self.styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
-
-        # connect to mongodb
-        self.client = pymongo.MongoClient()
-        self.c_asdf = self.client.asdf.data
 
 
     def time_str(self, timestamp=None):
@@ -211,7 +206,11 @@ class DocBuilder():
     def build_meta(self, name, item_type):
 
         # get meta from asdf
-        meta = self.c_asdf.find({'name': name})[0]
+
+        ###
+        ### meta = self.c_asdf.find({'name': name})[0]
+        ###
+        meta = 0
 
         # build generic meta
         data = [

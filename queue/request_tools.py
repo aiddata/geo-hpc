@@ -4,11 +4,14 @@ import sys
 import errno
 import time
 import json
+import warnings
 import shutil
 import hashlib
+
+import requests
 import pandas as pd
-from requests import post
-from documentation_tool import DocBuilder
+
+# from documentation_tool import DocBuilder
 
 
 def make_dir(path):
@@ -32,6 +35,28 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
+class Post():
+    """
+    """
+    def __init__(self, url):
+        self.url = "http://devlabs.aiddata.org/DET/search.php"
+
+
+    def __get_auth():
+        try:
+            return ('testuser', 'testpass')
+        except:
+            raise Exception('unable to retrieve authorization credentials')
+
+
+    def send(self, data):
+        r = requests.post(self.url,
+                          data=data,
+                          auth=self.__get_auth()).json()
+
+        return r
+
+
 class QueueToolBox():
     """utilty functions for processing requests in queue
 
@@ -39,11 +64,14 @@ class QueueToolBox():
     Accepts request object and checks if all extracts have been processed
     """
     def __init__(self):
-        self.doc = DocBuilder()
+
+        self.post = Post()
+
+        # self.doc = DocBuilder()
 
         self.request_objects = {}
 
-
+        ###
         # self.extract_options = json.load(open(
         #     os.path.dirname(
         #         os.path.abspath(__file__)) + '/extract_options.json', 'r'))
@@ -52,6 +80,7 @@ class QueueToolBox():
 
         self.msr_resolution = 0.05
         self.msr_version = 0.1
+        ###
 
 
     # exit function used for errors
@@ -78,15 +107,15 @@ class QueueToolBox():
             'limit': limit
         }
         try:
-            r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
+            r = self.post.send(post_data)
 
             if r['status'] == 'error':
                 warnings.warn(r['error'])
 
-            return 1, r['data']
+            return True, r['data']
         except Exception as e:
-            print e
-            return 0, None
+            warnings.warn(e)
+            return False, None
 
         # try:
         #     # find all status 1 jobs and sort by priority then submit_time
@@ -154,7 +183,7 @@ class QueueToolBox():
         }
 
         try:
-            r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
+            r = self.post.send(post_data)
 
             if r['status'] == 'success':
                 return True, ctime
@@ -165,55 +194,14 @@ class QueueToolBox():
             return False, None
 
 
+
+
+# =============================================================================
+# =============================================================================
 # =============================================================================
 
 
-    def build_output(self, request_id, run_extract):
-        """build output
 
-        merge extracts, generate documentation, update status,
-            cleanup working directory, send final email
-        """
-        # merge cached results if all are available
-        merge_status = self.merge(request_id,
-                                        self.request_objects[request_id])
-
-        # handle merge error
-        if not merge_status[0]:
-            self.quit(request_id, -2, merge_status[1])
-
-
-        # add processed time
-        if not run_extract:
-            us = self.update_status(request_id, 3)
-
-        # update status 1 (done)
-        us = self.update_status(request_id, 1)
-
-
-        # generate documentation
-        self.doc.request = self.request_objects[request_id]
-        print self.doc.request
-
-        bd_status = self.doc.build_doc(request_id)
-        print bd_status
-
-
-        # zip files and delete originals
-        request_id_dir = "/sciclone/aiddata10/REU/det/results/" + request_id
-        shutil.make_archive(request_id_dir, "zip",
-                            "/sciclone/aiddata10/REU/det/results/", request_id)
-        shutil.rmtree(request_id_dir)
-
-        # send final email
-        c_message = ("Your data extraction request (" + request_id +
-                     ") has completed. The results are available via " +
-                     "devlabs.aiddata.wm.edu/DET/status/#" + request_id)
-        self.send_email(
-            "aiddatatest2@gmail.com",
-            self.request_objects[request_id]["email"],
-            "AidData Data Extraction Tool Request Completed ("+request_id+")",
-            c_message)
 
 
     def check_request(self, rid, request, extract=False):
@@ -266,10 +254,10 @@ class QueueToolBox():
 
                     if not extract_exists:
                         # add to extract queue
-                        self.add_to_extract_queue(
+                        self.update_extract(
                             request["boundary"]["name"],
                             data['dataset']+"_"+data_hash,
-                            True, msr_extract_type, "msr")
+                            msr_extract_type, True, "msr")
 
             else:
 
@@ -301,30 +289,22 @@ class QueueToolBox():
 
                 for extract_type in data["options"]["extract_types"]:
 
-                    # core basename for output file
-                    # does not include file type identifier
-                    #   (...e.ext for extracts and ...r.ext for reliability)
-                    #   or file extension
-                    if data["temporal_type"] == "None":
-                        output_name = df_name + "_"
-                    else:
-                        output_name = df_name
 
-                    # output file string without file type identifier
-                    # or file extension
-                    base_output = ("/sciclone/aiddata10/REU/extracts/" +
-                                   request["boundary"]["name"] + "/cache/" +
-                                   data["name"] + "/" + extract_type + "/" +
-                                   output_name)
+                    exi = ExtractItem(
+                        boundary=request["boundary"]["name"],
+                        raster=df_name,
+                        extract_type=extract_type,
+                        reliability=is_reliability_raster
+                    )
 
-                    extract_output = (base_output +
-                                      self.extract_options[extract_type] +
-                                      ".csv")
+
 
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = self.extract_exists(
                         request["boundary"]["name"], df_name, extract_type,
                         is_reliability_raster, extract_output)
+
+
 
                     # incremenet count if extract is not completed
                     # (whether it exists in queue or not)
@@ -334,9 +314,9 @@ class QueueToolBox():
                         # add to extract queue if it does not already
                         # exist in queue
                         if not extract_exists:
-                            self.add_to_extract_queue(
+                            self.update_extract(
                                 request['boundary']['name'], i['name'],
-                                is_reliability_raster, extract_type,
+                                extract_type, is_reliability_raster,
                                 "external")
 
 
@@ -350,176 +330,44 @@ class QueueToolBox():
         return 1, extract_count, msr_count
 
 
-    def add_to_extract_queue(self, boundary, raster, reliability,
-                             extract_type, classification):
+
+    def build_output(self, request_id, run_extract):
+        """build output
+
+        merge extracts, generate documentation, update status,
+            cleanup working directory, send final email
         """
-        add extract item to det->extracts mongodb collection
-        """
-        print "add_to_extract_queue"
+        # merge cached results if all are available
+        merge_status = self.merge(request_id,
+                                        self.request_objects[request_id])
 
-        ctime = int(time.time())
-
-        insert = {
-            'raster': raster,
-            'boundary': boundary,
-            'reliability': reliability,
-            'extract_type': extract_type,
-            'classification': classification,
-
-            'status': 0,
-            'priority': 0,
-            'submit_time': ctime,
-            'update_time': ctime
-        }
+        # handle merge error
+        if not merge_status[0]:
+            self.quit(request_id, -2, merge_status[1])
 
 
-        post_data = {
-            'call': 'extracts',
-            'method': 'insert',
-            'insert': json.dumps(insert)
-        }
+        # add processed time
+        if not run_extract:
+            us = self.update_status(request_id, 3)
 
-        try:
-            r = post("http://devlabs.aiddata.org/DET/search.php", data=post_data).json()
-
-            if r['status'] == 'success':
-                return True, ctime
-            else:
-                return False, ctime
-
-        except:
-            return False, None
+        # update status 1 (done)
+        us = self.update_status(request_id, 1)
 
 
+        # # generate documentation
+        # self.doc.request = self.request_objects[request_id]
+        # print self.doc.request
+
+        # bd_status = self.doc.build_doc(request_id)
+        # print bd_status
 
 
+        # zip files and delete originals
+        request_id_dir = "/sciclone/aiddata10/REU/det/results/" + request_id
+        shutil.make_archive(request_id_dir, "zip",
+                            "/sciclone/aiddata10/REU/det/results/", request_id)
+        shutil.rmtree(request_id_dir)
 
-
-
-    def add_to_msr_tracker(self, selection, msr_hash):
-        """add msr item to det->msr mongodb collection
-        """
-        print "add_to_msr_tracker"
-
-        ctime = int(time.time())
-
-        insert = {
-            'hash': msr_hash,
-            'dataset': selection['dataset'],
-            'options': selection,
-
-            'classification': 'det-release',
-            'status': 0,
-            'priority': 0,
-            'submit_time': ctime,
-            'update_time': ctime
-        }
-
-        self.c_msr.insert(insert)
-
-
-    def extract_exists(self, boundary, raster, extract_type, reliability,
-                       csv_path):
-        """
-        1) check if extract exists in extract queue
-           run redundancy check on actual extract file and delete extract
-           queue entry if file is missing
-           also check for reliability calc if field is specified
-        2) check if extract is completed, waiting to be run, or
-           encountered an error
-        """
-        print "exists_in_extract_queue"
-
-        check_data = {
-            "boundary": boundary,
-            "raster": raster,
-            "extract_type": extract_type,
-            "reliability": reliability
-        }
-
-        # check db
-        search = self.c_extracts.find(check_data)
-
-        db_exists = search.count() > 0
-
-        valid_exists = False
-        valid_completed = False
-
-        if db_exists:
-            print search[0]
-
-            if search[0]['status'] in [0,2,3]:
-                valid_exists = True
-
-            elif search[0]['status'] == 1:
-                # check file
-                extract_exists = os.path.isfile(csv_path)
-
-                reliability_path = csv_path[:-5] + "r.csv"
-
-                if (extract_exists and (not reliability or
-                        (reliability and os.path.isfile(reliability_path)))):
-                    valid_exists = True
-                    valid_completed = True
-
-                else:
-                    # remove from db
-                    self.c_extracts.delete_one(check_data)
-
-            else:
-                valid_exists = True
-                valid_completed = "Error"
-
-
-        return valid_exists, valid_completed
-
-
-    def msr_exists(self, dataset_name, msr_hash):
-        """
-        1) check if msr exists in msr tracker
-           run redundancy check on actual msr raster file and delete msr
-           tracker entry if file is missing
-        2) check if msr is completed, waiting to be run, or encountered an error
-        """
-        print "exists_in_msr_tracker"
-
-        check_data = {"dataset": dataset_name, "hash": msr_hash}
-
-        # check db
-        search = self.c_msr.find(check_data)
-
-        db_exists = search.count() > 0
-
-        valid_exists = False
-        valid_completed = False
-
-        if db_exists:
-
-            if search[0]['status'] in [0,2]:
-                valid_exists = True
-
-            elif search[0]['status'] == 1:
-                # check file
-                raster_path = ('/sciclone/aiddata10/REU/data/rasters/' +
-                               'internal/msr/' + dataset_name +'/'+ msr_hash +
-                               '/raster.asc')
-
-                msr_exists = os.path.isfile(raster_path)
-
-                if msr_exists:
-                    valid_exists = True
-                    valid_completed = True
-
-                else:
-                    # remove from db
-                    self.c_msr.delete_one(check_data)
-
-            else:
-                valid_exists = True
-                valid_completed = "Error"
-
-
-        return valid_exists, valid_completed
 
 
     def merge(self, rid, request):
