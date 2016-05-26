@@ -1,6 +1,18 @@
 <?php
+/**
+handle post requests for data extraction tool web and processing
+*/
 
 
+/**
+return post requests
+
+returns array containing:
+    status (success, error)
+    error (error info, if status == "error")
+    params (from original post)
+    data (return data)
+*/
 class Output {
     private $output = [
         'status'=> 'success',
@@ -9,18 +21,27 @@ class Output {
         'data'=> null
     ];
 
+    /**
+    add post params to response if they exist
+    */
     public function __construct() {
         if (!empty($_POST)) {
             $this->output['params'] = $_POST;
         }
     }
 
+    /**
+    add error status and information to response
+    */
     public function error($error = null) {
         $this->output['status'] = 'error';
         $this->output['error'] = $error;
         return $this;
     }
 
+    /**
+    add data to response and send response
+    */
     public function send($data = null) {
         $this->output['data'] = $data;
         echo json_encode($this->output);
