@@ -50,38 +50,26 @@ class ExtractItem():
         """check if extract exists in extract queue db collection
         """
         check_data = {
-            "boundary": boundary,
-            "raster": raster,
-            "extract_type": extract_type,
-            "reliability": reliability
+            "boundary": self.boundary,
+            "raster": self.raster,
+            "extract_type": self.extract_type,
+            "reliability": self.reliability
         }
 
-        post_data = {
-            'call': 'update_extracts',
-            'method': 'find',
-            'query': check_data
-        }
+        # check db
+        search = self.c_extracts.find_one(check_data)
 
-        try:
-            r = self.post.send(post_data)
+        db_exists = not search is None
 
-            if r['status'] == 'error':
-                warnings.warn(r['error'])
-                return False, "handled post error"
+        return True, (db_exists, search['status'])
 
-            search = r['data']
-            db_exists = search.count() > 0
-            return True, (db_exists, r['data']['status'])
-
-        except Exception as e:
-            warnings.warn(e)
-            return False, "unhandled post error"
 
 
     def __exists_in_file(self):
+        """check if extract file exists
 
-        csv_path =
-
+        also check reliability file when needed
+        """
         # core basename for output file
         # does not include file type identifier
         #   (...e.ext for extracts and ...r.ext for reliability)
