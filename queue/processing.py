@@ -79,6 +79,8 @@ for request_obj in request_objects:
     status = status[1]
     print "Current status: " + str(status)
 
+
+
     # # set status 2 (no email)
     # update_status = queue.update_status(request_id, 2)
     # if not update_status[0]:

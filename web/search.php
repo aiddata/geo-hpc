@@ -149,48 +149,14 @@ function is_clean_array($input) {
 // ===========================================================================
 // functions for post requests
 
-/*
-check if file or directory exists
-
-post fields
-    type : "file" or "dir"
-    path : absolute path to file or directory
-
-returns
-    bool
-*/
-function server_file_exists() {
-    global $output, $m;
-
-    $file_type = $_POST['type'];
-    $path = $_POSTS['path'];
-
-    if (!is_clean_val($type) || !is_clean_val($path)) {
-        $output->error('invalid inputs')->send();
-        return 0;
-    }
-
-    if ($type == "file") {
-        $exists = is_file($path);
-        $output->send($exists);
-
-    } else if ($type == "dir") {
-        $exists = is_dir($path);
-        $output->send($exists);
-
-    } else {
-        $output->error('invalid type')->send();
-    }
-
-    return 0;
-}
-
 
 // ------------------------------------
 // det:queue
 
-/*
+/**
 generate request information for det status page
+
+***WEB***
 
 post fields
     search_type : "id" or "email" or "status"
@@ -250,7 +216,7 @@ function get_requests() {
 }
 
 
-/*
+/**
 update status of det request
 
 post fields
@@ -353,10 +319,12 @@ function update_request_status() {
 }
 
 
-/*
+/**
 inserts request object as document in det->queue mongo db/collection
 sends email to user that made request [not working/enabled at the
     moment, may have moved this to python queue processing]
+
+***WEB***
 
 post fields
     request : json string for request fields
@@ -394,8 +362,35 @@ function add_request() {
 // ------------------------------------
 // asdf:data
 
-/*
+
+/**
+find individual dataset from asdf>data using generic open ended query
+
+post fields
+    query
+
+returns
+    doc for match
+*/
+function get_dataset() {
+    global $output, $m;
+
+    $query = $_POST['query'];
+
+    $db_asdf = $m->selectDB('asdf');
+    $col = $db_asdf->selectCollection('data');
+
+    $result = $col->findOne($query);
+
+    $output->send($result);
+    return 0;
+}
+
+
+/**
 find and return all eligible boundaries
+
+***WEB***
 
 post fields
     None
@@ -438,8 +433,10 @@ function get_boundaries() {
 }
 
 
-/*
+/**
 find relevant datasets for specified boundary group
+
+***WEB***
 
 post fields
     group : boundary group
@@ -570,33 +567,11 @@ function get_relevant_datasets() {
 }
 
 
-/*
-find individual dataset from asdf>data using generic open ended query
-
-post fields
-    query
-
-returns
-    doc for match
-*/
-function get_dataset() {
-    global $output, $m;
-
-    $query = $_POST['query'];
-
-    $db_asdf = $m->selectDB('asdf');
-    $col = $db_asdf->selectCollection('data');
-
-    $result = $col->findOne($query);
-
-    $output->send($result);
-    return 0;
-}
-
-
-/*
+/**
 find and returns contents of simplified boundary geojson
 for web map
+
+***WEB***
 
 post fields
     name : boundary
@@ -636,129 +611,14 @@ function get_boundary_geojson() {
     return 0;
 }
 
-// ------------------------------------
-// asdf:extracts
-
-/*
-find or insert extract doc
-
-post fields
-    method
-    query
-    insert
-*/
-function update_extracts() {
-    global $output, $m;
-
-    $method = $_POST['method'];
-
-    $db = $m->selectDB('asdf');
-    $col = $db->selectCollection('extracts');
-
-    if ($method == 'find') {
-
-        $query = json_decode($_POST['query']);
-
-        // validate $query
-        $valid_query_keys = array('boundary', 'raster',
-                                  'extract_type', 'reliability');
-        foreach ($query as $k => $v) {
-            if (!in_array($k, $valid_query_keys)
-                || $k == 'reliability' && !is_bool($v)
-                || $k !== 'reliability' && !is_clean_val($v)
-            ) {
-                $output->error('invalid inputs')->send();
-                return 0;
-            }
-        }
-
-        $cursor = $col->find($query);
-        $result = iterator_to_array($cursor, false);
-        $output->send($result);
-
-    } else if ($method == 'insert') {
-
-        $insert = json_decode($_POST['insert']);
-
-        // validate $insert
-        //
-
-        $col->update(
-            $insert,
-            array('$setOnInsert' => $insert),
-            array('upsert' => true)
-        );
-        $id = (string) $insert->_id;
-
-        $output->send($id);
-
-    } else {
-        $output->error('invalid method')->send();
-    }
-
-    return 0;
-}
-
-// ------------------------------------
-// asdf:msr
-
-/*
-find or insert msr doc
-
-post fields
-    method
-    query
-    insert
-*/
-function update_msr() {
-    global $output, $m;
-
-    $method = $_POST['method'];
-
-    $db = $m->selectDB('asdf');
-    $col = $db->selectCollection('msr');
-
-    if ($method == 'find') {
-
-        $query = json_decode($_POST['query']);
-
-        // validate $query
-        $valid_query_keys = array('dataset', 'hash');
-        foreach ($query as $k => $v) {
-            if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
-                $output->error('invalid inputs')->send();
-                return 0;
-            }
-        }
-
-        $cursor = $col->find($query);
-        $result = iterator_to_array($cursor, false);
-        $output->send($result);
-
-    } else if ($method == 'insert') {
-
-        $insert = json_decode($_POST['insert']);
-
-        // validate $insert
-        //
-
-        $col->insert($insert);
-        $request_id = (string) $request->_id;
-
-        $output->send($request_id);
-
-    } else {
-        $output->error('invalid method')->send();
-
-    }
-    return 0;
-}
 
 // ------------------------------------
 // releases:any
 
-/*
+/**
 get counts for release dataset based on filter
+
+***WEB***
 
 post fields
     filter : fields and filters
@@ -863,5 +723,163 @@ function get_filter_count() {
     return 0;
 }
 
+
+// ------------------------------------
+// asdf:extracts
+
+/**
+find or insert extract doc
+
+post fields
+    method
+    query
+    insert
+*/
+function update_extracts() {
+    global $output, $m;
+
+    $method = $_POST['method'];
+
+    $db = $m->selectDB('asdf');
+    $col = $db->selectCollection('extracts');
+
+    if ($method == 'find') {
+
+        $query = json_decode($_POST['query']);
+
+        // validate $query
+        $valid_query_keys = array('boundary', 'raster',
+                                  'extract_type', 'reliability');
+        foreach ($query as $k => $v) {
+            if (!in_array($k, $valid_query_keys)
+                || $k == 'reliability' && !is_bool($v)
+                || $k !== 'reliability' && !is_clean_val($v)
+            ) {
+                $output->error('invalid inputs')->send();
+                return 0;
+            }
+        }
+
+        $cursor = $col->find($query);
+        $result = iterator_to_array($cursor, false);
+        $output->send($result);
+
+    } else if ($method == 'insert') {
+
+        $insert = json_decode($_POST['insert']);
+
+        // validate $insert
+        //
+
+        $col->update(
+            $insert,
+            array('$setOnInsert' => $insert),
+            array('upsert' => true)
+        );
+        $id = (string) $insert->_id;
+
+        $output->send($id);
+
+    } else {
+        $output->error('invalid method')->send();
+    }
+
+    return 0;
+}
+
+// ------------------------------------
+// asdf:msr
+
+/**
+find or insert msr doc
+
+post fields
+    method
+    query
+    insert
+*/
+function update_msr() {
+    global $output, $m;
+
+    $method = $_POST['method'];
+
+    $db = $m->selectDB('asdf');
+    $col = $db->selectCollection('msr');
+
+    if ($method == 'find') {
+
+        $query = json_decode($_POST['query']);
+
+        // validate $query
+        $valid_query_keys = array('dataset', 'hash');
+        foreach ($query as $k => $v) {
+            if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
+                $output->error('invalid inputs')->send();
+                return 0;
+            }
+        }
+
+        $cursor = $col->find($query);
+        $result = iterator_to_array($cursor, false);
+        $output->send($result);
+
+    } else if ($method == 'insert') {
+
+        $insert = json_decode($_POST['insert']);
+
+        // validate $insert
+        //
+
+        $col->insert($insert);
+        $request_id = (string) $request->_id;
+
+        $output->send($request_id);
+
+    } else {
+        $output->error('invalid method')->send();
+
+    }
+    return 0;
+}
+
+
+// ------------------------------------
+// general
+
+/**
+check if file or directory exists
+
+post fields
+    type : "file" or "dir"
+    path : absolute path to file or directory
+
+returns
+    bool
+*/
+function server_file_exists() {
+    global $output, $m;
+
+    $file_type = $_POST['type'];
+    $path = $_POSTS['path'];
+
+    if (!is_clean_val($type) || !is_clean_val($path)) {
+        $output->error('invalid inputs')->send();
+        return 0;
+    }
+
+    if ($type == "file") {
+        $exists = is_file($path);
+        $output->send($exists);
+
+    } else if ($type == "dir") {
+        $exists = is_dir($path);
+        $output->send($exists);
+
+    } else {
+        $output->error('invalid type')->send();
+    }
+
+    return 0;
+}
 
 ?>
