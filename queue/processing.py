@@ -26,11 +26,11 @@ if len(sys.argv) == 2:
 
     # check if request with id exists
     # return status of check, boolean of exists and request data if exists
-    ci_status, ci_exists, request_objects = queue.check_id(request_id)
+    ci_status, request_objects = queue.check_id(request_id)
 
     if not ci_status:
-        sys.exit("Error while checking request id (" + request_id + ")")
-    elif not ci_exists:
+        raise Exception("Error while checking request id (" + request_id + ")")
+    elif request_objects is None:
         sys.exit("Request with id does not exist (" + request_id + ")")
 
 else:
@@ -38,12 +38,12 @@ else:
     #   submit time
     # returns status of search and request data objecft
 
-    gr_status_1, request_objects_1 = queue.get_requests('status', -2, 0)
+    gr_status_1, request_objects_1 = queue.get_requests(-2, 0)
 
     if not gr_status_1:
         warnings.warn('could not get check requests for status "-1"')
 
-    gr_status_2, request_objects_2 = queue.get_requests('status', 0, 0)
+    gr_status_2, request_objects_2 = queue.get_requests(0, 0)
 
     if not gr_status_2:
         warnings.warn('could not get check requests for status "0"')
@@ -55,7 +55,7 @@ else:
     elif not gr_status_1 and gr_status_2:
         request_objects = request_objects_2
     elif not (gr_status_1 or gr_status_2):
-       sys.exit("Error while searching for requests in queue")
+       raise Exception("Error while searching for requests in queue")
 
     if len(request_objects) == 0:
        sys.exit("Request queue is empty")

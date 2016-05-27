@@ -1,6 +1,6 @@
 <?php
 /**
-handle post requests for data extraction tool web and processing
+handle post requests for data extraction tool web page
 */
 
 set_time_limit(300);
@@ -21,45 +21,18 @@ if (!function_exists($call)) {
     exit;
 }
 
-// authenticate post requests with "update_*" calls
-if (strpos($call, 'update_') === 0) {
-
-    if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
-        header('WWW-Authenticate: Basic realm="My Realm"');
-        header('HTTP/1.0 401 Unauthorized');
-        exit;
-    }
-
-    $auth_user = $_SERVER['PHP_AUTH_USER'];
-    $auth_hash = sha1($_SERVER['PHP_AUTH_PW']);
-
-    $users = $m->selectDB('det')->selectCollection('users');
-
-    $valid = $users->find(['user' => $auth_user, 'hash' => $auth_hash])->count();
-
-    if ($valid == 0) {
-        $output->error('invalid auth')->send();
-        exit;
-    }
-
-}
 
 // run specified function
 call_user_func($call);
 
-
 //  valid $call options:
-//      "server_file_exists"
 //      "add_request"
 //      "get_requests"
 //      "get_boundaries"
 //      "get_relevant_datasets"
-//      "get_dataset"
 //      "get_boundary_geojson"
 //      "get_filter_count"
-//      "update_request_status"
-//      "update_extracts"
-//      "update_msr"
+
 
 
 // ===========================================================================
@@ -156,11 +129,9 @@ function is_clean_array($input) {
 /**
 generate request information for det status page
 
-***WEB***
-
 post fields
-    search_type : "id" or "email" or "status"
-    search_val : id, email or status value
+    search_type : "id" or "email"
+    search_val : id or email  value
 
 returns
     det queue collection docs matching search_type and search_val
@@ -171,11 +142,6 @@ function get_requests() {
     $search_type = $_POST['search_type'];
     $search_val = $_POST['search_val'];
 
-    if (isset($_POST['limit'])) {
-        $limit = $_POST['limit'];
-    } else {
-        $limit = 0;
-    }
 
     if (!is_clean_val($search_type) || !is_clean_val($search_val)
         || !is_clean_val($limit)
@@ -189,7 +155,7 @@ function get_requests() {
 
     if ($search_type == "email") {
         $query = array('email' => $search_val);
-        $cursor = $col->find($query)->limit($limit);
+        $cursor = $col->find($query);
 
     } else if ($search_type == "id") {
         try {
@@ -199,11 +165,6 @@ function get_requests() {
             $output->error('invalid id')->send([]);
             return 0;
         }
-
-    } else if ($search_type == "status") {
-        $query = array('status' => intval($search_val));
-        $cursor = $col->find($query)->limit($limit);
-        $cursor->sort(array('priority'  -1, 'submit_time' => 1));
 
     } else {
         $output->error('invalid search type')->send([]);
@@ -217,114 +178,9 @@ function get_requests() {
 
 
 /**
-update status of det request
-
-post fields
-    rid: request doc's mongo id
-    status: new status for request
-    stage: field indicating request's progress with timestamp
-    timestamp: value for field indicated by stage
-*/
-function update_request_status() {
-    global $output, $m;
-
-    $rid = $_POST['rid'];
-    $status = $_POST['status'];
-    $timestamp = $_POST['timestamp'];
-
-    $valid_stages = array(
-        "-2" => null,
-        "-1" => null,
-        "0" => "prep_time",
-        "1" => "complete_time",
-        "2" => "process_time"
-    );
-
-    if (is_numeric($status) and intval($status) < 0) {
-        $timestamp = 0;
-    }
-
-    if (!is_string($rid) || !is_numeric($status) || !is_numeric($timestamp)
-        || !array_key_exists($status, $valid_stages)
-    ) {
-        $output->error('invalid inputs')->send();
-        return 0;
-    }
-
-    $stage = $valid_stages[$status];
-
-    try {
-        $query = array('_id' => new MongoId($rid));
-    } catch (Exception $e) {
-        $output->error('invalid id')->send();
-        return 0;
-    }
-
-    $update = array();
-    $update['status'] = intval($status);
-
-    if ($stage != null) {
-       $update[$stage] = intval($timestamp);
-    }
-
-    $db = $m->selectDB('det');
-    $col = $db->selectCollection('queue');
-
-    $doc = $col->findAndModify(
-        $query,
-        array('$set' => $update),
-        null,
-        array("new" => false));
-
-    $old_status = $doc['status'];
-
-
-    $mail_to = $doc['email'];
-
-    $mail_headers = "";
-    $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
-    $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
-    $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
-    $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
-
-    // send email based on status
-    if ($status == "0") {
-
-        $mail_subject = "AidData Data Extract Tool - Request 123456.. Received";
-
-        $mail_message = "Your request has been received. ";
-        $mail_message .= "You will receive an additional email when the request has been completed. ";
-        $mail_message .= "The status of your request can be viewed using the following link: ";
-        // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
-        $mail_message .= "http://google.com";
-
-        $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
-
-
-    } else if ($status == "1") {
-
-        $mail_subject = "AidData Data Extract Tool - Request 123456.. Completed";
-
-        $mail_message = "Your request has been completed. ";
-        $mail_message .= "The results can be accessed using the following link: ";
-        // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
-        $mail_message .= "http://google.com";
-
-        $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
-
-    }
-
-    $output->send($doc);
-    return 0;
-}
-
-
-/**
 inserts request object as document in det->queue mongo db/collection
 sends email to user that made request [not working/enabled at the
     moment, may have moved this to python queue processing]
-
-***WEB***
 
 post fields
     request : json string for request fields
@@ -362,35 +218,8 @@ function add_request() {
 // ------------------------------------
 // asdf:data
 
-
-/**
-find individual dataset from asdf>data using generic open ended query
-
-post fields
-    query
-
-returns
-    doc for match
-*/
-function get_dataset() {
-    global $output, $m;
-
-    $query = $_POST['query'];
-
-    $db_asdf = $m->selectDB('asdf');
-    $col = $db_asdf->selectCollection('data');
-
-    $result = $col->findOne($query);
-
-    $output->send($result);
-    return 0;
-}
-
-
 /**
 find and return all eligible boundaries
-
-***WEB***
 
 post fields
     None
@@ -435,8 +264,6 @@ function get_boundaries() {
 
 /**
 find relevant datasets for specified boundary group
-
-***WEB***
 
 post fields
     group : boundary group
@@ -571,8 +398,6 @@ function get_relevant_datasets() {
 find and returns contents of simplified boundary geojson
 for web map
 
-***WEB***
-
 post fields
     name : boundary
 
@@ -617,8 +442,6 @@ function get_boundary_geojson() {
 
 /**
 get counts for release dataset based on filter
-
-***WEB***
 
 post fields
     filter : fields and filters
@@ -724,162 +547,123 @@ function get_filter_count() {
 }
 
 
-// ------------------------------------
-// asdf:extracts
+// // ------------------------------------
+// // asdf:extracts
 
-/**
-find or insert extract doc
+// /**
+// find or insert extract doc
 
-post fields
-    method
-    query
-    insert
-*/
-function update_extracts() {
-    global $output, $m;
+// post fields
+//     method
+//     query
+//     insert
+// */
+// function update_extracts() {
+//     global $output, $m;
 
-    $method = $_POST['method'];
+//     $method = $_POST['method'];
 
-    $db = $m->selectDB('asdf');
-    $col = $db->selectCollection('extracts');
+//     $db = $m->selectDB('asdf');
+//     $col = $db->selectCollection('extracts');
 
-    if ($method == 'find') {
+//     if ($method == 'find') {
 
-        $query = json_decode($_POST['query']);
+//         $query = json_decode($_POST['query']);
 
-        // validate $query
-        $valid_query_keys = array('boundary', 'raster',
-                                  'extract_type', 'reliability');
-        foreach ($query as $k => $v) {
-            if (!in_array($k, $valid_query_keys)
-                || $k == 'reliability' && !is_bool($v)
-                || $k !== 'reliability' && !is_clean_val($v)
-            ) {
-                $output->error('invalid inputs')->send();
-                return 0;
-            }
-        }
+//         // validate $query
+//         $valid_query_keys = array('boundary', 'raster',
+//                                   'extract_type', 'reliability');
+//         foreach ($query as $k => $v) {
+//             if (!in_array($k, $valid_query_keys)
+//                 || $k == 'reliability' && !is_bool($v)
+//                 || $k !== 'reliability' && !is_clean_val($v)
+//             ) {
+//                 $output->error('invalid inputs')->send();
+//                 return 0;
+//             }
+//         }
 
-        $cursor = $col->find($query);
-        $result = iterator_to_array($cursor, false);
-        $output->send($result);
+//         $cursor = $col->find($query);
+//         $result = iterator_to_array($cursor, false);
+//         $output->send($result);
 
-    } else if ($method == 'insert') {
+//     } else if ($method == 'insert') {
 
-        $insert = json_decode($_POST['insert']);
+//         $insert = json_decode($_POST['insert']);
 
-        // validate $insert
-        //
+//         // validate $insert
+//         //
 
-        $col->update(
-            $insert,
-            array('$setOnInsert' => $insert),
-            array('upsert' => true)
-        );
-        $id = (string) $insert->_id;
+//         $col->update(
+//             $insert,
+//             array('$setOnInsert' => $insert),
+//             array('upsert' => true)
+//         );
+//         $id = (string) $insert->_id;
 
-        $output->send($id);
+//         $output->send($id);
 
-    } else {
-        $output->error('invalid method')->send();
-    }
+//     } else {
+//         $output->error('invalid method')->send();
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
-// ------------------------------------
-// asdf:msr
+// // ------------------------------------
+// // asdf:msr
 
-/**
-find or insert msr doc
+// /**
+// find or insert msr doc
 
-post fields
-    method
-    query
-    insert
-*/
-function update_msr() {
-    global $output, $m;
+// post fields
+//     method
+//     query
+//     insert
+// */
+// function update_msr() {
+//     global $output, $m;
 
-    $method = $_POST['method'];
+//     $method = $_POST['method'];
 
-    $db = $m->selectDB('asdf');
-    $col = $db->selectCollection('msr');
+//     $db = $m->selectDB('asdf');
+//     $col = $db->selectCollection('msr');
 
-    if ($method == 'find') {
+//     if ($method == 'find') {
 
-        $query = json_decode($_POST['query']);
+//         $query = json_decode($_POST['query']);
 
-        // validate $query
-        $valid_query_keys = array('dataset', 'hash');
-        foreach ($query as $k => $v) {
-            if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
-                $output->error('invalid inputs')->send();
-                return 0;
-            }
-        }
+//         // validate $query
+//         $valid_query_keys = array('dataset', 'hash');
+//         foreach ($query as $k => $v) {
+//             if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
+//                 $output->error('invalid inputs')->send();
+//                 return 0;
+//             }
+//         }
 
-        $cursor = $col->find($query);
-        $result = iterator_to_array($cursor, false);
-        $output->send($result);
+//         $cursor = $col->find($query);
+//         $result = iterator_to_array($cursor, false);
+//         $output->send($result);
 
-    } else if ($method == 'insert') {
+//     } else if ($method == 'insert') {
 
-        $insert = json_decode($_POST['insert']);
+//         $insert = json_decode($_POST['insert']);
 
-        // validate $insert
-        //
+//         // validate $insert
+//         //
 
-        $col->insert($insert);
-        $request_id = (string) $request->_id;
+//         $col->insert($insert);
+//         $request_id = (string) $request->_id;
 
-        $output->send($request_id);
+//         $output->send($request_id);
 
-    } else {
-        $output->error('invalid method')->send();
+//     } else {
+//         $output->error('invalid method')->send();
 
-    }
-    return 0;
-}
+//     }
+//     return 0;
+// }
 
-
-// ------------------------------------
-// general
-
-/**
-check if file or directory exists
-
-post fields
-    type : "file" or "dir"
-    path : absolute path to file or directory
-
-returns
-    bool
-*/
-function server_file_exists() {
-    global $output, $m;
-
-    $file_type = $_POST['type'];
-    $path = $_POSTS['path'];
-
-    if (!is_clean_val($type) || !is_clean_val($path)) {
-        $output->error('invalid inputs')->send();
-        return 0;
-    }
-
-    if ($type == "file") {
-        $exists = is_file($path);
-        $output->send($exists);
-
-    } else if ($type == "dir") {
-        $exists = is_dir($path);
-        $output->send($exists);
-
-    } else {
-        $output->error('invalid type')->send();
-    }
-
-    return 0;
-}
 
 ?>

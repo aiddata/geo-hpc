@@ -7,8 +7,13 @@ import json
 import warnings
 import shutil
 import hashlib
+import smtplib
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
 
-import requests
+import pymongo
+from bson.objectid import ObjectId
+
 import pandas as pd
 
 # from documentation_tool import DocBuilder
@@ -35,28 +40,6 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
-class Post():
-    """
-    """
-    def __init__(self, url):
-        self.url = "http://devlabs.aiddata.org/DET/search.php"
-
-
-    def __get_auth():
-        try:
-            return ('testuser', 'testpass')
-        except:
-            raise Exception('unable to retrieve authorization credentials')
-
-
-    def send(self, data):
-        r = requests.post(self.url,
-                          data=data,
-                          auth=self.__get_auth()).json()
-
-        return r
-
-
 class QueueToolBox():
     """utilty functions for processing requests in queue
 
@@ -64,8 +47,12 @@ class QueueToolBox():
     Accepts request object and checks if all extracts have been processed
     """
     def __init__(self):
+        self.client = pymongo.MongoClient()
 
-        self.post = Post()
+        self.c_queue = self.client.det.queue
+        self.c_email = self.client.det.email
+        self.c_extracts = self.client.asdf.extracts
+        self.c_msr = self.client.asdf.msr
 
         # self.doc = DocBuilder()
 
@@ -89,53 +76,39 @@ class QueueToolBox():
         sys.exit(">> det processing error ("+str(status)+"): \n\t\t" + str(message))
 
 
-    def get_requests(self, search_type, search_val, limit=0):
+    def get_requests(self, status, limit=0):
         """get requests from queue
 
         Args
-            search_type (str):
-            search_val (str, int):
+            status (int):
             limit (int):
 
         Returns
             tuple (function status, list of request objects)
         """
-        post_data = {
-            'call': 'get_requests',
-            'search_type': search_type,
-            'search_val': search_val,
-            'limit': limit
-        }
         try:
-            r = self.post.send(post_data)
+            search = self.c_queue.find({
+                "status": status
+            }).sort([("priority", -1), ("submit_time", 1)]).limit(limit)
 
-            if r['status'] == 'error':
-                warnings.warn(r['error'])
+            count = search.count(True)
 
-            return True, r['data']
-        except Exception as e:
-            warnings.warn(e)
-            return False, None
+            if count > 0:
 
-        # try:
-        #     # find all status 1 jobs and sort by priority then submit_time
-        #     sort = self.c_queue.find({
-        #         "status":status
-        #     }).sort([("priority", -1), ("submit_time", 1)])
+                # for i in range(count):
+                #     rid = str(search[i]["_id"])
+                #     self.request_objects[rid] = search[i]
 
-        #     if sort.count() > 0:
-        #         if limit == 0 or limit > sort.count():
-        #             limit = sort.count()
+                # return 1, self.request_objects
 
-        #         for i in range(limit):
-        #             rid = str(sort[i]["_id"])
-        #             self.request_objects[rid] = sort[i]
+                return 1, list(search)
 
-        #         return 1, self.request_objects
-        #     else:
-        #         return 1, None
-        # except:
-        #     return 0, None
+            else:
+                return 1, []
+
+        except:
+            return 0, None
+
 
 
     def check_id(self, rid):
@@ -144,15 +117,19 @@ class QueueToolBox():
         Args
             rid (str): request id
         Returns
-            tuple: (function status, request exists, request object)
+            tuple: (function status, request object)
         """
-        request = self.get_requests('id', rid, 1)
+        try:
+            # check document with request id exists
+            search = self.c_queue.find_one({"_id": ObjectId(rid)})
 
-        if request[0]:
-            exists = len(request[1])
-            return 1, exists, request[1]
-        else:
-            return 0, None, None
+            # self.request_objects[rid] = search
+
+            return 1, search
+
+        except:
+            return 0, None
+
 
 
     def get_status(self, rid):
@@ -163,37 +140,137 @@ class QueueToolBox():
         Returns
             tuple (function status, request status)
         """
-        request = self.get_requests('id', rid, 1)
-        if request[0]:
-            return 1, request[1][0]['status']
-        else:
+        try:
+            # check document with request id exists
+            search = self.c_queue.find_one({"_id": ObjectId(rid)})
+            status = search['status']
+
+            return 1, status
+
+        except:
             return 0, None
 
 
     def update_status(self, rid, status):
-        """update status of request
+        """ update status of request
         """
-        ctime = int(time.time())
-
-        post_data = {
-            'call': 'update_request_status',
-            'rid': rid,
-            'status': status,
-            'timestamp': ctime
+        valid_stages = {
+            "-2": None,
+            "-1": None,
+            "0": "prep_time",
+            "1": "complete_time",
+            "2": "process_time"
         }
 
-        try:
-            r = self.post.send(post_data)
+        ctime = int(time.time())
 
-            if r['status'] == 'success':
-                return True, ctime
-            else:
-                return False, ctime
+        updates = {
+            "status": long(status)
+        }
+
+        if not str(status) in valid_stages:
+            return 0, None
+
+        stage = valid_stages[str(status)]
+        if stage is not None:
+            updates[stage] = ctime
+            self.request_objects[rid][stage] = ctime
+
+
+        try:
+            # update request document
+            self.c_queue.update({"_id": ObjectId(rid)},
+                                {"$set": updates})
 
         except:
-            return False, None
+            return 0, None
+
+        if str(status) == "0":
+            pass
+
+        elif str(status) == "1":
+            pass
+
+        return 1, ctime
 
 
+    # sends an email
+    def send_email(self, sender, receiver, subject, message):
+
+        try:
+            pw_search = self.c_email.find({"address": sender},
+                                                   {"password":1})
+
+            if pw_search.count() > 0:
+                passwd = str(pw_search[0]["password"])
+            else:
+                return 0, "Specified email does not exist"
+
+        except:
+            return 0, "Error looking up email"
+
+
+        try:
+            # source:
+            # http://stackoverflow.com/questions/64505/
+            #   sending-mail-from-python-using-smtp
+
+            msg = MIMEMultipart()
+
+            msg['From'] = sender
+            msg['To'] = receiver
+            msg['Subject'] = subject
+            msg.attach(MIMEText(message))
+
+            mailserver = smtplib.SMTP('smtp.gmail.com', 587)
+            # identify ourselves to smtp gmail client
+            mailserver.ehlo()
+            # secure our email with tls encryption
+            mailserver.starttls()
+            # re-identify ourselves as an encrypted connection
+            mailserver.ehlo()
+
+            mailserver.login(sender, passwd)
+            mailserver.sendmail(sender, receiver, msg.as_string())
+            mailserver.quit()
+
+            return 1, None
+
+        except:
+            return 0, "Error generating or sending email"
+
+    # $mail_headers = "";
+    # $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
+    # $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
+    # $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
+    # $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+
+    # // send email based on status
+    # if ($status == "0") {
+
+    #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Received";
+
+    #     $mail_message = "Your request has been received. ";
+    #     $mail_message .= "You will receive an additional email when the request has been completed. ";
+    #     $mail_message .= "The status of your request can be viewed using the following link: ";
+    #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
+    #     $mail_message .= "http://google.com";
+
+    #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+
+
+    # } else if ($status == "1") {
+
+    #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Completed";
+
+    #     $mail_message = "Your request has been completed. ";
+    #     $mail_message .= "The results can be accessed using the following link: ";
+    #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
+    #     $mail_message .= "http://google.com";
+
+    #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+
+    }
 
 
 # =============================================================================
