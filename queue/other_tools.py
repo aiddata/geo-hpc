@@ -643,3 +643,124 @@ class MSRItem():
 
         return 1, extract_count, msr_count
 
+
+
+
+
+# // // ------------------------------------
+# // // asdf:extracts
+
+# // /**
+# // find or insert extract doc
+
+# // post fields
+# //     method
+# //     query
+# //     insert
+# // */
+# // function update_extracts() {
+# //     global $output, $m;
+
+# //     $method = $_POST['method'];
+
+# //     $db = $m->selectDB('asdf');
+# //     $col = $db->selectCollection('extracts');
+
+# //     if ($method == 'find') {
+
+# //         $query = json_decode($_POST['query']);
+
+# //         // validate $query
+# //         $valid_query_keys = array('boundary', 'raster',
+# //                                   'extract_type', 'reliability');
+# //         foreach ($query as $k => $v) {
+# //             if (!in_array($k, $valid_query_keys)
+# //                 || $k == 'reliability' && !is_bool($v)
+# //                 || $k !== 'reliability' && !is_clean_val($v)
+# //             ) {
+# //                 $output->error('invalid inputs')->send();
+# //                 return 0;
+# //             }
+# //         }
+
+# //         $cursor = $col->find($query);
+# //         $result = iterator_to_array($cursor, false);
+# //         $output->send($result);
+
+# //     } else if ($method == 'insert') {
+
+# //         $insert = json_decode($_POST['insert']);
+
+# //         // validate $insert
+# //         //
+
+# //         $col->update(
+# //             $insert,
+# //             array('$setOnInsert' => $insert),
+# //             array('upsert' => true)
+# //         );
+# //         $id = (string) $insert->_id;
+
+# //         $output->send($id);
+
+# //     } else {
+# //         $output->error('invalid method')->send();
+# //     }
+
+# //     return 0;
+# // }
+
+# // // ------------------------------------
+# // // asdf:msr
+
+# // /**
+# // find or insert msr doc
+
+# // post fields
+# //     method
+# //     query
+# //     insert
+# // */
+# // function update_msr() {
+# //     global $output, $m;
+
+# //     $method = $_POST['method'];
+
+# //     $db = $m->selectDB('asdf');
+# //     $col = $db->selectCollection('msr');
+
+# //     if ($method == 'find') {
+
+# //         $query = json_decode($_POST['query']);
+
+# //         // validate $query
+# //         $valid_query_keys = array('dataset', 'hash');
+# //         foreach ($query as $k => $v) {
+# //             if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
+# //                 $output->error('invalid inputs')->send();
+# //                 return 0;
+# //             }
+# //         }
+
+# //         $cursor = $col->find($query);
+# //         $result = iterator_to_array($cursor, false);
+# //         $output->send($result);
+
+# //     } else if ($method == 'insert') {
+
+# //         $insert = json_decode($_POST['insert']);
+
+# //         // validate $insert
+# //         //
+
+# //         $col->insert($insert);
+# //         $request_id = (string) $request->_id;
+
+# //         $output->send($request_id);
+
+# //     } else {
+# //         $output->error('invalid method')->send();
+
+# //     }
+# //     return 0;
+# // }

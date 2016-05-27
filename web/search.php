@@ -34,7 +34,6 @@ call_user_func($call);
 //      "get_filter_count"
 
 
-
 // ===========================================================================
 
 
@@ -122,12 +121,10 @@ function is_clean_array($input) {
 // ===========================================================================
 // functions for post requests
 
-
-// ------------------------------------
-// det:queue
-
 /**
 generate request information for det status page
+
+db:col = det:queue
 
 post fields
     search_type : "id" or "email"
@@ -143,9 +140,7 @@ function get_requests() {
     $search_val = $_POST['search_val'];
 
 
-    if (!is_clean_val($search_type) || !is_clean_val($search_val)
-        || !is_clean_val($limit)
-    ) {
+    if (!is_clean_val($search_type) || !is_clean_val($search_val)) {
         $output->error('invalid inputs')->send([]);
         return 0;
     }
@@ -179,8 +174,8 @@ function get_requests() {
 
 /**
 inserts request object as document in det->queue mongo db/collection
-sends email to user that made request [not working/enabled at the
-    moment, may have moved this to python queue processing]
+
+db:col = det:queue
 
 post fields
     request : json string for request fields
@@ -215,11 +210,10 @@ function add_request() {
 }
 
 
-// ------------------------------------
-// asdf:data
-
 /**
 find and return all eligible boundaries
+
+db:col = asdf:data
 
 post fields
     None
@@ -264,6 +258,8 @@ function get_boundaries() {
 
 /**
 find relevant datasets for specified boundary group
+
+db:col = asdf:data
 
 post fields
     group : boundary group
@@ -398,6 +394,8 @@ function get_relevant_datasets() {
 find and returns contents of simplified boundary geojson
 for web map
 
+db:col = asdf:data
+
 post fields
     name : boundary
 
@@ -437,11 +435,10 @@ function get_boundary_geojson() {
 }
 
 
-// ------------------------------------
-// releases:any
-
 /**
 get counts for release dataset based on filter
+
+db:col = releases:*
 
 post fields
     filter : fields and filters
@@ -545,125 +542,6 @@ function get_filter_count() {
     $output->send($result);
     return 0;
 }
-
-
-// // ------------------------------------
-// // asdf:extracts
-
-// /**
-// find or insert extract doc
-
-// post fields
-//     method
-//     query
-//     insert
-// */
-// function update_extracts() {
-//     global $output, $m;
-
-//     $method = $_POST['method'];
-
-//     $db = $m->selectDB('asdf');
-//     $col = $db->selectCollection('extracts');
-
-//     if ($method == 'find') {
-
-//         $query = json_decode($_POST['query']);
-
-//         // validate $query
-//         $valid_query_keys = array('boundary', 'raster',
-//                                   'extract_type', 'reliability');
-//         foreach ($query as $k => $v) {
-//             if (!in_array($k, $valid_query_keys)
-//                 || $k == 'reliability' && !is_bool($v)
-//                 || $k !== 'reliability' && !is_clean_val($v)
-//             ) {
-//                 $output->error('invalid inputs')->send();
-//                 return 0;
-//             }
-//         }
-
-//         $cursor = $col->find($query);
-//         $result = iterator_to_array($cursor, false);
-//         $output->send($result);
-
-//     } else if ($method == 'insert') {
-
-//         $insert = json_decode($_POST['insert']);
-
-//         // validate $insert
-//         //
-
-//         $col->update(
-//             $insert,
-//             array('$setOnInsert' => $insert),
-//             array('upsert' => true)
-//         );
-//         $id = (string) $insert->_id;
-
-//         $output->send($id);
-
-//     } else {
-//         $output->error('invalid method')->send();
-//     }
-
-//     return 0;
-// }
-
-// // ------------------------------------
-// // asdf:msr
-
-// /**
-// find or insert msr doc
-
-// post fields
-//     method
-//     query
-//     insert
-// */
-// function update_msr() {
-//     global $output, $m;
-
-//     $method = $_POST['method'];
-
-//     $db = $m->selectDB('asdf');
-//     $col = $db->selectCollection('msr');
-
-//     if ($method == 'find') {
-
-//         $query = json_decode($_POST['query']);
-
-//         // validate $query
-//         $valid_query_keys = array('dataset', 'hash');
-//         foreach ($query as $k => $v) {
-//             if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
-//                 $output->error('invalid inputs')->send();
-//                 return 0;
-//             }
-//         }
-
-//         $cursor = $col->find($query);
-//         $result = iterator_to_array($cursor, false);
-//         $output->send($result);
-
-//     } else if ($method == 'insert') {
-
-//         $insert = json_decode($_POST['insert']);
-
-//         // validate $insert
-//         //
-
-//         $col->insert($insert);
-//         $request_id = (string) $request->_id;
-
-//         $output->send($request_id);
-
-//     } else {
-//         $output->error('invalid method')->send();
-
-//     }
-//     return 0;
-// }
 
 
 ?>

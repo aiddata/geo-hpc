@@ -217,6 +217,7 @@ class QueueToolBox():
 
             msg = MIMEMultipart()
 
+            msg.add_header('reply-to', sender)
             msg['From'] = sender
             msg['To'] = receiver
             msg['Subject'] = subject
