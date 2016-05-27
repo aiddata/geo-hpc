@@ -166,7 +166,7 @@ $(document).ready(function(){
 		// call php to search mongo
 		var call_data = {call:"get_requests", search_type:type, search_val:search_val};
 		console.log(call_data);
-		mongo_search(call_data, function (result, status, error){
+		process(call_data, function (result, status, error){
 
 			if (error) {
 				console.log(error);
@@ -221,7 +221,7 @@ $(document).ready(function(){
 	};
 
 	// ajax to search.php for mongo related calls
-	function mongo_search(data, callback) {
+	function process(data, callback) {
 		$.ajax ({
 	        url: "../search.php",
 	        data: data,
