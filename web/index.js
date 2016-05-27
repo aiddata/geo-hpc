@@ -40,12 +40,14 @@ $(document).ready(function(){
 	// get boundary options from mongo
 	// build select menu
 	// check and active link if given
-	process({call:"get_boundaries"}, function (result, status, error){
+	process({call:"get_boundaries"}, function (response, status, error){
 
 		if (error) {
 			console.log(error);
 			return 1
 		}
+
+        result = response['data'];
 
 		// console.log(result);
 		var bnd_html = '';
@@ -383,10 +385,10 @@ $(document).ready(function(){
 
 		var process_call = 0
 
-		process({call:"get_boundary_geojson", name:name}, function (result, status, e) {
-			geojsonFeature = result;
+		process({call:"get_boundary_geojson", name:name}, function (response, status, e) {
+
 			error = e;
-			// console.log(result);
+			console.log(response);
 
 			if (error) {
 				console.log(error);
@@ -396,6 +398,9 @@ $(document).ready(function(){
 				}
 				return 1
 			}
+
+            result = response['data'];
+            geojsonFeature = JSON.parse(result);
 
 			if (map.hasLayer(countryLayer)) {
 				map.removeLayer(countryLayer);
@@ -439,13 +444,13 @@ $(document).ready(function(){
 
 		// console.log(request["boundary"]["group"]);
 
-		process({call:"get_relevant_datasets", group:request["boundary"]["group"]}, function (result, status, error){
+		process({call:"get_relevant_datasets", group:request["boundary"]["group"]}, function (response, status, error){
 
 			if (error) {
 				console.log(error);
 				return 1
 			}
-
+            result = response['data'];
 			console.log(result);
 
 			// store data list in external variable for later reference
@@ -482,12 +487,13 @@ $(document).ready(function(){
 
 		project_count = -1
 		location_count = -1;
-		process({call:"get_filter_count", filter:filter_selection}, function (result, status, error){
+		process({call:"get_filter_count", filter:filter_selection}, function (response, status, error){
 
 			if (error) {
 				console.log(error);
 				return 1
 			}
+            result = response['data'];
 
 			console.log(result);
 
@@ -881,8 +887,9 @@ $(document).ready(function(){
 		var request_id, error;
 
 		// submit request json and run preprocessing script to generate status page
-		process({call:"add_request", request:JSON.stringify(request)}, function (result, status, e) {
+		process({call:"add_request", request:JSON.stringify(request)}, function (response, status, e) {
 
+            result = response['data']
 			console.log(result);
 
 			error = e;
@@ -897,7 +904,7 @@ $(document).ready(function(){
 				chtml += '<p>'+error+'</p>';
 
 			} else {
-                request_id = result['data']['request_id'];
+                request_id = result['request_id'];
 
 				// confirm success
 				chtml += '<p>Your request has been successfully submitted!</p>';

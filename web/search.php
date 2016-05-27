@@ -3,6 +3,7 @@
 handle post requests for data extraction tool web and processing
 */
 
+set_time_limit(300);
 
 /**
 return post requests
@@ -50,7 +51,8 @@ class Output {
 
 
 // ===========================================================================
-// functions for validating data being input into mongo collections
+// functions for basic type validation of data being input into
+// mongo collections
 
 function is_clean_val($input) {
     if (!is_string($input) && !is_numeric($input) && !is_bool($input)) {
@@ -83,13 +85,16 @@ function is_clean_array($input) {
     return True;
 }
 
+// ===========================================================================
 
-set_time_limit(300);
 
 $m = new MongoClient();
 
 $output = new Output();
 
+
+// ===========================================================================
+// authenticate post requests with "update_*" calls
 
 if (!empty($_POST['call']) && strpos($_POST['call'], 'update_') === 0) {
 
@@ -404,7 +409,7 @@ switch ($_POST['call']) {
             $result[$doc['options']['group']][] = $doc;
         }
 
-        echo json_encode($result);
+        $output->send($result);
         break;
 
 
@@ -425,7 +430,7 @@ switch ($_POST['call']) {
         $group = $_POST['group'];
 
         if (!is_clean_val($group)) {
-            echo json_encode('invalid inputs');
+            $output->error('invalid inputs')->send();
             break;
         }
 
@@ -533,7 +538,7 @@ switch ($_POST['call']) {
 
         }
 
-        echo json_encode($result);
+        $output->send($result);
         break;
 
 
@@ -554,7 +559,7 @@ switch ($_POST['call']) {
 
         $result = $col->findOne($query);
 
-        echo json_encode($result);
+        $output->send($result);
         break;
 
 
@@ -572,7 +577,7 @@ switch ($_POST['call']) {
         $name = $_POST['name'];
 
         if (!is_clean_val($name)) {
-            echo json_encode('invalid inputs');
+            $output->error('invalid inputs')->send();
             break;
         }
 
@@ -594,7 +599,7 @@ switch ($_POST['call']) {
 
         $result = file_get_contents($file);
 
-        echo $result;
+        $output->send($result);
         break;
 
 
@@ -634,7 +639,7 @@ switch ($_POST['call']) {
 
             $cursor = $col->find($query);
             $result = iterator_to_array($cursor, false);
-            echo json_encode($result);
+            $output->send($result);
 
         } else if ($method == 'insert') {
 
@@ -691,7 +696,7 @@ switch ($_POST['call']) {
 
             $cursor = $col->find($query);
             $result = iterator_to_array($cursor, false);
-            echo json_encode($result);
+            $output->send($result);
 
         } else if ($method == 'insert') {
 
@@ -732,13 +737,13 @@ switch ($_POST['call']) {
             if (in_array($k, array("dataset", "type"))) {
                 // dataset and type field must be str
                 if (!is_clean_val($filter[$k])) {
-                    echo json_encode('invalid inputs');
+                    $output->error('invalid inputs')->send();
                     break;
                 }
             } else {
                 // all other fields must be arrays of strings
                 if (!is_clean_array($filter[$k])) {
-                    echo json_encode('invalid inputs');
+                    $output->error('invalid inputs')->send();
                     break;
                 }
             }
@@ -815,7 +820,7 @@ switch ($_POST['call']) {
             // "location_count_2" => $location_count_2
         );
 
-        echo json_encode($result);
+        $output->send($result);
         break;
 
 
