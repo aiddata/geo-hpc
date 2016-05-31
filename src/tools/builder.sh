@@ -42,8 +42,11 @@ bash "$src"/tmp/asdf/src/tools/manage_crons.sh "$branch" init
 
 
 
-# other setup?
-#
+# add basic config info to mongo (for det, etc.)
+# does not update when config changes
+#   may change later, currently just needs basic branch name/server info
+python "$src"/tmp/asdf/src/tools/add_config_to_mongo.py "$branch"
+
 
 
 # clean up tmp asdf

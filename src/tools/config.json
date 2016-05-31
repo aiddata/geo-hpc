@@ -1,6 +1,7 @@
 {
     "master":{
         "active": 1,
+        "name": "master",
         "server": "labs.aiddata.org",
         "release_db": "releases",
         "tracker_db": "trackers",
@@ -34,6 +35,7 @@
     },
     "develop": {
         "active": 1,
+        "name": "develop",
         "server": "devlabs.aiddata.org",
         "release_db": "releases",
         "tracker_db": "trackers",
