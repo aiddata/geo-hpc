@@ -89,7 +89,7 @@ check_repo() {
             if [ "$old_config_hash" != "$new_config_hash" ]; then
                 echo -e "\n"
                 echo "Updating config db ..."
-                python "$src"/git/asdf/src/tools/add_config_to_mongo "$branch"
+                python "$src"/git/asdf/src/tools/add_config_to_mongo.py "$branch"
             fi
 
 
