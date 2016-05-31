@@ -79,7 +79,6 @@ check_repo() {
             new_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
             new_config_hash=$(md5sum "$src"/git/asdf/src/tools/config.json | awk '{ print $1 }')
 
-
             if [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
                 echo -e "\n"
                 echo "Updating crons ..."

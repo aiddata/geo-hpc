@@ -22,7 +22,8 @@
             "UgandaAIMS": "UGA"
         },
         "other_gadm": [
-            "LBR"
+            "LBR",
+            "IRQ"
         ],
         "versions": {
             "asdf": "0.4.0",
