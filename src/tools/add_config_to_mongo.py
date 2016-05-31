@@ -40,10 +40,6 @@ import pymongo
 client = pymongo.MongoClient(config.server)
 
 
-
-# load info from config json
-config = json.load(open('config.json', 'r'))
-
 branch_info = config.branch_settings
 
 
