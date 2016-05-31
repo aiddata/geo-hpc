@@ -3,8 +3,10 @@
 class ExtractItem():
     """stuff
     """
-    def __init__(self, boundary, raster_dataset, raster, 
-                 extract_type, reliability=False):
+    def __init__(self, branch, boundary, raster_dataset, raster,
+                 extract_type, reliability=False, temporal_type, version):
+
+        self.branch = branch
 
         self.boundary = boundary
         self.dataset = dataset
@@ -12,7 +14,11 @@ class ExtractItem():
         self.extract_type = extract_type
         self.reliability = reliability
 
-        self.base = "/sciclone/aiddata10/REU/extracts/"
+        self.version = version
+
+        self.base = os.path.join("/sciclone/aiddata10/REU/outputs/",
+                                 self.branch,
+                                 self.version.replace('.', '_'))
 
         self.extract_options = {
             "categorical": "c",
@@ -24,19 +30,23 @@ class ExtractItem():
             "sum": "s",
             "min": "m",
             "max": "x",
-            "std": "d"
+            "std": "d",
+
+            "reliability": "r"
 
             # "median": "?"
             # "majority": "?"
             # "minority": "?"
             # "unique": "u"
-            # "range": "r"
+            # "range": "?"
 
             # "percentile_?": "?"
             # "custom_?": "?"
 
             # "var": "v"
             # "mode": "?"
+
+
         }
 
         if self.extract_type in self.extract_options:
@@ -80,15 +90,17 @@ class ExtractItem():
 
         # output file string without file type identifier
         # or file extension
-        extract_output = os.path.join(
+        extract_path = os.path.join(
             self.base, self.boundary, "cache", self.dataset,
             self.extract_type, output_name)
 
+        self.extract_path = extract_path
 
-        extract_exists = os.path.isfile(csv_path)
+        extract_exists = os.path.isfile(extract_path)
 
 
         reliability_path = csv_path[:-5] + "r.csv"
+        self.reliability_path = reliability_path
 
         reliability_exists = os.path.isfile(reliability_path)
 
@@ -98,7 +110,7 @@ class ExtractItem():
             valid = True
 
         return True, (valid, extract_exists, reliability_exists)
-      
+
 
     def exists(self):
         """
@@ -122,7 +134,7 @@ class ExtractItem():
                 valid_exists = True
 
             elif db_status == 1:
-   
+
                 if file_exists:
                     valid_exists = True
                     valid_completed = True
@@ -165,11 +177,11 @@ class ExtractItem():
         if search is not None:
              if search['status'] == 0 and search['priority'] < 0:
                 # update priority
-                update = self.c_extracts.update(query, 
+                update = self.c_extracts.update(query,
                                                 {'$set': {'priority': 0}})
         else:
             # insert full
             insert = self.c_extracts.insert(full_insert)
 
         return True, ctime
-     
+

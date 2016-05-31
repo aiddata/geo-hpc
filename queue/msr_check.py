@@ -2,7 +2,7 @@
 class MSRItem():
     """stuff
     """
-    def __init__(self, dataset_name, msr_hash):
+    def __init__(self, dataset_name, msr_hash, version):
 
         self.dataset_name = dataset_name
         self.msr_hash = msr_hash
@@ -11,9 +11,9 @@ class MSRItem():
 
 
     def __exists_in_db(self):
-        
+
         check_data = {
-            "dataset": self.dataset_name, 
+            "dataset": self.dataset_name,
             "hash": self.msr_hash
         }
 
@@ -41,14 +41,14 @@ class MSRItem():
         msr_exists = raster_exists and geojson_exists and summary_exists
 
         return True, (msr_exists, raster_exists, geojson_exists, summary_exists)
-      
+
 
     def exists(self, dataset_name, msr_hash):
         """
         1) check if msr exists in msr tracker
            run redundancy check on actual msr raster file and delete msr
            tracker entry if file is missing
-        2) check if msr is completed, waiting to be run, or encountered 
+        2) check if msr is completed, waiting to be run, or encountered
            an error
         """
         print "exists_in_msr_tracker"
@@ -71,7 +71,7 @@ class MSRItem():
             elif search[0]['status'] == 1:
                 # check file
                 raster_path = ('/sciclone/aiddata10/REU/data/rasters/' +
-                               'internal/msr/' + self.dataset_name +'/'+ 
+                               'internal/msr/' + self.dataset_name +'/'+
                                self.msr_hash + '/raster.asc')
 
                 msr_exists = os.path.isfile(raster_path)

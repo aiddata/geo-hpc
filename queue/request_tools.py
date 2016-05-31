@@ -53,28 +53,33 @@ class QueueToolBox():
         self.c_email = self.client.det.email
         self.c_extracts = self.client.asdf.extracts
         self.c_msr = self.client.asdf.msr
+        self.c_config = self.client.info.config
 
         # self.doc = DocBuilder()
 
         self.request_objects = {}
-
-        ###
-        # self.extract_options = json.load(open(
-        #     os.path.dirname(
-        #         os.path.abspath(__file__)) + '/extract_options.json', 'r'))
-
         self.merge_lists = {}
 
-        self.msr_resolution = 0.05
-        self.msr_version = 0.1
-        ###
+        self.branch_info = None
+        self.branch = None
+        self.msr_version = None
+        self.extract_version = None
 
 
     # exit function used for errors
     def quit(self, rid, status, message):
         self.update_status(rid, int(status))
-        sys.exit(">> det processing error ("+str(status)+"): \n\t\t" + 
+        sys.exit(">> det processing error ("+str(status)+"): \n\t\t" +
                   str(message))
+
+
+    def get_branch_info(self):
+        branch_config = self.c_config.find_one()
+        self.branch_info = branch_config
+        self.branch = branch_config['name']
+        self.msr_version = branch_config['version']['mean-surface-rasters']
+        self.extract_version = branch_config['version']['extract-scripts']
+        return branch_config
 
 
     def get_requests(self, status, limit=0):
@@ -241,38 +246,39 @@ class QueueToolBox():
         except:
             return 0, "Error generating or sending email"
 
-    # $mail_headers = "";
-    # $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
-    # $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
-    # $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
-    # $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 
-    # // send email based on status
-    # if ($status == "0") {
+        # $mail_headers = "";
+        # $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
+        # $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
+        # $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
+        # $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 
-    #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Received";
+        # // send email based on status
+        # if ($status == "0") {
 
-    #     $mail_message = "Your request has been received. ";
-    #     $mail_message .= "You will receive an additional email when the request has been completed. ";
-    #     $mail_message .= "The status of your request can be viewed using the following link: ";
-    #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
-    #     $mail_message .= "http://google.com";
+        #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Received";
 
-    #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+        #     $mail_message = "Your request has been received. ";
+        #     $mail_message .= "You will receive an additional email when the request has been completed. ";
+        #     $mail_message .= "The status of your request can be viewed using the following link: ";
+        #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
+        #     $mail_message .= "http://google.com";
+
+        #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
 
 
-    # } else if ($status == "1") {
+        # } else if ($status == "1") {
 
-    #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Completed";
+        #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Completed";
 
-    #     $mail_message = "Your request has been completed. ";
-    #     $mail_message .= "The results can be accessed using the following link: ";
-    #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
-    #     $mail_message .= "http://google.com";
+        #     $mail_message = "Your request has been completed. ";
+        #     $mail_message .= "The results can be accessed using the following link: ";
+        #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
+        #     $mail_message .= "http://google.com";
 
-    #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
+        #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
 
-    }
+
 
 
 # =============================================================================
@@ -397,7 +403,7 @@ class QueueToolBox():
 
 
                     # add to merge list
-                    self.merge_lists[rid].append(('d2_data', extract_output, 
+                    self.merge_lists[rid].append(('d2_data', extract_output,
                                                   None))
                     if is_reliability_raster:
                         self.merge_lists[rid].append(

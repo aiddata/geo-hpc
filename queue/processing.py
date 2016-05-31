@@ -12,13 +12,17 @@ from request_tools import QueueToolBox
 
 # =============================================================================
 
-queue = QueueToolBox()
-
-request_id = 0
-
 print '\n------------------------------------------------'
 print 'Processing Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
+
+
+queue = QueueToolBox()
+
+branch_info = queue.get_branch_info()
+print '`' + branch_info['name'] + '` branch on ' + branch_info['server']
+
+request_id = 0
 
 # run given a request_id via input
 if len(sys.argv) == 2:
@@ -63,11 +67,10 @@ else:
 
 for request_obj in request_objects:
 
-    request_id = str(request_obj['_id']['$id'])
+    request_id = str(request_obj['_id'])
 
     print '\nRequest id: ' + request_id
     print request_obj
-
 
 
     status = queue.get_status(request_id)
