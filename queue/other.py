@@ -1,4 +1,7 @@
 
+    from extract_check import ExtractItem
+    from msr_check import MSRItem
+
 
     def check_request(self, rid, request, extract=False):
         """check entire request object for cache
@@ -61,12 +64,11 @@
                     msr_item.add_to_queue("release")
 
 
-
             # add to merge list
             self.merge_lists[rid].append(
-                ('d1_data', msr_extract_output, msr_field_id))
+                ('d1_data', msr_ex_item.extract_path, msr_field_id))
             self.merge_lists[rid].append(
-                ('d1_data', msr_extract_output[:-5]+"r.csv", msr_field_id))
+                ('d1_data', msr_ex_item.reliability_path, msr_field_id))
 
             msr_field_id += 1
 
@@ -103,14 +105,14 @@
 
 
 
-
-
                     # add to merge list
-                    self.merge_lists[rid].append(('d2_data', extract_output,
-                                                  None))
+                    self.merge_lists[rid].append(
+                        ('d2_data', extract_item.extract_path, None))
+
                     if i["reliability"]:
                         self.merge_lists[rid].append(
-                            ('d2_data', extract_output[:-5]+"r.csv", None))
+                            ('d2_data', extract_item.reliability_path, None))
+
 
 
         return 1, extract_count, msr_count
