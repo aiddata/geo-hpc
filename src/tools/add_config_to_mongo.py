@@ -47,6 +47,5 @@ c_config = client.info.config
 
 c_config.remove({'name': branch_info['name']})
 
-c_config.insert({'name': branch_info['name'],
-                 'server': branch_info['server']})
+c_config.insert(branch_info)
 
