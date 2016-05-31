@@ -73,7 +73,8 @@ class QueueToolBox():
     # exit function used for errors
     def quit(self, rid, status, message):
         self.update_status(rid, int(status))
-        sys.exit(">> det processing error ("+str(status)+"): \n\t\t" + str(message))
+        sys.exit(">> det processing error ("+str(status)+"): \n\t\t" + 
+                  str(message))
 
 
     def get_requests(self, status, limit=0):
@@ -279,9 +280,6 @@ class QueueToolBox():
 # =============================================================================
 
 
-
-
-
     def check_request(self, rid, request, extract=False):
         """check entire request object for cache
         """
@@ -399,7 +397,8 @@ class QueueToolBox():
 
 
                     # add to merge list
-                    self.merge_lists[rid].append(('d2_data', extract_output, None))
+                    self.merge_lists[rid].append(('d2_data', extract_output, 
+                                                  None))
                     if is_reliability_raster:
                         self.merge_lists[rid].append(
                             ('d2_data', extract_output[:-5]+"r.csv", None))
