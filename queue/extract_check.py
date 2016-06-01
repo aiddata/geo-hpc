@@ -1,10 +1,21 @@
 
 
+import os
+import time
+import pymongo
+
+
 class ExtractItem():
     """stuff
     """
-    def __init__(self, branch, boundary, raster_dataset, raster,
-                 extract_type, reliability=False, temporal_type, version):
+    def __init__(self, branch, boundary, dataset, raster,
+                 extract_type, reliability, temporal_type, version):
+
+        self.client = pymongo.MongoClient()
+
+        self.c_extracts = self.client.asdf.extracts
+        self.c_msr = self.client.asdf.msr
+
 
         self.branch = branch
 
@@ -14,10 +25,12 @@ class ExtractItem():
         self.extract_type = extract_type
         self.reliability = reliability
 
+        self.temporal_type = temporal_type
+
         self.version = version
 
         self.base = os.path.join("/sciclone/aiddata10/REU/outputs/",
-                                 self.branch,
+                                 self.branch, 'extracts',
                                  self.version.replace('.', '_'))
 
         self.extract_options = {
@@ -50,7 +63,7 @@ class ExtractItem():
         }
 
         if self.extract_type in self.extract_options:
-            self.extract_abbr = self.extract_options
+            self.extract_abbr = self.extract_options[self.extract_type ]
         else:
             raise Exception('invalid extract type')
 
@@ -68,9 +81,9 @@ class ExtractItem():
         # check db
         search = self.c_extracts.find_one(check_data)
 
-        db_exists = not search is None
-
-        return True, (db_exists, search['status'])
+        exists = not search is None
+        status = search['status'] if exists else None
+        return True, (exists, status)
 
 
     def __exists_in_file(self):
@@ -83,7 +96,7 @@ class ExtractItem():
         #   (...e.ext for extracts and ...r.ext for reliability)
         #   or file extension
         partial_name = self.raster
-        if data["temporal_type"] == "None":
+        if self.temporal_type == "None":
             partial_name = partial_name + "_"
 
         output_name = partial_name + self.extract_abbr + ".csv"
@@ -99,14 +112,14 @@ class ExtractItem():
         extract_exists = os.path.isfile(extract_path)
 
 
-        reliability_path = csv_path[:-5] + "r.csv"
+        reliability_path = extract_path[:-5] + "r.csv"
         self.reliability_path = reliability_path
 
         reliability_exists = os.path.isfile(reliability_path)
 
         valid = False
-        if (extract_exists and (not reliability or
-                (reliability and reliability_exists))):
+        if (extract_exists and (not self.reliability or
+                (self.reliability and reliability_exists))):
             valid = True
 
         return True, (valid, extract_exists, reliability_exists)

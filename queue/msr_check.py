@@ -1,13 +1,25 @@
 
+
+import os
+import time
+import pymongo
+
+
 class MSRItem():
     """stuff
     """
-    def __init__(self, dataset_name, msr_hash, version):
+    def __init__(self, branch, dataset_name, msr_hash, selection):
+        self.branch = branch
 
         self.dataset_name = dataset_name
         self.msr_hash = msr_hash
+        self.selection = selection
 
-        self.base = "/sciclone/aiddata10/REU/extracts/"
+        self.base = os.path.join("/sciclone/aiddata10/REU/outputs/",
+                                 self.branch, 'msr', 'done')
+
+        self.client = pymongo.MongoClient()
+        self.c_msr = self.client.asdf.msr
 
 
     def __exists_in_db(self):
@@ -20,9 +32,10 @@ class MSRItem():
         # check db
         search = self.c_msr.find_one(check_data)
 
-        db_exists = search.count() > 0
+        exists = not search is None
+        status = search['status'] if exists else None
 
-        return True, (db_exists, search['status'])
+        return True, (exists, status)
 
 
     def __exists_in_file(self):
@@ -30,9 +43,9 @@ class MSRItem():
         msr_base = os.path.join(
             self.base, self.dataset_name, self.msr_hash)
 
-        raster_path = csv_path + '/raster.tif'
-        geojson_path = csv_path + '/unique.geojson'
-        summary_path = csv_path + '/summary.json'
+        raster_path = msr_base + '/raster.tif'
+        geojson_path = msr_base + '/unique.geojson'
+        summary_path = msr_base + '/summary.json'
 
         raster_exists = os.path.isfile(raster_path)
         geojson_exists = os.path.isfile(geojson_path)
@@ -43,7 +56,7 @@ class MSRItem():
         return True, (msr_exists, raster_exists, geojson_exists, summary_exists)
 
 
-    def exists(self, dataset_name, msr_hash):
+    def exists(self):
         """
         1) check if msr exists in msr tracker
            run redundancy check on actual msr raster file and delete msr
@@ -51,38 +64,30 @@ class MSRItem():
         2) check if msr is completed, waiting to be run, or encountered
            an error
         """
-        print "exists_in_msr_tracker"
+        db_info, db_tuple = self.__exists_in_db()
+        (db_exists, db_status) = db_tuple
 
-        check_data = {"dataset": self.dataset_name, "hash": self.msr_hash}
+        file_info, file_tuple = self.__exists_in_file()
+        (file_exists, file_raster_exists, file_geojson_exists, file_summary_exists) = file_tuple
 
-        # check db
-        search = self.c_msr.find(check_data)
-
-        db_exists = search.count() > 0
 
         valid_exists = False
         valid_completed = False
 
         if db_exists:
 
-            if search[0]['status'] in [0,2]:
+            if db_status in [0,2]:
                 valid_exists = True
 
-            elif search[0]['status'] == 1:
-                # check file
-                raster_path = ('/sciclone/aiddata10/REU/data/rasters/' +
-                               'internal/msr/' + self.dataset_name +'/'+
-                               self.msr_hash + '/raster.asc')
+            elif db_status== 1:
 
-                msr_exists = os.path.isfile(raster_path)
-
-                if msr_exists:
+                if file_exists:
                     valid_exists = True
                     valid_completed = True
 
-                else:
-                    # remove from db
-                    self.c_msr.delete_one(check_data)
+                # else:
+                #     # remove from db
+                #     self.c_msr.delete_one(check_data)
 
             else:
                 valid_exists = True
@@ -92,17 +97,15 @@ class MSRItem():
         return valid_exists, valid_completed
 
 
-    def add_to_queue(self, selection, msr_hash):
+    def add_to_queue(self):
         """add msr item to det->msr mongodb collection
         """
-        print "add_to_msr_tracker"
-
         ctime = int(time.time())
 
         insert = {
-            'hash': msr_hash,
-            'dataset': selection['dataset'],
-            'options': selection,
+            'hash': self.msr_hash,
+            'dataset': self.dataset_name,
+            'options': self.selection,
 
             'classification': 'det-release',
             'status': 0,
@@ -113,58 +116,3 @@ class MSRItem():
 
         self.c_msr.insert(insert)
 
-
-# // // ------------------------------------
-# // // asdf:msr
-
-# // /**
-# // find or insert msr doc
-
-# // post fields
-# //     method
-# //     query
-# //     insert
-# // */
-# // function update_msr() {
-# //     global $output, $m;
-
-# //     $method = $_POST['method'];
-
-# //     $db = $m->selectDB('asdf');
-# //     $col = $db->selectCollection('msr');
-
-# //     if ($method == 'find') {
-
-# //         $query = json_decode($_POST['query']);
-
-# //         // validate $query
-# //         $valid_query_keys = array('dataset', 'hash');
-# //         foreach ($query as $k => $v) {
-# //             if (!in_array($k, $valid_query_keys) || !is_clean_val($v)) {
-# //                 $output->error('invalid inputs')->send();
-# //                 return 0;
-# //             }
-# //         }
-
-# //         $cursor = $col->find($query);
-# //         $result = iterator_to_array($cursor, false);
-# //         $output->send($result);
-
-# //     } else if ($method == 'insert') {
-
-# //         $insert = json_decode($_POST['insert']);
-
-# //         // validate $insert
-# //         //
-
-# //         $col->insert($insert);
-# //         $request_id = (string) $request->_id;
-
-# //         $output->send($request_id);
-
-# //     } else {
-# //         $output->error('invalid method')->send();
-
-# //     }
-# //     return 0;
-# // }

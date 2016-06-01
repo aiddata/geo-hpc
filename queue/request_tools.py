@@ -18,6 +18,11 @@ import pandas as pd
 
 # from documentation_tool import DocBuilder
 
+from extract_check import ExtractItem
+from msr_check import MSRItem
+
+
+
 
 def make_dir(path):
     """creates directories
@@ -65,6 +70,7 @@ class QueueToolBox():
         self.msr_version = None
         self.extract_version = None
 
+        self.msr_resolution = 0.05
 
     # exit function used for errors
     def quit(self, rid, status, message):
@@ -77,8 +83,8 @@ class QueueToolBox():
         branch_config = self.c_config.find_one()
         self.branch_info = branch_config
         self.branch = branch_config['name']
-        self.msr_version = branch_config['version']['mean-surface-rasters']
-        self.extract_version = branch_config['version']['extract-scripts']
+        self.msr_version = branch_config['versions']['mean-surface-rasters']
+        self.extract_version = branch_config['versions']['extract-scripts']
         return branch_config
 
 
@@ -112,7 +118,8 @@ class QueueToolBox():
             else:
                 return 1, []
 
-        except:
+        except Exception as e:
+            warnings.warn(e)
             return 0, None
 
 
@@ -133,7 +140,8 @@ class QueueToolBox():
 
             return 1, search
 
-        except:
+        except Exception as e:
+            warnings.warn(e)
             return 0, None
 
 
@@ -153,7 +161,8 @@ class QueueToolBox():
 
             return 1, status
 
-        except:
+        except Exception as e:
+            warnings.warn(e)
             return 0, None
 
 
@@ -180,7 +189,7 @@ class QueueToolBox():
         stage = valid_stages[str(status)]
         if stage is not None:
             updates[stage] = ctime
-            self.request_objects[rid][stage] = ctime
+            # self.request_objects[rid][stage] = ctime
 
 
         try:
@@ -188,31 +197,31 @@ class QueueToolBox():
             self.c_queue.update({"_id": ObjectId(rid)},
                                 {"$set": updates})
 
-        except:
+        except Exception as e:
+            warnings.warn(e)
             return 0, None
 
-        if str(status) == "0":
-            pass
-
-        elif str(status) == "1":
-            pass
 
         return 1, ctime
 
 
     # sends an email
-    def send_email(self, sender, receiver, subject, message):
+    def send_email(self, receiver, subject, message):
+
+        reply_to = 'AidData <data@aiddata.org>'
+        sender = 'aiddatatest2@gmail.com'
 
         try:
             pw_search = self.c_email.find({"address": sender},
-                                                   {"password":1})
+                                          {"password":1})
 
             if pw_search.count() > 0:
                 passwd = str(pw_search[0]["password"])
             else:
                 return 0, "Specified email does not exist"
 
-        except:
+        except Exception as e:
+            warnings.warn(e)
             return 0, "Error looking up email"
 
 
@@ -223,8 +232,8 @@ class QueueToolBox():
 
             msg = MIMEMultipart()
 
-            msg.add_header('reply-to', sender)
-            msg['From'] = sender
+            msg.add_header('reply-to', reply_to)
+            msg['From'] = reply_to
             msg['To'] = receiver
             msg['Subject'] = subject
             msg.attach(MIMEText(message))
@@ -243,50 +252,19 @@ class QueueToolBox():
 
             return 1, None
 
-        except:
+        except Exception as e:
+            warnings.warn(e)
             return 0, "Error generating or sending email"
 
 
-        # $mail_headers = "";
-        # $mail_headers .= 'Reply-To: AidData <data@aiddata.org>' . "\r\n";
-        # $mail_headers .= 'From: AidData <data@aiddata.org>' . "\r\n";
-        # $mail_headers .= 'MIME-Version: 1.0' . "\r\n";
-        # $mail_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
-
-        # // send email based on status
-        # if ($status == "0") {
-
-        #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Received";
-
-        #     $mail_message = "Your request has been received. ";
-        #     $mail_message .= "You will receive an additional email when the request has been completed. ";
-        #     $mail_message .= "The status of your request can be viewed using the following link: ";
-        #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
-        #     $mail_message .= "http://google.com";
-
-        #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
-
-
-        # } else if ($status == "1") {
-
-        #     $mail_subject = "AidData Data Extract Tool - Request 123456.. Completed";
-
-        #     $mail_message = "Your request has been completed. ";
-        #     $mail_message .= "The results can be accessed using the following link: ";
-        #     // $mail_message .= "http://not_a_real_link.org/DET/results/" . $rid;
-        #     $mail_message .= "http://google.com";
-
-        #     $mail = mail($mail_to, $mail_subject, $mail_message, $mail_headers);
-
-
-
 
 # =============================================================================
 # =============================================================================
 # =============================================================================
 
 
-    def check_request(self, rid, request, extract=False):
+
+    def check_request(self, rid, request):
         """check entire request object for cache
         """
         print "check_request"
@@ -298,11 +276,9 @@ class QueueToolBox():
         msr_field_id = 1
 
         for name in sorted(request['d1_data'].keys()):
-            data = request['d1_data'][name]
-
-        # for name, data in request['d1_data'].iteritems():
-
             print name
+
+            data = request['d1_data'][name]
 
             data['resolution'] = self.msr_resolution
             data['version'] = self.msr_version
@@ -310,52 +286,54 @@ class QueueToolBox():
             # get hash
             data_hash = json_sha1_hash(data)
 
-            msr_extract_type = "sum"
-            msr_extract_output = ("/sciclone/aiddata10/REU/extracts/" +
-                                  request["boundary"]["name"] + "/cache/" +
-                                  data['dataset'] +"/" + msr_extract_type +
-                                  "/" + data_hash + "_" +
-                                  self.extract_options[msr_extract_type] +
-                                  ".csv")
+            msr_item = MSRItem(self.branch,
+                               data["dataset"],
+                               data_hash,
+                               data)
 
-            # check if msr exists in tracker and is completed
-            msr_exists, msr_completed = self.msr_exists(data['dataset'],
-                                                        data_hash)
+            # check if extract exists in queue and is completed
+            msr_exists, msr_completed = msr_item.exists()
 
-            print "MSR STATE:" + str(msr_completed)
 
             if msr_completed == True:
 
-                # check if extract for msr exists in queue and is completed
-                extract_exists, extract_completed = self.extract_exists(
-                    request["boundary"]["name"], data['dataset']+"_"+data_hash,
-                    msr_extract_type, True, msr_extract_output)
+                msr_ex_item = ExtractItem(self.branch,
+                                          request["boundary"]["name"],
+                                          data["dataset"],
+                                          data_hash,
+                                          "sum",
+                                          True,
+                                          "None",
+                                          self.extract_version)
+
+                msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
+
 
                 if not extract_completed:
                     extract_count += 1
 
                     if not extract_exists:
                         # add to extract queue
-                        self.update_extract(
-                            request["boundary"]["name"],
-                            data['dataset']+"_"+data_hash,
-                            msr_extract_type, True, "msr")
+                        pass
+                        # msr_ex_item.add_to_queue("msr")
+
+                else:
+                    # add to merge list
+                    self.merge_lists[rid].append(
+                        ('d1_data', msr_ex_item.extract_path, msr_field_id))
+                    self.merge_lists[rid].append(
+                        ('d1_data', msr_ex_item.reliability_path, msr_field_id))
 
             else:
 
                 msr_count += 1
                 extract_count += 1
-
                 if not msr_exists:
                     # add to msr tracker
-                    self.add_to_msr_tracker(data, data_hash)
+                    pass
+                    # msr_item.add_to_queue()
 
 
-            # add to merge list
-            self.merge_lists[rid].append(
-                ('d1_data', msr_extract_output, msr_field_id))
-            self.merge_lists[rid].append(
-                ('d1_data', msr_extract_output[:-5]+"r.csv", msr_field_id))
 
             msr_field_id += 1
 
@@ -365,28 +343,20 @@ class QueueToolBox():
 
             for i in data["files"]:
 
-                df_name = i["name"]
-                raster_path = data["base"] +"/"+ i["path"]
-                is_reliability_raster = i["reliability"]
-
                 for extract_type in data["options"]["extract_types"]:
 
 
-                    exi = ExtractItem(
-                        boundary=request["boundary"]["name"],
-                        raster=df_name,
-                        extract_type=extract_type,
-                        reliability=is_reliability_raster
-                    )
-
-
+                    extract_item = ExtractItem(self.branch,
+                                               request["boundary"]["name"],
+                                               data["name"],
+                                               i["name"],
+                                               extract_type,
+                                               i["reliability"],
+                                               data["temporal_type"],
+                                               self.extract_version)
 
                     # check if extract exists in queue and is completed
-                    extract_exists, extract_completed = self.extract_exists(
-                        request["boundary"]["name"], df_name, extract_type,
-                        is_reliability_raster, extract_output)
-
-
+                    extract_exists, extract_completed = extract_item.exists()
 
                     # incremenet count if extract is not completed
                     # (whether it exists in queue or not)
@@ -396,22 +366,28 @@ class QueueToolBox():
                         # add to extract queue if it does not already
                         # exist in queue
                         if not extract_exists:
-                            self.update_extract(
-                                request['boundary']['name'], i['name'],
-                                extract_type, is_reliability_raster,
-                                "external")
+                            pass
+                            # extract_item.add_to_queue("external")
 
+                    else:
 
-                    # add to merge list
-                    self.merge_lists[rid].append(('d2_data', extract_output,
-                                                  None))
-                    if is_reliability_raster:
+                        # add to merge list
                         self.merge_lists[rid].append(
-                            ('d2_data', extract_output[:-5]+"r.csv", None))
+                            ('d2_data', extract_item.extract_path, None))
+
+                        if i["reliability"]:
+                            self.merge_lists[rid].append(
+                                ('d2_data', extract_item.reliability_path, None))
+
 
 
         return 1, extract_count, msr_count
 
+
+
+# =============================================================================
+# =============================================================================
+# =============================================================================
 
 
     def build_output(self, request_id, run_extract):
@@ -523,7 +499,8 @@ class QueueToolBox():
                     # with column name = new extract file name
                     merged_df[result_field] = result_df["ad_extract"]
 
-    # except:
+    # except Exception as e:
+        # warnings.warn(e)
         # return False, "error building merged dataframe"
 
 
@@ -540,7 +517,8 @@ class QueueToolBox():
 
         return True, None
 
-    # except:
+    # except Exception as e:
+        # warnings.warn(e)
     #     return False, "error writing merged dataframe"
 
 
