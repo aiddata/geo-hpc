@@ -103,6 +103,7 @@ class ExtractItem():
 
         self.extract_path = extract_path
 
+
         extract_exists = os.path.isfile(extract_path)
 
 
@@ -110,6 +111,11 @@ class ExtractItem():
         self.reliability_path = reliability_path
 
         reliability_exists = os.path.isfile(reliability_path)
+
+        print "!!"
+        print extract_path
+        print reliability_path
+
 
         valid = False
         if (extract_exists and (not self.reliability or
@@ -131,6 +137,10 @@ class ExtractItem():
 
         file_info, file_tuple = self.__exists_in_file()
         (file_exists, file_extract_exists, file_reliability_exists) = file_tuple
+
+        print "!"
+        print db_tuple
+        print file_tuple
 
         valid_exists = False
         valid_completed = False
@@ -161,7 +171,7 @@ class ExtractItem():
         ctime = int(time.time())
 
         query = {
-            'raster': self.dataset + '_' + self.raster,
+            'raster': self.raster,
             'boundary': self.boundary,
             'extract_type': self.extract_type,
             'reliability': self.reliability

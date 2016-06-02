@@ -325,7 +325,7 @@ class QueueToolBox():
 
                 msr_ex_item = ExtractItem(request["boundary"]["name"],
                                           data["dataset"],
-                                          data_hash,
+                                          data["dataset"] + '_' + data_hash,
                                           "sum",
                                           True,
                                           "None",

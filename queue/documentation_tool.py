@@ -249,21 +249,21 @@ class DocBuilder():
         data.append(['Bounding Box', Paragraph(str(meta['spatial']['coordinates']), self.styles['Normal'])])
 
 
-        for i in range(len(meta['sources'])):
-            data.append(['Source #'+str(i+1), Paragraph('<i>name:</i> '+meta['sources'][i]['name']+'<br /><i>web:</i> '+meta['sources'][i]['web'], self.styles['Normal'])])
+        # for i in range(len(meta['sources'])):
+        #     data.append(['Source #'+str(i+1), Paragraph('<i>name:</i> '+meta['sources'][i]['name']+'<br /><i>web:</i> '+meta['sources'][i]['web'], self.styles['Normal'])])
 
-        for i in range(len(meta['licenses'])):
-            data.append(['License #'+str(i+1), Paragraph('<i>name:</i> '+meta['licenses'][i]['name']+'<br /><i>version:</i> '+meta['licenses'][i]['version']+'<br /><i>url:</i> '+meta['licenses'][i]['url'], self.styles['Normal'])])
+        # for i in range(len(meta['licenses'])):
+        #     data.append(['License #'+str(i+1), Paragraph('<i>name:</i> '+meta['licenses'][i]['name']+'<br /><i>version:</i> '+meta['licenses'][i]['version']+'<br /><i>url:</i> '+meta['licenses'][i]['url'], self.styles['Normal'])])
 
 
-        for i in range(len(meta['maintainers'])):
-            data.append(['Maintainer #'+str(i+1), Paragraph('<i>name:</i> '+meta['maintainers'][i]['name']+'<br /><i>web:</i> '+meta['maintainers'][i]['web']+'<br /><i>email:</i> '+meta['maintainers'][i]['email'], self.styles['Normal'])])
+        # for i in range(len(meta['maintainers'])):
+        #     data.append(['Maintainer #'+str(i+1), Paragraph('<i>name:</i> '+meta['maintainers'][i]['name']+'<br /><i>web:</i> '+meta['maintainers'][i]['web']+'<br /><i>email:</i> '+meta['maintainers'][i]['email'], self.styles['Normal'])])
 
-        for i in range(len(meta['publishers'])):
-            data.append(['Publisher #'+str(i+1), Paragraph('<i>name:</i> '+meta['publishers'][i]['name']+'<br /><i>web:</i> '+meta['publishers'][i]['web']+'<br /><i>email:</i> '+meta['publishers'][i]['email'], self.styles['Normal'])])
+        # for i in range(len(meta['publishers'])):
+        #     data.append(['Publisher #'+str(i+1), Paragraph('<i>name:</i> '+meta['publishers'][i]['name']+'<br /><i>web:</i> '+meta['publishers'][i]['web']+'<br /><i>email:</i> '+meta['publishers'][i]['email'], self.styles['Normal'])])
 
-        data.append(['Date Added', meta['date_added']])
-        data.append(['Date Updated', meta['date_updated']])
+        # data.append(['Date Added', meta['date_added']])
+        # data.append(['Date Updated', meta['date_updated']])
 
 
 

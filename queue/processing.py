@@ -42,12 +42,12 @@ else:
     #   submit time
     # returns status of search and request data objecft
 
-    gr_status_1, request_objects_1 = queue.get_requests(-2, 0)
+    gr_status_1, request_objects_1 = False, None #queue.get_requests(-1, 0)
 
     if not gr_status_1:
-        warnings.warn('could not get check requests for status "-2"')
+        warnings.warn('could not get check requests for status "-1"')
 
-    gr_status_2, request_objects_2 = False, None #queue.get_requests(0, 0)
+    gr_status_2, request_objects_2 = queue.get_requests(0, 0)
 
     if not gr_status_2:
         warnings.warn('could not get check requests for status "0"')
@@ -84,12 +84,12 @@ for request_obj in request_objects:
 
 
 
-    # # set status 2 (no email)
-    # update_status = queue.update_status(request_id, 2)
-    # if not update_status[0]:
-    #     warnings.warn("unable to update status of request (2)")
-    #     continue
-    # print "processing request"
+    # set status 2 (no email)
+    update_status = queue.update_status(request_id, 2)
+    if not update_status[0]:
+        warnings.warn("unable to update status of request (2)")
+        continue
+    print "processing request"
 
 
     status, extract_count, msr_count, merge_list = queue.check_request(request_obj, dry_run=False)
@@ -163,7 +163,7 @@ for request_obj in request_objects:
 
 
 
-    queue.update_status(request_id, -2)
+    # queue.update_status(request_id, -2)
 
 
 print "\nFinished checking requests"
