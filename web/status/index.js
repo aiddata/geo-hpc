@@ -345,7 +345,7 @@ $(document).ready(function(){
 		    	html += '</tr>';
 
 
-		    	html += '<tr><td><b>Sectors: </b>' + dset['sectors'].join(', ');
+		    	html += '<tr><td><b>Sectors: </b>' + dset['ad_sector_names'].join(', ');
 		    	html += '<tr><td><b>Donors: </b>' + dset['donors'].join(', ');
 		    	html += '<tr><td><b>Years: </b>' + dset['years'].join(', ');
 

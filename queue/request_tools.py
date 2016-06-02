@@ -16,7 +16,7 @@ from bson.objectid import ObjectId
 
 import pandas as pd
 
-# from documentation_tool import DocBuilder
+from documentation_tool import DocBuilder
 
 from extract_check import ExtractItem
 from msr_check import MSRItem
@@ -37,8 +37,10 @@ def make_dir(path):
 
 
 def json_sha1_hash(hash_obj):
-    hash_json = json.dumps(hash_obj, sort_keys = True, ensure_ascii=False,
-                           separators=(',', ':'))
+    hash_json = json.dumps(hash_obj,
+                           sort_keys = True,
+                           ensure_ascii = True,
+                           separators=(', ', ': '))
     hash_builder = hashlib.sha1()
     hash_builder.update(hash_json)
     hash_sha1 = hash_builder.hexdigest()
@@ -60,17 +62,17 @@ class QueueToolBox():
         self.c_msr = self.client.asdf.msr
         self.c_config = self.client.info.config
 
-        # self.doc = DocBuilder()
-
-        self.request_objects = {}
-        self.merge_lists = {}
-
         self.branch_info = None
         self.branch = None
         self.msr_version = None
         self.extract_version = None
 
         self.msr_resolution = 0.05
+
+
+        # self.request_objects = {}
+        # self.merge_lists = {}
+
 
     # exit function used for errors
     def quit(self, rid, status, message):
@@ -264,12 +266,18 @@ class QueueToolBox():
 
 
 
-    def check_request(self, rid, request):
+    def check_request(self, request):
         """check entire request object for cache
         """
         print "check_request"
 
-        self.merge_lists[rid] = []
+        extract_base = os.path.join("/sciclone/aiddata10/REU/outputs/",
+                                    self.branch, 'extracts',
+                                    self.extract_version.replace('.', '_'))
+        msr_base = os.path.join("/sciclone/aiddata10/REU/outputs/",
+                                self.branch, 'msr', 'done')
+
+        merge_list = []
         extract_count = 0
         msr_count = 0
 
@@ -278,18 +286,36 @@ class QueueToolBox():
         for name in sorted(request['d1_data'].keys()):
             print name
 
-            data = request['d1_data'][name]
+            raw_data = request['d1_data'][name]
 
-            data['resolution'] = self.msr_resolution
-            data['version'] = self.msr_version
+            tmp_filters = {
+                fk: fv
+                for fk, fv in raw_data.iteritems()
+                if fk not in ['dataset', 'type']
+                and not any([fvx in ['All', 'None', None] for fvx in fv])
+            }
+
+            print tmp_filters
+
+            data = {
+                'dataset': raw_data['dataset'],
+                'type': raw_data['type'],
+                'resolution': self.msr_resolution,
+                'version': self.msr_version,
+                'filters': tmp_filters
+            }
+
 
             # get hash
             data_hash = json_sha1_hash(data)
 
-            msr_item = MSRItem(self.branch,
-                               data["dataset"],
+            print data
+            print data_hash
+
+            msr_item = MSRItem(data["dataset"],
                                data_hash,
-                               data)
+                               data,
+                               msr_base)
 
             # check if extract exists in queue and is completed
             msr_exists, msr_completed = msr_item.exists()
@@ -297,31 +323,30 @@ class QueueToolBox():
 
             if msr_completed == True:
 
-                msr_ex_item = ExtractItem(self.branch,
-                                          request["boundary"]["name"],
+                msr_ex_item = ExtractItem(request["boundary"]["name"],
                                           data["dataset"],
                                           data_hash,
                                           "sum",
                                           True,
                                           "None",
-                                          self.extract_version)
+                                          extract_base)
 
                 msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
 
 
-                if not extract_completed:
+                if not msr_ex_completed:
                     extract_count += 1
 
-                    if not extract_exists:
+                    if not msr_ex_exists:
                         # add to extract queue
                         pass
                         # msr_ex_item.add_to_queue("msr")
 
                 else:
                     # add to merge list
-                    self.merge_lists[rid].append(
+                    merge_list.append(
                         ('d1_data', msr_ex_item.extract_path, msr_field_id))
-                    self.merge_lists[rid].append(
+                    merge_list.append(
                         ('d1_data', msr_ex_item.reliability_path, msr_field_id))
 
             else:
@@ -337,6 +362,7 @@ class QueueToolBox():
 
             msr_field_id += 1
 
+        print extract_count, msr_count
 
         for name, data in request["d2_data"].iteritems():
             print name
@@ -346,14 +372,13 @@ class QueueToolBox():
                 for extract_type in data["options"]["extract_types"]:
 
 
-                    extract_item = ExtractItem(self.branch,
-                                               request["boundary"]["name"],
+                    extract_item = ExtractItem(request["boundary"]["name"],
                                                data["name"],
                                                i["name"],
                                                extract_type,
                                                i["reliability"],
                                                data["temporal_type"],
-                                               self.extract_version)
+                                               extract_base)
 
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = extract_item.exists()
@@ -372,16 +397,16 @@ class QueueToolBox():
                     else:
 
                         # add to merge list
-                        self.merge_lists[rid].append(
+                        merge_list.append(
                             ('d2_data', extract_item.extract_path, None))
 
                         if i["reliability"]:
-                            self.merge_lists[rid].append(
+                            merge_list.append(
                                 ('d2_data', extract_item.reliability_path, None))
 
 
 
-        return 1, extract_count, msr_count
+        return 1, extract_count, msr_count, merge_list
 
 
 
@@ -390,57 +415,52 @@ class QueueToolBox():
 # =============================================================================
 
 
-    def build_output(self, request_id, run_extract):
+    def build_output(self, request_id, request, merge_list):
         """build output
 
         merge extracts, generate documentation, update status,
             cleanup working directory, send final email
         """
+        results_dir = ("/sciclone/aiddata10/REU/outputs/" +
+                       self.branch + "/det/results")
+
+        request_dir = os.path.join(results_dir, request_id)
+
+
+        merge_output = os.path.join(request_dir, "results.csv")
         # merge cached results if all are available
-        merge_status = self.merge(request_id,
-                                        self.request_objects[request_id])
+        merge_status = self.merge(merge_list, merge_output)
 
         # handle merge error
         if not merge_status[0]:
             self.quit(request_id, -2, merge_status[1])
 
 
-        # add processed time
-        if not run_extract:
-            us = self.update_status(request_id, 3)
 
-        # update status 1 (done)
-        us = self.update_status(request_id, 1)
+        doc_output =  os.path.join(request_dir, "documentation.pdf")
 
-
-        # # generate documentation
-        # self.doc.request = self.request_objects[request_id]
-        # print self.doc.request
-
-        # bd_status = self.doc.build_doc(request_id)
-        # print bd_status
+        # generate documentation
+        doc = DocBuilder(request_id, request, doc_output)
+        bd_status = doc.build_doc(request_id)
+        print bd_status
 
 
         # zip files and delete originals
-        request_id_dir = "/sciclone/aiddata10/REU/det/results/" + request_id
-        shutil.make_archive(request_id_dir, "zip",
-                            "/sciclone/aiddata10/REU/det/results/", request_id)
-        shutil.rmtree(request_id_dir)
+
+        shutil.make_archive(request_dir, "zip", results_dir, request_id)
+
+        shutil.rmtree(request_dir)
+
+        return True
 
 
 
-    def merge(self, rid, request):
+
+    def merge(self, merge_list, output):
         """
         merge extracts when all are completed
         """
         print "merge"
-
-        # # generate list of csv files to merge (including relability calcs)
-        # csv_merge_list = []
-        # for item in self.merge_lists[rid]:
-        #     csv_merge_list.append(item['output'])
-        #     if item['reliability']:
-        #         csv_merge_list.append(item['output'][:-5]+"r.csv")
 
 
         merged_df = 0
@@ -454,7 +474,7 @@ class QueueToolBox():
 
         # for each result file that should exist for request
         # (extracts and reliability)
-        for merge_item in self.merge_lists[rid]:
+        for merge_item in merge_list:
             merge_class, result_csv, dynamic_merge_count = merge_item
 
             # make sure file exists
@@ -506,14 +526,11 @@ class QueueToolBox():
 
         # output merged dataframe to csv
     # try:
-        merged_output = ("/sciclone/aiddata10/REU/det/results/" + rid +
-                         "/results.csv")
-
         # generate output folder for merged df using request id
-        make_dir(os.path.dirname(merged_output))
+        make_dir(os.path.dirname(output))
 
         # write merged df to csv
-        merged_df.to_csv(merged_output, index=False)
+        merged_df.to_csv(output, index=False)
 
         return True, None
 

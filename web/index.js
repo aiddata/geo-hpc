@@ -515,16 +515,16 @@ $(document).ready(function(){
 
 	function get_filter_selection() {
 
-		var dataset, sectors, donors, years, filter_selection;
+		var dataset, ad_sector_names, donors, years, filter_selection;
 
 		dataset = $('#d1_datasets').val();
-		sectors = filter_check($('#d1_sectors').val());
+		ad_sector_names = filter_check($('#d1_sectors').val());
 		donors = filter_check($('#d1_donors').val());
 		years = filter_check($('#d1_years').val());
 
 		filter_selection = {
 			"dataset": dataset,
-			"sectors": sectors,
+			"ad_sector_names": ad_sector_names,
 			"donors": donors,
 			"years": years,
 			"type": "release"
@@ -575,7 +575,7 @@ $(document).ready(function(){
 
 			    	data_html += '<div class="dataset_h3">Selection Filter</div>';
 			    	data_html += '<div class="dataset_h4">';
-			    	data_html += '<div class="dataset_meta_info">Sectors:<div>'+filter_selection['sectors']+'</div></div>';
+			    	data_html += '<div class="dataset_meta_info">Sectors:<div>'+filter_selection['ad_sector_names']+'</div></div>';
 			    	data_html += '<div class="dataset_meta_info">Donors:<div>'+filter_selection['donors']+'</div></div>';
 			    	data_html += '<div class="dataset_meta_info">Years:<div>'+filter_selection['years']+'</div></div>';
 
@@ -808,7 +808,7 @@ $(document).ready(function(){
 		    	dset_html += '</tr>';
 
 
-		    	dset_html += '<tr><td><b>Sectors: </b>' + dset['sectors'].join(', ');
+		    	dset_html += '<tr><td><b>Sectors: </b>' + dset['ad_sector_names'].join(', ');
 		    	dset_html += '<tr><td><b>Donors: </b>' + dset['donors'].join(', ');
 		    	dset_html += '<tr><td><b>Years: </b>' + dset['years'].join(', ');
 

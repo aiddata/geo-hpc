@@ -16,12 +16,14 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 class DocBuilder():
 
 
-    def __init__(self):
+    def __init__(self, request_id, request, output):
+
+        self.request_id = request_id
+        self.request = request
+        self.output = output
         self.dir_base = os.path.dirname(os.path.abspath(__file__))
 
         self.doc = 0
-
-        self.request = 0
 
         # container for the 'Flowable' objects
         self.Story = []
@@ -41,14 +43,14 @@ class DocBuilder():
         return time.strftime('%Y-%m-%d %H:%M:%S (%Z)', time.localtime(timestamp))
 
 
-    def build_doc(self, rid):
+    def build_doc(self):
 
+        rid = self.request_id
         print 'build_doc: ' + rid
 
         # try:
-        # self.doc = SimpleDocTemplate('/sciclone/aiddata10/REU/det/results/documentation.pdf', pagesize=letter)
 
-        self.doc = SimpleDocTemplate('/sciclone/aiddata10/REU/det/results/'+rid+'/documentation.pdf', pagesize=letter)
+        self.doc = SimpleDocTemplate(self.output, pagesize=letter)
 
         # build doc call all functions
         self.add_header()
@@ -162,7 +164,7 @@ class DocBuilder():
             data = [['Dataset ',dset['dataset']],
                     ['Type', dset['type']],
                     ['Donors', ', '.join(dset['donors'])],
-                    ['Sectors', ', '.join(dset['sectors'])],
+                    ['Sectors', ', '.join(dset['ad_sector_names'])],
                     ['Years', ', '.join(dset['years'])],
                     ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
                     ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']

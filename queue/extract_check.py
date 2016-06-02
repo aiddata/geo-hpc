@@ -8,16 +8,14 @@ import pymongo
 class ExtractItem():
     """stuff
     """
-    def __init__(self, branch, boundary, dataset, raster,
-                 extract_type, reliability, temporal_type, version):
+    def __init__(self, boundary, dataset, raster,
+                 extract_type, reliability, temporal_type, base):
 
         self.client = pymongo.MongoClient()
 
         self.c_extracts = self.client.asdf.extracts
         self.c_msr = self.client.asdf.msr
 
-
-        self.branch = branch
 
         self.boundary = boundary
         self.dataset = dataset
@@ -27,11 +25,7 @@ class ExtractItem():
 
         self.temporal_type = temporal_type
 
-        self.version = version
-
-        self.base = os.path.join("/sciclone/aiddata10/REU/outputs/",
-                                 self.branch, 'extracts',
-                                 self.version.replace('.', '_'))
+        self.base = base
 
         self.extract_options = {
             "categorical": "c",
@@ -184,7 +178,7 @@ class ExtractItem():
         full_insert = query.copy()
         full_insert.update(details)
 
-        # check if extract exists
+        # check if exists
         search = self.c_extracts.find_one(query)
 
         if search is not None:

@@ -483,9 +483,9 @@ function get_filter_count() {
     // get number of projects (filter)
     $project_query = array();
 
-    if (!in_array("All", $filter['sectors'])) {
+    if (!in_array("All", $filter['ad_sector_names'])) {
         $project_query['ad_sector_names'] = array(
-            '$in' => array_map($regex_map, $filter['sectors'])
+            '$in' => array_map($regex_map, $filter['ad_sector_names'])
         );
     }
 

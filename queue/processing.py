@@ -47,7 +47,7 @@ else:
     if not gr_status_1:
         warnings.warn('could not get check requests for status "-2"')
 
-    gr_status_2, request_objects_2 = queue.get_requests(0, 0)
+    gr_status_2, request_objects_2 = False, None #queue.get_requests(0, 0)
 
     if not gr_status_2:
         warnings.warn('could not get check requests for status "0"')
@@ -92,77 +92,78 @@ for request_obj in request_objects:
     # print "processing request"
 
 
-    new_items = None
+    status, extract_count, msr_count, merge_list = queue.check_request(request_obj)
+    print extract_count, msr_count
+
+    new_items = extract_count + msr_count
+
+
     if status == -2:
 
-        print queue.check_request(request_id, request_obj)
+        # send email
+        mail_to = request_obj['email']
+
+        mail_subject = "AidData Data Extract Tool - Request "+request_id[:7]+".. Received"
+
+        mail_message = ("Your request has been received. \n"
+                        "You will receive an additional email when the"
+                        " request has been completed. \n\n"
+                        "The status of your request can be viewed using"
+                        " the following link: \n"
+                        "http://" + branch_info['server'] + "/DET/status/#" + request_id + "\n\n"
+                        "You can also view all your current and previous requests using: \n"
+                        "http://" + branch_info['server'] + "/DET/status/#" + mail_to + "\n\n")
+
+        mail_status = queue.send_email(mail_to, mail_subject, mail_message)
 
 
-        # check request and add extract/msr items to queue, return # added
-        # new_items = queue.add_items(123)
+    if new_items == 0:
 
-        # ## status, extract_count, msr_count = queue.cache.check_request(
-        # ##     request_id, request_obj, True)
+        # build request
+        result = queue.build_output(request_id, request_obj, merge_list)
 
-        # # send email
-        # mail_to = request_obj['email']
+        if not result:
+            warnings.warn("error building request output")
 
-        # mail_subject = "AidData Data Extract Tool - Request "+request_id[:7]+".. Received"
+            update_status = queue.update_status(request_id, -2)
+            if not update_status[0]:
+                warnings.warn("unable to update status of request (-2)")
 
-        # mail_message = ("Your request has been received. \n"
-        #                 "You will receive an additional email when the"
-        #                 " request has been completed. \n\n"
-        #                 "The status of your request can be viewed using"
-        #                 " the following link: \n"
-        #                 "http://" + branch_info['server'] + "/DET/status/#" + request_id + "\n\n"
-        #                 "You can also view all your current and previous requests using: \n"
-        #                 "http://" + branch_info['server'] + "/DET/status/#" + mail_to + "\n\n")
-
-        # mail_status = queue.send_email(mail_to, mail_subject, mail_message)
+            continue
 
 
-    # if new_items in [None, 0]:
-    #     # check if extracts/msr are all ready, return # not ready
-    #     # unprocessed_items = queue.check_items(123)
+        # set status 1 (email request is ready)
+        update_status = queue.update_status(request_id, 1)
+        if not update_status[0]:
+            warnings.warn("unable to update status of request (1)")
+            continue
 
-    #     if unprocessed_items == 0:
-    #         # build request
-    #         # result = queue.build_output(123)
 
-    #         ### queue.build_output(request_id, True)
+        # send email
+        mail_to = request_obj['email']
 
-    #         if not result[0]:
-    #             warnings.warn("error building request output")
-    #             continue
+        mail_subject = "AidData Data Extract Tool - Request "+request_id[:7]+".. Completed"
 
-    #         # set status 1 (email request is ready)
-    #         update_status = queue.update_status(request_id, 1)
-    #         if not update_status[0]:
-    #             warnings.warn("unable to update status of request (1)")
-    #             continue
+        mail_message = ("Your request has been completed. \n"
+                        "The results can be accessed using the following link: \n"
+                        "http://" + branch_info['server'] + "/DET/status/#" + request_id + "\n\n"
+                        "You can also view all your current and previous requests using: \n"
+                        "http://" + branch_info['server'] + "/DET/status/#" + mail_to + "\n\n")
+        mail_status = queue.send_email(mail_to, mail_subject, mail_message)
 
-    #         # send email
-    #         mail_to = request_obj['email']
+        print "request completed"
 
-    #         mail_subject = "AidData Data Extract Tool - Request "+request_id[:7]+".. Completed"
+    else:
+        # set status 0 (no email)
+        update_status = queue.update_status(request_id, 0)
+        if not update_status[0]:
+            warnings.warn("unable to update status of request (0)")
+            continue
+        print "request not ready"
 
-    #         mail_message = ("Your request has been completed. \n"
-    #                         "The results can be accessed using the following link: \n"
-    #                         "http://" + branch_info['server'] + "/DET/status/#" + request_id + "\n\n"
-    #                         "You can also view all your current and previous requests using: \n"
-    #                         "http://" + branch_info['server'] + "/DET/status/#" + mail_to + "\n\n")
-    #         mail_status = queue.send_email(mail_to, mail_subject, mail_message)
 
-    #         print "request completed"
 
-    #     else:
-    #         # set status 0 (no email)
-    #         update_status = queue.update_status(request_id, 0)
-    #         if not update_status[0]:
-    #             warnings.warn("unable to update status of request (0)")
-    #             continue
-    #         print "request not ready"
-
+    queue.update_status(request_id, -2)
 
 
 print "\nFinished checking requests"

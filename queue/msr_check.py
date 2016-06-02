@@ -8,15 +8,12 @@ import pymongo
 class MSRItem():
     """stuff
     """
-    def __init__(self, branch, dataset_name, msr_hash, selection):
-        self.branch = branch
-
+    def __init__(self, dataset_name, msr_hash, selection, base):
         self.dataset_name = dataset_name
         self.msr_hash = msr_hash
         self.selection = selection
 
-        self.base = os.path.join("/sciclone/aiddata10/REU/outputs/",
-                                 self.branch, 'msr', 'done')
+        self.base = base
 
         self.client = pymongo.MongoClient()
         self.c_msr = self.client.asdf.msr
@@ -102,11 +99,13 @@ class MSRItem():
         """
         ctime = int(time.time())
 
-        insert = {
+        query = {
             'hash': self.msr_hash,
             'dataset': self.dataset_name,
-            'options': self.selection,
+            'options': self.selection
+        }
 
+        details = {
             'classification': 'det-release',
             'status': 0,
             'priority': 0,
@@ -114,5 +113,20 @@ class MSRItem():
             'update_time': ctime
         }
 
-        self.c_msr.insert(insert)
+        full_insert = query.copy()
+        full_insert.update(details)
+
+        # check if exists
+        search = self.c_msr.find_one(query)
+
+        if search is not None:
+             if search['status'] == 0 and search['priority'] < 0:
+                # update priority
+                update = self.c_msr.update(query,
+                                           {'$set': {'priority': 0}})
+        else:
+            # insert full
+            insert = self.c_msr.insert(full_insert)
+
+        return True, ctime
 
