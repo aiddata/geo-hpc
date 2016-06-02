@@ -91,7 +91,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
-mpirun --map-by node -np $total python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
+mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/mean-surface-rasters/src/autoscript.py $branch $timestamp
 
 EOF
 
