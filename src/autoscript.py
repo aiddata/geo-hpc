@@ -204,7 +204,7 @@ for i in extract_list:
         rhash = rname[rname.rindex('_')+1:]
 
         tmp['data_name'] = rdataset
-        tmp['data_absolute'] = os.path.join("/sciclone/aiddata10/REU/output/",
+        tmp['data_absolute'] = os.path.join("/sciclone/aiddata10/REU/outputs/",
                                             branch , "msr", "done",
                                             rdataset, rhash, "raster.tif")
         tmp['file_mask'] = "None"
