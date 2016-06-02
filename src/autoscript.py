@@ -70,7 +70,7 @@ general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
                        '/extracts/' + version.replace('.', '_'))
 
 
-default_extract_limit = 2
+default_extract_limit = 1
 # default_time_limit = 5
 # default_extract_minimum = 1
 
@@ -194,23 +194,39 @@ for i in extract_list:
     tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
                            bnd_info['resources'][0]['path'])
 
-    tmp['data_mini'] = i['raster'].split('_')[0]
 
     tmp['raster_name'] = i['raster']
 
-    data_info = c_asdf.find(
-        {'options.mini_name': tmp['data_mini']},
-        {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
+    if i['classification'] == 'msr':
 
-    tmp['data_name'] = data_info['name']
-    tmp['data_absolute'] = (
-        data_info['base'] + '/'+
-        [
-            j['path'] for j in data_info['resources']
-            if j['name'] == i['raster']
-        ][0])
+        rname = i['raster']
+        rdataset = rname[:rname.rindex('_')]
+        rhash = rname[rname.rindex('_')+1:]
 
-    tmp['file_mask'] = data_info['file_mask']
+        tmp['data_name'] = rdataset
+        tmp['data_absolute'] = os.path.join("/sciclone/aiddata10/REU/output/",
+                                            branch , "msr", "done",
+                                            rdataset, rhash, "raster.tif")
+        tmp['file_mask'] = "None"
+
+    else:
+
+        tmp['data_mini'] = i['raster'].split('_')[0]
+
+        data_info = c_asdf.find(
+            {'options.mini_name': tmp['data_mini']},
+            {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
+
+        tmp['data_name'] = data_info['name']
+        tmp['data_absolute'] = (
+            data_info['base'] + '/'+
+            [
+                j['path'] for j in data_info['resources']
+                if j['name'] == i['raster']
+            ][0])
+
+        tmp['file_mask'] = data_info['file_mask']
+
 
     tmp['extract_type'] = i['extract_type']
 
@@ -298,7 +314,7 @@ def tmp_worker_job(self, task_id):
     raster_name = task['raster_name']
 
     # dataset mini_name
-    data_mini = task['data_mini']
+    # data_mini = task['data_mini']
 
     # # string containing year information *
     # year_string = task['years']
