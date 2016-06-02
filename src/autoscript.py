@@ -197,6 +197,8 @@ for i in extract_list:
 
     tmp['raster_name'] = i['raster']
 
+    tmp['classification'] = i['classification']
+
     if i['classification'] == 'msr':
 
         rname = i['raster']
@@ -365,7 +367,7 @@ def tmp_worker_job(self, task_id):
     # generate output path
     output = output_dir + "/" + raster_name
 
-    if not "_" in raster_name:
+    if not "_" in raster_name or task['classification'] == "msr":
         output += "_"
 
     output += exo._extract_options[exo._extract_type]
