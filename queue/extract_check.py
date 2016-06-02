@@ -161,7 +161,7 @@ class ExtractItem():
         ctime = int(time.time())
 
         query = {
-            'raster': self.raster,
+            'raster': self.dataset + '_' + self.raster,
             'boundary': self.boundary,
             'extract_type': self.extract_type,
             'reliability': self.reliability

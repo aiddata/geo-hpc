@@ -2,6 +2,7 @@
 
 import os
 import time
+import pymongo
 
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle
@@ -17,6 +18,9 @@ class DocBuilder():
 
 
     def __init__(self, request_id, request, output):
+
+        self.client = pymongo.MongoClient()
+        self.c_asdf = self.client.asdf.data
 
         self.request_id = request_id
         self.request = request
@@ -59,7 +63,7 @@ class DocBuilder():
         self.add_readme()
         self.add_overview()
         self.add_meta()
-        self.add_timeline()
+        # self.add_timeline()
         self.add_license()
         self.output_doc()
 
@@ -140,9 +144,12 @@ class DocBuilder():
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.05*inch))
 
+        # data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
+        #         ['Description',  self.request['boundary']['description']],
+        #         ['Source Link',  self.request['boundary']['source_link']]]
+
         data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
-                ['Description',  self.request['boundary']['description']],
-                ['Source Link',  self.request['boundary']['source_link']]]
+                ['Description',  self.request['boundary']['description']]]
 
         t = Table(data)
         t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -209,10 +216,10 @@ class DocBuilder():
 
         # get meta from asdf
 
-        ###
-        ### meta = self.c_asdf.find({'name': name})[0]
-        ###
-        meta = 0
+
+        meta = self.c_asdf.find({'name': name})[0]
+
+        # meta = 0
 
         # build generic meta
         data = [

@@ -92,7 +92,7 @@ for request_obj in request_objects:
     # print "processing request"
 
 
-    status, extract_count, msr_count, merge_list = queue.check_request(request_obj)
+    status, extract_count, msr_count, merge_list = queue.check_request(request_obj, dry_run=False)
     print extract_count, msr_count
 
     new_items = extract_count + msr_count

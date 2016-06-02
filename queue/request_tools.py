@@ -266,7 +266,7 @@ class QueueToolBox():
 
 
 
-    def check_request(self, request):
+    def check_request(self, request, dry_run=False):
         """check entire request object for cache
         """
         print "check_request"
@@ -336,11 +336,9 @@ class QueueToolBox():
 
                 if not msr_ex_completed:
                     extract_count += 1
-
-                    if not msr_ex_exists:
+                    if not msr_ex_exists and not dry_run:
                         # add to extract queue
-                        pass
-                        # msr_ex_item.add_to_queue("msr")
+                        msr_ex_item.add_to_queue("msr")
 
                 else:
                     # add to merge list
@@ -353,10 +351,9 @@ class QueueToolBox():
 
                 msr_count += 1
                 extract_count += 1
-                if not msr_exists:
+                if not msr_exists and not dry_run:
                     # add to msr tracker
-                    pass
-                    # msr_item.add_to_queue()
+                    msr_item.add_to_queue()
 
 
 
@@ -390,9 +387,8 @@ class QueueToolBox():
 
                         # add to extract queue if it does not already
                         # exist in queue
-                        if not extract_exists:
-                            pass
-                            # extract_item.add_to_queue("external")
+                        if not extract_exists and not dry_run:
+                            extract_item.add_to_queue("external")
 
                     else:
 
@@ -441,7 +437,7 @@ class QueueToolBox():
 
         # generate documentation
         doc = DocBuilder(request_id, request, doc_output)
-        bd_status = doc.build_doc(request_id)
+        bd_status = doc.build_doc()
         print bd_status
 
 
