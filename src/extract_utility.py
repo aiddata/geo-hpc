@@ -649,7 +649,10 @@ class ExtractObject():
                 # calculate reliability statistic
                 ex_data['ad_max'] = max_dollars
                 ex_data['ad_sum'] = ex_data['ad_extract']
-                ex_data['ad_extract'] = ex_data['ad_sum'] / ex_data['ad_max']
+                try:
+                    ex_data['ad_extract'] = ex_data['ad_sum'] / ex_data['ad_max']
+                except ZeroDivisionError:
+                    ex_data['ad_extract'] = 1
 
                 rel_csvwriter.writerow(ex_data)
 
