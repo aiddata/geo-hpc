@@ -315,7 +315,7 @@ function get_relevant_datasets() {
     //$cursor->snapshot();
 
 
-    $result = array('d1' => array(), 'd2' => array());
+    $result = array();
 
     foreach ($cursor as $doc) {
 
@@ -376,10 +376,10 @@ function get_relevant_datasets() {
             $doc['donor_list'] = array_unique($donors);
             sort($doc['donor_list']);
 
-            $result['d1'][$doc['name']] = $doc;
+            $result[] = $doc;
 
         } else if ($doc['type'] == "raster") {
-            $result['d2'][$doc['name']] = $doc;
+            $result[] = $doc;
 
         }
 
@@ -453,18 +453,18 @@ function get_filter_count() {
 
     // validate $filter
     foreach ($filter as $k => $v) {
-        if (in_array($k, array("dataset", "type"))) {
+        if (in_array($k, array("dataset"))) {
             // dataset and type field must be str
             if (!is_clean_val($filter[$k])) {
                 $output->error('invalid inputs')->send();
                 return 0;
             }
         } else {
-            // all other fields must be arrays of strings
-            if (!is_clean_array($filter[$k])) {
-                $output->error('invalid inputs')->send();
-                return 0;
-            }
+            // // all other fields must be arrays of strings
+            // if (!is_clean_array($filter[$k])) {
+            //     $output->error('invalid inputs')->send();
+            //     return 0;
+            // }
         }
     }
 
@@ -483,21 +483,21 @@ function get_filter_count() {
     // get number of projects (filter)
     $project_query = array();
 
-    if (!in_array("All", $filter['ad_sector_names'])) {
+    if (!in_array("All", $filter['filters']['ad_sector_names'])) {
         $project_query['ad_sector_names'] = array(
-            '$in' => array_map($regex_map, $filter['ad_sector_names'])
+            '$in' => array_map($regex_map, $filter['filters']['ad_sector_names'])
         );
     }
 
-    if (!in_array("All", $filter['donors'])) {
+    if (!in_array("All", $filter['filters']['donors'])) {
         $project_query['donors'] = array(
-            '$in' => array_map($regex_map, $filter['donors'])
+            '$in' => array_map($regex_map, $filter['filters']['donors'])
         );
     }
 
-    if (!in_array("All", $filter['years'])) {
+    if (!in_array("All", $filter['filters']['years'])) {
         $project_query['transactions.transaction_year'] = array(
-            '$in' => array_map('intval', $filter['years'])
+            '$in' => array_map('intval', $filter['filters']['years'])
         );
     }
 

@@ -4,9 +4,9 @@ $(document).ready(function(){
 
 	total_data_limit = 10;
 
-	var d1_data_limit, project_count, location_count;
+	var release_data_limit, project_count, location_count;
 
-	d1_data_limit = 5;
+	release_data_limit = 5;
 	project_count = -1;
 	location_count = -1;
 
@@ -19,8 +19,8 @@ $(document).ready(function(){
 	// final output request
 	request = {
 		"boundary": {},
-		"d1_data": {},
-		"d2_data": {},
+		"release_data": [],
+		"raster_data": [],
 		"email": "",
 		"counts": {},
 		"total": 0,
@@ -32,7 +32,7 @@ $(document).ready(function(){
 	// used to determine if any request options have changes
 	tmp_request = 0;
 
-	data_list = [];
+	data_list = {};
 
 	// init boundary map
 	map_init();
@@ -220,7 +220,7 @@ $(document).ready(function(){
 	// d1 dataset selection
 	$('#d1_datasets').on('change', function () {
 		var d1_dataset_name = $(this).val();
-		var d1_dataset_data = data_list['d1'][d1_dataset_name];
+		var d1_dataset_data = data_list['release'][d1_dataset_name];
 
 		$('#d1_info_title').html(d1_dataset_data['title']);
 		$('#d1_info_version').html('Version ' + d1_dataset_data['version']);
@@ -263,8 +263,8 @@ $(document).ready(function(){
 
 		if (location_count == 0 ) {
 			console.log("no locations found matching selection")
-		} else if ($('.d1_data').length > d1_data_limit) {
-			console.log("you have reached the maximum number of selections ("+d1_data_limit+")")
+		} else if ($('.d1_data').length > release_data_limit) {
+			console.log("you have reached the maximum number of selections ("+release_data_limit+")")
 
 		} else if ($('#'+tmp_partial_hash).length != 0) {
 			console.log("already selected")
@@ -278,8 +278,9 @@ $(document).ready(function(){
 			// filter_selection['locations'] = location_count;
 
 			// filter_selection['type'] = "release";
-
-			request['d1_data'][tmp_partial_hash] = filter_selection;
+            filter_selection['name'] = tmp_partial_hash;
+            console.log(request)
+			request["release_data"].push(filter_selection);
 
 			var selection_html = build_d1_html(filter_selection, project_count, location_count, time_stamp, tmp_partial_hash);
 			$('#d1_selected').append(selection_html);
@@ -294,7 +295,15 @@ $(document).ready(function(){
 	$('#data_1').on('click', '.d1_remove', function () {
 		$parent_selection = $(this).closest('.d1_data');
 		var hash = $parent_selection.attr('id');
-		delete request['d1_data'][hash];
+
+        new_release_data = []
+        _.each(request['release_data'], function(dset, i) {
+            console.log(dset)
+            if (dset['name'] != hash) {
+                new_release_data.push(dset)
+            }
+        })
+        request['release_data'] = new_release_data;
 		delete request["counts"][hash];
 		sum_counts();
 		$parent_selection.remove();
@@ -434,7 +443,7 @@ $(document).ready(function(){
 
 		request["counts"] = {};
 
-		request['d1_data'] = {};
+		request['release_data'] = [];
 
 		$('#data_1 select').empty();
 		$('#d1_selected').empty();
@@ -454,25 +463,31 @@ $(document).ready(function(){
 			console.log(result);
 
 			// store data list in external variable for later reference
-			data_list = result;
-
-			$('#data_summary_available').html(_.keys(result['d1']).length + _.keys(result['d2']).length);
-			$('#data_summary_selected').html(0);
-
-			// d1
-			var d1_datasets_html = '<option value="" title="Select a dataset" disabled selected>Select a dataset</option>'
-			_.each(_.values(result['d1']), function(dset){
-				d1_datasets_html += '<option value='+dset['name']+'>'+dset['title']+' - Version '+dset['version']+'</option>';
-			})
-			$('#d1_datasets').append(d1_datasets_html)
+			data_list = {};
+            data_list['release'] = {};
+            data_list['raster'] = {};
 
 
-			// d2
-		    _.each(result['d2'], function(dset) {
-				var data_html = build_d2_html(dset);
-		    	$('#d2_bot').append(data_html);
-			})
-			// $('#d2_bot').sortable();
+            $('#data_summary_available').html(result.length);
+            $('#data_summary_selected').html(0);
+
+
+            var release_datasets_html = '<option value="" title="Select a dataset" disabled selected>Select a dataset</option>'
+            var raster_datasets_html = ''
+
+            _.each(result, function(dset) {
+                if (dset['type'] == 'release') {
+                    data_list['release'][dset['name']] = dset;
+                    release_datasets_html += '<option value='+dset['name']+'>'+dset['title']+' - Version '+dset['version']+'</option>';
+                } else if (dset['type'] == 'raster') {
+                    data_list['raster'][dset['name']] = dset;
+                    raster_datasets_html += build_d2_html(dset);
+                }
+            })
+
+            $('#d1_datasets').append(release_datasets_html)
+            $('#d2_bot').append(raster_datasets_html);
+            // $('#d2_bot').sortable();
 
 			sum_counts();
 		});
@@ -524,10 +539,11 @@ $(document).ready(function(){
 
 		filter_selection = {
 			"dataset": dataset,
-			"ad_sector_names": ad_sector_names,
-			"donors": donors,
-			"years": years,
-			"type": "release"
+            "filters": {
+    			"ad_sector_names": ad_sector_names,
+    			"donors": donors,
+    			"years": years
+            }
 		};
 
 		return filter_selection;
@@ -575,9 +591,9 @@ $(document).ready(function(){
 
 			    	data_html += '<div class="dataset_h3">Selection Filter</div>';
 			    	data_html += '<div class="dataset_h4">';
-			    	data_html += '<div class="dataset_meta_info">Sectors:<div>'+filter_selection['ad_sector_names']+'</div></div>';
-			    	data_html += '<div class="dataset_meta_info">Donors:<div>'+filter_selection['donors']+'</div></div>';
-			    	data_html += '<div class="dataset_meta_info">Years:<div>'+filter_selection['years']+'</div></div>';
+			    	data_html += '<div class="dataset_meta_info">Sectors:<div>'+filter_selection['filters']['ad_sector_names']+'</div></div>';
+			    	data_html += '<div class="dataset_meta_info">Donors:<div>'+filter_selection['filters']['donors']+'</div></div>';
+			    	data_html += '<div class="dataset_meta_info">Years:<div>'+filter_selection['filters']['years']+'</div></div>';
 
 			    	data_html += '</div>';
 		    	data_html += '</div>';
@@ -722,8 +738,8 @@ $(document).ready(function(){
 
 		console.log("build data request");
 
-		// request["d1_data"] = {};
-		request["d2_data"] = {};
+		// request["release_data"] = {};
+		request["raster_data"] = [];
 
 		for (var i=0, ix=_.keys(request["counts"]).length; i<ix; i++) {
 			var key = _.keys(request["counts"])[i]
@@ -731,12 +747,12 @@ $(document).ready(function(){
 			if (request["counts"][key] > 0) {
 
 				if ($dataset.data("type") == "release") {
-					// request["d1_data"][key] = {
+					// request["release_data"][key] = {
 
 					// }
 
 				} else if ($dataset.data("type") == "raster") {
-					request["d2_data"][key] = {
+					var tmp_raster = {
 						name: key,
 						title: $dataset.find('.dataset_title').html(),
 						base: $dataset.data("base"),
@@ -746,18 +762,24 @@ $(document).ready(function(){
 						files: []
 					}
 
-					request["d2_data"][key]["options"]["extract_types"] = [];
+					tmp_raster["options"]["extract_types"] = [];
 					$dataset.find('.dataset_opt').each(function () {
 						if ($(this).data("type") == "extract_types") {
 							$(this).find(":checked").each(function (){
-								request["d2_data"][key]["options"]["extract_types"].push($(this).val());
+								tmp_raster["options"]["extract_types"].push($(this).val());
 							})
 						}
 					})
 
 					$dataset.find('.dataset_temporal :checked').each(function () {
-						request["d2_data"][key]["files"].push({name:$(this).data("name"), path:$(this).data("path"), reliability:$(this).data("reliability")});
+						tmp_raster["files"].push({
+                            name:$(this).data("name"),
+                            path:$(this).data("path"),
+                            reliability:$(this).data("reliability")
+                        });
 					})
+
+                    request["raster_data"].push(tmp_raster);
 
 				}
 			}
@@ -774,7 +796,7 @@ $(document).ready(function(){
 		console.log("build checkout summary");
 
 		var tmp_d1_datasets = [];
-		_.each(request['d1_data'], function (x) {
+		_.each(request['release_data'], function (x) {
 			if (tmp_d1_datasets.indexOf(x['dataset']) == -1) {
 				tmp_d1_datasets.push(x['dataset']);
 			}
@@ -783,7 +805,7 @@ $(document).ready(function(){
 		// summary sentence
 		// *** update to include d1 data
 		$('#co_s1').html(request["total"]);
-		$('#co_s2').html(tmp_d1_datasets.length + _.keys(request["d2_data"]).length);
+		$('#co_s2').html(tmp_d1_datasets.length + request["raster_data"].length);
 		$('#co_s3').html(request["boundary"]["title"]);
 
 		// boundary
@@ -796,21 +818,21 @@ $(document).ready(function(){
 		var dset_html = '';
 
 		// d1 data
-		for (var i=0, ix=_.keys(request["d1_data"]).length; i<ix; i++) {
+		for (var i=0, ix=request["release_data"].length; i<ix; i++) {
 
-			var dset = _.values(request["d1_data"])[i];
+			var dset = request["release_data"][i];
 			dset_html += '<div class="co_dset">';
 
 		    	dset_html += '<table style="width:100%;"><tbody><tr>'
-			    	dset_html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+_.keys(request["d1_data"])[i].substr(0,7)+'...) </td>';
-			    	dset_html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
+			    	dset_html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+dset['name'].substr(0,7)+'...) </td>';
+			    	dset_html += '<td style="width:20%;">Type: <span>release</span></td>';
 			    	dset_html += '<td style="width:20%;">Items: <span>1</span></td>';
 		    	dset_html += '</tr>';
 
 
-		    	dset_html += '<tr><td><b>Sectors: </b>' + dset['ad_sector_names'].join(', ');
-		    	dset_html += '<tr><td><b>Donors: </b>' + dset['donors'].join(', ');
-		    	dset_html += '<tr><td><b>Years: </b>' + dset['years'].join(', ');
+		    	dset_html += '<tr><td><b>Sectors: </b>' + dset['filters']['ad_sector_names'].join(', ');
+		    	dset_html += '<tr><td><b>Donors: </b>' + dset['filters']['donors'].join(', ');
+		    	dset_html += '<tr><td><b>Years: </b>' + dset['filters']['years'].join(', ');
 
 		    	dset_html += '</td></tr>';
 		    	dset_html += '</tbody></table>';
@@ -819,8 +841,8 @@ $(document).ready(function(){
 		}
 
 		// d2 data
-		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
-			var dset = _.values(request["d2_data"])[i];
+		for (var i=0, ix=request["raster_data"].length; i<ix; i++) {
+			var dset = request["raster_data"][i];
 			dset_html += '<div class="co_dset">';
 
 		    	dset_html += '<table style="width:100%;"><tbody><tr>'

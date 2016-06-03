@@ -62,7 +62,7 @@ class DocBuilder():
         self.add_general()
         self.add_readme()
         self.add_overview()
-        self.add_meta()
+        # self.add_meta()
         # self.add_timeline()
         self.add_license()
         self.output_doc()
@@ -160,19 +160,18 @@ class DocBuilder():
         # datasets
 
         msr_field_id = 1
-        for i in sorted(self.request['d1_data'].keys()):
-        # for dset in self.request['d1_data'].values():
-            dset = self.request['d1_data'][i]
+        for dset in self.request['release_data']:
+        # for dset in self.request['release_data'].values():
 
             ptext = '<i>Dataset - '+dset['dataset']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
             data = [['Dataset ',dset['dataset']],
-                    ['Type', dset['type']],
-                    ['Donors', ', '.join(dset['donors'])],
-                    ['Sectors', ', '.join(dset['ad_sector_names'])],
-                    ['Years', ', '.join(dset['years'])],
+                    ['Type', 'release'],
+                    ['Donors', ', '.join(dset['filters']['donors'])],
+                    ['Sectors', ', '.join(dset['filters']['ad_sector_names'])],
+                    ['Years', ', '.join(dset['filters']['years'])],
                     ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
                     ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
                     ]
@@ -187,7 +186,7 @@ class DocBuilder():
             msr_field_id += 1
 
 
-        for dset in self.request['d2_data'].values():
+        for dset in self.request['raster_data']:
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
@@ -314,7 +313,7 @@ class DocBuilder():
         # full dataset meta
 
         d1_meta_log = []
-        for dset in self.request['d1_data'].values():
+        for dset in self.request['release_data']:
 
             if dset['dataset'] not in d1_meta_log:
                 d1_meta_log.append(dset['dataset'])
@@ -324,7 +323,7 @@ class DocBuilder():
                 self.Story.append(Spacer(1, 0.05*inch))
 
                 # build dataset meta table array
-                data = self.build_meta(dset['dataset'], dset['type'])
+                data = self.build_meta(dset['dataset'], 'release')
 
                 t = Table(data)
                 t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -334,7 +333,7 @@ class DocBuilder():
                 self.Story.append(Spacer(1, 0.1*inch))
 
 
-        for dset in self.request['d2_data'].values():
+        for dset in self.request['raster_data']:
 
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'

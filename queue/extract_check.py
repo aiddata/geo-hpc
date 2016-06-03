@@ -112,10 +112,6 @@ class ExtractItem():
 
         reliability_exists = os.path.isfile(reliability_path)
 
-        print "!!"
-        print extract_path
-        print reliability_path
-
 
         valid = False
         if (extract_exists and (not self.reliability or
@@ -137,10 +133,6 @@ class ExtractItem():
 
         file_info, file_tuple = self.__exists_in_file()
         (file_exists, file_extract_exists, file_reliability_exists) = file_tuple
-
-        print "!"
-        print db_tuple
-        print file_tuple
 
         valid_exists = False
         valid_completed = False
@@ -192,7 +184,7 @@ class ExtractItem():
         search = self.c_extracts.find_one(query)
 
         if search is not None:
-             if search['status'] == 0 and search['priority'] < 0:
+            if search['status'] == 0 and search['priority'] < 0:
                 # update priority
                 update = self.c_extracts.update(query,
                                                 {'$set': {'priority': 0}})

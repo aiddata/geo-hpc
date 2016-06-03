@@ -12,8 +12,7 @@ from request_tools import QueueToolBox
 
 # =============================================================================
 
-print '\n------------------------------------------------'
-print 'Processing Script'
+print '\nProcessing Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
 
@@ -42,7 +41,7 @@ else:
     #   submit time
     # returns status of search and request data objecft
 
-    gr_status_1, request_objects_1 = False, None #queue.get_requests(-1, 0)
+    gr_status_1, request_objects_1 = queue.get_requests(-1, 0)
 
     if not gr_status_1:
         warnings.warn('could not get check requests for status "-1"')
@@ -65,13 +64,15 @@ else:
        sys.exit("Request queue is empty")
 
 
+print '\n---------------------------------------'
 for request_obj in request_objects:
 
     request_id = str(request_obj['_id'])
 
-    print '\nRequest id: ' + request_id
-    print request_obj
+    print 'Request id: ' + request_id
+    print '\n %s' % request_obj
 
+    print '\nBoundary: %s' % request_obj['boundary']['name']
 
     status = queue.get_status(request_id)
 
@@ -79,26 +80,22 @@ for request_obj in request_objects:
         warnings.warn("error retrieving status of request")
         continue
 
-    status = status[1]
-    print "Current status: " + str(status)
-
-
+    request_status = status[1]
 
     # set status 2 (no email)
     update_status = queue.update_status(request_id, 2)
     if not update_status[0]:
         warnings.warn("unable to update status of request (2)")
         continue
-    print "processing request"
 
 
-    status, extract_count, msr_count, merge_list = queue.check_request(request_obj, dry_run=False)
-    print extract_count, msr_count
+    cr_status, missing_items, merge_list = queue.check_request(request_obj, dry_run=False)
 
-    new_items = extract_count + msr_count
+    if not cr_status:
+        warnings.warn("unable to run check_request")
+        continue
 
-
-    if status == -2:
+    if request_status == -1:
 
         # send email
         mail_to = request_obj['email']
@@ -117,7 +114,7 @@ for request_obj in request_objects:
         mail_status = queue.send_email(mail_to, mail_subject, mail_message)
 
 
-    if new_items == 0:
+    if missing_items == 0:
 
         # build request
         result = queue.build_output(request_id, request_obj, merge_list)
@@ -162,11 +159,13 @@ for request_obj in request_objects:
         print "request not ready"
 
 
+    print '---------------------------------------'
 
     # queue.update_status(request_id, -2)
 
 
 print "\nFinished checking requests"
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
+print '\n======================================='
 
 

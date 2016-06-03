@@ -269,8 +269,6 @@ class QueueToolBox():
     def check_request(self, request, dry_run=False):
         """check entire request object for cache
         """
-        print "check_request"
-
         extract_base = os.path.join("/sciclone/aiddata10/REU/outputs/",
                                     self.branch, 'extracts',
                                     self.extract_version.replace('.', '_'))
@@ -281,25 +279,24 @@ class QueueToolBox():
         extract_count = 0
         msr_count = 0
 
-        msr_field_id = 1
+        # id used for field names in results
+        # eg: "msr_1s", "msr_1r", etc.
+        msr_id = 1
 
-        for name in sorted(request['d1_data'].keys()):
-            print name
-
-            raw_data = request['d1_data'][name]
+        print "\nchecking aid data..."
+        for raw_data in request['release_data']:
+            print ''
 
             tmp_filters = {
                 fk: fv
-                for fk, fv in raw_data.iteritems()
-                if fk not in ['dataset', 'type']
-                and not any([fvx in ['All', 'None', None] for fvx in fv])
+                for fk, fv in raw_data['filters'].iteritems()
+                if not any([fvx in ['All', 'None', None] for fvx in fv])
             }
 
-            print tmp_filters
 
             data = {
                 'dataset': raw_data['dataset'],
-                'type': raw_data['type'],
+                'type': 'release',
                 'resolution': self.msr_resolution,
                 'version': self.msr_version,
                 'filters': tmp_filters
@@ -309,8 +306,9 @@ class QueueToolBox():
             # get hash
             data_hash = json_sha1_hash(data)
 
-            print data
-            print data_hash
+            print '\t' + data_hash
+            print '\t %s' % data
+            print '\t----------'
 
             msr_item = MSRItem(data["dataset"],
                                data_hash,
@@ -320,6 +318,8 @@ class QueueToolBox():
             # check if extract exists in queue and is completed
             msr_exists, msr_completed = msr_item.exists()
 
+            print '\tmsr exists: %s' % msr_exists
+            print '\tmsr completed: %s' % msr_completed
 
             if msr_completed == True:
 
@@ -333,41 +333,46 @@ class QueueToolBox():
 
                 msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
 
+                print '\tmsr extract exists: %s' % msr_ex_exists
+                print '\tmsr extract completed: %s' % msr_ex_completed
 
                 if not msr_ex_completed:
                     extract_count += 1
-                    if not msr_ex_exists and not dry_run:
+                    if not dry_run:
                         # add to extract queue
                         msr_ex_item.add_to_queue("msr")
 
                 else:
                     # add to merge list
                     merge_list.append(
-                        ('d1_data', msr_ex_item.extract_path, msr_field_id))
+                        ('release_data', msr_ex_item.extract_path, msr_id))
                     merge_list.append(
-                        ('d1_data', msr_ex_item.reliability_path, msr_field_id))
+                        ('release_data', msr_ex_item.reliability_path, msr_id))
 
             else:
 
                 msr_count += 1
                 extract_count += 1
-                if not msr_exists and not dry_run:
+                if not dry_run:
                     # add to msr tracker
                     msr_item.add_to_queue()
 
 
+            msr_id += 1
 
-            msr_field_id += 1
 
-        print extract_count, msr_count
-
-        for name, data in request["d2_data"].iteritems():
-            print name
+        print "\nchecking external data..."
+        for data in request["raster_data"]:
+            name = data['name']
 
             for i in data["files"]:
 
                 for extract_type in data["options"]["extract_types"]:
-
+                    print ''
+                    print '\tdataset: %s' % name
+                    print '\tfile: %s' % i['name']
+                    print '\textract type: %s' % extract_type
+                    print '\t----------'
 
                     extract_item = ExtractItem(request["boundary"]["name"],
                                                data["name"],
@@ -380,29 +385,38 @@ class QueueToolBox():
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = extract_item.exists()
 
+                    print '\textract exists: %s' % extract_exists
+                    print '\textract completed: %s' % extract_completed
+
                     # incremenet count if extract is not completed
                     # (whether it exists in queue or not)
-                    if extract_completed != True:
+                    if not extract_completed:
                         extract_count += 1
 
                         # add to extract queue if it does not already
                         # exist in queue
-                        if not extract_exists and not dry_run:
+                        if not dry_run:
                             extract_item.add_to_queue("external")
 
                     else:
 
                         # add to merge list
                         merge_list.append(
-                            ('d2_data', extract_item.extract_path, None))
+                            ('raster_data', extract_item.extract_path, None))
 
                         if i["reliability"]:
                             merge_list.append(
-                                ('d2_data', extract_item.reliability_path, None))
+                                ('raster_data', extract_item.reliability_path, None))
 
 
+        print ''
+        print 'missing msr count: %s' % msr_count
+        print 'missing extract count: %s' % extract_count
+        print ''
 
-        return 1, extract_count, msr_count, merge_list
+        missing_items = extract_count + msr_count
+
+        return 1, missing_items, merge_list
 
 
 
@@ -476,11 +490,11 @@ class QueueToolBox():
             # make sure file exists
             if os.path.isfile(result_csv):
 
-                if merge_class == 'd2_data':
+                if merge_class == 'raster_data':
                     # get field name from file
                     result_field =  os.path.splitext(os.path.basename(result_csv))[0]
 
-                elif merge_class == 'd1_data':
+                elif merge_class == 'release_data':
 
                     csv_basename = os.path.splitext(os.path.basename(result_csv))[0]
 

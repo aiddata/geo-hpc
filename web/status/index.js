@@ -307,7 +307,7 @@ $(document).ready(function(){
 		console.log("build_request_summary");
 
 		var tmp_d1_datasets = [];
-		_.each(request['d1_data'], function (x) {
+		_.each(request['release_data'], function (x) {
 			if (tmp_d1_datasets.indexOf(x['dataset']) == -1) {
 				tmp_d1_datasets.push(x['dataset']);
 			}
@@ -318,7 +318,7 @@ $(document).ready(function(){
 		// summary sentence
 		html += '<div class="rs_summary">';
 			html += '<div class="rs_s1">Total items: ' + request["total"] + '</div>';
-			html += '<div class="rs_s2">Datasets: ' + (tmp_d1_datasets.length + _.keys(request["d2_data"]).length) + '</div>';
+			html += '<div class="rs_s2">Datasets: ' + (tmp_d1_datasets.length + request["raster_data"].length) + '</div>';
 			html += '<div class="rs_s3">Boundary: ' + request["boundary"]["title"] + '</div>';
 		html += '</div><br>';
 
@@ -334,20 +334,20 @@ $(document).ready(function(){
 		html += '<div class"=rs_datasets">Datasets<br>';
 
 		// d1 data
-		for (var i=0, ix=_.keys(request["d1_data"]).length; i<ix; i++) {
-			var dset = _.values(request["d1_data"])[i];
+		for (var i=0, ix=request["release_data"].length; i<ix; i++) {
+			var dset = request["release_data"][i];
 			html += '<br><div class="rs_dset">';
 
 		    	html += '<table style="width:100%;"><tbody><tr>'
-			    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+_.keys(request["d1_data"])[i].substr(0,7)+'...) </td>';
+			    	html += '<td style="width:60%;"><span style="font-weight:bold;">' + dset['dataset'] + '</span> ('+dset['name'].substr(0,7)+'...) </td>';
 			    	html += '<td style="width:20%;">Type: <span>' + dset['type'] + '</span></td>';
 			    	html += '<td style="width:20%;">Items: <span>1</span></td>';
 		    	html += '</tr>';
 
 
-		    	html += '<tr><td><b>Sectors: </b>' + dset['ad_sector_names'].join(', ');
-		    	html += '<tr><td><b>Donors: </b>' + dset['donors'].join(', ');
-		    	html += '<tr><td><b>Years: </b>' + dset['years'].join(', ');
+		    	html += '<tr><td><b>Sectors: </b>' + dset['filters']['ad_sector_names'].join(', ');
+		    	html += '<tr><td><b>Donors: </b>' + dset['filters']['donors'].join(', ');
+		    	html += '<tr><td><b>Years: </b>' + dset['filters']['years'].join(', ');
 
 		    	html += '</td></tr>';
 		    	html += '</tbody></table>';
@@ -356,8 +356,8 @@ $(document).ready(function(){
 		}
 
 		// d2 data
-		for (var i=0, ix=_.keys(request["d2_data"]).length; i<ix; i++) {
-			var dset = _.values(request["d2_data"])[i];
+		for (var i=0, ix=request["raster_data"].length; i<ix; i++) {
+			var dset = request["raster_data"][i];
 			html += '<br><div class="rs_dset">';
 
 		    	html += '<table style="width:100%;"><tbody><tr>'
