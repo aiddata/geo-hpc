@@ -87,7 +87,7 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=24:00:00
 #PBS -q alpha
 #PBS -j oe
-#PBS -o $src/log/extract/jobs/$timestamp.$jobtime.extract.log
+#PBS -o $src/log/extract/jobs/$timestamp.$jobtime.extract.job
 #PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
