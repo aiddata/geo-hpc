@@ -530,13 +530,14 @@ class ExtractObject():
                         feat['properties'][colname] = 'NA'
 
 
-                    feat['properties']['exfield_extract'] = feat['properties'][colname]
-                    del feat['properties'][colname]
+                    # feat['properties']['exfield_extract'] = feat['properties'][colname]
+                    # del feat['properties'][colname]
 
                 else:
                     warnings.warn('Extract field missing from feature properties')
                     print str(feat['properties'])
-                    feat['properties']['exfield_extract'] = 'NA'
+                    # feat['properties']['exfield_extract'] = 'NA'
+                    feat['properties'][colname] = 'NA'
 
                 yield feat
 
@@ -646,11 +647,15 @@ class ExtractObject():
 
                 # calculate reliability statistic
                 ex_data['exfield_max'] = max_dollars
-                ex_data['exfield_sum'] = ex_data['exfield_extract']
+                # ex_data['exfield_sum'] = ex_data['exfield_extract']
                 try:
-                    ex_data['exfield_extract'] = ex_data['exfield_sum'] / ex_data['exfield_max']
+                    # ex_data['exfield_extract'] = ex_data['exfield_sum'] / ex_data['exfield_max']
+                    ex_data['exfield_reliability'] = ex_data['exfield_sum'] / ex_data['exfield_max']
+
                 except ZeroDivisionError:
-                    ex_data['exfield_extract'] = 1
+                    # ex_data['exfield_extract'] = 1
+                    ex_data['exfield_reliability'] = 1
+
 
                 rel_csvwriter.writerow(ex_data)
 
@@ -951,31 +956,31 @@ class MergeObject():
                 if not isinstance(merge, pd.DataFrame):
                     merge = result_df.copy(deep=True)
 
-                    if tmp_field.endswith("c"):
-                        cat_fields = [
-                            cname for cname in list(merge.columns)
-                            if cname.startswith("exfield_")
-                        ]
-                        for c in cat_fields:
-                            new_cat_field = tmp_field + c[5:]
-                            merge.rename(columns={c: new_cat_field},
-                                         inplace=True)
-                    else:
-                        merge.rename(columns={"exfield_extract": tmp_field},
+                    # if tmp_field.endswith("c"):
+                    cat_fields = [
+                        cname for cname in list(merge.columns)
+                        if cname.startswith("exfield_")
+                    ]
+                    for c in cat_fields:
+                        new_cat_field = tmp_field + c[5:]
+                        merge.rename(columns={c: new_cat_field},
                                      inplace=True)
+                    # else:
+                    #     merge.rename(columns={"exfield_extract": tmp_field},
+                    #                  inplace=True)
 
                 else:
-                    if tmp_field.endswith("c"):
-                        cat_fields = [
-                            cname for cname in list(result_df.columns)
-                            if cname.startswith("exfield_")
-                        ]
-                        for c in cat_fields:
-                            new_cat_field = tmp_field + c[5:]
-                            merge[new_cat_field] = result_df[c]
+                    # if tmp_field.endswith("c"):
+                    cat_fields = [
+                        cname for cname in list(result_df.columns)
+                        if cname.startswith("exfield_")
+                    ]
+                    for c in cat_fields:
+                        new_cat_field = tmp_field + c[5:]
+                        merge[new_cat_field] = result_df[c]
 
-                    else:
-                        merge[tmp_field] = result_df["exfield_extract"]
+                    # else:
+                    #     merge[tmp_field] = result_df["exfield_extract"]
 
 
 
