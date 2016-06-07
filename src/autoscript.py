@@ -423,6 +423,10 @@ def tmp_worker_job(self, task_id):
 
         # check if geom / geom hash exists
         search = c_features.find_one({'hash': geom_hash})
+
+        print "!!!"
+        print search
+
         exists = search is not None
         if exists:
 
