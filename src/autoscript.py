@@ -385,9 +385,15 @@ def tmp_worker_job(self, task_id):
 
 
     # update extract result database
-    for feat in run_data:
+    for idx, feat in enumerate(run_data):
         geom = feat['geometry']
         geom_hash = json_sha1_hash(geom)
+
+        # if 'id' in feat:
+        #     feature_id = feat['id']
+        # else:
+        #     feature_id = idx
+
 
         feature_properties = feat['properties']
         # feature_properties = {}
@@ -461,7 +467,7 @@ def tmp_worker_job(self, task_id):
         else:
 
             feature_insert = {
-                'geom': geom,
+                'geometry': geom,
                 'hash': geom_hash,
                 'properties': {bnd_name: feature_properties},
                 'datasets': [bnd_name],
