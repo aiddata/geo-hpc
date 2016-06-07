@@ -215,6 +215,8 @@ for i in extract_list:
     else:
 
         tmp['data_name'] = i['raster'][:i["raster"].rindex("_")]
+        print i['raster']
+        print tmp['data_name']
 
         data_info = c_asdf.find(
             {'name': tmp['data_name']},
