@@ -758,21 +758,13 @@ if data_package["file_format"] in ['raster', 'vector']:
                 range_start, range_end, range_type = ru.get_date_range(date_str)
 
             # name (unique among this dataset's resources - not same name as dataset)
-            if data_package["file_format"] == 'raster':
-                resource_tmp["name"] = data_package["options"]["mini_name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
-
-            else:
-                resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
+            resource_tmp["name"] = data_package["name"] +"_"+ date_str["year"] + date_str["month"] + date_str["day"]
 
         else:
             range_start = 10000101
             range_end = 99991231
 
-            if data_package["file_format"] == 'raster':
-                resource_tmp["name"] = data_package["options"]["mini_name"]
-
-            else:
-                resource_tmp["name"] = data_package["name"]
+            resource_tmp["name"] = data_package["name"] + "_none"
 
 
         # file date range
