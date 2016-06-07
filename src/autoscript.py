@@ -424,8 +424,6 @@ def tmp_worker_job(self, task_id):
         # check if geom / geom hash exists
         search = c_features.find_one({'hash': geom_hash})
 
-        print "!!!"
-        print search
 
         exists = search is not None
         if exists:
@@ -441,7 +439,7 @@ def tmp_worker_job(self, task_id):
             extract_exists = extract_search is not None
 
             if extract_exists:
-                search_params = extract_search_params,
+                search_params = extract_search_params
                 update_params = {
                     '$set': {'extracts.$': feature_extracts[0]}
                 }
@@ -451,7 +449,6 @@ def tmp_worker_job(self, task_id):
                 update_params = {
                     '$push': {'extracts': {'$each': feature_extracts}}
                 }
-
 
 
             if not bnd_name in search['datasets']:
