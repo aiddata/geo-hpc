@@ -519,7 +519,7 @@ class ExtractObject():
 
         else:
             for feat in stats:
-                colname = 'ad_' + self._extract_type
+                colname = 'exfield_' + self._extract_type
                 if colname in feat['properties'].keys():
                     try:
                         if feat['properties'][colname] in [None, 'nan', 'NaN'] or isnan(feat['properties'][colname]):
@@ -530,13 +530,13 @@ class ExtractObject():
                         feat['properties'][colname] = 'NA'
 
 
-                    feat['properties']['ad_extract'] = feat['properties'][colname]
+                    feat['properties']['exfield_extract'] = feat['properties'][colname]
                     del feat['properties'][colname]
 
                 else:
                     warnings.warn('Extract field missing from feature properties')
                     print str(feat['properties'])
-                    feat['properties']['ad_extract'] = 'NA'
+                    feat['properties']['exfield_extract'] = 'NA'
 
                 yield feat
 
@@ -561,7 +561,7 @@ class ExtractObject():
 
         else:
             raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
-                            prefix="ad_", stats=self._extract_type,
+                            prefix="exfield_", stats=self._extract_type,
                             all_touched=True, weights=False,
                             geojson_out=True)
 
@@ -609,7 +609,7 @@ class ExtractObject():
 
                 # reliability header
                 if self._reliability:
-                    rel_fieldnames = fieldnames + ['ad_sum', 'ad_max']
+                    rel_fieldnames = fieldnames + ['exfield_sum', 'exfield_max']
                     rel_csvwriter = csv.DictWriter(rel_fh,
                                                    delimiter=str(","),
                                                    fieldnames=rel_fieldnames)
@@ -645,12 +645,12 @@ class ExtractObject():
 
 
                 # calculate reliability statistic
-                ex_data['ad_max'] = max_dollars
-                ex_data['ad_sum'] = ex_data['ad_extract']
+                ex_data['exfield_max'] = max_dollars
+                ex_data['exfield_sum'] = ex_data['exfield_extract']
                 try:
-                    ex_data['ad_extract'] = ex_data['ad_sum'] / ex_data['ad_max']
+                    ex_data['exfield_extract'] = ex_data['exfield_sum'] / ex_data['exfield_max']
                 except ZeroDivisionError:
-                    ex_data['ad_extract'] = 1
+                    ex_data['exfield_extract'] = 1
 
                 rel_csvwriter.writerow(ex_data)
 
@@ -961,7 +961,7 @@ class MergeObject():
                             merge.rename(columns={c: new_cat_field},
                                          inplace=True)
                     else:
-                        merge.rename(columns={"ad_extract": tmp_field},
+                        merge.rename(columns={"exfield_extract": tmp_field},
                                      inplace=True)
 
                 else:
@@ -975,7 +975,7 @@ class MergeObject():
                             merge[new_cat_field] = result_df[c]
 
                     else:
-                        merge[tmp_field] = result_df["ad_extract"]
+                        merge[tmp_field] = result_df["exfield_extract"]
 
 
 
