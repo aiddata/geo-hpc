@@ -93,6 +93,7 @@ if extract_limit == -1:
 client = pymongo.MongoClient(config.server)
 c_asdf = client[config.asdf_db].data
 c_extracts = client[config.extracts_db].extracts
+c_features = client[config.features_db].features
 
 # -----------------------------------------------------------------------------
 
@@ -376,13 +377,39 @@ def tmp_worker_job(self, task_id):
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - running extract: ' + output)
 
-    run_status, run_statment = exo.run_extract(raster, output)
-
-    if run_status != 0:
-        raise Exception(run_statment)
+    run_data, run_statment = exo.run_extract(raster, output)
 
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - ' + run_statment)
+
+
+    # update extract result database
+    for feat in run_data:
+        geom = feat['geometry']
+        geom_hash = json_sha1_hash(geom)
+
+        feature_extract = {}
+
+        # check if geom / geom hash exists
+        search = c_features.find_one({hash: geom_hash})
+        exists = not search is None
+        if exists:
+            feature_update = {'$push': {'extracts': feature_extract}}
+            if not bnd_name in search['datasets']:
+                # add dataset to datasets
+                feature_update['$push']['datasets'] = bnd_name
+                feature_update['$push']['properties'] = {'?':'?'}
+
+            # update - push extract results to extracts array
+            update = c_features.update({'hash': geom_hash}, feature_update)
+        else:
+            feature_insert = {
+                'geom':,
+                'hash': geom_hash,
+                'properties'
+            }
+            # insert
+            insert =
 
 
     # update status of item in extract queue
@@ -398,6 +425,17 @@ def tmp_worker_job(self, task_id):
     return 0
 
 
+def json_sha1_hash(hash_obj):
+    hash_json = json.dumps(hash_obj,
+                           sort_keys = True,
+                           ensure_ascii=True,
+                           separators=(', ',': '))
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_json)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
+
+
 # init / run job
 
 job.set_task_list(qlist)
@@ -409,3 +447,4 @@ job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
 job.run()
+

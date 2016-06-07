@@ -510,7 +510,7 @@ class ExtractObject():
         if self._extract_type == "categorical":
             for feat in stats:
                 for i in self._cmap.values():
-                    colname = 'excat_' + i
+                    colname = 'exfield_' + i
                     if (colname not in feat['properties'].keys() or
                             isnan(feat['properties'][colname])):
                         feat['properties'][colname] = 0
@@ -554,7 +554,7 @@ class ExtractObject():
 
         if self._extract_type == "categorical":
             raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
-                            prefix="excat_", stats="count",
+                            prefix="exfield_", stats="count",
                             categorical=True, category_map=self._cmap,
                             all_touched=True, weights=True,
                             geojson_out=True)
@@ -568,21 +568,19 @@ class ExtractObject():
 
         stats = self.format_extract(raw_stats)
 
-        self.export_extract(stats, output)
+        stats_copy = self.export_extract(stats, output)
 
 
-        # except Exception as extract_error:
+        # except Exception as e:
         #     print "error running extract for " + output
-        #     print extract_error
         #     if os.path.isfile(output+".csv"):
         #         os.remove(output+".csv")
-
-        #     return (1, 'Error runing extract')
+        #     raise Exception(e)
 
 
         Te_run = int(time.time() - Te_start)
 
-        return (0, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
+        return (stats_copy, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
 
 
     def export_extract(self, stats, output):
@@ -655,6 +653,9 @@ class ExtractObject():
                     ex_data['ad_extract'] = 1
 
                 rel_csvwriter.writerow(ex_data)
+
+
+            yield feat
 
 
         extract_fh.close()
@@ -953,7 +954,7 @@ class MergeObject():
                     if tmp_field.endswith("c"):
                         cat_fields = [
                             cname for cname in list(merge.columns)
-                            if cname.startswith("excat_")
+                            if cname.startswith("exfield_")
                         ]
                         for c in cat_fields:
                             new_cat_field = tmp_field + c[5:]
@@ -967,7 +968,7 @@ class MergeObject():
                     if tmp_field.endswith("c"):
                         cat_fields = [
                             cname for cname in list(result_df.columns)
-                            if cname.startswith("excat_")
+                            if cname.startswith("exfield_")
                         ]
                         for c in cat_fields:
                             new_cat_field = tmp_field + c[5:]
