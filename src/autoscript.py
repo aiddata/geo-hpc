@@ -6,6 +6,8 @@ import re
 import errno
 import time
 import pymongo
+import json
+import hashlib
 
 import extract_utility
 
