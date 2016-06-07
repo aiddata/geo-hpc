@@ -395,12 +395,12 @@ def tmp_worker_job(self, task_id):
         if task['classification'] == 'msr' and task['reliability']:
             ex_method = 'msr'
             ex_value = {
-                'sum': feat['properties']['adex_sum'],
-                'reliability': feat['properties']['adex_reliability']
+                'sum': feat['properties']['exfield_sum'],
+                'reliability': feat['properties']['exfield_reliability']
             }
         else:
             ex_method = extract_type
-            ex_value = feat['properties']['adex_' + extract_type]
+            ex_value = feat['properties']['exfield_' + extract_type]
 
 
         temporal = raster_name[raster_name.rindex('_')+1:]
