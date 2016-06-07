@@ -406,7 +406,7 @@ def tmp_worker_job(self, task_id):
             'dataset': data_name,
             'temporal': temporal,
             'method': ex_method,
-            'version': version
+            'version': version,
             'value': ex_value
         }]
 
