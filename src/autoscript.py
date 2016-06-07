@@ -214,13 +214,12 @@ for i in extract_list:
 
     else:
 
-        tmp['data_mini'] = i['raster'].split('_')[0]
+        tmp['data_name'] = i['raster'][:i["raster"].rindex("_")]
 
         data_info = c_asdf.find(
-            {'options.mini_name': tmp['data_mini']},
+            {'name': tmp['data_name']},
             {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
 
-        tmp['data_name'] = data_info['name']
         tmp['data_absolute'] = (
             data_info['base'] + '/'+
             [
@@ -366,10 +365,7 @@ def tmp_worker_job(self, task_id):
     raster = data_absolute
 
     # generate output path
-    output = output_dir + "/" + raster_name
-
-    if not "_" in raster_name or task['classification'] == "msr":
-        output += "_"
+    output = output_dir + "/" + raster_name + "_"
 
     output += exo._extract_options[exo._extract_type]
 
@@ -383,33 +379,93 @@ def tmp_worker_job(self, task_id):
            ' - ' + run_statment)
 
 
+
     # update extract result database
     for feat in run_data:
         geom = feat['geometry']
         geom_hash = json_sha1_hash(geom)
 
-        feature_extract = {}
+        feature_properties = feat['properties']
+        # feature_properties = {}
+
+        if task['classification'] == 'msr' and task['reliability']:
+            ex_method = 'msr'
+            ex_value = {
+                'sum': feat['properties']['adex_sum'],
+                'reliability': feat['properties']['adex_reliability']
+            }
+        else:
+            ex_method = extract_type
+            ex_value = feat['properties']['adex_' + extract_type]
+
+
+        temporal = raster_name[raster_name.rindex('_')+1:]
+
+        feature_extracts = [{
+            'raster': raster_name,
+            'dataset': data_name,
+            'temporal': temporal,
+            'method': ex_method,
+            'version': version
+            'value': ex_value
+        }]
+
 
         # check if geom / geom hash exists
         search = c_features.find_one({hash: geom_hash})
-        exists = not search is None
+        exists = search is not None
         if exists:
-            feature_update = {'$push': {'extracts': feature_extract}}
+
+            extract_search_params = {
+                'hash': geom_hash,
+                'extracts.raster': raster_name,
+                'extracts.method': ex_method,
+                'extracts.version': version
+            }
+
+            extract_search = c_features.find_one(extract_search_params)
+            extract_exists = extract_search is not None
+
+            if extract_exists:
+                search_params = extract_search_params,
+                update_params = {
+                    '$set': {'extracts.$': feature_extracts[0]}
+                }
+
+            else:
+                search_params = {'hash': geom_hash}
+                update_params = {
+                    '$push': {'extracts': {'$each': feature_extracts}}
+                }
+
+
+
             if not bnd_name in search['datasets']:
                 # add dataset to datasets
-                feature_update['$push']['datasets'] = bnd_name
-                feature_update['$push']['properties'] = {'?':'?'}
+                if not '$push' in update_params:
+                    update_params['$push'] = {}
+                if not '$set' in update_params:
+                    update_params['$set'] = {}
 
-            # update - push extract results to extracts array
-            update = c_features.update({'hash': geom_hash}, feature_update)
+                update_params['$push']['datasets'] = bnd_name
+                update_params['$set']['properties.' + bnd_name] = feature_properties
+
+
+            update = c_features.update_one(search_params, update_params)
+
+
         else:
+
             feature_insert = {
-                'geom':,
+                'geom': geom,
                 'hash': geom_hash,
-                'properties'
+                'properties': {bnd_name: feature_properties},
+                'datasets': [bnd_name],
+                'extracts': feature_extracts
             }
             # insert
-            insert =
+            insert = c_features.insert(feature_insert)
+
 
 
     # update status of item in extract queue
