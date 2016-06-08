@@ -773,7 +773,7 @@ class MergeObject():
                                 'cache',
                                 data_name,
                                 extract_type,
-                                data_mini +'_'+ ''.join(j[0]) + extract_abbr + '.csv'
+                                data_name +'_'+ ''.join(j[0]) +'_'+ extract_abbr + '.csv'
                             )
                             for j in i['qlist']
                         ]
@@ -786,7 +786,7 @@ class MergeObject():
                                 'cache',
                                 data_name,
                                 extract_type,
-                                data_mini +'_'+ ''.join(j[0]) + 'r.csv'
+                                data_name +'_'+ ''.join(j[0]) + 'r.csv'
                             )
                             for j in i['qlist']
                             if i['settings']['reliability'] == True
