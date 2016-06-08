@@ -182,9 +182,12 @@ def tmp_worker_job(self, task_id):
            ' - running extract: ' + output)
 
     run_data, run_statment = exo.run_extract(raster, output)
-
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - ' + run_statment)
+
+
+    for _ in run_data: pass
+
 
     return 0
 
