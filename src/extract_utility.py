@@ -883,6 +883,11 @@ class MergeObject():
                             and os.path.isfile(extract_dir +"/"+ fname)
                             and fname.endswith(".csv")
                         ]
+
+                        print "???????"
+                        print dset_years
+                        print os.listdir(extract_dir)
+
                         rlist = sorted(rlist)
 
                         # exit if no extracts found
