@@ -173,8 +173,8 @@ def tmp_worker_job(self, task_id):
         raster = exo._base_path +"/"+ item[1]
 
     # generate output path
-    output = (output_dir + "/" + data_mini +"_"+
-              ''.join([str(e) for e in item[0]]) +
+    output = (output_dir + "/" + data_name +"_"+
+              ''.join([str(e) for e in item[0]]) +"_"+
               exo._extract_options[exo._extract_type])
 
     # run extract
