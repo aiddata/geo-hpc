@@ -389,11 +389,7 @@ def tmp_worker_job(self, task_id):
         geom = feat['geometry']
         geom_hash = json_sha1_hash(geom)
 
-        # if 'id' in feat:
-        #     feature_id = feat['id']
-        # else:
-        #     feature_id = idx
-
+        # feature_id = idx
 
         feature_properties = feat['properties']
         # feature_properties = {}
@@ -470,6 +466,7 @@ def tmp_worker_job(self, task_id):
             feature_insert = {
                 'geometry': geom,
                 'hash': geom_hash,
+                # 'id': feature_id,
                 'properties': {bnd_name: feature_properties},
                 'datasets': [bnd_name],
                 'extracts': feature_extracts

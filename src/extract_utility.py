@@ -970,7 +970,7 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
-                        new_cat_field = tmp_field + c[c.index('_')+1:]
+                        new_cat_field = tmp_field + c[c.index('_'):]
                         merge.rename(columns={c: new_cat_field},
                                      inplace=True)
                     # else:
@@ -984,7 +984,7 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
-                        new_cat_field = tmp_field + c[c.index('_')+1:]
+                        new_cat_field = tmp_field + c[c.index('_'):]
                         merge[new_cat_field] = result_df[c]
 
                     # else:
