@@ -876,17 +876,20 @@ class MergeObject():
                                      extract_type+")")
 
 
+                        # !!!
+                        # This year filter may be broken
+                        # not fixing it because we are probably going to
+                        # remove or atleast change the current file name convention.
+                        # !!!
                         # find and sort all relevant extract files
                         rlist = [
                             fname for fname in os.listdir(extract_dir)
-                            if (len(fname) == 10 or fname[5:9] in dset_years)
+                            if fname[fname[:fname.rindex('_')].rindex('_')+1:] in dset_years
                             and os.path.isfile(extract_dir +"/"+ fname)
                             and fname.endswith(".csv")
                         ]
 
-                        print "???????"
-                        print dset_years
-                        print os.listdir(extract_dir)
+
 
                         rlist = sorted(rlist)
 
@@ -913,8 +916,6 @@ class MergeObject():
 
         """
         # Ts = int(time.time())
-        print "!!!!!!"
-        print self.merge_list
 
         for i in self.merge_list:
             bnd_name = i['bnd_name']
@@ -969,7 +970,7 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
-                        new_cat_field = tmp_field + c[5:]
+                        new_cat_field = tmp_field + c[c.index('_')+1:]
                         merge.rename(columns={c: new_cat_field},
                                      inplace=True)
                     # else:
@@ -983,7 +984,7 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
-                        new_cat_field = tmp_field + c[5:]
+                        new_cat_field = tmp_field + c[c.index('_')+1:]
                         merge[new_cat_field] = result_df[c]
 
                     # else:
