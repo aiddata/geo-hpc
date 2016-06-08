@@ -879,10 +879,11 @@ class MergeObject():
                         # find and sort all relevant extract files
                         rlist = [
                             fname for fname in os.listdir(extract_dir)
-                             if (len(fname) == 10 or fname[5:9] in dset_years)
-                             and os.path.isfile(extract_dir +"/"+ fname)
-                             and fname.endswith(".csv")
+                            if (len(fname) == 10 or fname[5:9] in dset_years)
+                            and os.path.isfile(extract_dir +"/"+ fname)
+                            and fname.endswith(".csv")
                         ]
+                        print rlist
                         rlist = sorted(rlist)
 
                         # exit if no extracts found
