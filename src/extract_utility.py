@@ -883,7 +883,6 @@ class MergeObject():
                             and os.path.isfile(extract_dir +"/"+ fname)
                             and fname.endswith(".csv")
                         ]
-                        print rlist
                         rlist = sorted(rlist)
 
                         # exit if no extracts found
@@ -909,6 +908,8 @@ class MergeObject():
 
         """
         # Ts = int(time.time())
+        print "!!!!!!"
+        print self.merge_list
 
         for i in self.merge_list:
             bnd_name = i['bnd_name']
