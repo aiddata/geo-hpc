@@ -181,13 +181,10 @@ def tmp_worker_job(self, task_id):
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - running extract: ' + output)
 
-    run_status, run_statment = exo.run_extract(raster, output)
+    run_data, run_statment = exo.run_extract(raster, output)
 
-    if run_status == 0:
-        print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
-               ' - ' + run_statment)
-    else:
-        raise Exception(run_statment)
+    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
+           ' - ' + run_statment)
 
     return 0
 
