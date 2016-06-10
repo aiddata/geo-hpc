@@ -523,10 +523,12 @@ class ExtractObject():
 
         Te_run = int(time.time() - Te_start)
 
-        statement = ('completed extract in %s seconds' +
-                     '\n\traster: %s\n\tvector: %s\n\tmethod: %s' %
-                     (str(Te_run), str(raster), str(self._vector_path),
-                      str(self._extract_type)))
+        try:
+            statement = ('completed extract in %s seconds' +
+                         '\n\traster: %s\n\tvector: %s\n\tmethod: %s' %
+                         (Te_run, raster, self._vector_path, self._extract_type))
+        except:
+            print self._extract_type
 
         return (stats, statement)
 
