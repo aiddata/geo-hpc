@@ -523,8 +523,11 @@ class ExtractObject():
 
         Te_run = int(time.time() - Te_start)
 
-        return (stats, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
+        statement = ('completed extract in %s seconds' +
+                     '\n\traster: %s\n\tvector: %s\n\tmethod: %s' %
+                     (Te_run, raster, self.vector_path, self.extract_type))
 
+        return (stats, statement)
 
     def format_extract(self, stats):
 
