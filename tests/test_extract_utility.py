@@ -37,16 +37,6 @@ def test_set_vector_path():
 
 
 
-def test_set_vector_extension():
-    # basic functionality for valid extensions
-    for i in exo._vector_extensions:
-        exo._set_vector_extension('test' + i)
-
-    # bad extension
-    with pytest.raises(Exception):
-        exo._set_vector_extension('test.test')
-
-
 def test_check_file_mask():
 
     exo._base_path = None
