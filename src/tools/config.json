@@ -3,13 +3,6 @@
         "active": 1,
         "name": "master",
         "server": "labs.aiddata.org",
-        "release_db": "releases",
-        "tracker_db": "trackers",
-        "asdf_db": "asdf",
-        "features_db": "asdf",
-        "extracts_db": "asdf",
-        "msr_db": "asdf",
-        "det_db": "det",
         "release_gadm": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",

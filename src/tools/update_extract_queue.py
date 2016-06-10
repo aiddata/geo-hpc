@@ -39,8 +39,8 @@ import copy
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
-c_asdf = client[config.asdf_db].data
-c_extracts = client[config.extracts_db].extracts
+c_asdf = client.asdf.data
+c_extracts = client.asdf.extracts
 
 version = config.versions["extract-scripts"]
 

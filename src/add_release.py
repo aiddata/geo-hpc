@@ -213,7 +213,7 @@ def run(path=None, generator="auto", client=None, config=None):
 
     # connect to database and asdf collection
     client = pymongo.MongoClient(config.server)
-    db_asdf = client[config.asdf_db]
+    db_asdf = client.asdf
 
 
     # prep collection if needed

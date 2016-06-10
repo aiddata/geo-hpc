@@ -350,8 +350,8 @@ print "\nWriting datapackage to system..."
 
 # connect to database and asdf collection
 client = pymongo.MongoClient(config.server)
-db_asdf = client[config.asdf_db]
-db_tracker = client[config.tracker_db]
+db_asdf = client.asdf
+db_tracker = client.trackers
 
 
 gadm_col_str = "data"

@@ -31,11 +31,12 @@ if config.connection_status != 0:
 
 # ----------------------------------------------------------------------------
 
+
 import pymongo
 
 client = pymongo.MongoClient(config.server)
 
-extracts = client[config.extracts_db].extracts
+extracts = client.asdf.extracts
 
 request_count = extracts.find({'status':0}).count()
 

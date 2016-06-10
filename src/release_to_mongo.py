@@ -29,10 +29,10 @@ def run(name=None, path=None, client=None, config=None):
 
 
 
-    releases = client[config.release_db]
+    db_releases = client.releases
 
-    releases.drop_collection(name)
-    release_collection = releases[name]
+    db_releases.drop_collection(name)
+    c_release = db_releases[name]
 
     files = ["projects", "locations", 'transactions']
 
@@ -75,7 +75,7 @@ def run(name=None, path=None, client=None, config=None):
 
 
         # add to collection
-        release_collection.insert(project)
+        c_release.insert(project)
 
 
 

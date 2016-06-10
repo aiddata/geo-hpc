@@ -36,7 +36,7 @@ import pymongo
 
 client = pymongo.MongoClient(config.server)
 
-msr = client[config.msr_db].msr
+msr = client.asdf.msr
 
 request_count = msr.find({'status':0}).count()
 

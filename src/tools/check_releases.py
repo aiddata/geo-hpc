@@ -68,7 +68,7 @@ class ReleaseTools():
 
         self.client = pymongo.MongoClient(self.config.server)
 
-        self.asdf = self.client[self.config.asdf_db].data
+        self.asdf = self.client.asdf.data
 
         self.is_connected = True
 

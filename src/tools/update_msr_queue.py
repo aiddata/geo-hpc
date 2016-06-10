@@ -64,9 +64,9 @@ print latest_releases
 
 
 client = pymongo.MongoClient(config.server)
-c_asdf = client[config.asdf_db].data
-c_msr = client[config.msr_db].msr
-db_releases = client[config.release_db]
+c_asdf = client.asdf.data
+c_msr = client.asdf.msr
+db_releases = client.releases
 
 version = config.versions["mean-surface-rasters"]
 

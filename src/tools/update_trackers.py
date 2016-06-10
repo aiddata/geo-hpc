@@ -44,8 +44,8 @@ import rasterstats as rs
 
 # connect to mongodb
 client = pymongo.MongoClient(config.server)
-c_asdf = client[config.asdf_db].data
-db_trackers = client[config.tracker_db]
+c_asdf = client.asdf.data
+db_trackers = client.trackers
 
 # lookup all boundary datasets
 bnds = c_asdf.find({"type": "boundary", "options.group_class": "actual"})

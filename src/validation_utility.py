@@ -83,8 +83,7 @@ class ValidationTools():
 
         # init mongo
         self.client = pymongo.MongoClient()
-        self.db = self.client.asdf
-        self.c_data = self.db.data
+        self.c_data = self.client.asdf.data
 
         # group / group_class variables
         self.group_exists = False
@@ -101,7 +100,7 @@ class ValidationTools():
 
 
     def datapackage_exists(self, base):
-        """Check if datapackage exists in mongo for given base path 
+        """Check if datapackage exists in mongo for given base path
 
         Args:
             base (str): base path used as unique id in mongo
@@ -112,7 +111,7 @@ class ValidationTools():
         """
         search = self.c_data.find({"base": base}).limit(1)
 
-        exists = search.count() > 0       
+        exists = search.count() > 0
 
         print exists
 
@@ -137,7 +136,7 @@ class ValidationTools():
     #     return exists, datapackage
 
 
-    # set file format 
+    # set file format
     def update_file_format(self, val):
         """Set file format."
 
@@ -166,7 +165,7 @@ class ValidationTools():
         return os.path.isdir(str(val)), str(val), self.error["is_dir"]
 
 
-    # should we check that there are not consection non-alphanumeric chars 
+    # should we check that there are not consection non-alphanumeric chars
     # eg: two underscores, underscore follow by period, etc.
     def name(self, val):
         """Check if name is unique and valid.
@@ -196,11 +195,11 @@ class ValidationTools():
 
 
         val = val.lower()
-        
+
         if self.interface and self.user_update and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
-        
-        
+
+
         # check mongodb
         if not "name" in self.data or ("name" in self.data and val != self.data["name"]):
             unique_search = self.c_data.find({"name": val}).limit(1)
@@ -209,14 +208,14 @@ class ValidationTools():
 
             if not unique and unique_search[0]["base"] != self.data["base"]:
                 return False, None, "Name matches an existing dataset (names must be unique)"
-        
+
 
         return True, val, None
 
 
     def mini_name(self, val):
-        """Validate mini_name for dataset types which require it 
-        
+        """Validate mini_name for dataset types which require it
+
         Used for any dataset which will be given to used in extract format (rasters, points, maybe vectors)
 
         All characters in mini name must be alphanumeric.
@@ -225,7 +224,7 @@ class ValidationTools():
         All remaining characters will be converted to lower case.
 
         Final mini name must not exist in data collection.
- 
+
         Args:
             val (str): mini name
         Returns:
@@ -241,11 +240,11 @@ class ValidationTools():
             return False, None, "Mini name must be at least 4 (valid) chars"
 
         val = val.lower()
-        
+
         if self.interface and self.user_update and not p.user_prompt_use_input(value=val):
             return False, None, "User rejected input"
-        
-        
+
+
         # check mongodb
         if not 'options' in self.data or not "mini_name" in self.data['options'] or ("mini_name" in self.data['options'] and val != self.data['options']["mini_name"]):
             unique_search = self.c_data.find({"options.mini_name": val}).limit(1)
@@ -254,7 +253,7 @@ class ValidationTools():
 
             if not unique and unique_search[0]["base"] != self.data["base"]:
                 return False, None, "Mini name matches an existing dataset (names must be unique)"
-        
+
 
         return True, val, None
 
@@ -345,7 +344,7 @@ class ValidationTools():
         """Validate factor.
 
         Must be a float (or be able to be converted to one)
-        
+
         Args:
             val (): x
         Returns:
@@ -432,11 +431,11 @@ class ValidationTools():
 
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
-       
+
         # if script is in auto mode then it assumes you want to continue with group name and with existing actual
         if not exists and self.interface and not p.user_prompt_bool("Group \""+val+"\" does NOT exist. Are you sure you want to create it?" ):
             return False, None, "group did not pass due to user request - new group"
-        
+
         elif exists:
             actual_exists = self.c_data.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
 
@@ -464,19 +463,19 @@ class ValidationTools():
 
     def run_group_check(self, group):
         """Run check on a boundary group to determine parameters used in group_check selection
-        
-        Parameters which are set: 
+
+        Parameters which are set:
             group_exists (bool): if the group exists
             actual_exists (bool): if the actual boundary for the group exists yet
             is_actual (bool): if this dataset is the boundary used to define the group
-        
+
         Args:
             group (str): group name
         """
-        
+
         # check if boundary with group exists
         exists = self.c_data.find({"type": "boundary", "options.group": group}).limit(1).count() > 0
-       
+
         self.actual_exists = {}
         self.actual_exists[group] = False
 
@@ -491,4 +490,4 @@ class ValidationTools():
                 # case where updating actual
                 if search_actual[0]["base"] == self.data["base"]:
                     self.is_actual = True
-            
+
