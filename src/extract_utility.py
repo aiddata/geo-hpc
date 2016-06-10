@@ -503,7 +503,8 @@ class ExtractObject():
         else:
             if self._extract_type == 'reliability':
                 tmp_extract_type = 'sum'
-            else tmp_extract_type = self._extract_type
+            else:
+                tmp_extract_type = self._extract_type
 
             raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
                             prefix="exfield_", stats=tmp_extract_type,
