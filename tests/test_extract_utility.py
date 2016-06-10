@@ -162,12 +162,14 @@ def test_extract_type():
     for i in exo._extract_options.keys():
         if i == "categorical":
             exo.set_extract_type(i, {'a': 1})
+            assert exo._extract_type == i
+
         elif i == "reliability":
             pass
         else:
             exo.set_extract_type(i)
+            assert exo._extract_type == i
 
-        assert exo._extract_type == i
 
     with pytest.raises(Exception):
         exo.set_extract_type("test")
