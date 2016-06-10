@@ -111,8 +111,8 @@ if job.rank == 0:
 
     # import pymongo
     client = pymongo.MongoClient(config.server)
-    c_asdf = client[config.asdf_db].data
-    c_msr = client[config.msr_db].msr
+    c_asdf = client.asdf.data
+    c_msr = client.asdf.msr
 
     tmp_v1 = config.versions["mean-surface-rasters"]
     tmp_v2 = get_version()
