@@ -607,13 +607,9 @@ class ExtractObject():
                         feat['properties'][colname] = 'NA'
 
 
-                    # feat['properties']['exfield_extract'] = feat['properties'][colname]
-                    # del feat['properties'][colname]
-
                 else:
                     warnings.warn('Extract field missing from feature properties')
                     print str(feat['properties'])
-                    # feat['properties']['exfield_extract'] = 'NA'
                     feat['properties'][colname] = 'NA'
 
                 yield feat
@@ -838,8 +834,6 @@ class MergeObject():
                                          "does not exists (data_name: " +
                                          data_name+")")
 
-
-
                         # find and sort all relevant extract files
                         rlist = [
                             fname for fname in os.listdir(extract_dir)
@@ -872,17 +866,19 @@ class MergeObject():
         """Run merge
 
         """
-        # Ts = int(time.time())
-
         for i in self.merge_list:
             bnd_name = i['bnd_name']
             file_list = i['file_list']
 
             print "Starting merge process for bnd_name = " + bnd_name
 
-            # if interface ask for output path
-            if self.interface == True:
 
+            if not self.interface:
+                merge_output_csv =  (self.merge_output_dir + "/merge_" +
+                                     bnd_name + ".csv")
+
+            else:
+                # if interface ask for output path
                 while True:
                     # ask for path
                     sys.stdout.write("Absolute file path for output? \n> ")
@@ -904,13 +900,7 @@ class MergeObject():
                                          "exist.\n")
 
 
-            else:
-                merge_output_csv =  (self.merge_output_dir + "/merge_" +
-                                     bnd_name + ".csv")
-
-
             merge = 0
-
             for result_csv in file_list:
 
                 result_df = pd.read_csv(result_csv, quotechar='\"',
@@ -930,7 +920,6 @@ class MergeObject():
                         merge.rename(columns={c: tmp_field},
                                      inplace=True)
 
-
                 else:
                     # if tmp_field.endswith("c"):
                     cat_fields = [
@@ -939,8 +928,6 @@ class MergeObject():
                     ]
                     for c in cat_fields:
                         merge[tmp_field] = result_df[c]
-
-
 
 
             if isinstance(merge, pd.DataFrame):
@@ -954,9 +941,6 @@ class MergeObject():
                 print ('\tWarning: no extracts merged for bnd_name = ' +
                        bnd_name)
 
-
-        # T_run = int(time.time() - Ts)
-        # print 'Merge Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
 
 
 

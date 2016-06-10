@@ -375,6 +375,7 @@ def tmp_worker_job(self, task_id):
 
 ###
 
+
     # generate output path
     temporal = raster_name[raster_name.rindex('_')+1:]
     file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
