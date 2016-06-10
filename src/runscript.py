@@ -86,6 +86,8 @@ def tmp_master_final(self):
 
 def tmp_worker_job(self, task_id):
 
+    worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_id)
+
     task = self.task_list[task_id]
 
     dataset_index = task[0]
@@ -167,19 +169,20 @@ def tmp_worker_job(self, task_id):
     else:
         raster = exo._base_path +"/"+ item[1]
 
+    raster_name = data_name +"_"+ ''.join([str(e) for e in item[0]])
+
     # generate output path
-    output = (output_dir + "/" + data_name +"_"+
-              ''.join([str(e) for e in item[0]]) +"_"+
+    output = (output_dir + "/" + raster_name +"_"+
               exo._extract_options[exo._extract_type])
 
     # run extract
-    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
-           ' - running extract: ' + output)
+    print (worker_tagline + 'running extract: ' +
+           '\n\traster: (%s) %s\n\tvector: (%s) %s\n\tmethod: %s ' %
+           (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
-    run_data, run_statment = exo.run_extract(raster, output)
+    run_data, run_statment = exo.run_extract(raster)
 
-    print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
-           ' - ' + run_statment)
+    print (worker_tagline + run_statment)
 
 
     run_data = exo.export_to_csv(run_data)
