@@ -211,7 +211,7 @@ class QueueToolBox():
     def send_email(self, receiver, subject, message):
 
         reply_to = 'AidData <data@aiddata.org>'
-        sender = 'aiddatatest2@gmail.com'
+        sender = 'noreply@aiddata.wm.edu'
 
         try:
             pw_search = self.c_email.find({"address": sender},
