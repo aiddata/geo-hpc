@@ -167,9 +167,6 @@ class ExtractObject():
     Attributes (variable):
 
         _vector_path (str): path to vector file
-        _vector_extension (str): extension for vector file
-        _vector_info (Tuple(str, str)): standardized tuple containing vector
-                                        path/layer info
 
         _extract_type (str): selected extract type (mean, max, etc.)
 
@@ -198,13 +195,15 @@ class ExtractObject():
         "sum": "s",
         "min": "m",
         "max": "x",
-        "std": "d"
+        "std": "d",
+
+        "reliability": "r"
 
         # "median": "?"
         # "majority": "?"
         # "minority": "?"
         # "unique": "u"
-        # "range": "r"
+        # "range": "?"
 
         # "percentile_?": "?"
         # "custom_?": "?"
@@ -223,8 +222,6 @@ class ExtractObject():
         self._builder = builder
 
         self._vector_path = None
-        self._vector_extension = None
-        self._vector_info = (None, None)
 
         self._extract_type = None
 
@@ -238,6 +235,7 @@ class ExtractObject():
 
         self._reliability = False
         self._reliability_geojson = None
+
         # self._raster_path = None
 
 
@@ -249,41 +247,69 @@ class ExtractObject():
         Args:
             value (str): vector file path
         """
+        if not value.endswith(tuple(self._vector_extensions)):
+            raise Exception("invalid vector extension (" + value + ")")
+
         if not os.path.isfile(value):
             raise Exception("set_vector_path: vector does not exist " +
                             "(" + value + ")")
 
         self._vector_path = value
-        self._set_vector_extension(value)
 
-        vector_dirname = os.path.dirname(value)
-        vector_filename, self._vector_extension = os.path.splitext(
-            os.path.basename(value))
-
-        # break vector down into path and layer
-        # different for shapefiles and geojsons
-        if self._vector_extension == ".geojson":
-            self._vector_info = (value, "OGRGeoJSON")
-
-        elif self._vector_extension == ".shp":
-            self._vector_info = (vector_dirname, vector_filename)
-
-        else:
-            raise Exception("invalid vector extension " +
-                            "(" + self._vector_extension + ")")
+        # vector_dirname = os.path.dirname(value)
+        # vector_filename, vector_extension = os.path.splitext(
+        #     os.path.basename(value))
 
 
-    def _set_vector_extension(self, value):
-        """Set vector file extension.
+    def set_base_path(self, value):
+        """Set data base path.
 
         Args:
-            value (str): vector file extension
+            value (str): base path where year/day directories for processed
+                         data are located
         """
-         # check extension
-        if not value.endswith(tuple(self._vector_extensions)):
-            raise Exception("invalid vector extension (" + value + ")")
+        # validate base_path
+        if not os.path.exists(value):
+            raise Exception("base_path is not valid ("+ value +")")
 
-        self._vector_extension = value
+        self._base_path = value
+
+        self._check_file_mask()
+        self._check_reliability()
+
+
+    def _set_reliability(self, value):
+        if value == "reliability":
+            self._reliability = True
+            self._check_reliability()
+        else:
+            self._reliability = False
+
+
+    def _check_reliability(self):
+        """Verify that files needed to run reliability exist.
+        """
+        if self._reliability != False and self._base_path != None:
+            if os.path.isfile(self._base_path):
+                base_path_dir = os.path.dirname(self._base_path)
+            else:
+                base_path_dir = self._base_path
+            if not os.path.isfile(base_path_dir + "/unique.geojson"):
+                raise Exception("check_reliability: reliability geojson" +
+                                " does not exist.")
+            else:
+                self._reliability_geojson = base_path_dir + "/unique.geojson"
+
+
+    def set_years(self, value):
+        """Set years.
+
+        If year string is empty, accept all years found when searching for data.
+
+        Args:
+            value (str): year string
+        """
+        self._years = get_years(value)
 
 
     def _check_file_mask(self):
@@ -304,56 +330,6 @@ class ExtractObject():
                 self._base_path.endswith(tuple(self._raster_extensions))):
             raise Exception("check_file_mask: invalid use of temporal " +
                             "file_mask based on base_path")
-
-    def _check_reliability(self):
-        """Verify that files needed to run reliability exist.
-        """
-        if self._reliability != False and self._base_path != None:
-            if os.path.isfile(self._base_path):
-                base_path_dir = os.path.dirname(self._base_path)
-            else:
-                base_path_dir = self._base_path
-            if not os.path.isfile(base_path_dir + "/unique.geojson"):
-                raise Exception("check_reliability: reliability geojson" +
-                                " does not exist.")
-            else:
-                self._reliability_geojson = base_path_dir + "/unique.geojson"
-
-
-    def set_base_path(self, value):
-        """Set data base path.
-
-        Args:
-            value (str): base path where year/day directories for processed
-                         data are located
-        """
-        # validate base_path
-        if not os.path.exists(value):
-            raise Exception("base_path is not valid ("+ value +")")
-
-        self._base_path = value
-
-        self._check_file_mask()
-        self._check_reliability()
-
-
-    def set_reliability(self, value):
-        if value in [True, 1, "True"]:
-            self._reliability = True
-            self._check_reliability()
-        else:
-            self._reliability = False
-
-
-    def set_years(self, value):
-        """Set years.
-
-        If year string is empty, accept all years found when searching for data.
-
-        Args:
-            value (str): year string
-        """
-        self._years = get_years(value)
 
 
     def set_file_mask(self, value):
@@ -415,6 +391,8 @@ class ExtractObject():
 
         self._extract_type = str(value)
         self._cmap = category_map
+
+        self._set_reliability(self._extract_type)
 
 
     def gen_data_list(self):
@@ -505,6 +483,48 @@ class ExtractObject():
     #     """
 
 
+    def run_extract(self, raster):
+        """Run python extract using rasterstats
+
+        Args:
+            raster (str): path of raster file relative to base path
+            output (str): absolute path for csv output of extract
+        """
+        Te_start = int(time.time())
+
+        # try:
+
+        if self._extract_type == "categorical":
+            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
+                            prefix="exfield_", stats="count",
+                            categorical=True, category_map=self._cmap,
+                            all_touched=True, geojson_out=True)
+
+        else:
+            if self._extract_type == 'reliability':
+                tmp_extract_type = 'sum'
+            else tmp_extract_type = self._extract_type
+
+            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
+                            prefix="exfield_", stats=tmp_extract_type,
+                            all_touched=True, geojson_out=True)
+
+
+        stats = self.format_extract(raw_stats)
+
+        # except Exception as e:
+        #     print ("error running extract for " +
+        #           self._vector_path + ", " +
+        #           raster + ", " +
+        #           self._extract_type)
+        #     raise Exception(e)
+
+
+        Te_run = int(time.time() - Te_start)
+
+        return (stats, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
+
+
     def format_extract(self, stats):
 
         if self._extract_type == "categorical":
@@ -516,6 +536,56 @@ class ExtractObject():
                         feat['properties'][colname] = 0
 
                 yield feat
+
+        if self._extract_type == "reliability":
+            # reliability geojson (mean surface features with aid info)
+            rgeo = fiona.open(self._reliability_geojson)
+
+            for feat in stats:
+                if 'exfield_sum' in feat['properties'].keys():
+                    try:
+                        is_na = (feat['properties']['exfield_sum'] in [None, 'nan', 'NaN'] or
+                                 isnan(feat['properties']['exfield_sum']))
+                        if is_na:
+                            feat['properties']['exfield_sum'] = 'NA'
+                            feat['properties']['exfield_maxaid'] = 'NA'
+                            feat['properties']['exfield_reliability'] = 'NA'
+
+                        else:
+                            feat_geom = shape(feat['geometry'])
+
+                            max_dollars = 0
+                            for r in rgeo:
+                                r_intersects = shape(r['geometry']).intersects(feat_geom)
+
+                                if r_intersects:
+                                    unique_dollars = r['properties']['unique_dollars']
+                                    max_dollars += unique_dollars
+
+
+                            # calculate reliability statistic
+                            feat['properties']['exfield_maxaid'] = max_dollars
+                            try:
+                                rval = feat['properties']['exfield_sum'] / feat['properties']['exfield_maxaid']
+                                feat['properties']['exfield_reliability'] = rval
+
+                            except ZeroDivisionError:
+                                feat['properties']['exfield_reliability'] = 1
+
+
+                    except:
+                        print feat['properties']['exfield_sum']
+                        print type(feat['properties']['exfield_sum'])
+                        feat['properties']['exfield_sum'] = 'NA'
+
+                else:
+                    warnings.warn('Reliability field (sum) missing from feature properties')
+                    feat['properties']['exfield_sum'] = 'NA'
+                    feat['properties']['exfield_maxaid'] = 'NA'
+                    feat['properties']['exfield_reliability'] = 'NA'
+
+                yield feat
+
 
         else:
             for feat in stats:
@@ -542,55 +612,9 @@ class ExtractObject():
                 yield feat
 
 
-    def run_extract(self, raster, output):
-        """Run python extract using rasterstats
-
-        Args:
-            raster (str): path of raster file relative to base path
-            output (str): absolute path for csv output of extract
-        """
-        Te_start = int(time.time())
-
-        # try:
-
-        if self._extract_type == "categorical":
-            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
-                            prefix="exfield_", stats="count",
-                            categorical=True, category_map=self._cmap,
-                            all_touched=True, weights=True,
-                            geojson_out=True)
-
-        else:
-            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
-                            prefix="exfield_", stats=self._extract_type,
-                            all_touched=True, weights=False,
-                            geojson_out=True)
-
-
-        stats = self.format_extract(raw_stats)
-
-        stats_copy = self.export_extract(stats, output)
-
-
-        # except Exception as e:
-        #     print "error running extract for " + output
-        #     if os.path.isfile(output+".csv"):
-        #         os.remove(output+".csv")
-        #     raise Exception(e)
-
-
-        Te_run = int(time.time() - Te_start)
-
-        return (stats_copy, 'completed extract ('+ output +') in '+ str(Te_run) +' seconds')
-
-
-    def export_extract(self, stats, output):
+    def export_to_csv(self, stats, output):
 
         extract_fh = open(output + ".csv", "w")
-
-        # open reliability csv
-        if self._reliability:
-            rel_fh = open(output[:-1] + "r.csv", "w")
 
         import csv
 
@@ -600,21 +624,11 @@ class ExtractObject():
 
             if header:
                 header = False
-
-                fieldnames = sorted(list(ex_data.keys()), key=str)
-
+                fieldnames = list(ex_data.keys())
                 extract_csvwriter = csv.DictWriter(extract_fh,
                                                    delimiter=str(","),
                                                    fieldnames=fieldnames)
                 extract_csvwriter.writeheader()
-
-                # reliability header
-                if self._reliability:
-                    rel_fieldnames = fieldnames + ['exfield_sum', 'exfield_max']
-                    rel_csvwriter = csv.DictWriter(rel_fh,
-                                                   delimiter=str(","),
-                                                   fieldnames=rel_fieldnames)
-                    rel_csvwriter.writeheader()
 
             try:
                 extract_csvwriter.writerow(ex_data)
@@ -625,50 +639,15 @@ class ExtractObject():
 
                 extract_csvwriter.writerow(ex_data)
 
-
-            # run reliability calcs and write to csv
-            if self._reliability:
-
-                # reliability geojson
-                # mean surface features with aid info
-                rgeo = fiona.open(self._reliability_geojson)
-
-                feat_id = feat['id']
-                feat_geom = shape(feat['geometry'])
-
-                max_dollars = 0
-                for r in rgeo:
-                    r_intersects = shape(r['geometry']).intersects(feat_geom)
-
-                    if r_intersects:
-                        unique_dollars = r['properties']['unique_dollars']
-                        max_dollars += unique_dollars
-
-
-                # calculate reliability statistic
-                ex_data['exfield_max'] = max_dollars
-                # ex_data['exfield_sum'] = ex_data['exfield_extract']
-                try:
-                    # ex_data['exfield_extract'] = ex_data['exfield_sum'] / ex_data['exfield_max']
-                    ex_data['exfield_reliability'] = ex_data['exfield_sum'] / ex_data['exfield_max']
-
-                except ZeroDivisionError:
-                    # ex_data['exfield_extract'] = 1
-                    ex_data['exfield_reliability'] = 1
-
-
-                rel_csvwriter.writerow(ex_data)
-
-
             yield feat
-
 
         extract_fh.close()
 
-        # close reliability csv
-        if self._reliability:
-            rel_fh.close()
 
+    def export_to_db(stats):
+        for feat in stats:
+
+            yield feat
 
 
 # -----------------------------------------------------------------------------
@@ -776,20 +755,6 @@ class MergeObject():
                                 data_name +'_'+ ''.join(j[0]) +'_'+ extract_abbr + '.csv'
                             )
                             for j in i['qlist']
-                        ]
-
-                        # add reliability calc results
-                        bnd_merge_list += [
-                            os.path.join(
-                                output_base,
-                                bnd_name,
-                                'cache',
-                                data_name,
-                                extract_type,
-                                data_name +'_'+ ''.join(j[0]) + 'r.csv'
-                            )
-                            for j in i['qlist']
-                            if i['settings']['reliability'] == True
                         ]
 
 

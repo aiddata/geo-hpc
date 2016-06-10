@@ -114,27 +114,16 @@ for dataset_options in job_json['data']:
                 sys.exit("builder.py has terminated : user's request.")
 
 
-        if ('reliability' in dataset_options and
-                dataset_options['reliability'] in [True, 'True', 1]):
+        if (('extract_type' in dataset_options and
+                dataset_options['extract_type'] == 'reliability') or
+                job_json['defaults']['extract_type'] == 'reliability'):
 
             if not os.path.isfile(msr_dir + '/unique.geojson'):
-
-                if user_prompt_bool("MSR reliability geojson not found. " +
-                                        "Run without reliability calcs? [y/n]"):
-                    tmp_config['reliability'] = False
-
-                else:
-                    sys.exit("builder.py has terminated : user's request.")
-            else:
-                tmp_config['reliability'] = True
-
-        else:
-            tmp_config['reliability'] = False
+                raise Exception("MSR reliability geojson not found.")
 
 
         tmp_config['name'] = dataset_name
         tmp_config['data_base'] = msr_dir + '/raster.tif'
-        tmp_config['data_mini'] = 'msr_' + str(msr_count)
         tmp_config["file_mask"] = "None"
 
         msr_count += 1
@@ -143,7 +132,6 @@ for dataset_options in job_json['data']:
         dataset_name = dataset_options['name']
         print dataset_name
 
-        tmp_config['reliability'] = False
 
         # make sure dataset exists in datasets_json
         try:
@@ -154,7 +142,7 @@ for dataset_options in job_json['data']:
 
         except KeyError:
 
-            dataset_fields = ['data_base', 'data_name', 'data_mini', 'file_mask']
+            dataset_fields = ['data_base', 'data_name', 'file_mask']
             if all([i in dataset_options for i in dataset_fields]):
 
                 for j in dataset_fields:
@@ -190,7 +178,6 @@ for dataset_options in job_json['data']:
     exo.set_vector_path(tmp_config['bnd_absolute'])
 
     exo.set_base_path(tmp_config['data_base'])
-    exo.set_reliability(tmp_config['reliability'])
 
     exo.set_years(tmp_config['years'])
 

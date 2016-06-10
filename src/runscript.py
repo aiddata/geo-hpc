@@ -8,7 +8,6 @@ import time
 import json
 
 import extract_utility
-
 import mpi_utility
 
 job = mpi_utility.NewParallel()
@@ -105,17 +104,14 @@ def tmp_worker_job(self, task_id):
     #   of inputs)
     # * = managed by ExtractObject
 
-    # absolute path of boundary file *
-    bnd_absolute = settings['bnd_absolute']
-
     # boundary name
     bnd_name = settings['bnd_name']
 
+    # absolute path of boundary file *
+    bnd_absolute = settings['bnd_absolute']
+
     # folder which contains data (or data file) *
     data_base = settings['data_base']
-
-    # dataset mini_name
-    data_mini = settings['data_mini']
 
     # string containing year information *
     year_string = settings['years']
@@ -138,7 +134,6 @@ def tmp_worker_job(self, task_id):
     exo.set_vector_path(bnd_absolute)
 
     exo.set_base_path(data_base)
-    exo.set_reliability(settings['reliability'])
 
     exo.set_years(year_string)
 
@@ -182,14 +177,18 @@ def tmp_worker_job(self, task_id):
            ' - running extract: ' + output)
 
     run_data, run_statment = exo.run_extract(raster, output)
+
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - ' + run_statment)
 
 
+    run_data = exo.export_to_csv(run_data)
+    # run_data = exo.export_to_db(run_data)
+
     for _ in run_data: pass
 
-
     return 0
+
 
 
 # init / run job

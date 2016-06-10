@@ -5,12 +5,10 @@ import os
 import re
 import errno
 import time
+
 import pymongo
-import json
-import hashlib
 
 import extract_utility
-
 import mpi_utility
 
 job = mpi_utility.NewParallel()
@@ -172,12 +170,6 @@ for i in range(extract_limit):
     extract_list.append(request)
 
 
-# extract_list = client[config.extracts_db].extracts.find(
-#     {'status':0}).sort([
-#         ("priority", -1),
-#         ("submit_time", 1)
-#     ]).limit(extract_limit)
-
 
 # -----------------------------------------------------------------------------
 
@@ -209,7 +201,7 @@ for i in extract_list:
         rhash = rname[rname.rindex('_')+1:]
 
         tmp['data_name'] = rdataset
-        tmp['data_absolute'] = os.path.join("/sciclone/aiddata10/REU/outputs/",
+        tmp['data_path'] = os.path.join("/sciclone/aiddata10/REU/outputs/",
                                             branch , "msr", "done",
                                             rdataset, rhash, "raster.tif")
         tmp['file_mask'] = "None"
@@ -224,7 +216,7 @@ for i in extract_list:
             {'name': tmp['data_name']},
             {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
 
-        tmp['data_absolute'] = (
+        tmp['data_path'] = (
             data_info['base'] + '/'+
             [
                 j['path'] for j in data_info['resources']
@@ -238,10 +230,6 @@ for i in extract_list:
 
     tmp['output_base'] = general_output_base
 
-    if 'reliability' in i:
-        tmp['reliability'] = i['reliability']
-    else:
-        tmp['reliability'] = False
 
     qlist.append(tmp)
 
@@ -309,18 +297,11 @@ def tmp_worker_job(self, task_id):
     # absolute path of boundary file *
     bnd_absolute = task['bnd_absolute']
 
-    # boundary name
-    bnd_name = task['bnd_name']
+    # raster file or dataset directory *
+    data_path = task['data_path']
 
-    # folder which contains data (or data file) *
-    data_absolute = task['data_absolute']
-
-    data_name = task['data_name']
-
-    raster_name = task['raster_name']
-
-    # dataset mini_name
-    # data_mini = task['data_mini']
+    # extract type *
+    extract_type = task['extract_type']
 
     # # string containing year information *
     # year_string = task['years']
@@ -328,10 +309,13 @@ def tmp_worker_job(self, task_id):
     # # file mask for dataset files *
     # file_mask = task['file_mask']
 
-    # extract type *
-    extract_type = task['extract_type']
 
-    # output folder
+    # boundary, dataset and raster names
+    bnd_name = task['bnd_name']
+    data_name = task['data_name']
+    raster_name = task['raster_name']
+
+    # output directory
     output_base = task['output_base']
 
 
@@ -341,13 +325,12 @@ def tmp_worker_job(self, task_id):
 
     exo.set_vector_path(bnd_absolute)
 
-    exo.set_base_path(data_absolute)
-    exo.set_reliability(task['reliability'])
+    exo.set_base_path(data_path)
+
+    exo.set_extract_type(extract_type)
 
     # exo.set_years(year_string)
-
     # exo.set_file_mask(file_mask)
-    exo.set_extract_type(extract_type)
 
 
     # =================================
@@ -366,7 +349,7 @@ def tmp_worker_job(self, task_id):
     # =================================
 
     # generate raster path
-    raster = data_absolute
+    raster = data_path
 
     # generate output path
     output = output_dir + "/" + raster_name + "_"
@@ -383,97 +366,23 @@ def tmp_worker_job(self, task_id):
            ' - ' + run_statment)
 
 
+###
 
-    # update extract result database
-    for idx, feat in enumerate(run_data):
-        geom = feat['geometry']
-        geom_hash = json_sha1_hash(geom)
+    # bnd_name
+    # raster_name
+    # ex_version = version
+    # ex_method = extract_type
+    # c_features
 
-        # feature_id = idx
+    # features_func_run()
 
-        feature_properties = feat['properties']
-        # feature_properties = {}
-
-        if task['classification'] == 'msr' and task['reliability']:
-            ex_method = 'msr'
-            ex_value = {
-                'sum': feat['properties']['exfield_sum'],
-                'reliability': feat['properties']['exfield_reliability']
-            }
-        else:
-            ex_method = extract_type
-            ex_value = feat['properties']['exfield_' + extract_type]
+###
 
 
-        temporal = raster_name[raster_name.rindex('_')+1:]
+    run_data = exo.export_to_csv(run_data)
+    # run_data = exo.export_to_db(run_data)
 
-        feature_extracts = [{
-            'raster': raster_name,
-            'dataset': data_name,
-            'temporal': temporal,
-            'method': ex_method,
-            'version': version,
-            'value': ex_value
-        }]
-
-
-        # check if geom / geom hash exists
-        search = c_features.find_one({'hash': geom_hash})
-
-
-        exists = search is not None
-        if exists:
-
-            extract_search_params = {
-                'hash': geom_hash,
-                'extracts.raster': raster_name,
-                'extracts.method': ex_method,
-                'extracts.version': version
-            }
-
-            extract_search = c_features.find_one(extract_search_params)
-            extract_exists = extract_search is not None
-
-            if extract_exists:
-                search_params = extract_search_params
-                update_params = {
-                    '$set': {'extracts.$': feature_extracts[0]}
-                }
-
-            else:
-                search_params = {'hash': geom_hash}
-                update_params = {
-                    '$push': {'extracts': {'$each': feature_extracts}}
-                }
-
-
-            if not bnd_name in search['datasets']:
-                # add dataset to datasets
-                if not '$push' in update_params:
-                    update_params['$push'] = {}
-                if not '$set' in update_params:
-                    update_params['$set'] = {}
-
-                update_params['$push']['datasets'] = bnd_name
-                update_params['$set']['properties.' + bnd_name] = feature_properties
-
-
-            update = c_features.update_one(search_params, update_params)
-
-
-        else:
-
-            feature_insert = {
-                'geometry': geom,
-                'hash': geom_hash,
-                # 'id': feature_id,
-                'properties': {bnd_name: feature_properties},
-                'datasets': [bnd_name],
-                'extracts': feature_extracts
-            }
-            # insert
-            insert = c_features.insert(feature_insert)
-
+    for _ in run_data: pass
 
 
     # update status of item in extract queue
@@ -488,16 +397,6 @@ def tmp_worker_job(self, task_id):
 
     return 0
 
-
-def json_sha1_hash(hash_obj):
-    hash_json = json.dumps(hash_obj,
-                           sort_keys = True,
-                           ensure_ascii=True,
-                           separators=(', ',': '))
-    hash_builder = hashlib.sha1()
-    hash_builder.update(hash_json)
-    hash_sha1 = hash_builder.hexdigest()
-    return hash_sha1
 
 
 # init / run job
