@@ -179,11 +179,10 @@ def run(path=None, generator="auto", client=None, config=None):
         "bytes": 0,
         "path": "",
         "start": ru.temporal['start'],
-        "end": ru.temporal['end'],
-        "reliability": False
+        "end": ru.temporal['end']
     }
 
-    # resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+    # resource_order = ["name", "path", "bytes", "start", "end"]
     # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
     ru.resources.append(resource_tmp)
 

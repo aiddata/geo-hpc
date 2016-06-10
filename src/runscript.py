@@ -727,14 +727,6 @@ if data_package["file_format"] in ['raster', 'vector']:
         # path relative to datapackage.json
         resource_tmp["path"] = f[f.index(data_package["base"]) + len(data_package["base"]) + 1:]
 
-        # check for reliability geojson
-        # should only be present for rasters generated using mean surface script
-        resource_tmp["reliability"] = False
-        if data_package["type"] == "raster":
-            reliability_file = data_package["base"] +"/"+ resource_tmp["path"][:-len(data_package["file_extension"])] + "geojson"
-            if os.path.isfile(reliability_file):
-                resource_tmp["reliability"] = True
-
 
         # file size
         resource_tmp["bytes"] = os.path.getsize(f)
@@ -772,7 +764,7 @@ if data_package["file_format"] in ['raster', 'vector']:
         resource_tmp["end"] = range_end
 
         # reorder resource fields
-        resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+        resource_order = ["name", "path", "bytes", "start", "end"]
         resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 
         # update main list
@@ -793,11 +785,10 @@ elif data_package["file_format"] == "release":
         "bytes":0,
         "path":data_package['name'],
         "start":ru.temporal['start'],
-        "end":ru.temporal['end'],
-        "reliability": False
+        "end":ru.temporal['end']
     }
 
-    resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+    resource_order = ["name", "path", "bytes", "start", "end"]
     resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
     ru.resources.append(resource_tmp)
 

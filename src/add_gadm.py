@@ -306,7 +306,6 @@ resource_tmp = {}
 # path relative to datapackage.json
 resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
 
-resource_tmp["reliability"] = False
 
 # file size
 resource_tmp["bytes"] = os.path.getsize(f)
@@ -318,7 +317,7 @@ resource_tmp["start"] = 10000101
 resource_tmp["end"] = 99991231
 
 # reorder resource fields
-# resource_order = ["name", "path", "bytes", "start", "end", "reliability"]
+# resource_order = ["name", "path", "bytes", "start", "end"]
 # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 
 # update main list

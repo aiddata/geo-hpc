@@ -107,7 +107,6 @@ for raster in rasters:
         {
             'boundary': b,
             'raster': r['name'],
-            'reliability': r['reliability'],
             'extract_type': e,
             'version': version
         }
@@ -157,7 +156,6 @@ print ('Added ' + str(add_count) + ' items to extract queue (' +
 
 #     "raster" : "selv",
 #     "extract_type" : "mean",
-#     "reliability" : false,
 
 #     "status" : 0,
 #     "classification" : "automated",
