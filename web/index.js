@@ -227,19 +227,19 @@ $(document).ready(function(){
 		$('#d1_info_description').html(d1_dataset_data['description']);
 
 		var d1_sector_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['sector_list'], function(item) {
+		_.each(d1_dataset_data['ad_sector_names'], function(item) {
 			d1_sector_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
 		})
 		$('#d1_sectors').html(d1_sector_html);
 
 		var d1_donor_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['donor_list'], function(item) {
+		_.each(d1_dataset_data['donors'], function(item) {
 			d1_donor_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
 		})
 		$('#d1_donors').html(d1_donor_html);
 
 		var d1_year_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['year_list'], function(item) {
+		_.each(d1_dataset_data['years'], function(item) {
 			d1_year_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
 		})
 		$('#d1_years').html(d1_year_html);

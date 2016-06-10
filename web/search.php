@@ -308,7 +308,8 @@ function get_relevant_datasets() {
     $query = array(
         'name' => array('$in' => $list),
         'temporal.type' => array('$in' => array('year', 'None')),
-        'type' => array('$in' => array('release', 'raster'))
+        'type' => array('$in' => array('release', 'raster')),
+        'active' => 1
     );
 
     $cursor = $col->find($query);
@@ -322,17 +323,17 @@ function get_relevant_datasets() {
         if ($doc['type'] == "release") {
 
 
-            // $doc['year_list'] = array();
-            // $doc['sector_list'] = array();
-            // $doc['donor_list'] = array();
+            // $doc['years'] = array();
+            // $doc['ad_sector_names'] = array();
+            // $doc['donors'] = array();
 
 
             // get years from datapackage
-            // $doc['year_list'] = range(
+            // $doc['years'] = range(
             //    $doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
 
             // placeholder for no year selection (only 'All')
-            $doc['year_list'] = [];
+            $doc['years'] = [];
 
             // get years based on min transaction_first and max
             // transaction_last
@@ -345,9 +346,12 @@ function get_relevant_datasets() {
             // $testhandle = fopen("/var/www/html/DET/test.csv", "w");
             // fwrite( $testhandle, json_encode($col_releases->find()) );
 
+            $release_query = [
+                'is_geocoded' => 1
+            ];
 
-            $sectors = $col_releases->distinct('ad_sector_names');
-            // $doc['sector_list'] = json_encode($sectors);
+            $sectors = $col_releases->distinct('ad_sector_names', $release_query);
+            // $doc['ad_sector_names'] = json_encode($sectors);
             for ($i=0; $i<count($sectors);$i++) {
                 if (strpos($sectors[$i], "|") !== false) {
                     $new = explode("|", $sectors[$i]);
@@ -357,12 +361,12 @@ function get_relevant_datasets() {
                     }
                 }
             }
-            // $doc['sector_list'] = sort(array_unique($sectors));
-            $doc['sector_list'] = array_unique($sectors);
-            sort($doc['sector_list']);
+            // $doc['ad_sector_names'] = sort(array_unique($sectors));
+            $doc['ad_sector_names'] = array_unique($sectors);
+            sort($doc['ad_sector_names']);
 
-            $donors = $col_releases->distinct('donors');
-            // $doc['donor_list'] = $donors;
+            $donors = $col_releases->distinct('donors', $release_query);
+            // $doc['donors'] = $donors;
             for ($i=0; $i<count($donors);$i++) {
                 if (strpos($donors[$i], "|") !== false) {
                     $new = explode("|", $donors[$i]);
@@ -372,9 +376,9 @@ function get_relevant_datasets() {
                     }
                 }
             }
-            // $doc['donor_list'] = sort(array_unique($donors));
-            $doc['donor_list'] = array_unique($donors);
-            sort($doc['donor_list']);
+            // $doc['donors'] = sort(array_unique($donors));
+            $doc['donors'] = array_unique($donors);
+            sort($doc['donors']);
 
             $result[] = $doc;
 
@@ -444,7 +448,9 @@ post fields
     filter : fields and filters
 
 returns
-    number of projects, locations, loc1?, loc2?
+    number of projects, locations, and array assoc array containing
+    distinct values for each search field based on current search params
+    loc1?, loc2?
 */
 function get_filter_count() {
     global $output, $m;
@@ -481,24 +487,64 @@ function get_filter_count() {
 
 
     // get number of projects (filter)
-    $project_query = array();
+    $project_query = [
+        'is_geocoded' => 1
+    ];
 
-    if (!in_array("All", $filter['filters']['ad_sector_names'])) {
-        $project_query['ad_sector_names'] = array(
-            '$in' => array_map($regex_map, $filter['filters']['ad_sector_names'])
-        );
-    }
+    $distinct_fields = [];
 
-    if (!in_array("All", $filter['filters']['donors'])) {
-        $project_query['donors'] = array(
-            '$in' => array_map($regex_map, $filter['filters']['donors'])
-        );
-    }
+    foreach ($filter['filters'] as $k => $v) {
+        $tmp_project_query = [
+            'is_geocoded' => 1
+        ];
 
-    if (!in_array("All", $filter['filters']['years'])) {
-        $project_query['transactions.transaction_year'] = array(
-            '$in' => array_map('intval', $filter['filters']['years'])
-        );
+        if (!in_array("All", $v)) {
+            if ($k == 'years') {
+                $tmp_search = array(
+                    '$in' => array_map('intval', $filter['filters']['years'])
+                );
+                $project_query['transactions.transaction_year'] = $tmp_search;
+                $tmp_project_query['transactions.transaction_year'] = $tmp_search;
+            } else {
+                $tmp_search = array(
+                    '$in' => array_map($regex_map, $v)
+                );
+                $project_query[$k] = $tmp_search;
+                $tmp_project_query[$k] = $tmp_search;
+            }
+        }
+
+        foreach ($filter['filters'] as $kx => $vx) {
+            if ($kx != $k) {
+
+                if ($kx == "years") {
+                    // placeholder query
+                    $tmp_distinct = $col->distinct($kx, $tmp_project_query);
+                } else {
+                    $tmp_distinct = $col->distinct($kx, $tmp_project_query);
+                }
+
+                // split on pipe and remove duplicaties
+                for ($i=0; $i<count($tmp_distinct);$i++) {
+                    if (strpos($tmp_distinct[$i], "|") !== false) {
+                        $new = explode("|", $tmp_distinct[$i]);
+                        $tmp_distinct[$i] = array_shift($new);
+                        foreach ($new as $item) {
+                            $tmp_distinct[] = $item;
+                        }
+                    }
+                }
+                $tmp_distinct = array_unique($tmp_distinct);
+                sort($tmp_distinct);
+
+                if (!array_key_exists($kx, $distinct_fields)){
+                    $distinct_fields[$kx] = $tmp_distinct;
+                } else {
+                    $distinct_fields[$kx] = array_intersect($distinct_fields[$kx], $tmp_distinct);
+                }
+            }
+        }
+
     }
 
 
@@ -534,7 +580,8 @@ function get_filter_count() {
     // $locations = $location_count_1 + $location_count_2;
     $result = array(
         "projects" => $projects,
-        "locations" => $locations
+        "locations" => $locations,
+        "distinct" => $distinct_fields
         // "location_count_1" => $location_count_1,
         // "location_count_2" => $location_count_2
     );
