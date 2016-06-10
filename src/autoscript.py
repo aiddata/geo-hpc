@@ -354,7 +354,7 @@ def tmp_worker_job(self, task_id):
 
     # run extract
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
-           ' - running extract: %s %s %s ' % bnd_name, raster_name, extract_type)
+           ' - running extract: %s %s %s ' % (bnd_name, raster_name, extract_type))
 
     run_data, run_statment = exo.run_extract(raster)
 
