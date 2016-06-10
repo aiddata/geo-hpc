@@ -209,8 +209,8 @@ for i in extract_list:
     else:
 
         tmp['data_name'] = i['raster'][:i["raster"].rindex("_")]
-        print i['raster']
-        print tmp['data_name']
+        # print i['raster']
+        # print tmp['data_name']
 
         data_info = c_asdf.find(
             {'name': tmp['data_name']},
@@ -351,16 +351,12 @@ def tmp_worker_job(self, task_id):
     # generate raster path
     raster = data_path
 
-    # generate output path
-    output = output_dir + "/" + raster_name + "_"
-
-    output += exo._extract_options[exo._extract_type]
 
     # run extract
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - running extract: ' + output)
 
-    run_data, run_statment = exo.run_extract(raster, output)
+    run_data, run_statment = exo.run_extract(raster)
 
     print ('Worker ' + str(self.rank) + ' | Task ' + str(task_id) +
            ' - ' + run_statment)
@@ -378,8 +374,12 @@ def tmp_worker_job(self, task_id):
 
 ###
 
+    # generate output path
+    output = output_dir + "/" + raster_name + "_"
 
-    run_data = exo.export_to_csv(run_data)
+    output += exo._extract_options[exo._extract_type]
+
+    run_data = exo.export_to_csv(run_data, output)
     # run_data = exo.export_to_db(run_data)
 
     for _ in run_data: pass
