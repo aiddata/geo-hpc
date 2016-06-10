@@ -745,8 +745,6 @@ class MergeObject():
                         extract_type = i['settings']['extract_type']
                         output_base = i['settings']['output_base']
 
-                        extract_abbr = ExtractObject._extract_options[extract_type]
-
                         bnd_merge_list += [
                             os.path.join(
                                 output_base,

@@ -91,9 +91,9 @@ if extract_limit == -1:
     extract_limit = job.size -1
 
 client = pymongo.MongoClient(config.server)
-c_asdf = client[config.asdf_db].data
-c_extracts = client[config.extracts_db].extracts
-c_features = client[config.features_db].features
+c_asdf = client.asdf.data
+c_extracts = client.asdf.extracts
+c_features = client.asdf.features
 
 # -----------------------------------------------------------------------------
 
