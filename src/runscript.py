@@ -128,8 +128,11 @@ def tmp_worker_job(self, task_id):
     output_base = settings['output_base']
 
 
-    # ==================================================
+    temporal = ''.join([str(e) for e in item[0]])
+    raster_name = data_name +"_"+ temporal
 
+
+    # ==================================================
 
     exo = extract_utility.ExtractObject()
 
@@ -149,9 +152,7 @@ def tmp_worker_job(self, task_id):
 
     # ==================================================
 
-
-    output_dir = (output_base + "/" + bnd_name + "/cache/" +
-                  data_name +"/"+ exo._extract_type)
+    output_dir = os.path.join(output_base, bnd_name, "cache", data_name)
 
     # creates directories
     try:
@@ -169,9 +170,6 @@ def tmp_worker_job(self, task_id):
     else:
         raster = exo._base_path +"/"+ item[1]
 
-    raster_name = data_name +"_"+ ''.join([str(e) for e in item[0]])
-
-
     # run extract
     print (worker_tagline + 'running extract: ' +
            '\n\traster: (%s) %s\n\tvector: (%s) %s\n\tmethod: %s ' %
@@ -183,8 +181,8 @@ def tmp_worker_job(self, task_id):
 
 
     # generate output path
-    output = (output_dir + "/" + raster_name +"_"+
-              exo._extract_options[exo._extract_type])
+    file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
+    output = os.path.join(output_dir, file_name)
 
     run_data = exo.export_to_csv(run_data, output)
     # run_data = exo.export_to_db(run_data)

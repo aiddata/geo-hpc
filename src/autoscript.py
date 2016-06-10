@@ -338,8 +338,7 @@ def tmp_worker_job(self, task_id):
 
     # =================================
 
-    output_dir = (output_base + "/" + bnd_name + "/cache/" +
-                  data_name +"/"+ exo._extract_type)
+    output_dir = os.path.join(output_base, bnd_name, "cache", data_name)
 
     # creates directories
     try:
@@ -348,12 +347,10 @@ def tmp_worker_job(self, task_id):
         if exception.errno != errno.EEXIST:
             raise
 
-
     # =================================
 
     # generate raster path
     raster = data_path
-
 
 
     # run extract
@@ -379,9 +376,9 @@ def tmp_worker_job(self, task_id):
 ###
 
     # generate output path
-    output = output_dir + "/" + raster_name + "_"
-
-    output += exo._extract_options[exo._extract_type]
+    temporal = raster_name[raster_name.rindex('_')+1:]
+    file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
+    output = os.path.join(output_dir, file_name)
 
     run_data = exo.export_to_csv(run_data, output)
     # run_data = exo.export_to_db(run_data)

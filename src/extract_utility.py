@@ -571,7 +571,8 @@ class ExtractObject():
                             # calculate reliability statistic
                             feat['properties']['exfield_maxaid'] = max_dollars
                             try:
-                                rval = feat['properties']['exfield_sum'] / feat['properties']['exfield_maxaid']
+                                rval = (feat['properties']['exfield_sum'] /
+                                        feat['properties']['exfield_maxaid'])
                                 feat['properties']['exfield_reliability'] = rval
 
                             except ZeroDivisionError:
@@ -597,7 +598,8 @@ class ExtractObject():
                 colname = 'exfield_' + self._extract_type
                 if colname in feat['properties'].keys():
                     try:
-                        if feat['properties'][colname] in [None, 'nan', 'NaN'] or isnan(feat['properties'][colname]):
+                        if (feat['properties'][colname] in [None, 'nan', 'NaN'] or
+                                isnan(feat['properties'][colname])):
                             feat['properties'][colname] = 'NA'
                     except:
                         print feat['properties'][colname]
@@ -619,7 +621,7 @@ class ExtractObject():
 
     def export_to_csv(self, stats, output):
 
-        extract_fh = open(output + ".csv", "w")
+        extract_fh = open(output, "w")
 
         import csv
 
@@ -746,7 +748,6 @@ class MergeObject():
                         data_name = i['name']
                         extract_type = i['settings']['extract_type']
                         output_base = i['settings']['output_base']
-                        data_mini = i['settings']['data_mini']
 
                         extract_abbr = ExtractObject._extract_options[extract_type]
 
@@ -756,8 +757,7 @@ class MergeObject():
                                 bnd_name,
                                 'cache',
                                 data_name,
-                                extract_type,
-                                data_name +'_'+ ''.join(j[0]) +'_'+ extract_abbr + '.csv'
+                                '.'.join([data_name, ''.join(j[0]), extract_type]) + '.csv'
                             )
                             for j in i['qlist']
                         ]
@@ -821,8 +821,7 @@ class MergeObject():
                         # --------------------------------------------------
 
                         extract_dir = (extract_base + "/" + bnd_name +
-                                       "/cache/" + data_name + "/" +
-                                       extract_type)
+                                       "/cache/" + data_name)
 
                         print "\tChecking for extracts in: " + extract_dir
 
@@ -834,32 +833,20 @@ class MergeObject():
                         elif not os.path.isdir(extract_base + "/" + bnd_name):
                             sys.exit("Directory for specified bnd_name does " +
                                      "not exist (bnd_name: "+bnd_name+")")
-                        elif not os.path.isdir(
-                            extract_base + "/" + bnd_name + "/cache/" +
-                            data_name):
+                        elif not os.path.isdir(extract_dir):
                                 sys.exit("Directory for specified dataset " +
                                          "does not exists (data_name: " +
                                          data_name+")")
-                        elif not os.path.isdir(extract_dir):
-                            sys.exit("Directory for specified extract type " +
-                                     "does not exist (extract_type: " +
-                                     extract_type+")")
 
 
-                        # !!!
-                        # This year filter may be broken
-                        # not fixing it because we are probably going to
-                        # remove or atleast change the current file name convention.
-                        # !!!
+
                         # find and sort all relevant extract files
                         rlist = [
                             fname for fname in os.listdir(extract_dir)
-                            if fname[fname[:fname.rindex('_')].rindex('_')+1:] in dset_years
+                            if fname.split('.')[1] in dset_years
                             and os.path.isfile(extract_dir +"/"+ fname)
                             and fname.endswith(".csv")
                         ]
-
-
 
                         rlist = sorted(rlist)
 
@@ -940,12 +927,9 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
-                        new_cat_field = tmp_field + c[c.index('_'):]
-                        merge.rename(columns={c: new_cat_field},
+                        merge.rename(columns={c: tmp_field},
                                      inplace=True)
-                    # else:
-                    #     merge.rename(columns={"exfield_extract": tmp_field},
-                    #                  inplace=True)
+
 
                 else:
                     # if tmp_field.endswith("c"):
@@ -954,11 +938,8 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
-                        new_cat_field = tmp_field + c[c.index('_'):]
-                        merge[new_cat_field] = result_df[c]
+                        merge[tmp_field] = result_df[c]
 
-                    # else:
-                    #     merge[tmp_field] = result_df["exfield_extract"]
 
 
 
