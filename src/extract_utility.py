@@ -525,7 +525,7 @@ class ExtractObject():
 
         statement = ('completed extract in %s seconds' +
                      '\n\traster: %s\n\tvector: %s\n\tmethod: %s' %
-                     (Te_run, raster, self.vector_path, self.extract_type))
+                     (Te_run, raster, self._vector_path, self._extract_type))
 
         return (stats, statement)
 
