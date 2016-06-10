@@ -171,9 +171,6 @@ def tmp_worker_job(self, task_id):
 
     raster_name = data_name +"_"+ ''.join([str(e) for e in item[0]])
 
-    # generate output path
-    output = (output_dir + "/" + raster_name +"_"+
-              exo._extract_options[exo._extract_type])
 
     # run extract
     print (worker_tagline + 'running extract: ' +
@@ -185,7 +182,11 @@ def tmp_worker_job(self, task_id):
     print (worker_tagline + run_statment)
 
 
-    run_data = exo.export_to_csv(run_data)
+    # generate output path
+    output = (output_dir + "/" + raster_name +"_"+
+              exo._extract_options[exo._extract_type])
+
+    run_data = exo.export_to_csv(run_data, output)
     # run_data = exo.export_to_db(run_data)
 
     for _ in run_data: pass
