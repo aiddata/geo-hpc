@@ -355,8 +355,8 @@ def tmp_worker_job(self, task_id):
 
 
     # run extract
-    print (worker_tagline + 'running extract: ' +
-           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ' %
+    print ((worker_tagline + 'running extract: ' +
+           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
            (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
     run_data = exo.run_extract(raster)
@@ -403,8 +403,8 @@ def tmp_worker_job(self, task_id):
 
 
     Te_run = int(time.time() - Te_start)
-    print (worker_tagline + 'completed extract in %s seconds' +
-           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ' %
+    print ((worker_tagline + 'completed extract in %s seconds' +
+           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
            (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
 
