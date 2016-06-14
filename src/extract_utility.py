@@ -1008,7 +1008,7 @@ class FeatureExtractTool():
             # feature_id = idx
 
             feature_properties = {
-                key, feat['properties'][key]
+                key: feat['properties'][key]
                 for key in feat['properties']
                 if not key.startswith('exfield_')
             }
