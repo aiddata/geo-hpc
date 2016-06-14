@@ -129,7 +129,11 @@ def tmp_worker_job(self, task_id):
 
 
     temporal = ''.join([str(e) for e in item[0]])
-    raster_name = data_name +"_"+ temporal
+    if temporal == '':
+        raster_name = data_name
+        temporal = 'na'
+    else:
+        raster_name = data_name +"_"+ temporal
 
 
     # ==================================================
@@ -172,7 +176,7 @@ def tmp_worker_job(self, task_id):
 
     # run extract
     print (worker_tagline + 'running extract: ' +
-           '\n\traster: (%s) %s\n\tvector: (%s) %s\n\tmethod: %s ' %
+           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ' %
            (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
     run_data, run_statment = exo.run_extract(raster)

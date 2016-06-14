@@ -24,7 +24,8 @@ def str_to_range(value):
     """Generate year range based on year string range segment input.
 
     Args:
-        value (str): year string range segment (see parse_year_string() documentation for year string details)
+        value (str): year string range segment (see parse_year_string()
+                     documentation for year string details)
     Returns:
         year range (List[int]):
     """
@@ -304,7 +305,8 @@ class ExtractObject():
     def set_years(self, value):
         """Set years.
 
-        If year string is empty, accept all years found when searching for data.
+        If year string is empty, accept all years found when searching
+        for data.
 
         Args:
             value (str): year string
@@ -452,7 +454,8 @@ class ExtractObject():
                     [
                         [
                             year, "".join([
-                                x for x,y in zip(year+"/"+name, self._file_mask)
+                                x
+                                for x,y in zip(year+"/"+name, self._file_mask)
                                 if y == id_char and x.isdigit()
                             ])
                         ], year+"/"+name
@@ -549,8 +552,9 @@ class ExtractObject():
             for feat in stats:
                 if 'exfield_sum' in feat['properties'].keys():
                     try:
-                        is_na = (feat['properties']['exfield_sum'] in [None, 'nan', 'NaN'] or
-                                 isnan(feat['properties']['exfield_sum']))
+                        tmp_sum = feat['properties']['exfield_sum']
+                        is_na = (tmp_sum in [None, 'nan', 'NaN'] or
+                                 isnan(tmp_sum))
                         if is_na:
                             feat['properties']['exfield_sum'] = 'NA'
                             feat['properties']['exfield_maxaid'] = 'NA'
@@ -585,7 +589,8 @@ class ExtractObject():
                         feat['properties']['exfield_sum'] = 'NA'
 
                 else:
-                    warnings.warn('Reliability field (sum) missing from feature properties')
+                    warnings.warn('Reliability field (sum) missing from ' +
+                                  'feature properties')
                     feat['properties']['exfield_sum'] = 'NA'
                     feat['properties']['exfield_maxaid'] = 'NA'
                     feat['properties']['exfield_reliability'] = 'NA'
@@ -598,8 +603,8 @@ class ExtractObject():
                 colname = 'exfield_' + self._extract_type
                 if colname in feat['properties'].keys():
                     try:
-                        if (feat['properties'][colname] in [None, 'nan', 'NaN'] or
-                                isnan(feat['properties'][colname])):
+                        tmp_val = feat['properties'][colname]
+                        if tmp_val in [None, 'nan', 'NaN'] or isnan(tmp_val):
                             feat['properties'][colname] = 'NA'
                     except:
                         print feat['properties'][colname]
@@ -608,7 +613,8 @@ class ExtractObject():
 
 
                 else:
-                    warnings.warn('Extract field missing from feature properties')
+                    warnings.warn('Extract field missing from feature ' +
+                                  'properties')
                     print str(feat['properties'])
                     feat['properties'][colname] = 'NA'
 
@@ -647,10 +653,10 @@ class ExtractObject():
         extract_fh.close()
 
 
-    def export_to_db(stats):
-        for feat in stats:
-
-            yield feat
+    def export_to_db(self, stats, ...):
+        fet = FeatureExtractTool(...)
+        run_data = fet.run(stats)
+        return run_data
 
 
 # -----------------------------------------------------------------------------
@@ -751,7 +757,11 @@ class MergeObject():
                                 bnd_name,
                                 'cache',
                                 data_name,
-                                '.'.join([data_name, ''.join(j[0]), extract_type]) + '.csv'
+                                '.'.join([
+                                    data_name,
+                                    ''.join(j[0]),
+                                    extract_type
+                                ]) + '.csv'
                             )
                             for j in i['qlist']
                         ]
@@ -769,7 +779,12 @@ class MergeObject():
 
             # generate data needed to build file list
 
-            required_options = ["bnd_name", "extract_type", "output_base", "years"]
+            required_options = [
+                "bnd_name",
+                "extract_type",
+                "output_base",
+                "years"
+            ]
             missing_defaults = [i for i in required_options
                                 if i not in self.merge_json['defaults'].keys()]
 
@@ -846,7 +861,8 @@ class MergeObject():
                         if len(rlist) == 0:
                             sys.exit("No extracts found for: " + extract_dir)
 
-                        bnd_merge_list += [extract_dir +"/"+ item for item in rlist]
+                        bnd_merge_list += [extract_dir +"/"+ item
+                                           for item in rlist]
 
 
                 # add merge list for boundary as new item in tmp merge list
@@ -941,4 +957,141 @@ class MergeObject():
 
 
 
+# -----------------------------------------------------------------------------
+
+
+import json
+import hashlib
+
+# from shapely.geometry import shape
+
+
+def json_sha1_hash(hash_obj):
+    hash_json = json.dumps(hash_obj,
+                           sort_keys = True,
+                           ensure_ascii=True,
+                           separators=(', ',': '))
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_json)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
+
+
+class FeatureExtractTool():
+    """
+    """
+
+    def __init__(self, bnd_name, raster_name, ex_method,
+                 ex_version, c_features):
+
+        self.bnd_name = bnd_name
+        self.raster_name = raster_name
+        self.ex_method = ex_method
+        self.ex_version = ex_version
+        self.c_features = c_features
+
+
+    def run(self, run_data):
+        """
+        """
+        # update extract result database
+        for idx, feat in enumerate(run_data):
+            geom = feat['geometry']
+            geom_hash = json_sha1_hash(geom)
+
+            # feature_id = idx
+
+            feature_properties = {
+                key, feat['properties'][key]
+                for key in feat['properties']
+                if not key.startswith('exfield_')
+            }
+            # feature_properties = {}
+
+            if ex_method == 'reliability' :
+                ex_value = {
+                    'sum': feat['properties']['exfield_sum'],
+                    'reliability': feat['properties']['exfield_reliability'],
+                    'maxaid': feat['properties']['exfield_maxaid']
+                }
+            else:
+                ex_value = feat['properties']['exfield_' + ex_method]
+
+
+            dataset = raster_name[:raster_name.rindex('_')]
+            temporal = raster_name[raster_name.rindex('_')+1:]
+
+            feature_extracts = [{
+                'raster': raster_name,
+                'dataset': dataset,
+                'temporal': temporal,
+                'method': ex_method,
+                'version': ex_version,
+                'value': ex_value
+            }]
+
+
+            # check if geom / geom hash exists
+            search = c_features.find_one({'hash': geom_hash})
+
+
+            exists = search is not None
+            if exists:
+
+                extract_search_params = {
+                    'hash': geom_hash,
+                    'extracts.raster': raster_name,
+                    'extracts.method': ex_method,
+                    'extracts.version': ex_version
+                }
+
+                extract_search = c_features.find_one(extract_search_params)
+                extract_exists = extract_search is not None
+
+                if extract_exists:
+                    search_params = extract_search_params
+                    update_params = {
+                        '$set': {'extracts.$': feature_extracts[0]}
+                    }
+
+                else:
+                    search_params = {'hash': geom_hash}
+                    update_params = {
+                        '$push': {'extracts': {'$each': feature_extracts}}
+                    }
+
+
+                if not bnd_name in search['datasets']:
+                    # add dataset to datasets
+                    if not '$push' in update_params:
+                        update_params['$push'] = {}
+                    if not '$set' in update_params:
+                        update_params['$set'] = {}
+
+                    update_params['$push']['datasets'] = bnd_name
+
+                    prop_sub_doc = 'properties.' + bnd_name
+                    update_params['$set'][prop_sub_doc] = feature_properties
+
+
+                update = c_features.update_one(search_params, update_params)
+
+
+            else:
+                # simplified_geom = shape(geom).simplify(0.01)
+
+                feature_insert = {
+                    'geometry': geom,
+                    # 'simplified': simplified_geom,
+                    'hash': geom_hash,
+                    # 'id': feature_id,
+                    'properties': {bnd_name: feature_properties},
+                    'datasets': [bnd_name],
+                    'extracts': feature_extracts
+                }
+                # insert
+                insert = c_features.insert(feature_insert)
+
+
+            yield feat
 
