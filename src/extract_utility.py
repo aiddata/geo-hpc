@@ -750,20 +750,22 @@ class MergeObject():
                         extract_type = i['settings']['extract_type']
                         output_base = i['settings']['output_base']
 
-                        bnd_merge_list += [
-                            os.path.join(
+                        for j in i['qlists']:
+
+                            temporal = ''.join(j[0])
+                            temporal = temporal if temporal != '' else 'na'
+
+                            file_name = '.'.join([data_name, temporal, extract_type]) + '.csv'
+
+                            tmp_file = os.path.join(
                                 output_base,
                                 bnd_name,
                                 'cache',
                                 data_name,
-                                '.'.join([
-                                    data_name,
-                                    ''.join(j[0]),
-                                    extract_type
-                                ]) + '.csv'
+                                file_name
                             )
-                            for j in i['qlist']
-                        ]
+
+                            bnd_merge_list += [tmp_file]
 
 
                 # add merge list for boundary as new item in tmp merge list
@@ -853,7 +855,6 @@ class MergeObject():
                             and os.path.isfile(extract_dir +"/"+ fname)
                             and fname.endswith(".csv")
                         ]
-
                         rlist = sorted(rlist)
 
                         # exit if no extracts found
@@ -879,7 +880,6 @@ class MergeObject():
         """Run merge
 
         """
-        print self.merge_list
         for i in self.merge_list:
             bnd_name = i['bnd_name']
             file_list = i['file_list']
