@@ -181,8 +181,6 @@ def tmp_worker_job(self, task_id):
 
     run_data, run_statment = exo.run_extract(raster)
 
-    print (worker_tagline + run_statment)
-
 
     # generate output path
     file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
