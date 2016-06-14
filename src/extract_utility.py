@@ -493,7 +493,6 @@ class ExtractObject():
             raster (str): path of raster file relative to base path
             output (str): absolute path for csv output of extract
         """
-        Te_start = int(time.time())
 
         # try:
 
@@ -524,14 +523,8 @@ class ExtractObject():
         #     raise Exception(e)
 
 
-        Te_run = int(time.time() - Te_start)
-
-        statement = (('completed extract in %s seconds' +
-                     '\n\traster: %s\n\tvector: %s\n\tmethod: %s') %
-                     (Te_run, raster, self._vector_path, self._extract_type))
-
-
         return (stats, statement)
+
 
     def format_extract(self, stats):
 
@@ -886,6 +879,7 @@ class MergeObject():
         """Run merge
 
         """
+        print self.merge_list
         for i in self.merge_list:
             bnd_name = i['bnd_name']
             file_list = i['file_list']

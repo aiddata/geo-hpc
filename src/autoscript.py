@@ -356,18 +356,15 @@ def tmp_worker_job(self, task_id):
 
     # run extract
     print (worker_tagline + 'running extract: ' +
-           '\n\traster: (%s) %s\n\tvector: (%s) %s\n\tmethod: %s ' %
+           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ' %
            (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
     run_data, run_statment = exo.run_extract(raster)
 
-    print (worker_tagline + run_statment)
-
-
 
     # generate output path
     temporal = raster_name[raster_name.rindex('_')+1:]
-    temporal = temporal if temporal != '' else 'none'
+    temporal = temporal if temporal != '' else 'na'
     file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
     output = os.path.join(output_dir, file_name)
 
@@ -399,9 +396,17 @@ def tmp_worker_job(self, task_id):
 
 ###
 
+    Te_start = int(time.time())
 
 
     for _ in run_data: pass
+
+
+    Te_run = int(time.time() - Te_start)
+    print (worker_tagline + 'completed extract in %s seconds' +
+           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ' %
+           (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+
 
 
     # update status of item in extract queue
