@@ -523,7 +523,7 @@ class ExtractObject():
         #     raise Exception(e)
 
 
-        return (stats, statement)
+        return stats
 
 
     def format_extract(self, stats):
