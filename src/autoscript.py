@@ -54,7 +54,8 @@ def get_version():
     if match:
         return match.group(1)
     else:
-        raise RuntimeError("Unable to find version string in {}.".format(vfile))
+        raise RuntimeError(
+            "Unable to find version string in {}.".format(vfile))
 
 
 tmp_v1 = config.versions["extract-scripts"]
@@ -363,26 +364,42 @@ def tmp_worker_job(self, task_id):
     print (worker_tagline + run_statment)
 
 
-###
-
-    # bnd_name
-    # raster_name
-    # ex_version = version
-    # ex_method = extract_type
-    # c_features
-
-    # features_func_run()
-
-###
-
 
     # generate output path
     temporal = raster_name[raster_name.rindex('_')+1:]
+    temporal = temporal if temporal != '' else 'none'
     file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
     output = os.path.join(output_dir, file_name)
 
     run_data = exo.export_to_csv(run_data, output)
-    # run_data = exo.export_to_db(run_data)
+
+
+
+###
+
+    # run_data = exo.export_to_db(
+    #     stats = run_data,
+    #     bnd_name,
+    #     raster_name,
+    #     ex_version = version,
+    #     ex_method = extract_type,
+    #     c_features
+    # )
+
+
+    # fet = extract_utility.FeatureExtractTool(
+    #     bnd_name,
+    #     raster_name,
+    #     ex_version = version,
+    #     ex_method = extract_type,
+    #     c_features
+    # )
+
+    # run_data = fet.run(run_data)
+
+###
+
+
 
     for _ in run_data: pass
 
