@@ -750,7 +750,7 @@ class MergeObject():
                         extract_type = i['settings']['extract_type']
                         output_base = i['settings']['output_base']
 
-                        for j in i['qlists']:
+                        for j in i['qlist']:
 
                             temporal = ''.join(j[0])
                             temporal = temporal if temporal != '' else 'na'
