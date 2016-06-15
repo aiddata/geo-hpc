@@ -121,7 +121,7 @@ dp["asdf_generator"] = generator
 
 dp["type"] = "boundary"
 dp["file_format"] = "vector"
-dp["file_extension"] = "shp"
+dp["file_extension"] = "geojson"
 dp["file_mask"] = "None"
 
 # -------------------------------------
@@ -198,7 +198,7 @@ for root, dirs, files in os.walk(dp["base"]):
 
 
 if len(ru.file_list) == 0:
-    quit("No shapefile found.")
+    quit("No vector file found in " + dp["base"])
 
 elif len(ru.file_list) > 1:
     quit("Boundaries must be submitted individually.")
@@ -232,19 +232,12 @@ if convert_status == 1:
      quit("Error adding ad_id to boundary file & outputting geojson.")
 
 
-if dp["file_extension"] == "shp":
-
-    # update file list
-    f = os.path.splitext(f)[0] + ".geojson"
-
-    # update extension
-    dp["file_extension"] = "geojson"
+if dp["file_extension"] == "geojson":
 
     # remove shapefile
     for z in os.listdir(os.path.dirname(f)):
         if (os.path.isfile(dp["base"] +"/"+ z) and
-                not z.endswith(".geojson") and
-                not z.endswith("datapackage.json")):
+                not z.endswith("simplified.geojson")):
             print "deleting " + dp["base"] +"/"+ z
             os.remove(dp["base"] +"/"+ z)
 
