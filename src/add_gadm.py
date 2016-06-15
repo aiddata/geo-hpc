@@ -232,15 +232,6 @@ if convert_status == 1:
      quit("Error adding ad_id to boundary file & outputting geojson.")
 
 
-if dp["file_extension"] == "geojson":
-
-    # remove shapefile
-    for z in os.listdir(os.path.dirname(f)):
-        if (os.path.isfile(dp["base"] +"/"+ z) and
-                not z.endswith("simplified.geojson")):
-            print "deleting " + dp["base"] +"/"+ z
-            os.remove(dp["base"] +"/"+ z)
-
 
 # clip extents if they are outside global bounding box
 for c in range(len(geo_ext)):
