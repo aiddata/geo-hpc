@@ -2,127 +2,106 @@
     "dist_to_all_rivers": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/dist_to_all_rivers/world_allrivsCOMP.tif",
         "data_name": "dist_to_all_rivers",
-        "data_mini": "dari",
         "file_mask": "None"
     },
     "dist_to_big_rivers": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/dist_to_big_rivers/world_bigrivCOMP.tif",
         "data_name": "dist_to_big_rivers",
-        "data_mini": "dbri",
         "file_mask": "None"
     },
     "dist_to_roads": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/dist_to_roads/WorldRoadsCOMP.tif",
         "data_name": "dist_to_roads",
-        "data_mini": "droa",
         "file_mask": "None"
     },
     "srtm_elevation": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/srtm_elevation/SRTM_500m.tif",
         "data_name": "srtm_elevation",
-        "data_mini": "selv",
         "file_mask": "None"
     },
     "srtm_slope": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/srtm_slope/SRTM_500m_slope.tif",
         "data_name": "srtm_slope",
-        "data_mini": "sslp",
         "file_mask": "None"
     },
     "accessibility_map": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/accessibility_map/access_50k.tif",
         "data_name": "accessibility_map",
-        "data_mini": "am50",
         "file_mask": "None"
     },
-    "gpw_v3": {
+    "gpw_v3_density": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw_v3",
-        "data_name": "gpw_v3",
-        "data_mini": "gpw3",
+        "data_name": "gpw_v3_density",
         "file_mask": "gldsxxag_YYYY.asc"
     },
     "gpw_v4_density": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw_v4/density",
         "data_name": "gpw_v4_density",
-        "data_mini": "gpw4",
         "file_mask": "gpw-v4-population-density-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
     },
     "ndvi_max_mask_lt6k": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_max_mask_lt6k",
         "data_name": "ndvi_max_mask_lt6k",
-        "data_mini": "nm6k",
         "file_mask": "YYYY.tif"
     },
     "ltdr_yearly_ndvi_mean": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_mean",
         "data_name": "ltdr_yearly_ndvi_mean",
-        "data_mini": "lnye",
         "file_mask": "YYYY.tif"
     },
     "ltdr_yearly_ndvi_max": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_max",
         "data_name": "ltdr_yearly_ndvi_max",
-        "data_mini": "lnyx",
         "file_mask": "YYYY.tif"
     },
     "v4avg_lights_x_pct": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/v4avg_lights_x_pct",
         "data_name": "v4avg_lights_x_pct",
-        "data_mini": "alp4",
         "file_mask": "FxxYYYY.v4x.avg_lights_x_pct.tif"
     },
     "v4composites": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/v4composites",
         "data_name": "v4composites",
-        "data_mini": "nlc4",
         "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis.tif"
     },
     "v4composites_calibrated": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/v4composites_calibrated",
         "data_name": "v4composites_calibrated",
-        "data_mini": "ncc4",
         "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif"
     },
     "terrestrial_air_temperature_v4.01": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/terrestrial_air_temperature_v4.01",
         "data_name": "terrestrial_air_temperature_v4.01",
-        "data_mini": "at41",
         "file_mask": "yyyy/air_temp_YYYY_MM.tif"
     },
     "terrestrial_precipitation_v4.01": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/terrestrial_precipitation_v4.01",
         "data_name": "terrestrial_precipitation_v4.01",
-        "data_mini": "pc41",
         "file_mask": "yyyy/precip_YYYY_MM.tif"
     },
     "treecover2000": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/treecover2000/treecover2000.tif",
         "data_name": "treecover2000",
-        "data_mini": "tc00",
         "file_mask": "None"
     },
     "loss": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/loss/loss.tif",
         "data_name": "loss",
-        "data_mini": "loss",
         "file_mask": "None"
     },
     "gain": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/gain/gain.tif",
         "data_name": "gain",
-        "data_mini": "gain",
         "file_mask": "None"
     },
     "lossyear": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossyear/lossyear.tif",
         "data_name": "lossyear",
-        "data_mini": "lsyr",
         "file_mask": "None"
     },
     "datamask": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/datamask/datamask.tif",
         "data_name": "datamask",
-        "data_mini": "dmsk",
         "file_mask": "None",
         "categories": {
             "nodata": 0,
@@ -133,19 +112,16 @@
     "00forest25": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/00forest25/00forest25.tif",
         "data_name": "00forest25",
-        "data_mini": "fc00",
         "file_mask": "None"
     },
     "loss25": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/loss25/loss25.tif",
         "data_name": "loss25",
-        "data_mini": "ls25",
         "file_mask": "None"
     },
     "lossyr25": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossyr25/lossyr25.tif",
         "data_name": "lossyr25",
-        "data_mini": "ly25",
         "file_mask": "None",
         "categories": {
             "noloss": 0,
@@ -168,7 +144,6 @@
     "lossgain": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossgain/lossgain.tif",
         "data_name": "lossgain",
-        "data_mini": "lsgn",
         "file_mask": "None",
         "categories": {
             "nolossgain": 0,

@@ -148,9 +148,9 @@ for dataset_options in job_json['data']:
                 for j in dataset_fields:
                     tmp_config[j] = dataset_options[j]
 
-            elif user_prompt_bool("Dataset ("+str(dataset_name) + ") not found " +
-                                "in dataset json. Ignore dataset and continue? " +
-                                "[y/n]"):
+            elif user_prompt_bool("Dataset ("+str(dataset_name) +
+                                ") not found in dataset json. Ignore " +
+                                " dataset and continue? [y/n]"):
                 continue
             else:
                 sys.exit("builder.py has terminated : user's request.")
@@ -184,7 +184,8 @@ for dataset_options in job_json['data']:
     exo.set_file_mask(tmp_config['file_mask'])
 
     if tmp_config['extract_type'] == "categorical":
-        exo.set_extract_type(tmp_config['extract_type'], tmp_config['categories'])
+        exo.set_extract_type(tmp_config['extract_type'],
+                             tmp_config['categories'])
     else:
         exo.set_extract_type(tmp_config['extract_type'])
 
@@ -363,10 +364,12 @@ batch_dir = job_dir +'/ioe/'+ batch_name
 Ts = str(time.time())
 
 tmp_time = time.localtime()
-job_summary['summary']['id'] = (time.strftime('%Y%m%d', tmp_time) +'_'+
-                                str(int(time.time())) +'_'+
-                                '{0:05d}'.format(int(random.random() * 10**5)))
-job_summary['summary']['created'] = time.strftime('%Y-%m-%d  %H:%M:%S', tmp_time)
+job_summary['summary']['id'] = (
+    time.strftime('%Y%m%d', tmp_time) +'_'+
+    str(int(time.time())) +'_'+
+    '{0:05d}'.format(int(random.random() * 10**5)))
+job_summary['summary']['created'] = time.strftime('%Y-%m-%d  %H:%M:%S',
+                                                  tmp_time)
 job_summary['summary']['results'] = {}
 
 # job_summary['summary']['jobscript'] = job_name + '_' + job_summary['summary']['id']
@@ -414,7 +417,8 @@ if node_type == "xeon":
 elif node_type in ["vortex", "vortex-alpha"]:
     # lines.append('mpirun --mca mpi_warn_on_fork 0 -np ' +
     #               str(int(np)) +' python-mpi '+ args)
-    lines.append('mpirun --mca mpi_warn_on_fork 0 --map-by node -np ' + str(int(np)) +' python-mpi '+ args)
+    lines.append('mpirun --mca mpi_warn_on_fork 0 --map-by node -np ' +
+                 str(int(np)) +' python-mpi '+ args)
 
 
 

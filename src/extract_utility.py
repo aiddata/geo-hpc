@@ -1,4 +1,14 @@
-"""Contains ExtractObject, ValidateObject, MergeObject classes and related functions"""
+"""Contains classes for running and working with extracts.
+
+Classes:
+    ExtractObject
+    ValidateObject
+    MergeObject
+    FeatureExtractTool
+    FeatureMergeObject
+
+Also contains misc. related functions
+"""
 
 import sys
 import os
@@ -558,11 +568,13 @@ class ExtractObject():
 
                             max_dollars = 0
                             for r in rgeo:
-                                r_intersects = shape(r['geometry']).intersects(feat_geom)
+                                # does unique geom intersect feature geom
+                                r_intersects = shape(
+                                    r['geometry']).intersects(feat_geom)
 
                                 if r_intersects:
-                                    unique_dollars = r['properties']['unique_dollars']
-                                    max_dollars += unique_dollars
+                                    tmp_aid = r['properties']['unique_dollars']
+                                    max_dollars += tmp_aid
 
 
                             # calculate reliability statistic
@@ -761,7 +773,8 @@ class MergeObject():
                             temporal = ''.join(j[0])
                             temporal = temporal if temporal != '' else 'na'
 
-                            file_name = '.'.join([data_name, temporal, extract_type]) + '.csv'
+                            name_parts = [data_name, temporal, extract_type]
+                            file_name = '.'.join(name_parts) + '.csv'
 
                             tmp_file = os.path.join(
                                 output_base,
@@ -1027,9 +1040,9 @@ class FeatureExtractTool():
             temporal = 'na'
             dataset = self.raster_name
             if '_' in self.raster_name:
-                test_temporal = self.raster_name[self.raster_name.rindex('_')+1:]
-                if test_temporal.isdigit():
-                    temporal = test_temporal
+                tmp_temp = self.raster_name[self.raster_name.rindex('_')+1:]
+                if tmp_temp.isdigit():
+                    temporal = tmp_temp
                     dataset = self.raster_name[:self.raster_name.rindex('_')]
 
 
@@ -1106,4 +1119,285 @@ class FeatureExtractTool():
 
 
             yield feat
+
+# -----------------------------------------------------------------------------
+
+
+class FeatureMergeObject():
+    """Contains vars and funcs needed to merge results of an extract job.
+
+    Merges all available extracts results given boundary, dataset, extract
+        type and year string.
+    Does not perform source data checks (see ExtractObject) or job
+        validation (see ValidateObject).
+
+    When run as part of job chain (ie: Extract > Validate > Merge) users can
+    confirm via ExtractObject (and ValidateObject?) that all available
+    datasets meeting job config specification were extracted and thus will
+    be merged.
+
+    When running merge on its own, only available extracts are used
+    (ie: we do not check if there is some dataset that exists, but has
+    not yet been extracted)
+
+    Attributes:
+
+        merge_json (Dict): contents of job/config json
+        merge_output_dir (str): path to output for merge results
+        interface (bool): indicates if merge is being called by user from
+                          merge script or automatically run by extract job
+        merge_list (List[Dict]): list of Dicts which each contain merge
+                                 bnd_name and file_list
+
+    """
+
+    def __init__(self, merge_json, merge_output_dir, interface=False):
+
+        self.merge_json = merge_json
+
+        self.merge_output_dir = os.path.abspath(merge_output_dir)
+
+        self.interface = interface
+
+        self.merge_list = []
+
+
+    def build_merge_list(self):
+        """build merge list
+
+        maybe the validation object should handle building this list
+        - or maybe we do not actually need a validation object if merge does
+          everything validation was going to do
+        - is there anything beyond checking the resulting extract
+        csvs that needs to (or can) be done?
+
+        """
+        tmp_merge_list = []
+
+        # if not interface, use job qlists
+        if not self.interface:
+
+            bnd_list = set([i['settings']['bnd_name']
+                            for i in self.merge_json['job']['datasets']])
+
+            for bnd_name in bnd_list:
+
+                bnd_merge_list = []
+
+                for i in self.merge_json['job']['datasets']:
+                    if i['settings']['bnd_name'] == bnd_name:
+
+                        data_name = i['name']
+                        extract_type = i['settings']['extract_type']
+                        output_base = i['settings']['output_base']
+
+                        for j in i['qlist']:
+
+                            temporal = ''.join(j[0])
+                            temporal = temporal if temporal != '' else 'na'
+
+                            name_parts = [data_name, temporal, extract_type]
+                            file_name = '.'.join(name_parts) + '.csv'
+
+                            tmp_file = os.path.join(
+                                output_base,
+                                bnd_name,
+                                'cache',
+                                data_name,
+                                file_name
+                            )
+
+                            bnd_merge_list += [tmp_file]
+
+
+                # add merge list for boundary as new item in tmp merge list
+                tmp_merge_list.append({
+                    'bnd_name': bnd_name,
+                    'file_list': bnd_merge_list
+                })
+
+
+        # if interface build from merge data
+        else:
+
+            # generate data needed to build file list
+
+            required_options = [
+                "bnd_name",
+                "extract_type",
+                "output_base",
+                "years"
+            ]
+            missing_defaults = [i for i in required_options
+                                if i not in self.merge_json['defaults'].keys()]
+
+            if len(missing_defaults) > 0:
+                print ("MergeObject warning: required option(s) missing " +
+                       "from defaults ("+str(missing_defaults)+")")
+
+            merge_data = []
+
+            for dataset_options in self.merge_json['data']:
+
+                dataset_name = dataset_options['name']
+                print dataset_name
+
+                tmp_config = {}
+                tmp_config['name'] = dataset_name
+
+                for k in required_options:
+                    if k in dataset_options:
+                        tmp_config[k] = dataset_options[k]
+                    else:
+                        tmp_config[k] = self.merge_json['defaults'][k]
+
+                merge_data.append(tmp_config)
+
+            # build file list
+
+            bnd_list = set([i['bnd_name'] for i in merge_data])
+
+            for bnd_name in bnd_list:
+
+                bnd_merge_list = []
+
+                for i in merge_data:
+                    if i['bnd_name'] == bnd_name:
+
+                        dset_years = get_years(i['years'])
+
+                        data_name = i['name']
+                        extract_type = i['extract_type']
+                        extract_base = i['output_base']
+
+                        # --------------------------------------------------
+
+                        extract_dir = (extract_base + "/" + bnd_name +
+                                       "/cache/" + data_name)
+
+                        print "\tChecking for extracts in: " + extract_dir
+
+                        # validate inputs by checking directories exist
+                        if not os.path.isdir(extract_base):
+                            sys.exit("Directory for extracts does not " +
+                                     "exist. You may not be connected to " +
+                                     "sciclone ("+extract_base+")")
+                        elif not os.path.isdir(extract_base + "/" + bnd_name):
+                            sys.exit("Directory for specified bnd_name does " +
+                                     "not exist (bnd_name: "+bnd_name+")")
+                        elif not os.path.isdir(extract_dir):
+                                sys.exit("Directory for specified dataset " +
+                                         "does not exists (data_name: " +
+                                         data_name+")")
+
+                        # find and sort all relevant extract files
+                        rlist = [
+                            fname for fname in os.listdir(extract_dir)
+                            if fname.split('.')[1] in dset_years
+                            and os.path.isfile(extract_dir +"/"+ fname)
+                            and fname.endswith(".csv")
+                        ]
+                        rlist = sorted(rlist)
+
+                        # exit if no extracts found
+                        if len(rlist) == 0:
+                            sys.exit("No extracts found for: " + extract_dir)
+
+                        bnd_merge_list += [extract_dir +"/"+ item
+                                           for item in rlist]
+
+
+                # add merge list for boundary as new item in tmp merge list
+                tmp_merge_list.append({
+                    'bnd_name': bnd_name,
+                    'file_list': bnd_merge_list
+                })
+
+
+        # set actual merge list
+        self.merge_list = tmp_merge_list
+
+
+    def run_merge(self):
+        """Run merge
+
+        """
+        for i in self.merge_list:
+            bnd_name = i['bnd_name']
+            file_list = i['file_list']
+
+            print "Starting merge process for bnd_name = " + bnd_name
+
+
+            if not self.interface:
+                merge_output_csv =  (self.merge_output_dir + "/merge_" +
+                                     bnd_name + ".csv")
+
+            else:
+                # if interface ask for output path
+                while True:
+                    # ask for path
+                    sys.stdout.write("Absolute file path for output? \n> ")
+                    answer = raw_input()
+
+                    # make sure directory exists
+                    if os.path.isdir(os.path.dirname(answer)):
+
+                        # make sure file name ends with .csv
+                        if answer.endswith(".csv"):
+                            merge_output_csv = answer
+                            break
+                        else:
+                            sys.stdout.write("Invalid file extension (must " +
+                                             "end with \".csv\").\n")
+
+                    else:
+                        sys.stdout.write("Directory specified does not " +
+                                         "exist.\n")
+
+
+            merge = 0
+            for result_csv in file_list:
+
+                result_df = pd.read_csv(result_csv, quotechar='\"',
+                                        na_values='', keep_default_na=False)
+
+                tmp_field = result_csv[result_csv.rindex('/')+1:-4]
+
+                if not isinstance(merge, pd.DataFrame):
+                    merge = result_df.copy(deep=True)
+
+                    # if tmp_field.endswith("c"):
+                    cat_fields = [
+                        cname for cname in list(merge.columns)
+                        if cname.startswith("exfield_")
+                    ]
+                    for c in cat_fields:
+                        merge.rename(columns={c: tmp_field},
+                                     inplace=True)
+
+                else:
+                    # if tmp_field.endswith("c"):
+                    cat_fields = [
+                        cname for cname in list(result_df.columns)
+                        if cname.startswith("exfield_")
+                    ]
+                    for c in cat_fields:
+                        merge[tmp_field] = result_df[c]
+
+
+            if isinstance(merge, pd.DataFrame):
+
+                merge.to_csv(merge_output_csv, index=False)
+
+                print '\tMerge completed for ' + bnd_name
+                print '\tResults output to ' + merge_output_csv
+
+            else:
+                print ('\tWarning: no extracts merged for bnd_name = ' +
+                       bnd_name)
+
+
+
+# -----------------------------------------------------------------------------
 
