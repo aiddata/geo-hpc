@@ -183,9 +183,9 @@ for i in extract_list:
 
     tmp['bnd_name'] = i['boundary']
 
-    bnd_info = c_asdf.find(
+    bnd_info = c_asdf.find_one(
         {'name': tmp['bnd_name']},
-        {'base': 1, 'resources': 1}).limit(1)[0]
+        {'base': 1, 'resources': 1})
 
     tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
                            bnd_info['resources'][0]['path'])
@@ -213,9 +213,12 @@ for i in extract_list:
         # print i['raster']
         # print tmp['data_name']
 
-        data_info = c_asdf.find(
-            {'name': tmp['data_name']},
-            {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1}).limit(1)[0]
+        data_info = c_asdf.find_one(
+            {'resources.name': i['raster']},
+            {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
+
+
+        tmp['data_name'] = data_info['name']
 
         tmp['data_path'] = (
             data_info['base'] + '/'+
