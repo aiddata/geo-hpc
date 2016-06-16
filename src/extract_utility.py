@@ -657,8 +657,8 @@ class ExtractObject():
             raise Exception('missing args for export_to_db')
 
         fet = FeatureExtractTool(
-            bnd_name, raster_name, ex_method,
-            ex_version, c_features)
+            kwargs['bnd_name'], kwargs['raster_name'], kwargs['ex_method'],
+            kwargs['ex_version'], kwargs['c_features'])
 
         run_data = fet.run(stats)
         return run_data
