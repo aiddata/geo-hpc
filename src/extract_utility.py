@@ -1038,7 +1038,7 @@ class FeatureExtractTool():
 
 
             # check if geom / geom hash exists
-            search = c_features.find_one({'hash': geom_hash})
+            search = self.c_features.find_one({'hash': geom_hash})
 
 
             exists = search is not None
@@ -1051,7 +1051,7 @@ class FeatureExtractTool():
                     'extracts.version': self.ex_version
                 }
 
-                extract_search = c_features.find_one(extract_search_params)
+                extract_search = self.c_features.find_one(extract_search_params)
                 extract_exists = extract_search is not None
 
                 if extract_exists:
@@ -1080,7 +1080,7 @@ class FeatureExtractTool():
                     update_params['$set'][prop_sub_doc] = feature_properties
 
 
-                update = c_features.update_one(search_params, update_params)
+                update = self.c_features.update_one(search_params, update_params)
 
 
             else:
@@ -1096,7 +1096,7 @@ class FeatureExtractTool():
                     'extracts': feature_extracts
                 }
                 # insert
-                insert = c_features.insert(feature_insert)
+                insert = self.c_features.insert(feature_insert)
 
 
             yield feat
