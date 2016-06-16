@@ -1024,8 +1024,14 @@ class FeatureExtractTool():
                 ex_value = feat['properties']['exfield_' + self.ex_method]
 
 
-            dataset = self.raster_name[:self.raster_name.rindex('_')]
-            temporal = self.raster_name[self.raster_name.rindex('_')+1:]
+            temporal = 'na'
+            dataset = self.raster_name
+            if '_' in self.raster_name:
+                test_temporal = self.raster_name[self.raster_name.rindex('_')+1:]
+                if test_temporal.isdigit():
+                    temporal = test_temporal
+                    dataset = self.raster_name[:self.raster_name.rindex('_')]
+
 
             feature_extracts = [{
                 'raster': self.raster_name,
