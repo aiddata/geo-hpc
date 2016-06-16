@@ -1014,25 +1014,25 @@ class FeatureExtractTool():
             }
             # feature_properties = {}
 
-            if ex_method == 'reliability' :
+            if self.ex_method == 'reliability' :
                 ex_value = {
                     'sum': feat['properties']['exfield_sum'],
                     'reliability': feat['properties']['exfield_reliability'],
                     'maxaid': feat['properties']['exfield_maxaid']
                 }
             else:
-                ex_value = feat['properties']['exfield_' + ex_method]
+                ex_value = feat['properties']['exfield_' + self.ex_method]
 
 
-            dataset = raster_name[:raster_name.rindex('_')]
-            temporal = raster_name[raster_name.rindex('_')+1:]
+            dataset = self.raster_name[:self.raster_name.rindex('_')]
+            temporal = self.raster_name[self.raster_name.rindex('_')+1:]
 
             feature_extracts = [{
-                'raster': raster_name,
+                'raster': self.raster_name,
                 'dataset': dataset,
                 'temporal': temporal,
-                'method': ex_method,
-                'version': ex_version,
+                'method': self.ex_method,
+                'version': self.ex_version,
                 'value': ex_value
             }]
 
@@ -1046,9 +1046,9 @@ class FeatureExtractTool():
 
                 extract_search_params = {
                     'hash': geom_hash,
-                    'extracts.raster': raster_name,
-                    'extracts.method': ex_method,
-                    'extracts.version': ex_version
+                    'extracts.raster': self.raster_name,
+                    'extracts.method': self.ex_method,
+                    'extracts.version': self.ex_version
                 }
 
                 extract_search = c_features.find_one(extract_search_params)
@@ -1067,16 +1067,16 @@ class FeatureExtractTool():
                     }
 
 
-                if not bnd_name in search['datasets']:
+                if not self.bnd_name in search['datasets']:
                     # add dataset to datasets
                     if not '$push' in update_params:
                         update_params['$push'] = {}
                     if not '$set' in update_params:
                         update_params['$set'] = {}
 
-                    update_params['$push']['datasets'] = bnd_name
+                    update_params['$push']['datasets'] = self.bnd_name
 
-                    prop_sub_doc = 'properties.' + bnd_name
+                    prop_sub_doc = 'properties.' + self.bnd_name
                     update_params['$set'][prop_sub_doc] = feature_properties
 
 
@@ -1091,8 +1091,8 @@ class FeatureExtractTool():
                     # 'simplified': simplified_geom,
                     'hash': geom_hash,
                     # 'id': feature_id,
-                    'properties': {bnd_name: feature_properties},
-                    'datasets': [bnd_name],
+                    'properties': {self.bnd_name: feature_properties},
+                    'datasets': [self.bnd_name],
                     'extracts': feature_extracts
                 }
                 # insert
