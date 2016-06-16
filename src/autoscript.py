@@ -371,36 +371,23 @@ def tmp_worker_job(self, task_id):
     run_data = exo.export_to_csv(run_data, output)
 
 
+###
+
+    run_data = exo.export_to_db(
+        stats = run_data,
+        bnd_name = bnd_name,
+        raster_name = raster_name,
+        ex_version = version,
+        ex_method = extract_type,
+        c_features = c_features
+    )
 
 ###
 
-    # run_data = exo.export_to_db(
-    #     stats = run_data,
-    #     bnd_name,
-    #     raster_name,
-    #     ex_version = version,
-    #     ex_method = extract_type,
-    #     c_features
-    # )
-
-
-    # fet = extract_utility.FeatureExtractTool(
-    #     bnd_name,
-    #     raster_name,
-    #     ex_version = version,
-    #     ex_method = extract_type,
-    #     c_features
-    # )
-
-    # run_data = fet.run(run_data)
-
-###
 
     Te_start = int(time.time())
 
-
     for _ in run_data: pass
-
 
     Te_run = int(time.time() - Te_start)
     print ((worker_tagline + 'completed extract in %s seconds' +

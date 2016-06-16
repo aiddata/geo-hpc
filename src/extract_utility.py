@@ -646,13 +646,19 @@ class ExtractObject():
         extract_fh.close()
 
 
-    def export_to_db(self, stats, *args, **kwargs):
+    def export_to_db(self, stats, **kwargs):
+
+        expected = [
+            'bnd_name', 'raster_name', 'ex_method',
+            'ex_version', 'c_features'
+        ]
+
+        if any([i not in kwargs for i in expected]):
+            raise Exception('missing args for export_to_db')
+
         fet = FeatureExtractTool(
-            bnd_name,
-            raster_name,
-            ex_method,
-            ex_version,
-            c_features)
+            bnd_name, raster_name, ex_method,
+            ex_version, c_features)
 
         run_data = fet.run(stats)
         return run_data
