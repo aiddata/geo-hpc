@@ -515,7 +515,7 @@ class ExtractObject():
                 if len(stats) != 1:
                     raise Exception('multiple extract results for single feature')
 
-                yield stats
+                yield stats[0]
 
             except MemoryError as e:
                 if callback == 'warning':
