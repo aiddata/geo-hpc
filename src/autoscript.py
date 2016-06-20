@@ -371,17 +371,17 @@ def tmp_worker_job(self, task_id):
     file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
     output = os.path.join(output_dir, file_name)
 
-    # run_data = exo.export_to_csv(run_data, output)
+    run_data = exo.export_to_csv(run_data, output)
 
 
-    # run_data = exo.export_to_db(
-    #     stats = run_data,
-    #     bnd_name = bnd_name,
-    #     raster_name = raster_name,
-    #     ex_version = version,
-    #     ex_method = extract_type,
-    #     c_features = c_features
-    # )
+    run_data = exo.export_to_db(
+        stats = run_data,
+        bnd_name = bnd_name,
+        raster_name = raster_name,
+        ex_version = version,
+        ex_method = extract_type,
+        c_features = c_features
+    )
 
 
     Te_start = int(time.time())
