@@ -362,7 +362,7 @@ def tmp_worker_job(self, task_id):
            '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
            (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
-    run_data = exo.run_extract(raster)
+    run_data = exo.run_feature_extract(raster)
 
 
     # generate output path
@@ -374,8 +374,6 @@ def tmp_worker_job(self, task_id):
     run_data = exo.export_to_csv(run_data, output)
 
 
-###
-
     run_data = exo.export_to_db(
         stats = run_data,
         bnd_name = bnd_name,
@@ -384,8 +382,6 @@ def tmp_worker_job(self, task_id):
         ex_method = extract_type,
         c_features = c_features
     )
-
-###
 
 
     Te_start = int(time.time())

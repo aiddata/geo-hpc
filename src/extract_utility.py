@@ -310,6 +310,9 @@ class ExtractObject():
                                 " does not exist.")
             else:
                 self._reliability_geojson = base_path_dir + "/unique.geojson"
+                # reliability geojson (mean surface features with aid info)
+                self._rgeo = fiona.open(self._reliability_geojson)
+
 
 
     def set_years(self, value):
@@ -496,18 +499,45 @@ class ExtractObject():
     #     """
 
 
-    def run_extract(self, raster):
-        """Run python extract using rasterstats
+    def run_feature_extract(self, raster, callback=None):
+        """Run python extract using modified rasterstats
 
         Args:
             raster (str): path of raster file relative to base path
-            output (str): absolute path for csv output of extract
+            callback
         """
+        feats = rs.io.read_features(self._vector_path)
 
-        # try:
+        for f in feats:
+            try:
+                stats = list(self.run_extract(f, raster))
+
+                if len(stats) != 1:
+                    raise Exception('multiple extract results for single feature')
+
+                yield stats
+
+            except MemoryError as e:
+                if callback == 'warning':
+                    warnings.warn(e)
+                elif callback is not None:
+                    callback(f, e)
+                else:
+                    raise Exception(e)
+
+
+    def run_extract(self, raster, vector=None):
+        """Run python extract using modified rasterstats
+
+        Args:
+            raster (str): path of raster file relative to base path
+            vector
+        """
+        if vector == None:
+            vector = self._vector_path
 
         if self._extract_type == "categorical":
-            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
+            raw_stats = rs.gen_zonal_stats(vector, raster,
                             prefix="exfield_", stats="count",
                             categorical=True, category_map=self._cmap,
                             all_touched=True, geojson_out=True)
@@ -518,20 +548,12 @@ class ExtractObject():
             else:
                 tmp_extract_type = self._extract_type
 
-            raw_stats = rs.gen_zonal_stats(self._vector_path, raster,
+            raw_stats = rs.gen_zonal_stats(vector, raster,
                             prefix="exfield_", stats=tmp_extract_type,
                             all_touched=True, geojson_out=True)
 
 
         stats = self.format_extract(raw_stats)
-
-        # except Exception as e:
-        #     print ("error running extract for " +
-        #           self._vector_path + ", " +
-        #           raster + ", " +
-        #           self._extract_type)
-        #     raise Exception(e)
-
 
         return stats
 
@@ -549,9 +571,6 @@ class ExtractObject():
                 yield feat
 
         if self._extract_type == "reliability":
-            # reliability geojson (mean surface features with aid info)
-            rgeo = fiona.open(self._reliability_geojson)
-
             for feat in stats:
                 if 'exfield_sum' in feat['properties'].keys():
                     try:
@@ -567,7 +586,7 @@ class ExtractObject():
                             feat_geom = shape(feat['geometry'])
 
                             max_dollars = 0
-                            for r in rgeo:
+                            for r in self._rgeo:
                                 # does unique geom intersect feature geom
                                 r_intersects = shape(
                                     r['geometry']).intersects(feat_geom)
@@ -615,7 +634,6 @@ class ExtractObject():
                         print feat['properties'][colname]
                         print type(feat['properties'][colname])
                         feat['properties'][colname] = 'NA'
-
 
                 else:
                     warnings.warn('Extract field missing from feature ' +
