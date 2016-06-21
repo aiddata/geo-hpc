@@ -60,71 +60,71 @@ job = mpi_utility.NewParallel()
 
 request = 0
 
-if job.rank == 0:
 
-    def get_version():
-        vfile = os.path.join(os.path.dirname(__file__), "_version.py")
-        with open(vfile, "r") as vfh:
-            vline = vfh.read()
-        vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
-        match = re.search(vregex, vline, re.M)
-        if match:
-            return match.group(1)
-        else:
-            raise RuntimeError("Unable to find version string in {}.".format(vfile))
-
-
-    import pymongo
-
-    # -------------------------------------
-
-    # import sys
-    # import os
-
-    branch = sys.argv[1]
-
-    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-    if not os.path.isdir(branch_dir):
-        raise Exception('Branch directory does not exist')
-
-
-    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-    sys.path.insert(0, config_dir)
-
-    from config_utility import BranchConfig
-
-    config = BranchConfig(branch=branch)
-
-
-    # -------------------------------------
-
-
-    # check mongodb connection
-    if config.connection_status != 0:
-        sys.exit("connection status error: " + str(config.connection_error))
-
-
-    # -------------------------------------------------------------------------
-    # -------------------------------------------------------------------------
-    # find request
-
-    # import pymongo
-    client = pymongo.MongoClient(config.server)
-    c_asdf = client.asdf.data
-    c_msr = client.asdf.msr
-
-    tmp_v1 = config.versions["mean-surface-rasters"]
-    tmp_v2 = get_version()
-
-    if tmp_v1 == tmp_v2:
-        version = tmp_v1
+def get_version():
+    vfile = os.path.join(os.path.dirname(__file__), "_version.py")
+    with open(vfile, "r") as vfh:
+        vline = vfh.read()
+    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
+    match = re.search(vregex, vline, re.M)
+    if match:
+        return match.group(1)
     else:
-        raise Exception("Config and src versions do not match")
+        raise RuntimeError("Unable to find version string in {}.".format(vfile))
 
 
-    general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
+import pymongo
 
+# -------------------------------------
+
+# import sys
+# import os
+
+branch = sys.argv[1]
+
+branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+if not os.path.isdir(branch_dir):
+    raise Exception('Branch directory does not exist')
+
+
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+sys.path.insert(0, config_dir)
+
+from config_utility import BranchConfig
+
+config = BranchConfig(branch=branch)
+
+
+# -------------------------------------
+
+
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
+
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# find request
+
+# import pymongo
+client = pymongo.MongoClient(config.server)
+c_asdf = client.asdf.data
+c_msr = client.asdf.msr
+
+tmp_v1 = config.versions["mean-surface-rasters"]
+tmp_v2 = get_version()
+
+if tmp_v1 == tmp_v2:
+    version = tmp_v1
+else:
+    raise Exception("Config and src versions do not match")
+
+
+general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
+
+if job.rank == 0:
 
     print 'starting request search'
     search_limit = 5
@@ -700,6 +700,7 @@ core.set_pixel_size(request['options']['resolution'])
 
 if iso3 == 'global':
     raise Exception('not ready for global yet')
+    world_box = box(-190, -100, 180, 90)
 
 else:
 
