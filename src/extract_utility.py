@@ -499,13 +499,47 @@ class ExtractObject():
     #     """
 
 
-    def run_feature_extract(self, raster, callback=None):
-        """Run python extract using modified rasterstats
+    # def default_extract_callback(feat, err):
+    #     """Handle memory errors during extract
 
-        Args:
+    #     Problem is we do not have a clean way of
+    #     indicating there was as memory issues and results
+    #     are incomplete (both to user and system) so it can
+    #     be revisted later and (hopefully) corrected.
+    #     """
+    #     if self._extract_type == "categorical":
+    #         for i in self._cmap.values():
+    #             colname = 'exfield_' + i
+    #             feat['properties'][colname] = 'MemoryError'
+
+    #     elif self._extract_type == "reliability":
+    #         feat['properties']['exfield_sum'] = 'MemoryError'
+    #         feat['properties']['exfield_maxaid'] = 'MemoryError'
+    #         feat['properties']['exfield_reliability'] = 'MemoryError'
+
+    #     else:
+    #         colname = 'exfield_' + self._extract_type
+    #         feat['properties'][colname] = 'MemoryError'
+
+    #     warnings.warn(err)
+    #     return feat
+
+
+    def run_feature_extract(self, raster, callback=None):
+        """Run extract on a per feature basis
+
+        Wrapper for standard run_extract method
+
+        Args
             raster (str): path of raster file relative to base path
             callback
+
+        Return
+            stats: generator of formatted extract output
         """
+        # if callback == 'default':
+        #     callback = self.default_extract_callback
+
         feats = rs.io.read_features(self._vector_path)
 
         for f in feats:
@@ -520,8 +554,17 @@ class ExtractObject():
             except MemoryError as e:
                 if callback == 'warning':
                     warnings.warn(e)
+
                 elif callback is not None:
-                    callback(f, e)
+                    try:
+                        err_stats = callback(f, e)
+                        yield err_stats
+
+                    except Exception as ce:
+                        print 'Callback Error'
+                        warnings.warn(ce)
+                        raise Exception(e)
+
                 else:
                     raise Exception(e)
 
@@ -529,9 +572,12 @@ class ExtractObject():
     def run_extract(self, raster, vector=None):
         """Run python extract using modified rasterstats
 
-        Args:
+        Args
             raster (str): path of raster file relative to base path
             vector
+
+        Return
+            stats: generator of formatted extract output
         """
         if vector == None:
             vector = self._vector_path
@@ -559,7 +605,13 @@ class ExtractObject():
 
 
     def format_extract(self, stats):
+        """Format raw extract output from rasterstats
 
+        Categorical: make sure all fields from map dict exists. Assign value
+                     of zero if they do not
+        Reliability: format NA vals and run reliability calc
+        General: format NA vals
+        """
         if self._extract_type == "categorical":
             for feat in stats:
                 for i in self._cmap.values():
@@ -570,7 +622,7 @@ class ExtractObject():
 
                 yield feat
 
-        if self._extract_type == "reliability":
+        elif self._extract_type == "reliability":
             for feat in stats:
                 if 'exfield_sum' in feat['properties'].keys():
                     try:
@@ -1138,7 +1190,10 @@ class FeatureExtractTool():
 
             yield feat
 
+
+
 # -----------------------------------------------------------------------------
+
 
 
 class FeatureMergeObject():

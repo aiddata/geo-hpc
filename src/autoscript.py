@@ -384,15 +384,28 @@ def tmp_worker_job(self, task_id):
     )
 
 
-    Te_start = int(time.time())
+    try:
+        Te_start = int(time.time())
+        for _ in run_data: pass
+        Te_run = int(time.time() - Te_start)
 
-    for _ in run_data: pass
+        extract_status = 1
+        print ((worker_tagline + 'completed extract in %s seconds' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
-    Te_run = int(time.time() - Te_start)
-    print ((worker_tagline + 'completed extract in %s seconds' +
-           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-           (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
+    except MemoryError as e:
+        extract_status = -2
+        print ((worker_tagline + 'memory error (%s)' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+
+    except Exception as e:
+        extract_status = -1
+        print ((worker_tagline + 'unknown error (%s)' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
 
     # update status of item in extract queue
@@ -400,12 +413,14 @@ def tmp_worker_job(self, task_id):
         '_id': task['_id']
     }, {
         '$set': {
-            'status': 1,
+            'status': extract_status,
             'update_time': int(time.time())
         }
     }, upsert=False)
 
-    return 0
+
+    return extract_status
+
 
 
 
