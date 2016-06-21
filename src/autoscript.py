@@ -37,7 +37,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from shapely.geometry import Point, shape #, MultiPolygon, Polygon, box
+from shapely.geometry import Point, shape, box #, MultiPolygon, Polygon, box
 from shapely.prepared import prep
 
 import shapefile
@@ -684,22 +684,53 @@ if job.rank == 0:
 
 
 # -------------------------------------
-# load shapefiles
+# set pixel size
 
-# must start at and inlcude ADM0
-# all additional ADM shps must be included so that adm_path index corresponds
-# to adm level
-adm_paths = []
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm0.shp")
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm1.shp")
-adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm2.shp")
+if not 'resolution' in request['options']:
+    quit("missing pixel size input from request")
 
-# build list of adm shape lists
-core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
 
-# define country shape
-tmp_adm0 = shape(core.adm_shps[0][0])
-core.set_adm0(tmp_adm0)
+core.set_pixel_size(request['options']['resolution'])
+
+
+# =============================================================================
+# =============================================================================
+# SHAPES / GRID INIT
+
+
+if iso3 == 'global'
+    raise Exception('not ready for global yet')
+
+else:
+
+    # -------------------------------------
+    # load shapefiles
+
+    # must start at and inlcude ADM0
+    # all additional ADM shps must be included so that adm_path index corresponds
+    # to adm level
+    adm_paths = []
+    adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm0.shp")
+    adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm1.shp")
+    adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm2.shp")
+
+    # build list of adm shape lists
+    core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
+
+    # define country shape
+    tmp_adm0 = shape(core.adm_shps[0][0])
+    core.set_adm0(tmp_adm0)
+
+
+    # -------------------------------------
+    # create grid for country
+    core.set_grid_info(core.adm0)
+    master_grid = core.rasterize_geom(core.adm0)
+
+    nrows, ncols = core.shape
+    (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.bounds
+    adm0_count = master_grid.sum()
+
 
 
 # =============================================================================
@@ -738,32 +769,6 @@ if task_id_list is None:
 if job.rank == 0:
     print str(len(task_id_list)) + " tasks to process."
     print "Preparing main grid..."
-
-
-# =============================================================================
-# =============================================================================
-# GRID INIT
-
-# -------------------------------------
-# set pixel size
-
-if not 'resolution' in request['options']:
-    quit("missing pixel size input from request")
-
-
-core.set_pixel_size(request['options']['resolution'])
-
-
-
-# -------------------------------------
-# create grid for country
-core.set_grid_info(core.adm0)
-master_grid = core.rasterize_geom(core.adm0)
-
-nrows, ncols = core.shape
-(adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.bounds
-adm0_count = master_grid.sum()
-
 
 
 # =============================================================================
