@@ -167,15 +167,15 @@ class CoreMSR():
             "1": {
                 "default": {
                     "1": {"type": "buffer", "data": 25000},
-                    "2": {"type": "country", "data": 0}
+                    "2": {"type": "adm", "data": "0"}
                 },
                 "ADM1": {
                     "1": {"type": "adm", "data": "1"},
-                    "2": {"type": "country", "data": 0}
+                    "2": {"type": "adm", "data": "0"}
                 },
                 "ADM2": {
                     "1": {"type": "adm", "data": "2"},
-                    "2": {"type": "country", "data": 0}
+                    "2": {"type": "adm", "data": "0"}
                 }#,
                 # "ADM3": {
                 #     "1": {"type": "adm", "data": "3"},
@@ -701,9 +701,6 @@ class CoreMSR():
         if geom_type == "None":
             return "None"
 
-        elif geom_type == "country":
-            return self.adm0
-
         elif geom_type in self.geom_types:
 
             code_1 = str(int(code_1))
@@ -795,7 +792,7 @@ class CoreMSR():
 
         top_left_lon = minx
         top_left_lat = maxy
-        affine = Affine(pixel_size, 0, top_left_lon, 
+        affine = Affine(pixel_size, 0, top_left_lon,
                              0, -pixel_size, top_left_lat)
 
         nrows = int(psi * (maxy - miny))
@@ -832,7 +829,7 @@ class CoreMSR():
 
             if float(iscale) != fscale:
                 warnings.warn("CoreMSR [rasterize_geom] : scale float ("+str(fscale)+") converted to int ("+str(iscale)+")")
-            
+
         except:
             raise Exception("CoreMSR [rasterize_geom] : invalid scale type")
 
@@ -847,7 +844,7 @@ class CoreMSR():
             pixel_size = self.pixel_size / scale
 
 
-        affine = Affine(pixel_size, 0, self.topleft[0], 
+        affine = Affine(pixel_size, 0, self.topleft[0],
                         0, -pixel_size, self.topleft[1])
 
         nrows = self.shape[0] * scale
@@ -856,10 +853,10 @@ class CoreMSR():
         shape = (nrows, ncols)
 
         rasterized = features.rasterize(
-            [(geom, 1)], 
-            out_shape=shape, 
+            [(geom, 1)],
+            out_shape=shape,
             transform=affine,
-            fill=0, 
+            fill=0,
             all_touched=False)
 
         if scale != 1:

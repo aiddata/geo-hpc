@@ -281,41 +281,41 @@ def tmp_worker_job(self, task_id):
     pg_data = active_data.loc[task]
     pg_type = pg_data.geom_type
 
+    if pg_type not in core.geom_types:
+        raise Exception(str(self.rank) + 'invalid pg_type: ' + pg_type +
+                        '('+ str(pg_data['project_location_id']) +')')
+
+
     print (str(self.rank) + 'running pg_type: ' + pg_type +
            '('+ str(pg_data['project_location_id']) +')')
 
 
-    if pg_type == "country":
-        mean_surf = master_grid
+    # for each row generate grid based on bounding box of geometry
+    # pg_geom = pg_data.geom_val
 
-    elif pg_type in core.geom_types:
+    pg_geom = core.get_geom_val(
+        pg_data.geom_type, pg_data[core.code_field_1],
+        pg_data[core.code_field_2], pg_data[core.code_field_3],
+        pg_data.longitude, pg_data.latitude)
 
-        # for each row generate grid based on bounding box of geometry
-        # pg_geom = pg_data.geom_val
+    if pg_geom is None:
+        sys.exit("Geom is none" + str(pg_data['project_location_id']))
 
-        pg_geom = core.get_geom_val(
-            pg_data.geom_type, pg_data[core.code_field_1],
-            pg_data[core.code_field_2], pg_data[core.code_field_3],
-            pg_data.longitude, pg_data.latitude)
+    try:
+        pg_geom = shape(pg_geom)
+    except:
+        print str(pg_data['project_location_id'])
+        print type(pg_geom)
+        print pg_geom
+        raise Exception("Geom is invalid")
 
-        if pg_geom is None:
-            sys.exit("Geom is none" + str(pg_data['project_location_id']))
+    # factor used to determine subgrid size
+    # relative to output grid size
+    # sub grid res = output grid res / sub_grid_factor
+    subgrid_scale = 10
 
-        try:
-            pg_geom = shape(pg_geom)
-        except:
-            print str(pg_data['project_location_id'])
-            print type(pg_geom)
-            print pg_geom
-            sys.exit("Geom is invalid")
-
-        # factor used to determine subgrid size
-        # relative to output grid size
-        # sub grid res = output grid res / sub_grid_factor
-        subgrid_scale = 10
-
-        # rasterized sub grid
-        mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
+    # rasterized sub grid
+    mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
 
     mean_surf = mean_surf.astype('float64')
@@ -650,8 +650,9 @@ release_data = c_asdf.find({'name': request['dataset']})
 release_path = release_data[0]['base']
 release_preamble = release_data[0]['data_set_preamble']
 
-print release_path
-print release_preamble
+if job.rank == 0:
+    print release_path
+    print release_preamble
 
 # make sure release path exists
 if not os.path.isdir(release_path):
@@ -701,7 +702,17 @@ core.set_pixel_size(request['options']['resolution'])
 
 if iso3 == 'global':
     raise Exception('not ready for global yet')
-    world_box = box(-190, -100, 180, 90)
+
+    master_geom = box(-190, -100, 180, 90)
+
+    # -------------------------------------
+    # create grid for country
+    core.set_grid_info(master_geom)
+    master_grid = core.rasterize_geom(master_geom)
+
+    nrows, ncols = core.shape
+    (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.bounds
+    adm0_count = master_grid.sum()
 
 else:
 
