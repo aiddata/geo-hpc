@@ -698,7 +698,7 @@ core.set_pixel_size(request['options']['resolution'])
 # SHAPES / GRID INIT
 
 
-if iso3 == 'global'
+if iso3 == 'global':
     raise Exception('not ready for global yet')
 
 else:
