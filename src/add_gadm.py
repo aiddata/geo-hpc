@@ -35,6 +35,7 @@ if config.connection_status != 0:
 import datetime
 import json
 import pymongo
+import fiona
 
 from resource_utility import ResourceTools
 
@@ -144,8 +145,7 @@ dp["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
 dp["title"] = (gadm_country + " " + gadm_adm.upper() +
               " Boundary - GADM " + str(gadm_version))
 
-dp["description"] = ("GADM Boundary File for " + gadm_adm.upper() +
-                     " in " + gadm_country + ".")
+dp["description"] = "PLACEHOLDER"
 
 dp["version"] = gadm_version
 dp["citation"] = "Global Administrative Areas (GADM) http://www.gadm.org."
@@ -161,6 +161,7 @@ dp["gadm_info"] = {}
 dp["gadm_info"]["country"] = gadm_country
 dp["gadm_info"]["iso3"] = gadm_iso3
 dp["gadm_info"]["adm"] = int(gadm_adm[-1:])
+dp["gadm_info"]["name"] = "PLACEHOLDER"
 
 # v = ValidationTools()
 
@@ -289,6 +290,15 @@ resource_tmp = {}
 
 # path relative to datapackage.json
 resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
+
+
+# get adm unit name for country and add to gadm info and description
+tmp_feature = fiona.open(
+    os.path.join(dp["base"], resource_tmp["path"]), 'r').next()
+
+dp["gadm_info"]["name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+dp["description"] = ("GADM Boundary File for " + gadm_adm.upper() +
+                     "(" + dp["gadm_info"]["name"] + ") in " + gadm_country + ".")
 
 
 # file size
