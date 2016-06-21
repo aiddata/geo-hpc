@@ -297,9 +297,8 @@ tmp_feature = fiona.open(
     os.path.join(dp["base"], resource_tmp["path"]), 'r').next()
 
 dp["gadm_info"]["name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
-dp["description"] = ("GADM Boundary File for " + gadm_adm.upper() +
-                     "(" + dp["gadm_info"]["name"] + ") in " + gadm_country + ".")
-
+dp["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
+    gadm_adm.upper(), dp["gadm_info"]["name"], gadm_country)
 
 # file size
 resource_tmp["bytes"] = os.path.getsize(f)
