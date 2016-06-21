@@ -124,6 +124,7 @@ else:
 
 general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
 
+
 if job.rank == 0:
 
     print 'starting request search'
@@ -639,32 +640,32 @@ release_path = None
 release_preamble = None
 iso3 = None
 
-if job.rank == 0:
+# if job.rank == 0:
 
-    dir_working = (general_output_base + '/active/' +
-                   request['dataset'] +'_'+ request['hash'])
+dir_working = (general_output_base + '/active/' +
+               request['dataset'] +'_'+ request['hash'])
 
-    release_data = c_asdf.find({'name': request['dataset']})
+release_data = c_asdf.find({'name': request['dataset']})
 
-    release_path = release_data[0]['base']
-    release_preamble = release_data[0]['data_set_preamble']
+release_path = release_data[0]['base']
+release_preamble = release_data[0]['data_set_preamble']
 
-    print release_path
-    print release_preamble
+print release_path
+print release_preamble
 
-    # make sure release path exists
-    if not os.path.isdir(release_path):
-        quit("release path specified not found: " + release_path)
+# make sure release path exists
+if not os.path.isdir(release_path):
+    quit("release path specified not found: " + release_path)
 
-    if release_preamble not in config.release_gadm:
-        quit("release premable not found in config: " + release_preamble)
+if release_preamble not in config.release_gadm:
+    quit("release premable not found in config: " + release_preamble)
 
-    iso3 = config.release_gadm[release_preamble]
+iso3 = config.release_gadm[release_preamble]
 
 
-release_path = job.comm.bcast(release_path, root=0)
-release_preamble = job.comm.bcast(release_preamble, root=0)
-iso3 = job.comm.bcast(iso3, root=0)
+# release_path = job.comm.bcast(release_path, root=0)
+# release_preamble = job.comm.bcast(release_preamble, root=0)
+# iso3 = job.comm.bcast(iso3, root=0)
 
 
 # -------------------------------------
