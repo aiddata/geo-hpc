@@ -41,6 +41,7 @@ from shapely.geometry import Point, shape, box #, MultiPolygon, Polygon, box
 from shapely.prepared import prep
 
 import shapefile
+import fiona
 
 import warnings
 import rasterio
@@ -70,7 +71,8 @@ def get_version():
     if match:
         return match.group(1)
     else:
-        raise RuntimeError("Unable to find version string in {}.".format(vfile))
+        raise RuntimeError(
+            "Unable to find version string in {}.".format(vfile))
 
 
 import pymongo
@@ -483,10 +485,10 @@ def complete_options_json():
     add_to_json("lookup", core.lookup)
 
     # resulting spatial / table info
-    add_to_json("adm0_minx", adm0_minx)
-    add_to_json("adm0_miny", adm0_miny)
-    add_to_json("adm0_maxx", adm0_maxx)
-    add_to_json("adm0_maxy", adm0_maxy)
+    add_to_json("master_minx", master_minx)
+    add_to_json("master_miny", master_miny)
+    add_to_json("master_maxx", master_maxx)
+    add_to_json("master_maxy", master_maxy)
     add_to_json("rows", nrows)
     add_to_json("cols", ncols)
     add_to_json("locations", len(active_data))
@@ -707,12 +709,12 @@ if iso3 == 'global':
 
     # -------------------------------------
     # create grid for country
-    core.set_grid_info(master_geom)
+    core.set_grid_info(master_geom.bounds)
     master_grid = core.rasterize_geom(master_geom)
 
     nrows, ncols = core.shape
-    (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.bounds
-    adm0_count = master_grid.sum()
+    (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
+
 
 else:
 
@@ -720,15 +722,17 @@ else:
     # load shapefiles
 
     # must start at and inlcude ADM0
-    # all additional ADM shps must be included so that adm_path index corresponds
-    # to adm level
+    # all additional ADM shps must be included so that adm_path index 
+    # corresponds to adm level
     adm_paths = []
-    adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm0.shp")
-    adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm1.shp")
-    adm_paths.append("/sciclone/aiddata10/REU/msr/shps/"+iso3+"/"+iso3+"_adm2.shp")
+    shp_base = "/sciclone/aiddata10/REU/msr/shps/"
+    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm0.shp")
+    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm1.shp")
+    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm2.shp")
 
     # build list of adm shape lists
-    core.adm_shps = [shapefile.Reader(adm_path).shapes() for adm_path in adm_paths]
+    core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')] 
+                     for adm_path in adm_paths]
 
     # define country shape
     tmp_adm0 = shape(core.adm_shps[0][0])
@@ -737,12 +741,11 @@ else:
 
     # -------------------------------------
     # create grid for country
-    core.set_grid_info(core.adm0)
+    core.set_grid_info(core.adm0.bounds)
     master_grid = core.rasterize_geom(core.adm0)
 
     nrows, ncols = core.shape
-    (adm0_minx, adm0_miny, adm0_maxx, adm0_maxy) = core.bounds
-    adm0_count = master_grid.sum()
+    (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
 
 
 

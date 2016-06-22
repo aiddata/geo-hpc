@@ -18,9 +18,9 @@ from shapely.prepared import prep
 import rasterio
 from rasterio import features
 from affine import Affine
-import warnings
+from warnings import warn
 
-
+                                                                               
 class MasterStack:
     """Manage stack of grid arrays produced by workers
 
@@ -224,47 +224,6 @@ class CoreMSR():
         self.shape = None
         self.affine = None
         self.topleft = None
-
-
-    def set_pixel_size(self, value):
-        """Set pixel size.
-
-        Args:
-            value (float): new pixel size (max value of 1, no min)
-
-        Setter will validate pixel size and set attribute.
-        Also calculates psi (pixel size inverse) and sets attribute.
-        """
-        try:
-            value = float(value)
-        except:
-            raise Exception("pixel size given could not be converted to " +
-                            "float: " + str(value))
-
-        # check for valid pixel size
-        # examples of valid pixel sizes:
-        # 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
-        if (1/value) != int(1/value):
-            raise Exception("invalid pixel size: "+str(value))
-
-        self.pixel_size = value
-        self.psi = 1/value
-
-
-    def set_adm0(self, shp):
-        """Set value of adm0 and prep_adm0 attributes
-
-        Args:
-            shape: shapely shape
-
-        Will exit script if shape is not a valid Polygon or
-        MultiPolygon
-        """
-        if isinstance(shape(shp), (Polygon, MultiPolygon)):
-            self.adm0 = shape(shp)
-            self.prep_adm0 = prep(self.adm0)
-        else:
-            raise Exception("invalid adm0 given")
 
 
     def load_csv(self, path):
@@ -484,241 +443,6 @@ class CoreMSR():
         return df_adjusted
 
 
-    def assign_geom_type(self, df_adjusted):
-
-        df_geom = df_adjusted.copy(deep=True)
-
-        # add geom columns
-        df_geom["geom_type"] = pd.Series(["None"] * len(df_geom))
-
-        df_geom.geom_type = df_geom.apply(lambda x: self.get_geom_type(
-            x[self.is_geocoded], x[self.code_field_1], x[self.code_field_2],
-            x[self.code_field_3]), axis=1)
-
-        return df_geom
-
-
-    def get_geom_type(self, is_geo, code_1, code_2, code_3):
-        """Get geometry type based on lookup table.
-
-        Args:
-            is_geo : if project has geometry
-            code_1 (str) : location class code
-            code_2 (str) : location type code
-            code_3 (str) : geographic exactness code
-        Returns:
-            geometry type
-        """
-        is_geo = str(int(is_geo))
-
-        if is_geo == "1":
-
-            code_1 = str(int(code_1))
-            code_2 = str(code_2)
-            code_3 = str(int(code_3))
-
-            if code_1 not in self.lookup:
-                print "lookup code_1 not recognized: " + code_1
-                return "None"
-
-            if code_2 not in self.lookup[code_1]:
-                code_2 = "default"
-
-            if code_3 not in self.lookup[code_1][code_2]:
-                print "lookup code_3 not recognized: " + code_3
-                return "None"
-
-            tmp_type = self.lookup[code_1][code_2][code_3]["type"]
-            return tmp_type
-
-        elif is_geo == "0":
-            return self.not_geocoded
-
-        else:
-            print "is_geocoded integer code not recognized: "+str(is_geo)
-            return "None"
-
-
-
-    def get_shape_within(self, shp, polys):
-        """Find shape in set of shapes which another given shape is within.
-
-        Args:
-            shp (shape): shape object
-            polys (List[shape]): list of shapes
-        Returns:
-            If shape is found in polys which shp is within, return shape.
-            If not shape is found, return 0.
-        """
-        if not hasattr(shp, 'geom_type'):
-            raise Exception("CoreMSR [get_shape_within] : invalid shp given")
-
-        if not isinstance(polys, list):
-            raise Exception("CoreMSR [get_shape_within] : invalid polys given")
-
-        for poly in polys:
-            tmp_poly = shape(poly)
-            if shp.within(tmp_poly):
-                return tmp_poly
-
-        return 0
-
-
-    def is_in_country(self, shp):
-        """Check if arbitrary polygon is within country (adm0) polygon.
-
-        Args:
-            shp (shape):
-        Returns:
-            Bool whether shp is in adm0 shape.
-
-        Depends on prep_adm0 being defined in environment.
-        """
-        if not hasattr(shp, 'geom_type'):
-            raise Exception("CoreMSR [is_in_country] : invalid shp given")
-
-        if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
-            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 " +
-                            "found")
-
-        return self.prep_adm0.contains(shp)
-
-
-    # build geometry for point based on code
-    # depends on lookup and adm0
-    def get_geom(self, code_1, code_2, code_3, lon, lat):
-        """Get geometry for point using lookup table.
-
-        Args:
-            code_1 (str) : location class code
-            code_2 (str) : location type code
-            code_3 (str) : geographic exactness code
-            lon : longitude
-            lat : latitude
-        Returns:
-            shape for geometry identified by lookup table
-            or 0 for geometry that is outside adm0 or could not be identified
-        """
-        tmp_pnt = Point(lon, lat)
-
-        if not self.is_in_country(tmp_pnt):
-            print "point not in country " + str(tmp_pnt)
-            return 0
-
-        else:
-            if code_2 not in self.lookup[code_1]:
-                code_2 = "default"
-
-            tmp_lookup = self.lookup[code_1][code_2][code_3]
-
-            # print tmp_lookup["type"]
-
-            if tmp_lookup["type"] == "point":
-                return tmp_pnt
-
-            elif tmp_lookup["type"] == "buffer":
-                try:
-                    # get buffer size (meters)
-                    tmp_int = float(tmp_lookup["data"])
-                except:
-                    print "buffer value could not be converted to float"
-                    return 0
-
-                try:
-                    tmp_utm_info = utm.from_latlon(lat, lon)
-                    tmp_utm_zone = str(tmp_utm_info[2]) + str(tmp_utm_info[3])
-
-                    # reproject point
-                    proj_utm = pyproj.Proj("+proj=utm +zone="
-                        + str(tmp_utm_zone)
-                        + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
-                    proj_wgs = pyproj.Proj(init="epsg:4326")
-                except:
-                    print "error initializing projs"
-                    print str(tmp_utm_zone)
-                    return 0
-
-                try:
-                    utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
-                                                   tmp_pnt.x, tmp_pnt.y)
-                    utm_pnt_act = Point(utm_pnt_raw)
-
-                    # create buffer in meters
-                    utm_buffer = utm_pnt_act.buffer(tmp_int)
-
-                    # reproject back
-                    buffer_proj = partial(pyproj.transform,
-                                          proj_utm, proj_wgs)
-                    tmp_buffer = transform(buffer_proj, utm_buffer)
-
-                    # clip buffer if it extends outside country
-                    if self.is_in_country(tmp_buffer):
-                        return tmp_buffer
-                    # elif tmp_buffer.intersects(self.adm0):
-                        # return tmp_buffer.intersection(self.adm0)
-                    else:
-                        return tmp_buffer.intersection(self.adm0)
-                        # return 0
-
-                except:
-                    print "error applying projs"
-                    return 0
-
-            elif tmp_lookup["type"] == "adm":
-                try:
-                    tmp_int = int(tmp_lookup["data"])
-                    return self.get_shape_within(tmp_pnt,
-                                                 self.adm_shps[tmp_int])
-
-                except:
-                    print "adm value could not be converted to int"
-                    return 0
-
-            else:
-                print "geom object type not recognized"
-                return 0
-
-
-    def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
-        """Manage finding geometry for point based on geometry type.
-
-        Args:
-            geom_type (str) : geometry type
-            code_1 (str) : location class code
-            code_2 (str) : location type code
-            code_3 (str) : geographic exactness code
-            lon : longitude
-            lat : latitude
-        Returns:
-            geometry (shape) or "None"
-
-        Method for finding actual geometry varies by geometry type.
-        For point, buffer and adm types the lookup table is needed so the
-        get_geom function is called.
-        Country types can simply return the adm0 attribute.
-        Unrecognized types return None.
-        """
-        if geom_type == "None":
-            return "None"
-
-        elif geom_type in self.geom_types:
-
-            code_1 = str(int(code_1))
-            code_2 = str(code_2)
-            code_3 = str(int(code_3))
-
-            tmp_geom = self.get_geom(code_1, code_2, code_3, lon, lat)
-
-            if tmp_geom == 0:
-                return "None"
-
-            return tmp_geom
-
-        else:
-            print "geom_type not recognized: " + geom_type
-            return "None"
-
-
     def calc_adjusted_aid(self, raw_aid,
             project_sectors_string, project_donors_string,
             filter_sectors_list, filter_donors_list):
@@ -773,16 +497,287 @@ class CoreMSR():
         return adjusted_aid
 
 
-    def set_grid_info(self, geom):
-        """
-        """
-        if not hasattr(geom, 'geom_type'):
-            raise Exception("CoreMSR [rasterize_geom] : invalid geom")
+    def assign_geom_type(self, df_adjusted):
 
+        df_geom = df_adjusted.copy(deep=True)
+
+        # add geom columns
+        df_geom["geom_type"] = pd.Series(["None"] * len(df_geom))
+
+        df_geom.geom_type = df_geom.apply(lambda x: self.get_geom_type(
+            x[self.is_geocoded], x[self.code_field_1], x[self.code_field_2],
+            x[self.code_field_3]), axis=1)
+
+        return df_geom
+
+
+    def get_geom_type(self, is_geo, code_1, code_2, code_3):
+        """Get geometry type based on lookup table.
+
+        Args:
+            is_geo : if project has geometry
+            code_1 (str) : location class code
+            code_2 (str) : location type code
+            code_3 (str) : geographic exactness code
+        Returns:
+            geometry type
+        """
+        is_geo = str(int(is_geo))
+
+        if is_geo == "1":
+
+            code_1 = str(int(code_1))
+            code_2 = str(code_2)
+            code_3 = str(int(code_3))
+
+            if code_1 not in self.lookup:
+                warn("lookup code_1 not recognized ({0})".format(code_1))
+                return "None"
+
+            if code_2 not in self.lookup[code_1]:
+                code_2 = "default"
+
+            if code_3 not in self.lookup[code_1][code_2]:
+                warn("lookup code_3 not recognized ({0})".format(code_3))
+                return "None"
+
+            tmp_type = self.lookup[code_1][code_2][code_3]["type"]
+            return tmp_type
+
+        elif is_geo == "0":
+            return self.not_geocoded
+
+        else:
+            warn("is_geocoded code not recognized ({0})".format(is_geo))
+            return "None"
+
+
+
+    def get_shape_within(self, shp, polys):
+        """Find shape in set of shapes which another given shape is within.
+
+        Args:
+            shp (shape): shape object
+            polys (List[shape]): list of shapes
+        Returns:
+            If shape is found in polys which shp is within, return shape.
+            If not shape is found, return 0.
+        """
+        if not hasattr(shp, 'geom_type'):
+            raise Exception("CoreMSR [get_shape_within] : invalid shp given")
+
+        if not isinstance(polys, list):
+            raise Exception("CoreMSR [get_shape_within] : invalid polys given")
+
+        for poly in polys:
+            tmp_poly = shape(poly)
+            if shp.within(tmp_poly):
+                return tmp_poly
+
+        return 0
+
+
+    def is_in_country(self, shp):
+        """Check if arbitrary polygon is within country (adm0) polygon.
+
+        Args:
+            shp (shape):
+        Returns:
+            Bool whether shp is in adm0 shape.
+
+        Depends on prep_adm0 being defined in environment.
+        """
+        if not hasattr(shp, 'geom_type'):
+            raise Exception("CoreMSR [is_in_country] : invalid shp given")
+
+        if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
+            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 " +
+                            "found")
+
+        return self.prep_adm0.contains(shp)
+
+
+    # build geometry for point based on code
+    # depends on lookup and adm0
+    def get_geom(self, code_1, code_2, code_3, lon, lat, is_global=False):
+        """Get geometry for point using lookup table.
+
+        Args:
+            code_1 (str) : location class code
+            code_2 (str) : location type code
+            code_3 (str) : geographic exactness code
+            lon : longitude
+            lat : latitude
+        Returns:
+            shape for geometry identified by lookup table
+            or 0 for geometry that is outside adm0 or could not be identified
+        """
+        tmp_pnt = Point(lon, lat)
+
+        if not is_global and not self.is_in_country(tmp_pnt):
+            warn("point not in country ({0})".format(tmp_pnt))
+            return "None"
+
+        else:
+            if code_2 not in self.lookup[code_1]:
+                code_2 = "default"
+
+            tmp_lookup = self.lookup[code_1][code_2][code_3]
+
+            # print tmp_lookup["type"]
+
+            if tmp_lookup["type"] == "point":
+                return tmp_pnt
+
+            elif tmp_lookup["type"] == "buffer":
+                try:
+                    # get buffer size (meters)
+                    tmp_int = float(tmp_lookup["data"])
+                except:
+                    warn("buffer value could not be converted "
+                         "to float ({0})".format(tmp_lookup["data"]))
+                    return "None"
+
+                try:
+                    tmp_utm_info = utm.from_latlon(lat, lon)
+                    tmp_utm_zone = str(tmp_utm_info[2]) + str(tmp_utm_info[3])
+
+                    # reproject point
+                    proj_utm = pyproj.Proj("+proj=utm +zone="
+                        + str(tmp_utm_zone)
+                        + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
+                    proj_wgs = pyproj.Proj(init="epsg:4326")
+                except:
+                    warn("error initializing projs ({0})".format(tmp_utm_zone))
+                    return "None"
+
+                try:
+                    utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
+                                                   tmp_pnt.x, tmp_pnt.y)
+                    utm_pnt_act = Point(utm_pnt_raw)
+
+                    # create buffer in meters
+                    utm_buffer = utm_pnt_act.buffer(tmp_int)
+
+                    # reproject back
+                    buffer_proj = partial(pyproj.transform,
+                                          proj_utm, proj_wgs)
+                    tmp_buffer = transform(buffer_proj, utm_buffer)
+
+                    # clip buffer if it extends outside country
+                    if self.is_in_country(tmp_buffer):
+                        return tmp_buffer
+                    # elif tmp_buffer.intersects(self.adm0):
+                        # return tmp_buffer.intersection(self.adm0)
+                    else:
+                        return tmp_buffer.intersection(self.adm0)
+                        # return 0
+
+                except:
+                    warn("error applying projs")
+                    return "None"
+
+            elif tmp_lookup["type"] == "adm":
+                try:
+                    tmp_int = int(tmp_lookup["data"])
+                    return self.get_shape_within(tmp_pnt,
+                                                 self.adm_shps[tmp_int])
+
+                except:
+                    warn("adm value could not be converted " 
+                         "to int ({0})".format(tmp_lookup["data"]))
+                    return "None"
+
+            else:
+                warn("geom object type not recognized")
+                return "None"
+
+
+    def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
+        """Manage finding geometry for point based on geometry type.
+
+        Args:
+            geom_type (str) : geometry type
+            code_1 (str) : location class code
+            code_2 (str) : location type code
+            code_3 (str) : geographic exactness code
+            lon : longitude
+            lat : latitude
+        Returns:
+            geometry (shape) or "None"
+
+        Method for finding actual geometry varies by geometry type.
+        For point, buffer and adm types the lookup table is needed so the
+        get_geom function is called.
+        Country types can simply return the adm0 attribute.
+        Unrecognized types return None.
+        """
+        if geom_type in self.geom_types:
+
+            code_1 = str(int(code_1))
+            code_2 = str(code_2)
+            code_3 = str(int(code_3))
+
+            tmp_geom = self.get_geom(code_1, code_2, code_3, lon, lat)
+
+            return tmp_geom
+
+        elif geom_type == "None":
+            return "None"
+
+        else:
+            warn("geom_type not recognized ({0})".format(geom_type))
+            return "None"
+
+
+    def set_pixel_size(self, value):
+        """Set pixel size.
+
+        Args:
+            value (float): new pixel size (max value of 1, no min)
+
+        Setter will validate pixel size and set attribute.
+        Also calculates psi (pixel size inverse) and sets attribute.
+        """
+        try:
+            value = float(value)
+        except:
+            raise Exception("pixel size given could not be converted to " +
+                            "float: " + str(value))
+
+        # check for valid pixel size
+        # examples of valid pixel sizes:
+        # 1.0, 0.5, 0.25, 0.2, 0.1, 0.05, 0.025, ...
+        if (1/value) != int(1/value):
+            raise Exception("invalid pixel size: "+str(value))
+
+        self.pixel_size = value
+        self.psi = 1/value
+
+
+    def set_adm0(self, shp):
+        """Set value of adm0 and prep_adm0 attributes
+
+        Args:
+            shape: shapely shape
+
+        Will exit script if shape is not a valid Polygon or
+        MultiPolygon
+        """
+        if isinstance(shape(shp), (Polygon, MultiPolygon)):
+            self.adm0 = shape(shp)
+            self.prep_adm0 = prep(self.adm0)
+        else:
+            raise Exception("invalid adm0 given")
+
+
+    def set_grid_info(self, bounds):
+        """
+        """
         pixel_size = self.pixel_size
         psi = 1 / pixel_size
 
-        (minx, miny, maxx, maxy) = geom.bounds
+        (minx, miny, maxx, maxy) = bounds
 
         (minx, miny, maxx, maxy) = (
             np.floor(minx * psi) / psi,
@@ -828,7 +823,8 @@ class CoreMSR():
             iscale = int(scale)
 
             if float(iscale) != fscale:
-                warnings.warn("CoreMSR [rasterize_geom] : scale float ("+str(fscale)+") converted to int ("+str(iscale)+")")
+                warn("CoreMSR [rasterize_geom] : scale float ({0}) "
+                     "converted to int ({1})".format(fscale, iscale))
 
         except:
             raise Exception("CoreMSR [rasterize_geom] : invalid scale type")
