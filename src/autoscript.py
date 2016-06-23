@@ -406,6 +406,7 @@ def tmp_worker_job(self, task_id):
         print ((worker_tagline + 'unknown error (%s)' +
                '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
                (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+        print e
 
 
     # update status of item in extract queue
