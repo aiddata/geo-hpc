@@ -335,11 +335,10 @@ def tmp_master_process(self, worker_data):
     active_data.loc[task, 'geom_val'] = geom
 
     if geom != "None":
-
         mstack.append_stack(surf)
 
         if mstack.get_stack_size() > 1:
-    	print "reducing stack"
+    	   print "reducing stack"
             mstack.reduce_stack()
 
 
