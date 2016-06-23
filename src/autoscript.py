@@ -284,6 +284,7 @@ def tmp_worker_job(self, task_id):
     print (str(self.rank) + 'running pg_type: ' + pg_type +
            '('+ str(pg_data['project_location_id']) +')')
 
+    mean_surf = None
 
     if pg_type == "country":
         mean_surf = master_grid
@@ -299,38 +300,47 @@ def tmp_worker_job(self, task_id):
             pg_data[core.code_field_2], pg_data[core.code_field_3],
             pg_data.longitude, pg_data.latitude)
 
-        if pg_geom is None:
-            sys.exit("Geom is none" + str(pg_data['project_location_id']))
+        if pg_geom not in [None, "None"]:
 
-        try:
-            pg_geom = shape(pg_geom)
-        except:
-            print str(pg_data['project_location_id'])
-            print type(pg_geom)
-            print pg_geom
-            sys.exit("Geom is invalid")
+            try:
+                pg_geom = shape(pg_geom)
+            except:
+                print str(pg_data['project_location_id'])
+                print type(pg_geom)
+                print pg_geom
+                sys.exit("Geom is invalid")
 
-        # factor used to determine subgrid size
-        # relative to output grid size
-        # sub grid res = output grid res / sub_grid_factor
-        subgrid_scale = 10
+            # factor used to determine subgrid size
+            # relative to output grid size
+            # sub grid res = output grid res / sub_grid_factor
+            subgrid_scale = 10
 
-        # rasterized sub grid
-        mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
+            # rasterized sub grid
+            mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
 
-    mean_surf = mean_surf.astype('float64')
-    mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
-    return (mean_surf.flatten(), pg_geom)
+    if mean_surf is None:
+        warnings.warn("Geom is none" + str(pg_data['project_location_id']))
+        return (task, "None", None)
+
+    else:
+        mean_surf = mean_surf.astype('float64')
+        mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
+        return (task, pg_geom, mean_surf.flatten())
 
 
 def tmp_master_process(self, worker_data):
-    surf, geom = worker_data
-    mstack.append_stack(surf)
+    task, geom, surf = worker_data
 
-    if mstack.get_stack_size() > 1:
-	print "reducing stack"
-        mstack.reduce_stack()
+    active_data.loc[task, 'geom_val'] = geom
+
+    if geom != "None":
+
+        mstack.append_stack(surf)
+
+        if mstack.get_stack_size() > 1:
+    	print "reducing stack"
+            mstack.reduce_stack()
 
 
 def complete_final_raster():
@@ -750,21 +760,24 @@ active_data = core.process_data(dir_data, request)
 
 task_id_list = None
 
-if job.rank == 0:
+task_id_list = list(active_data['task_ids'])
+active_data["geom_val"] = pd.Series(["None"] * len(active_data))
 
-    active_data["geom_val"] = pd.Series(["None"] * len(active_data))
+# if job.rank == 0:
 
-    active_data.geom_val = active_data.apply(lambda x: core.get_geom_val(
-        x.geom_type, x[core.code_field_1], x[core.code_field_2],
-        x[core.code_field_3], x.longitude, x.latitude), axis=1)
+#     active_data["geom_val"] = pd.Series(["None"] * len(active_data))
 
-    active_data = active_data.loc[
-        active_data.geom_val != "None"].copy(deep=True)
+#     active_data.geom_val = active_data.apply(lambda x: core.get_geom_val(
+#         x.geom_type, x[core.code_field_1], x[core.code_field_2],
+#         x[core.code_field_3], x.longitude, x.latitude), axis=1)
 
-    task_id_list = list(active_data['task_ids'])
+#     active_data = active_data.loc[
+#         active_data.geom_val != "None"].copy(deep=True)
+
+#     task_id_list = list(active_data['task_ids'])
 
 
-task_id_list = job.comm.bcast(task_id_list, root=0)
+# task_id_list = job.comm.bcast(task_id_list, root=0)
 
 
 if task_id_list is None:
