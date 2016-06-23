@@ -2,6 +2,7 @@
 
 import sys
 import os
+import traceback
 import re
 import errno
 import time
@@ -406,7 +407,10 @@ def tmp_worker_job(self, task_id):
         print ((worker_tagline + 'unknown error (%s)' +
                '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
                (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
-        print e
+
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                                  limit=2, file=sys.stdout)
 
 
     # update status of item in extract queue
