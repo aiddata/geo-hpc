@@ -190,17 +190,31 @@ def tmp_worker_job(self, task_id):
     # run_data = exo.export_to_db(run_data)
 
 
-    Te_start = int(time.time())
+    try:
+        Te_start = int(time.time())
+        for _ in run_data: pass
+        Te_run = int(time.time() - Te_start)
 
-    for _ in run_data: pass
-
-    Te_run = int(time.time() - Te_start)
-    print ((worker_tagline + 'completed extract in %s seconds' +
-           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-           (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+        extract_status = 1
+        print ((worker_tagline + 'completed extract in %s seconds' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
 
-    return 0
+    except MemoryError as e:
+        extract_status = -2
+        print ((worker_tagline + 'memory error (%s)' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+
+    except Exception as e:
+        extract_status = -1
+        print ((worker_tagline + 'unknown error (%s)' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+
+
+    return extract_status
 
 
 
