@@ -339,7 +339,7 @@ def tmp_master_process(self, worker_data):
 
         if mstack.get_stack_size() > 1:
     	   print "reducing stack"
-            mstack.reduce_stack()
+           mstack.reduce_stack()
 
 
 def complete_final_raster():
