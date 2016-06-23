@@ -287,6 +287,7 @@ def tmp_worker_job(self, task_id):
 
     if pg_type == "country":
         mean_surf = master_grid
+        pg_geom = 0
 
     elif pg_type in core.geom_types:
 
@@ -320,11 +321,12 @@ def tmp_worker_job(self, task_id):
 
     mean_surf = mean_surf.astype('float64')
     mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
-    return mean_surf.flatten()
+    return (mean_surf.flatten(), pg_geom)
 
 
 def tmp_master_process(self, worker_data):
-    mstack.append_stack(worker_data)
+    surf, geom = worker_data
+    mstack.append_stack(surf)
 
     if mstack.get_stack_size() > 1:
 	print "reducing stack"
