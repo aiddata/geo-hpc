@@ -76,16 +76,21 @@ def run(path=None, generator="auto", client=None, config=None):
         dp["base"] = dp["base"][:-1]
 
 
-    dp["asdf_date_added"] = str(datetime.date.today())
-    dp["asdf_date_updated"] = str(datetime.date.today())
-    dp["asdf_script"] = script
-    dp["asdf_version"] = version
-    dp["asdf_generator"] = generator
+    dp["asdf"] = {}
+    dp["asdf"]["date_added"] = str(datetime.date.today())
+    dp["asdf"]["date_updated"] = str(datetime.date.today())
+    dp["asdf"]["script"] = script
+    dp["asdf"]["version"] = version
+    dp["asdf"]["generator"] = generator
 
     dp["type"] = "release"
     dp["file_format"] = "release"
     dp["file_extension"] = ""
     dp["file_mask"] = "None"
+
+    dp["active"] = 1
+
+    dp["extras"] = {}
 
     # -------------------------------------
 
@@ -93,19 +98,19 @@ def run(path=None, generator="auto", client=None, config=None):
     release_path = dp["base"] + '/datapackage.json'
     release_package = json.load(open(release_path, 'r'))
 
+    core_fields = ['name', 'title', 'description', 'version']
+
     for f in release_package.keys():
 
-        if f not in ['resources', 'extras']:
+        if f in core_fields:
             rkey = f.replace (" ", "_").lower()
             dp[f] = release_package[f]
 
         elif f == 'extras':
             for g in release_package['extras']:
                 rkey = g['key'].replace (" ", "_").lower()
-                dp[rkey] = g['value']
+                dp['extras'][rkey] = g['value']
 
-
-    dp["active"] = 1
 
 
     # -----------------------------------------------------------------------------

@@ -114,11 +114,12 @@ if dp["base"].endswith("/"):
     dp["base"] = dp["base"][:-1]
 
 
-dp["asdf_date_added"] = str(datetime.date.today())
-dp["asdf_date_updated"] = str(datetime.date.today())
-dp["asdf_script"] = script
-dp["asdf_version"] = version
-dp["asdf_generator"] = generator
+dp["asdf"] = {}
+dp["asdf"]["date_added"] = str(datetime.date.today())
+dp["asdf"]["date_updated"] = str(datetime.date.today())
+dp["asdf"]["script"] = script
+dp["asdf"]["version"] = version
+dp["asdf"]["generator"] = generator
 
 dp["type"] = "boundary"
 dp["file_format"] = "vector"
@@ -127,7 +128,6 @@ dp["file_mask"] = "None"
 
 # -------------------------------------
 
-dp["version"] = gadm_version
 
 gadm_name = os.path.basename(dp["base"])
 
@@ -148,20 +148,25 @@ dp["title"] = (gadm_country + " " + gadm_adm.upper() +
 dp["description"] = "PLACEHOLDER"
 
 dp["version"] = gadm_version
-dp["citation"] = "Global Administrative Areas (GADM) http://www.gadm.org."
-dp["sources_web"] = "http://www.gadm.org"
-dp["sources_name"] = "Global Administrative Areas (GADM)"
+
 
 dp["options"] = {}
 dp["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
                          str(gadm_version).replace('.', ''))
 
+dp["extras"] = {}
 
-dp["gadm_info"] = {}
-dp["gadm_info"]["country"] = gadm_country
-dp["gadm_info"]["iso3"] = gadm_iso3
-dp["gadm_info"]["adm"] = int(gadm_adm[-1:])
-dp["gadm_info"]["name"] = "PLACEHOLDER"
+dp["extras"]["citation"] = "Global Administrative Areas (GADM) http://www.gadm.org."
+dp["extras"]["sources_web"] = "http://www.gadm.org"
+dp["extras"]["sources_name"] = "Global Administrative Areas (GADM)"
+
+dp["extras"]["gadm_country"] = gadm_country
+dp["extras"]["gadm_iso3"] = gadm_iso3
+dp["extras"]["gadm_adm"] = int(gadm_adm[-1:])
+dp["extras"]["gadm_name"] = "PLACEHOLDER"
+
+db["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
+                                                     gadm_version)
 
 # v = ValidationTools()
 
@@ -296,9 +301,9 @@ resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
 tmp_feature = fiona.open(
     os.path.join(dp["base"], resource_tmp["path"]), 'r').next()
 
-dp["gadm_info"]["name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+dp["extras"]["gadm_name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 dp["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
-    gadm_adm.upper(), dp["gadm_info"]["name"], gadm_country)
+    gadm_adm.upper(), dp["extras"]["gadm_name"], gadm_country)
 
 # file size
 resource_tmp["bytes"] = os.path.getsize(f)
