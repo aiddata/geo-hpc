@@ -236,7 +236,8 @@ function get_boundaries() {
         'name' => true,
         'title' => true,
         'description' => true,
-        'source_link' => true,
+        'extras.sources_name' => true,
+        'extras.sources_web' => true,
         'options.group' => true,
         'options.group_class' => true,
         'options.group_title' => true,
@@ -330,8 +331,10 @@ function get_relevant_datasets() {
 
 
             // get years from datapackage
-            // $doc['years'] = range(
-            //    $doc['temporal'][0]['start'], $doc['temporal'][0]['end']);
+            // $tmp_format = $doc['temporal'][0]['format'];
+            // $tmp_start = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
+            // $tmp_end = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
+            // $doc['years'] = range($tmp_start, $tmp_end)
 
             // placeholder for no year selection (only 'All')
             $doc['years'] = [];
