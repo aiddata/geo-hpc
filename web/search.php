@@ -239,6 +239,7 @@ function get_boundaries() {
         'source_link' => true,
         'options.group' => true,
         'options.group_class' => true,
+        'options.group_title' => true,
         'base' => true,
         'resources.path' => true
     );
