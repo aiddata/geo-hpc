@@ -382,6 +382,9 @@ def complete_unique_geoms():
     # output unique geometries and sum of all
     # project locations associated with that geometry
 
+    active_data = active_data.loc[
+        active_data.geom_val != "None"].copy(deep=True)
+
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
     # location id
@@ -515,20 +518,6 @@ def complete_options_json():
 
     add_to_json("cpu_hours", cpu_hours)
 
-    # # times
-    # add_to_json("time_start", core.times['start'])
-    # add_to_json("time_init", core.times['init'])
-    # add_to_json("time_surf", core.times['surf'])
-    # add_to_json("time_output", core.times['output'])
-    # add_to_json("time_total", core.times['total'])
-    # add_to_json("time_end", core.times['end'])
-
-    # # timings
-    # add_to_json("dur_init", core.durations['init'])
-    # add_to_json("dur_surf", core.durations['surf'])
-    # add_to_json("dur_output", core.durations['output'])
-    # add_to_json("dur_total", core.durations['total'])
-
 
     tmp_request = deepcopy(request)
     if "_id" in tmp_request.keys():
@@ -659,10 +648,7 @@ dir_working = (general_output_base + '/active/' +
 release_data = c_asdf.find({'name': request['dataset']})
 
 release_path = release_data[0]['base']
-release_preamble = release_data[0]['data_set_preamble']
-
-print release_path
-print release_preamble
+release_preamble = release_data[0]['extras']['data_set_preamble']
 
 # make sure release path exists
 if not os.path.isdir(release_path):
@@ -756,30 +742,11 @@ else:
 dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
-
-task_id_list = None
-
-task_id_list = list(active_data['task_ids'])
 active_data["geom_val"] = pd.Series(["None"] * len(active_data))
 
-# if job.rank == 0:
+task_id_list = list(active_data['task_ids'])
 
-#     active_data["geom_val"] = pd.Series(["None"] * len(active_data))
-
-#     active_data.geom_val = active_data.apply(lambda x: core.get_geom_val(
-#         x.geom_type, x[core.code_field_1], x[core.code_field_2],
-#         x[core.code_field_3], x.longitude, x.latitude), axis=1)
-
-#     active_data = active_data.loc[
-#         active_data.geom_val != "None"].copy(deep=True)
-
-#     task_id_list = list(active_data['task_ids'])
-
-
-# task_id_list = job.comm.bcast(task_id_list, root=0)
-
-
-if task_id_list is None:
+if len(task_id_list) == 0:
     quit("task id list is missing")
 
 if job.rank == 0:
