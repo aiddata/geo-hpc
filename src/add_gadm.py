@@ -301,7 +301,11 @@ resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
 tmp_feature = fiona.open(
     os.path.join(dp["base"], resource_tmp["path"]), 'r').next()
 
-dp["extras"]["gadm_name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+if gadm_adm.lower() == "adm0":
+    dp["extras"]["gadm_name"] = "Country"
+else:
+    dp["extras"]["gadm_name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+
 dp["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
     gadm_adm.upper(), dp["extras"]["gadm_name"], gadm_country)
 
