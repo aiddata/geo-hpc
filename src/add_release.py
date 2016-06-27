@@ -121,11 +121,11 @@ def run(path=None, generator="auto", client=None, config=None):
     print "\nProcessing temporal..."
 
     # set temporal using release datapackage
-    ru.temporal["name"] = dp['temporal_name']
+    ru.temporal["name"] = dp['extras']['temporal_name']
     ru.temporal["format"] = "%Y"
     ru.temporal["type"] = "year"
-    ru.temporal["start"] = dp['temporal_start']
-    ru.temporal["end"] = dp['temporal_end']
+    ru.temporal["start"] = dp['extras']['temporal_start']
+    ru.temporal["end"] = dp['extras']['temporal_end']
 
 
     # -------------------------------------
