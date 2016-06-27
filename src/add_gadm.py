@@ -165,7 +165,7 @@ dp["extras"]["gadm_iso3"] = gadm_iso3
 dp["extras"]["gadm_adm"] = int(gadm_adm[-1:])
 dp["extras"]["gadm_name"] = "PLACEHOLDER"
 
-db["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
+dp["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
                                                      gadm_version)
 
 # v = ValidationTools()
