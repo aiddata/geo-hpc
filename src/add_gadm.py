@@ -137,7 +137,7 @@ gadm_adm = gadm_name[4:]
 gadm_lookup_path = parent + '/gadm_iso3.json'
 gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
 
-gadm_country = gadm_lookup[gadm_iso3]
+gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
 
 dp["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
              str(gadm_version).replace('.', ''))
@@ -173,7 +173,7 @@ except Exception as e:
     print gadm_version
     raise Exception(e)
 
-    
+
 # v = ValidationTools()
 
 # probably do not need this
