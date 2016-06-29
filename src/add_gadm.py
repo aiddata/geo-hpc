@@ -240,9 +240,9 @@ print f
 
 bnd_collection = fiona.open(f, 'r')
 
-# env = [xmin, xmax, ymin, ymax]
+# env = [xmin, ymin, xmax, ymax]
 env = bnd_collection.bounds
-geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
+geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
 
 # geo_ext = ru.vector_envelope(f)
 
