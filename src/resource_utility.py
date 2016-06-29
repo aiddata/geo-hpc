@@ -242,7 +242,7 @@ class ResourceTools():
 
         try:
             geo_df = gpd.GeoDataFrame.from_file(path)
-            geo_df["ad_id"] = range(len(geo_df))
+            geo_df["asdf_id"] = range(len(geo_df))
 
             geo_json = geo_df.to_json()
             geo_file = open(os.path.splitext(path)[0] + ".geojson", "w")

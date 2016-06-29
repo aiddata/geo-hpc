@@ -237,7 +237,14 @@ f = ru.file_list[0]
 
 # boundary datasets can be multiple files (for administrative zones)
 print f
-geo_ext = ru.vector_envelope(f)
+
+bnd_collection = fiona.open(f, 'r')
+
+# env = [xmin, xmax, ymin, ymax]
+env = bnd_collection.bounds
+geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
+
+# geo_ext = ru.vector_envelope(f)
 
 convert_status = ru.add_ad_id(f)
 if convert_status == 1:
@@ -304,8 +311,7 @@ resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
 
 
 # get adm unit name for country and add to gadm info and description
-tmp_feature = fiona.open(
-    os.path.join(dp["base"], resource_tmp["path"]), 'r').next()
+tmp_feature = bnd_collection.next()
 
 if gadm_adm.lower() == "adm0":
     dp["extras"]["gadm_name"] = "Country"
