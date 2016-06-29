@@ -131,8 +131,8 @@ for i in latest_releases:
     for j in raw_distinct_sectors:
         tmp_sectors += j.split('|')
 
-    dataset_info[ix]['sectors'] = sorted(list(set(tmp_sectors)))
-    # dataset_info[ix]['sectors'] = [x.encode('UTF8')
+    dataset_info[ix]['ad_sector_names'] = sorted(list(set(tmp_sectors)))
+    # dataset_info[ix]['ad_sector_names'] = [x.encode('UTF8')
     #                                for x in sorted(list(set(tmp_sectors)))]
 
     # unique donor list
@@ -190,7 +190,7 @@ for i in latest_releases:
 
     dataset_info[ix]['iter'] = itertools.chain.from_iterable(
         itertools.product(
-            itertools.combinations(dataset_info[ix]['sectors'], j[0]),
+            itertools.combinations(dataset_info[ix]['ad_sector_names'], j[0]),
             itertools.combinations(dataset_info[ix]['donors'], j[1]))
         for j in ratio_list)
 

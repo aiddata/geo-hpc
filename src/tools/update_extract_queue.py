@@ -56,9 +56,9 @@ active_iso3_list = config.release_gadm.values() + config.other_gadm
 # get boundary names
 bnds = [
     b['resources'][0]['name'] for b in boundaries
-    if not 'gadm_info' in b
-    or ('gadm_info' in b
-        and b['gadm_info']["iso3"].upper() in active_iso3_list)
+    if not 'gadm_iso3' in b['extras']
+    or ('gadm_iso3' in b['extras']
+        and b['extras']['gadm_iso3'].upper() in active_iso3_list)
 ]
 
 # -------------------------------------
