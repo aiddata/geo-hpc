@@ -15,7 +15,6 @@ from dateutil.relativedelta import relativedelta
 # import shapefile
 # import itertools
 
-import pymongo
 
 
 class ResourceTools():
