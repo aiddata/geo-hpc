@@ -2,7 +2,7 @@
 #   - validate options
 #   - scan and validate dataset resources
 #   - generate metadata for dataset resources
-#   - create datapackage
+#   - create document
 #   - update mongo database
 
 
@@ -288,31 +288,34 @@ for root, dirs, files in os.walk(doc["base"]):
         file = os.path.join(root, file)
         file_check = file.endswith('.' + doc["file_extension"])
 
+
 # -----------------------------------------------------------------------------
 # temporal info
 
-# validate file_mas
 def validate_file_mask(vmask):
+    """Validate a file mask"""
 
     # designates temporally invariant dataset
     if vmask == "None":
-        return True, vmask, None
+        return True, None
 
     # test file_mask for first file in file_list
     test_date_str = ru.run_file_mask(vmask, ru.file_list[0], doc["base"])
     valid_date = ru.validate_date(test_date_str)
+
     if valid_date[0] == False:
-        return False, None, valid_date[1]
+        return False, valid_date[1]
 
-    return True, vmask, None
-
+    return True, None
 
 
 # file mask identifying temporal attributes in path/file names
+valid_file_mask = validate_file_mask(data["file_mask"])
 
-# "file_mask"
-# validate_file_mask
-
+if valid_file_mask[0]:
+    doc["file_mask"] = data["file_mask"]
+else:
+    quit(valid_file_mask[1])
 
 
 if doc["file_mask"] == "None":
@@ -335,10 +338,10 @@ elif len(ru.file_list) > 0:
         # "day_range", "File day range? (Must be integer)", v.day_range
 
 else:
-    print("Warning: file mask given but no resources were found")
-    ru.temporal["name"] = "Unknown"
-    ru.temporal["format"] = "Unknown"
-    ru.temporal["type"] = "Unknown"
+    quit("Warning: file mask given but no resources were found")
+    # ru.temporal["name"] = "Unknown"
+    # ru.temporal["format"] = "Unknown"
+    # ru.temporal["type"] = "Unknown"
 
 
 # -----------------------------------------------------------------------------
@@ -426,7 +429,7 @@ for f in ru.file_list:
     # individual resource info
     resource_tmp = {}
 
-    # path relative to datapackage.json
+    # path relative to base
     resource_tmp["path"] = f[f.index(doc["base"]) + len(doc["base"]) + 1:]
 
 
@@ -491,14 +494,13 @@ doc["resources"] = ru.resources
 
 
 # -----------------------------------------------------------------------------
-# database update(s) and datapackage output
+# update mongo
 
-print "\nFinal datapackage..."
+print "\nFinal document..."
 print doc
 
 
-# update mongo
-print "\nWriting datapackage to system..."
+print "\nWriting document to mongo..."
 
 core_update_status = update_db.update_core(doc)
 
