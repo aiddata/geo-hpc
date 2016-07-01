@@ -41,13 +41,13 @@ def run(path=None, generator="auto", client=None, config=None):
 
 
     # init data package
-    dp = {}
+    doc = {}
 
     # get release base path
     if path is not None:
 
         if os.path.isdir(path):
-            dp['base'] = path
+            doc['base'] = path
         else:
             quit("Invalid base directory provided.")
 
@@ -72,30 +72,30 @@ def run(path=None, generator="auto", client=None, config=None):
 
 
     # remove trailing slash from path
-    if dp["base"].endswith("/"):
-        dp["base"] = dp["base"][:-1]
+    if doc["base"].endswith("/"):
+        doc["base"] = doc["base"][:-1]
 
 
-    dp["asdf"] = {}
-    dp["asdf"]["date_added"] = str(datetime.date.today())
-    dp["asdf"]["date_updated"] = str(datetime.date.today())
-    dp["asdf"]["script"] = script
-    dp["asdf"]["version"] = version
-    dp["asdf"]["generator"] = generator
+    doc["asdf"] = {}
+    doc["asdf"]["date_added"] = str(datetime.date.today())
+    doc["asdf"]["date_updated"] = str(datetime.date.today())
+    doc["asdf"]["script"] = script
+    doc["asdf"]["version"] = version
+    doc["asdf"]["generator"] = generator
 
-    dp["type"] = "release"
-    dp["file_format"] = "release"
-    dp["file_extension"] = ""
-    dp["file_mask"] = "None"
+    doc["type"] = "release"
+    doc["file_format"] = "release"
+    doc["file_extension"] = ""
+    doc["file_mask"] = "None"
 
-    dp["active"] = 1
+    doc["active"] = 1
 
-    dp["extras"] = {}
+    doc["extras"] = {}
 
     # -------------------------------------
 
     # get release datapackage
-    release_path = dp["base"] + '/datapackage.json'
+    release_path = doc["base"] + '/datapackage.json'
     release_package = json.load(open(release_path, 'r'))
 
     core_fields = ['name', 'title', 'description', 'version']
@@ -104,12 +104,12 @@ def run(path=None, generator="auto", client=None, config=None):
 
         if f in core_fields:
             rkey = f.replace (" ", "_").lower()
-            dp[f] = release_package[f]
+            doc[f] = release_package[f]
 
         elif f == 'extras':
             for g in release_package['extras']:
                 rkey = g['key'].replace (" ", "_").lower()
-                dp['extras'][rkey] = g['value']
+                doc['extras'][rkey] = g['value']
 
 
 
@@ -121,18 +121,18 @@ def run(path=None, generator="auto", client=None, config=None):
     print "\nProcessing temporal..."
 
     # set temporal using release datapackage
-    ru.temporal["name"] = dp['extras']['temporal_name']
+    ru.temporal["name"] = doc['extras']['temporal_name']
     ru.temporal["format"] = "%Y"
     ru.temporal["type"] = "year"
-    ru.temporal["start"] = dp['extras']['temporal_start']
-    ru.temporal["end"] = dp['extras']['temporal_end']
+    ru.temporal["start"] = doc['extras']['temporal_start']
+    ru.temporal["end"] = doc['extras']['temporal_end']
 
 
     # -------------------------------------
     print "\nProcessing spatial..."
 
     # get extemt
-    loc_table_path = dp['base'] + "/data/locations.csv"
+    loc_table_path = doc['base'] + "/data/locations.csv"
     geo_ext = ru.release_envelope(loc_table_path)
 
     # clip extents if they are outside global bounding box
@@ -161,7 +161,7 @@ def run(path=None, generator="auto", client=None, config=None):
     if tsize >= 32400:
         scale = "global"
 
-    dp["scale"] = scale
+    doc["scale"] = scale
 
     # spatial
     ru.spatial = {
@@ -180,7 +180,7 @@ def run(path=None, generator="auto", client=None, config=None):
     print '\nProcessing resources...'
 
     resource_tmp = {
-        "name": dp['name'],
+        "name": doc['name'],
         "bytes": 0,
         "path": "",
         "start": ru.temporal['start'],
@@ -195,25 +195,25 @@ def run(path=None, generator="auto", client=None, config=None):
     # -------------------------------------
     # add temporal, spatial and resources info
 
-    dp["temporal"] = ru.temporal
-    dp["spatial"] = ru.spatial
-    dp["resources"] = ru.resources
+    doc["temporal"] = ru.temporal
+    doc["spatial"] = ru.spatial
+    doc["resources"] = ru.resources
 
 
     # -----------------------------------------------------------------------------
     # database update(s) and datapackage output
 
     print "\nFinal datapackage..."
-    print dp
+    print doc
 
     # json_out = '/home/userz/Desktop/summary.json'
     # json_handle = open(json_out, 'w')
-    # json.dump(dp, json_handle, sort_keys=False, indent=4,
+    # json.dump(doc, json_handle, sort_keys=False, indent=4,
     #           ensure_ascii=False)
 
 
     # update mongo
-    print "\nWriting datapackage to mongo..."
+    print "\nWriting document to mongo..."
 
 
     # connect to database and asdf collection
@@ -235,7 +235,7 @@ def run(path=None, generator="auto", client=None, config=None):
 
     # update core
     # try:
-    c_asdf.replace_one({"base": dp["base"]}, dp, upsert=True)
+    c_asdf.replace_one({"base": doc["base"]}, doc, upsert=True)
     print "successful core update"
     # except:
     #      quit("Error updating core.")
@@ -258,10 +258,10 @@ def run(path=None, generator="auto", client=None, config=None):
 
 
     # create mongodb for dataset
-    # ru.release_to_mongo(dp['name'], dp['base'], client)
+    # ru.release_to_mongo(doc['name'], doc['base'], client)
 
-    release_to_mongo.run(name=dp['name'], path=dp['base'],
-                        client=client, config=config)
+    release_to_mongo.run(name=doc['name'], path=doc['base'],
+                         client=client, config=config)
 
     print "\nDone.\n"
 

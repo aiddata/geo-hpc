@@ -52,11 +52,6 @@ class ResourceTools():
         self.dp["resources"] = self.resources
 
 
-    # checks if file has extension type specified for class instance
-    def run_file_check(self, f, ext):
-        return f.endswith('.' + ext)
-
-
     # --------------------------------------------------
     # spatial functions
 
@@ -371,65 +366,3 @@ class ResourceTools():
         return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
 
 
-
-    # --------------------------------------------------
-    # data format transformation functions
-
-
-    # convert flat tables from release datasets into nested mongo database
-    def release_to_mongo(self, name, path, client):
-
-        releases = client.releases
-
-        releases.drop_collection(name)
-        col = releases[name]
-
-        files = ["projects", "locations", 'transactions']
-
-        tables = {}
-        for table in files:
-            file_base = path+"/data/"+table
-
-            if os.path.isfile(file_base+".csv"):
-                tables[table] = pd.read_csv(file_base+".csv", sep=',', quotechar='\"')
-
-            elif os.path.isfile(file_base+".tsv"):
-                tables[table] = pd.read_csv(file_base+".tsv", sep='\t', quotechar='\"')
-
-            else:
-                print "no valid table type found for: " + file_base
-                return 1
-
-            tables[table]["project_id"] = tables[table]["project_id"].astype(str)
-
-
-        # add new data for each project
-        for project_row in tables['projects'].iterrows():
-
-            project = dict(project_row[1])
-            project_id = project["project_id"]
-
-
-            transaction_match = tables['transactions'].loc[tables['transactions']["project_id"] == project_id]
-
-            if len(transaction_match) > 0:
-                project["transactions"] = [dict(x[1]) for x in transaction_match.iterrows()]
-
-            else:
-                print "No transactions found for project id: " + str(project_id)
-
-
-            location_match = tables['locations'].loc[tables['locations']["project_id"] == project_id]
-
-            if len(location_match) > 0:
-                project["locations"] = [dict(x[1]) for x in location_match.iterrows()]
-
-            else:
-                print "No locations found for project id: " + str(project_id)
-
-
-            # add to collection
-            col.insert(project)
-
-
-        return 0

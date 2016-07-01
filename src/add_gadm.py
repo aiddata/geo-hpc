@@ -65,7 +65,7 @@ def quit(reason):
 
 
 # init data package
-dp = {}
+doc = {}
 
 # get release base path
 if len(sys.argv) > 2:
@@ -73,7 +73,7 @@ if len(sys.argv) > 2:
     path = sys.argv[2]
 
     if os.path.isdir(path):
-        dp['base'] = path
+        doc['base'] = path
     else:
         quit("Invalid base directory provided.")
 
@@ -110,26 +110,26 @@ if len(sys.argv) > 5:
 
 
 # remove trailing slash from path
-if dp["base"].endswith("/"):
-    dp["base"] = dp["base"][:-1]
+if doc["base"].endswith("/"):
+    doc["base"] = doc["base"][:-1]
 
 
-dp["asdf"] = {}
-dp["asdf"]["date_added"] = str(datetime.date.today())
-dp["asdf"]["date_updated"] = str(datetime.date.today())
-dp["asdf"]["script"] = script
-dp["asdf"]["version"] = version
-dp["asdf"]["generator"] = generator
+doc["asdf"] = {}
+doc["asdf"]["date_added"] = str(datetime.date.today())
+doc["asdf"]["date_updated"] = str(datetime.date.today())
+doc["asdf"]["script"] = script
+doc["asdf"]["version"] = version
+doc["asdf"]["generator"] = generator
 
-dp["type"] = "boundary"
-dp["file_format"] = "vector"
-dp["file_extension"] = "geojson"
-dp["file_mask"] = "None"
+doc["type"] = "boundary"
+doc["file_format"] = "vector"
+doc["file_extension"] = "geojson"
+doc["file_mask"] = "None"
 
 # -------------------------------------
 
 
-gadm_name = os.path.basename(dp["base"])
+gadm_name = os.path.basename(doc["base"])
 
 gadm_iso3 = gadm_name[:3]
 gadm_adm = gadm_name[4:]
@@ -139,34 +139,34 @@ gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
 
 gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
 
-dp["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
+doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
              str(gadm_version).replace('.', ''))
 
-dp["title"] = (gadm_country + " " + gadm_adm.upper() +
+doc["title"] = (gadm_country + " " + gadm_adm.upper() +
               " Boundary - GADM " + str(gadm_version))
 
-dp["description"] = "PLACEHOLDER"
+doc["description"] = "PLACEHOLDER"
 
-dp["version"] = gadm_version
+doc["version"] = gadm_version
 
 
-dp["options"] = {}
-dp["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
+doc["options"] = {}
+doc["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
                          str(gadm_version).replace('.', ''))
 
-dp["extras"] = {}
+doc["extras"] = {}
 
-dp["extras"]["citation"] = "Global Administrative Areas (GADM) http://www.gadm.org."
-dp["extras"]["sources_web"] = "http://www.gadm.org"
-dp["extras"]["sources_name"] = "Global Administrative Areas (GADM)"
+doc["extras"]["citation"] = "Global Administrative Areas (GADM) http://www.gadm.org."
+doc["extras"]["sources_web"] = "http://www.gadm.org"
+doc["extras"]["sources_name"] = "Global Administrative Areas (GADM)"
 
-dp["extras"]["gadm_country"] = gadm_country
-dp["extras"]["gadm_iso3"] = gadm_iso3
-dp["extras"]["gadm_adm"] = int(gadm_adm[-1:])
-dp["extras"]["gadm_name"] = "PLACEHOLDER"
+doc["extras"]["gadm_country"] = gadm_country
+doc["extras"]["gadm_iso3"] = gadm_iso3
+doc["extras"]["gadm_adm"] = int(gadm_adm[-1:])
+doc["extras"]["gadm_name"] = "PLACEHOLDER"
 
 try:
-    dp["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
+    doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
                                                          gadm_version)
 except Exception as e:
     print gadm_country
@@ -178,17 +178,17 @@ except Exception as e:
 
 # probably do not need this
 # run check on group to prep for group_class selection
-# v.run_group_check(dp['options']['group'])
+# v.run_group_check(doc['options']['group'])
 
 
 # boundary group
 if "adm0" in gadm_name.lower():
-     dp["options"]["group_class"] = "actual"
+     doc["options"]["group_class"] = "actual"
 else:
-     dp["options"]["group_class"] = "sub"
+     doc["options"]["group_class"] = "sub"
 
 
-dp["active"] = 0
+doc["active"] = 0
 
 
 # -----------------------------------------------------------------------------
@@ -198,19 +198,19 @@ ru = ResourceTools()
 
 
 # find all files with file_extension in path
-for root, dirs, files in os.walk(dp["base"]):
+for root, dirs, files in os.walk(doc["base"]):
     for fname in files:
 
         fname = os.path.join(root, fname)
 
-        file_check = ru.run_file_check(fname, dp["file_extension"])
+        file_check = fname.endswith('.' + doc["file_extension"])
 
         if file_check == True and not fname.endswith('simplified.geojson'):
             ru.file_list.append(fname)
 
 
 if len(ru.file_list) == 0:
-    quit("No vector file found in " + dp["base"])
+    quit("No vector file found in " + doc["base"])
 
 elif len(ru.file_list) > 1:
     quit("Boundaries must be submitted individually.")
@@ -279,7 +279,7 @@ scale = "regional"
 if tsize >= 32400:
     scale = "global"
 
-dp["scale"] = scale
+doc["scale"] = scale
 
 
 # spatial
@@ -307,24 +307,24 @@ print f
 resource_tmp = {}
 
 # path relative to datapackage.json
-resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
+resource_tmp["path"] = f[f.index(doc["base"]) + len(doc["base"]) + 1:]
 
 
 # get adm unit name for country and add to gadm info and description
 tmp_feature = bnd_collection.next()
 
 if gadm_adm.lower() == "adm0":
-    dp["extras"]["gadm_name"] = "Country"
+    doc["extras"]["gadm_name"] = "Country"
 else:
-    dp["extras"]["gadm_name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+    doc["extras"]["gadm_name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 
-dp["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
-    gadm_adm.upper(), dp["extras"]["gadm_name"], gadm_country)
+doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
+    gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
 
 # file size
 resource_tmp["bytes"] = os.path.getsize(f)
 
-resource_tmp["name"] = dp["name"]
+resource_tmp["name"] = doc["name"]
 
 # file date range
 resource_tmp["start"] = 10000101
@@ -341,20 +341,20 @@ ru.resources.append(resource_tmp)
 # -------------------------------------
 # add temporal, spatial and resources info
 
-dp["temporal"] = ru.temporal
-dp["spatial"] = ru.spatial
-dp["resources"] = ru.resources
+doc["temporal"] = ru.temporal
+doc["spatial"] = ru.spatial
+doc["resources"] = ru.resources
 
 
 # -----------------------------------------------------------------------------
 # database update(s) and datapackage output
 
-print "\nFinal datapackage..."
-print dp
+print "\nFinal document..."
+print doc
 
 # json_out = '/home/userz/Desktop/summary.json'
 # json_handle = open(json_out, 'w')
-# json.dump(dp, json_handle, sort_keys=False, indent=4,
+# json.dump(doc, json_handle, sort_keys=False, indent=4,
 #           ensure_ascii=False)
 
 # quit("!!!")
@@ -385,7 +385,7 @@ else:
 
 # update core
 # try:
-c_data.replace_one({"base": dp["base"]}, dp, upsert=True)
+c_data.replace_one({"base": doc["base"]}, doc, upsert=True)
 print "successful core update"
 # except:
 #      quit("Error updating core.")
@@ -394,14 +394,14 @@ print "successful core update"
 # create/initialize tracker
 # try:
 
-if dp["options"]["group_class"] == "actual":
+if doc["options"]["group_class"] == "actual":
 
     # drop boundary tracker if exists
-    if dp["options"]["group"] in db_tracker.collection_names():
-        db_tracker.drop_collection(dp["options"]["group"])
+    if doc["options"]["group"] in db_tracker.collection_names():
+        db_tracker.drop_collection(doc["options"]["group"])
 
     # create new boundary tracker collection
-    c_bnd = db_tracker[dp["options"]["group"]]
+    c_bnd = db_tracker[doc["options"]["group"]]
     c_bnd.create_index("name", unique=True)
     # c_bnd.create_index("base", unique=True)
     c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])

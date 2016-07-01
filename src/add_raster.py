@@ -55,9 +55,6 @@ generator = "manual"
 
 # connect to database and asdf collection
 client = pymongo.MongoClient(config.server)
-c_asdf = client.asdf.data
-db_tracker = client.trackers
-
 
 # validate class instance
 v = ValidationTools(client)
@@ -68,9 +65,6 @@ update_db = MongoUpdate(client)
 
 # resource utils class instance
 ru = ResourceTools()
-
-
-
 
 
 # -----------------------------------------------------------------------------
@@ -94,18 +88,9 @@ def quit(reason):
 path = sys.argv[2]
 
 if os.path.isfile(path):
-    input_data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
+    data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
 else:
     quit("invalid input file")
-
-
-dp = {}
-dp["asdf"] = {}
-dp["asdf"]["date_added"] = str(datetime.date.today())
-dp["asdf"]["date_updated"] = str(datetime.date.today())
-dp["asdf"]["script"] = script
-dp["asdf"]["version"] = version
-dp["asdf"]["generator"] = generator
 
 
 required_core_fields = [
@@ -114,132 +99,194 @@ required_core_fields = [
 ]
 
 missing_core_fields = [i for i in required_core_fields
-                       if i not in input_data]
+                       if i not in data]
 
 if len(missing_core_fields) > 0:
     quit("Missing core fields ({0})".format(missing_core_fields))
 
 
+
+
+update = False
+if len(sys.argv) == 4 and sys.argv[3] == "update":
+    print ("Warning: currently, updates will completely replace the existing "
+           "dataset.")
+    update = True
+
+
+doc = {}
+doc["asdf"] = {}
+doc["asdf"]["script"] = script
+doc["asdf"]["version"] = version
+doc["asdf"]["generator"] = generator
+doc["asdf"]["date_updated"] = str(datetime.date.today())
+if not update:
+    doc["asdf"]["date_added"] = str(datetime.date.today())
+
+
 # validate base path
-dp["base"] = input_data["base"]
+valid_base, base_exists = v.base(data["base"], update)
 
-if not os.path.isdir(dp['base']):
-    quit("Invalid or no base directory provided.")
+if not valid_base.isvalid:
+    quit(valid_base.error)
 
-# remove trailing slash from path to prevent multiple unique
-# path strings to same dir
-if dp["base"].endswith("/"):
-    dp["base"] = dp["base"][:-1]
-
-
-base_exists = c_asdf.find_one({'base': dp["base"]}) is not None
-
-if base_exists:
-    quit("Data entry with base exists")
+doc["base"] = valid_base.value
 
 
 # validate name
-dp["name"] = input_data["name"]
-valid_name = v.name(dp["name"])
-if not valid_name[0]:
-    quit(valid_name[2] + " ({0})".format(dp["name"]))
+valid_name, name_exists = v.name(data["name"], update)
+
+if not valid_name.isvalid:
+    quit(valid_name.error)
+
+doc["name"] = valid_name.value
+
+
+
+if update and not base_exists and not name_exists:
+    quit(("Update option specified but no dataset with base path "
+          "({0}) or name ({1}) was found").format(doc["base"], doc["name"]))
+
+
+elif update and base_exists and name_exists:
+
+    base_id = str(valid_base.data['_id'])
+    name_id = str(valid_name.data['_id'])
+
+    if base_id != name_id:
+        quit("Update option specified but identifying fields (base and name) "
+             "belong to different existing datasets."
+             "\n\tBase: {0}\n\tName: {1}".format(doc["base"], doc["name"]))
+
 
 
 
 # validate type and set file_format
-dp["type"] = input_data["type"]
+valid_type = v.data_type(data["type"])
 
-if dp["type"] != "raster":
-    quit("Invalid type ({0}), must be raster".format(dp["type"]))
+if not valid_type.isvalid:
+    quit(valid_type.error)
 
-dp["file_format"] = "raster"
+doc["type"] = valid_type.value
+doc["file_format"] = valid_type.data["file_format"]
+
+
+if doc["type"] != "raster":
+    quit("Invalid type ({0}), must be raster.".format(doc["type"]))
+
 
 
 
 # validate file extension (validation depends on file format)
-dp["file_extension"] = input_data["file_extension"]
+valid_extension = v.file_extension(data["file_extension"], doc["file_format"])
 
-if not v.file_extension(dp["file_extension"])[0]:
-    quit("Invalid file extension ({0}). Valid extensions: {1}".format(
-         dp["file_extension"],
-         v.types["file_extensions"][dp["file_format"]]))
+if not valid_extension.isvalid:
+    quit(valid_extension.error)
 
-
+doc["file_extension"] = valid_extension.value
 
 
 
 # validate title, description and version
-dp["title"] = str(input_data["title"])
-dp["description"] = str(input_data["description"])
-dp["version"] = str(input_data["version"])
+doc["title"] = str(data["title"])
+doc["description"] = str(data["description"])
+doc["version"] = str(data["version"])
 
 
-
+# -----------------------------------------------------------------------------
 # validate options for raster
 
-if not "options" in input_data:
+if not "options" in data:
     quit("Missing options lookup")
 
 
-require_options = ["resolution", "extract_types", "factor", "variable_description", "mini_name"]
+require_options = ["resolution", "extract_types", "factor",
+                   "variable_description", "mini_name"]
 
 missing_options = [i for i in required_options
-                   if i not in input_data]
+                   if i not in data]
 
 if len(missing_options) > 0:
     quit("Missing fields from options lookup ({0})".format(missing_options))
 
 
-dp["options"] = {}
+doc["options"] = {}
 
 # resolution (in decimal degrees)
-dp["resolution"] = input_data["resolution"]
-if not v.factor():
-    quit()
+valid_resolution = v.factor(data["resolution"])
 
-# extract_types (multiple, separate your input with commas)
-dp["extract_types"] = input_data["extract_types"]
-"Valid extract types (" + ', '.join(v.types["extracts"]) + ") [separate your input with commas]"
-v.extract_types
+if not valid_resolution.isvalid:
+    quit(valid_resolution.error)
+
+doc["resolution"] = valid_resolution.value
+
 
 # multiplication factor (if needed, defaults to 1 if blank)
-dp["factor"] = input_data["factor"]
-v.factor
+valid_factor = v.factor(data["factor"])
+
+if not valid_factor.isvalid:
+    quit(valid_factor.error)
+
+doc["factor"] = valid_factor.value
+
+# ***
+# if factor changes, any extracts adjust with old factor need to be removed
+# ***
+
+
+# extract_types (multiple, separate your input with commas)
+valid_extract_types = v.extract_types(data["extract_types"])
+
+if not valid_extract_types.isvalid:
+    quit(valid_extract_types.error)
+
+doc["extract_types"] = valid_extract_types.value
+
 
 # Description of the variable (units, range, etc.)
-dp["variable_description"] = input_data["variable_description"]
-v.string
-
-# mini name
-dp["mini_name"] = input_data["mini_name"]
-"must be 4 characters and unique"
-v.mini_name
+doc["variable_description"] = str(data["variable_description"])
 
 
+# mini name (4 valid chars and unique across datasets)
+valid_mini_name, mini_name_exists = v.mini_name(data["mini_name"], update)
 
+if not valid_mini_name.isvalid:
+    quit(valid_mini_name.error)
+
+doc["mini_name"] = valid_mini_name.value
+
+if update and mini_name_exists:
+    base_id = str(valid_base.data['_id'])
+    mini_name_id = str(valid_mini_name.data['_id'])
+
+    if base_id != mini_name_id:
+        quit("Mini name ({0}) already used for another "
+             "dataset".format(doc["mini_name"]))
+
+
+# -----------------------------------------------------------------------------
 # extras
-if not "extras" in input_data
-    print("Although fields in extras are not required, it may contain commonly "
-          "used field which should be added whenever possible "
+if not "extras" in data
+    print("Although fields in extras are not required, it may contain "
+          "commonly used field which should be added whenever possible "
           "(example: sources_web field)")
-    dp["extras"] = {}
+    doc["extras"] = {}
 
-elif not isinstance(input_data["extras"], dict):
+elif not isinstance(data["extras"], dict):
     quit("Invalid instance of extras ({0}) of type: {1}".format(
-        input_data["extras"], type(input_data["extras"])))
+        data["extras"], type(data["extras"])))
 else:
-    dp["extras"] = input_data["extras"]
+    doc["extras"] = data["extras"]
 
 
 # -----------------------------------------------------------------------------
 # resource scan and validation
 
 # find all files with file_extension in path
-for root, dirs, files in os.walk(dp["base"]):
+for root, dirs, files in os.walk(doc["base"]):
     for file in files:
         file = os.path.join(root, file)
-        file_check = ru.run_file_check(file, dp["file_extension"])
-
+        file_check = file.endswith('.' + doc["file_extension"])
 
 # -----------------------------------------------------------------------------
 # temporal info
@@ -252,7 +299,7 @@ def validate_file_mask(vmask):
         return True, vmask, None
 
     # test file_mask for first file in file_list
-    test_date_str = ru.run_file_mask(vmask, ru.file_list[0], dp["base"])
+    test_date_str = ru.run_file_mask(vmask, ru.file_list[0], doc["base"])
     valid_date = ru.validate_date(test_date_str)
     if valid_date[0] == False:
         return False, None, valid_date[1]
@@ -268,7 +315,7 @@ def validate_file_mask(vmask):
 
 
 
-if dp["file_mask"] == "None":
+if doc["file_mask"] == "None":
 
     # temporally invariant dataset
     ru.temporal["name"] = "Temporally Invariant"
@@ -281,11 +328,11 @@ elif len(ru.file_list) > 0:
     ru.temporal["name"] = "Date Range"
     ru.temporal["format"] = "%Y%m%d"
     ru.temporal["type"] = ru.get_date_range(ru.run_file_mask(
-        dp["file_mask"], ru.file_list[0], dp["base"]))[2]
+        doc["file_mask"], ru.file_list[0], doc["base"]))[2]
 
     # day range for each file (eg: MODIS 8 day composites)
-    if "day_range" in v.data:
-        generic_input("open", "day_range", "File day range? (Must be integer)", v.day_range)
+    # if "day_range" in v.data:
+        # "day_range", "File day range? (Must be integer)", v.day_range
 
 else:
     print("Warning: file mask given but no resources were found")
@@ -297,7 +344,7 @@ else:
 # -----------------------------------------------------------------------------
 # spatial info
 
-print "\nChecking spatial data ("+dp["file_format"]+")..."
+print "\nChecking spatial data ("+doc["file_format"]+")..."
 
 
 # iterate over files to get bbox and do basic spatial validation
@@ -350,7 +397,7 @@ if tsize >= 32400:
            "global (or near global) dataset you may want to turn it into "
            "multiple smaller datasets and ingest them individually.")
 
-dp["scale"] = scale
+doc["scale"] = scale
 
 
 # set spatial
@@ -380,18 +427,18 @@ for f in ru.file_list:
     resource_tmp = {}
 
     # path relative to datapackage.json
-    resource_tmp["path"] = f[f.index(dp["base"]) + len(dp["base"]) + 1:]
+    resource_tmp["path"] = f[f.index(doc["base"]) + len(doc["base"]) + 1:]
 
 
     # file size
     resource_tmp["bytes"] = os.path.getsize(f)
 
-    if dp["file_mask"] != "None":
+    if doc["file_mask"] != "None":
         # temporal
         # get unique time range based on dir path / file names
 
         # get data from mask
-        date_str = ru.run_file_mask(dp["file_mask"], resource_tmp["path"])
+        date_str = ru.run_file_mask(doc["file_mask"], resource_tmp["path"])
 
         validate_date_str = ru.validate_date(date_str)
 
@@ -399,20 +446,21 @@ for f in ru.file_list:
             quit(validate_date_str[1])
 
 
-        if "day_range" in dp:
-            range_start, range_end, range_type = ru.get_date_range(date_str, dp["day_range"])
+        if "day_range" in doc:
+            range_start, range_end, range_type = ru.get_date_range(date_str,
+                                                                   doc["day_range"])
         else:
             range_start, range_end, range_type = ru.get_date_range(date_str)
 
         # name (unique among this dataset's resources - not same name as dataset)
-        resource_tmp["name"] = (dp["name"] +"_"+
+        resource_tmp["name"] = (doc["name"] +"_"+
                                 date_str["year"] + date_str["month"] + date_str["day"])
 
     else:
         range_start = 10000101
         range_end = 99991231
 
-        resource_tmp["name"] = dp["name"] + "_none"
+        resource_tmp["name"] = doc["name"] + "_none"
 
 
     # file date range
@@ -437,24 +485,24 @@ for f in ru.file_list:
 # -----------------------------------------------------------------------------
 # add temporal, spatial and resources info
 
-dp["temporal"] = ru.temporal
-dp["spatial"] = ru.spatial
-dp["resources"] = ru.resources
+doc["temporal"] = ru.temporal
+doc["spatial"] = ru.spatial
+doc["resources"] = ru.resources
 
 
 # -----------------------------------------------------------------------------
 # database update(s) and datapackage output
 
 print "\nFinal datapackage..."
-print dp
+print doc
 
 
 # update mongo
 print "\nWriting datapackage to system..."
 
-core_update_status = update_db.update_core(dp)
+core_update_status = update_db.update_core(doc)
 
-tracker_update_status = update_db.update_trackers(dp,
+tracker_update_status = update_db.update_trackers(doc,
                                                   v.new_boundary,
                                                   v.update_geometry,
                                                   update_data_package)

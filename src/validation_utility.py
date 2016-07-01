@@ -7,6 +7,25 @@ import pymongo
 from collections import OrderedDict
 
 
+
+class ValidationResults():
+    def __init__(self, original):
+        self.original = original
+
+    def error(msg, data=None):
+        self.error = msg
+        self.data = data
+        self.isvalid = False
+        self.value = None
+
+    def success(value, data=None):
+        self.error = None
+        self.data = data
+        self.isvalid = True
+        self.value = value
+
+
+
 # validation functions, fields, etc.
 class ValidationTools():
     """Validation functions and related variables.
@@ -27,29 +46,34 @@ class ValidationTools():
         group_exists (): x
         actual_exists (): x
         is_actual (): x
-        new_boundary (): x
-        update_geometry (): x
 
     """
     def __init__(self, client=None):
 
-        self.interface = False
-        self.user_update = True
+        # self.interface = False
+        # self.user_update = True
 
-        # store prompt inputs
-        self.data = {}
 
         # base path
-        self.dir_base = os.path.dirname(os.path.abspath(__file__))
+        # self.dir_base = os.path.dirname(os.path.abspath(__file__))
 
-        # init file format
-        self.file_format = ""
+        # # current datapackage fields
+        # self.fields = json.load(open(self.dir_base + "/fields.json", 'r'),
+        #                         object_pairs_hook=OrderedDict)
+
 
         # acceptable inputs for various fields (dataset types,
         # vector formats, raster formats, etc.)
         self.types = {
-            "data": ['raster', 'boundary', 'release', 'polydata', 'document',
-                     'point', 'multipoint'],
+            "data": {
+                'raster': 'raster',
+                'boundary': 'vector',
+                # 'polydata': 'vector',
+                # 'point': 'vector',
+                # 'multipoint': 'vector',
+                'release': 'vector'
+                # 'document': 'other'
+            },
             "file_extensions": {
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
@@ -60,92 +84,71 @@ class ValidationTools():
 
         # error messages to go with validation functions
         self.error = {
-            "is_dir": "not a directory",
-            "name": "name exists or was rejected by user",
-            "data_type": "not in list of valid types",
-            "file_extension": "not a valid primary file extension",
-            "extract_types": ("at least one extract type given not in list "
-                             "of valid extract types"),
-            "factor": "could not be converted to float",
             "day_range": "could not be converted to int",
-            "string": "could not be converted to string",
             "group_class": "not a valid group class"
         }
 
-        # current datapackage fields
-        self.fields = json.load(open(self.dir_base + "/fields.json", 'r'),
-                                object_pairs_hook=OrderedDict)
 
         # init mongo
         self.client = client
         self.c_asdf = self.client.asdf.data
+
 
         # group / group_class variables
         self.group_exists = False
         self.actual_exists = {}
         self.is_actual = False
 
-        # boundary change variables
-        self.new_boundary = False
-        self.update_geometry = False
 
 
-# -----------------------------------------------------------------------------
-#  misc functions
-
-
-
-    # set file format
-    def update_file_format(self, val):
-        """Set file format."
-
-        Args:
-            val (str): file format
-        """
-        self.file_format = val
 
 
 # -----------------------------------------------------------------------------
 # general validation
 
-    # ***going to add check to make sure path is in REU/data/internal(?) folder***
-    def is_dir(self, val):
-        """Check if arg is a directory.
 
-        Args:
-            val (str): path
-        Returns:
-            Tuple containing
-                - if path is a directory
-                - path
-                - associated error message
-        """
-        return os.path.isdir(str(val)), str(val), self.error["is_dir"]
-
-
-    def base(self, val):
-        """Check if datapackage exists in mongo for given base path
+    def base(self, val, update=False):
+        """Validate and check base path (unique and valid).
 
         Args:
             base (str): base path used as unique id in mongo
         Returns:
-            Tuple containing
-                - bool whether datapackage exists
-                - Dict if datapackage exists, 0 otherwise
+            ValidationResults instance
         """
-        search = self.c_asdf.find_one({"base": base})
+        out = ValidationResults(val)
 
+        # should we check to make sure path is in .../REU/data folder?
+        if not os.path.isdir(val):
+            msg = "Could not find base directory provided ({0})".format(val)
+            out.error(msg)
+            return out, None
+
+        # remove trailing slash from path to prevent multiple unique
+        # path strings to same dir
+        if val.endswith("/"):
+            clean = val[:-1]
+        else:
+            clean = val
+
+        # check mongodb
+        search = self.c_asdf.find_one({"base": clean})
         exists = search is not None
 
-        datapackage = search if exists else 0
 
-        return exists, datapackage
+        if not update and exists:
+            msg = "Dataset with base directory exists ({0})".format(clean)
+            out.error(msg, search)
+        else:
+            out.success(clean, search)
+
+        return out, exists
+
 
 
     # should we check that there are not consection non-alphanumeric chars
     # eg: two underscores, underscore follow by period, etc.
-    def name(self, val, current=None):
-        """Check if name is unique and valid.
+    def name(self, val, update=False):
+        """Validate and check name (unique and valid).
 
         All characters in name must be alphanumeric with the exception of
         underscores, periods or dashes.
@@ -159,96 +162,117 @@ class ValidationTools():
         Args:
             val (str): name
         Returns:
-            Tuple containing:
-                - if name is valid
-                - name
-                - None if valid, associated error message if invalid
+            ValidationResults instance
         """
-        val = re.sub(' ', '_', val)
-        val = re.sub('[^0-9a-zA-Z._-]+', '', val)
+        out = ValidationResults(val)
 
-        if len(val) < 5:
-            return False, None, "Name must be at least 5 (valid) chars"
+        clean = re.sub(' ', '_', val)
+        clean = re.sub('[^0-9a-zA-Z._-]+', '', clean)
+        clean = clean.lower()
+
+        if len(clean) < 5:
+            msg = "Name must be at least 5 valid chars ({0})".format(clean)
+            out.error(msg)
+            return out
 
 
-        val = val.lower()
-
-        if self.interface and self.user_update and not p.user_prompt_use_input(value=val):
-            return False, None, "User rejected input"
+        # if (self.interface and self.user_update and
+        #         not p.user_prompt_use_input(value=clean)):
+        #     msg = "User rejected cleaned value ({0})".format(clean)
+        #     out.error(msg)
 
 
         # check mongodb
-        if current is not None and val != current:
+        search = self.c_asdf.find_one({"name": clean})
+        exists = search is not None
 
-            unique = self.c_asdf.find({"name": val}).limit(1).count() == 0
+        if not update and exists:
+            msg = "Dataset with name exists ({0})".format(clean)
+            out.error(msg, search)
+        else:
+            out.success(clean, search)
 
-            if not unique and unique_search[0]["base"] != self.data["base"]:
-                return False, None, "Name matches an existing dataset (names must be unique)"
+        return out, exists
 
-
-        return True, val, None
 
 
     def data_type(self, val):
         """Validate data type.
 
         Args:
-            val (): x
+            val (str): data_type
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
-        return val in self.types["data"], val, self.error["data_type"]
+        out = ValidationResults(val)
+
+        if val not in self.types["data"].keys():
+            msg = ("Input type ({0}) not in list of valid data "
+                   "types ({1})".format(val, self.types["data"].keys()))
+            out.error(msg)
+        else:
+            data = {'file_format': self.types["data"][val]}
+            out.success(val, data)
+
+        return out
 
 
-    def file_extension(self, val):
+    def file_extension(self, val, file_format):
         """Validate file extension.
 
         Args:
-            val (): x
+            val (str): file extension
+            file_format (str): file format
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
-        valid = (self.file_format in self.types["file_extensions"].keys() and
-                 val in self.types["file_extensions"][self.file_format])
-        return valid, val, self.error["file_extension"]
+        out = ValidationResults(val)
+
+        if file_format in self.types["file_extensions"].keys():
+            msg = "Input file format ({0}) not in list of valid file format "
+                  "({1})".format(file_format,
+                                 self.types["file_extensions"].keys())
+            out.error(msg)
+
+        elif val not in self.types["file_extensions"][file_format]:
+            valid_extensions = self.types["file_extensions"][file_format]
+            msg = ("Input file extension ({0}) not in list of valid file "
+                   "extensions ({1}) for given file format "
+                   "({2})".format(val, valid_extensions, file_format))
+
+            out.error(msg)
+
+        else:
+            out.success(val)
+
+        return out
 
 
-    # generic string
     def string(self, val):
-        """
+        """Validate value is (or can be converted to) a string.
 
         Args:
-            val (): x
+            val (str): string
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
+        out = ValidationResults(val)
         try:
-            str(val)
-            return True, str(val), None
+            clean = str(val)
+            out.success(clean)
         except:
-            return False, None, self.error["string"]
+            out.error("Could not convert value to string")
+
+        return out
 
 
-    # day_range is string
     def day_range(self, val):
-        """
+        """Validate day_range is string
 
         Args:
-            val (): x
+            val (): day_range
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
         if val == "":
             val = 1
@@ -264,7 +288,7 @@ class ValidationTools():
 # raster options
 
     def mini_name(self, val):
-        """Validate mini_name for dataset types which require it
+        """Validate and check mini_name for dataset types which require it
 
         Used for any dataset which will be given to used in extract format
         (rasters, points, maybe vectors)
@@ -279,35 +303,39 @@ class ValidationTools():
         Args:
             val (str): mini name
         Returns:
-            Tuple containing:
-                - if mini name is valid
-                - mini name
-                - None if valid, associated error message if invalid
+            ValidationResults instance
         """
-        val = re.sub(' ', '', val)
+        out = ValidationResults(val)
+
+
+        clean = re.sub(' ', '_', val)
         val = re.sub('[^0-9a-zA-Z]+', '', val)
+        clean = clean.lower()
 
-        if len(val) != 4:
-            return False, None, "Mini name must be at least 4 (valid) chars"
+        if len(clean) != 4:
+            msg = "Mini name must be at least 4 valid chars ({0})".format(clean)
+            out.error(msg)
+            return out
 
-        val = val.lower()
 
-        if self.interface and self.user_update and not p.user_prompt_use_input(value=val):
-            return False, None, "User rejected input"
+        # if (self.interface and self.user_update and
+        #         not p.user_prompt_use_input(value=clean)):
+        #     msg = "User rejected cleaned value ({0})".format(clean)
+        #     out.error(msg)
 
 
         # check mongodb
-        if (not 'options' in self.data or not "mini_name" in self.data['options'] or
-            ("mini_name" in self.data['options'] and val != self.data['options']["mini_name"])):
-            unique_search = self.c_asdf.find({"options.mini_name": val}).limit(1)
+        search = self.c_asdf.find_one({"options.mini_name": clean})
+        exists = search is not None
 
-            unique = unique_search.count() == 0
+        if not update and exists:
+            msg = "Dataset with mini name exists ({0})".format(clean)
+            out.error(msg, search)
+        else:
+            out.success(clean, search)
 
-            if not unique and unique_search[0]["base"] != self.data["base"]:
-                return False, None, "Mini name matches an existing dataset (names must be unique)"
+        return out, exists
 
-
-        return True, val, None
 
 
     def extract_types(self, val):
@@ -316,20 +344,35 @@ class ValidationTools():
         Args:
             val (): x
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
-        if isinstance(val, list):
-            vals = val
-        elif isinstance(val, str):
-            vals = [x.strip(' ') for x in val.split(",")]
-        else:
-            return False, 0, "Invalid input type"
+        out = ValidationResults(val)
 
-        valid = False not in [x in self.types["extracts"] for x in vals]
-        return valid, vals, self.error["extract_types"]
+        if isinstance(val, list):
+            clean = val
+        elif isinstance(val, str):
+            clean = [x.strip(' ') for x in val.split(",")]
+        else:
+            out.error("Invalid type () for extract_types, "
+                      "must be list or comma separate string.")
+            return out
+
+        if any(i in clean for i in ['all', 'ALL', '*']):
+            out.success(self.types["extracts"])
+            return out
+
+        invalid = [i for i in clean if i not in self.types["extracts"]]
+
+        if len(invalid) > 0:
+            msg = ("Invalid extract type(s) given."
+                   "\nInvalid given: {0}"
+                   "\nValid extract types: {1}".format(
+                    invalid, self.types["extracts"]))
+            out.error(msg)
+        else:
+            out.success(clean)
+
+        return out
 
 
     def factor(self, val):
@@ -340,82 +383,96 @@ class ValidationTools():
         Args:
             val (): x
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
+        out = ValidationResults(val)
+
         if val == "":
             val = 1.0
 
         try:
-            float(val)
-            return True, float(val), None
+            clean = float(val)
+            out.success(clean)
         except:
-            return False, None, self.error["factor"]
+            msg = "Factor value could not be converted to float ({0})".format(val)
+            out.error(msg)
 
+        return out
 
 
 # -----------------------------------------------------------------------------
 # boundary options
 
-    # boundary group
-    def group(self, val):
-        """Validate boundary group.
+    def group(self, val, update=False):
+        """Validate and check boundary group.
 
         Args:
             val (str): x
         Returns:
-            Tuple containing
-                -
-                -
-                -
+            ValidationResults instance
         """
-        # core database is already named data
-        # cannot have tracker database with same name
-        if val == "data":
-            return False, None, "group name can not be \"data\""
+        out = ValidationResults(val)
 
-        val = str(val)
-
-        name = self.data["name"]
-
-        # group is boundary name if empty
-        if val == "":
-            val = name
+        clean = str(val)
 
         # check if boundary with group exists
-        exists = self.c_asdf.find({"type": "boundary", "options.group": val}).limit(1).count() > 0
+        search = self.c_asdf.find_one({
+            "type": "boundary",
+            "options.group": clean
+        })
+        exists = search is not None
 
-        # if script is in auto mode then it assumes you want to continue with group name and with existing actual
-        if (not exists and self.interface and
-                not p.user_prompt_bool("Group \""+val+"\" does NOT exist. Are you sure you want to create it?" )):
-            return False, None, "group did not pass due to user request - new group"
+        data = {'exists': exists}
 
-        elif exists:
-            actual_exists = self.c_asdf.find({"type": "boundary", "options.group": val, "options.group_class": "actual"}).limit(1).count() > 0
+        # # if script is in auto mode then it assumes you want to
+        # # continue with group name and with existing actual
+        # tmp_msg = ("Group \""+clean+"\" does NOT exist. "
+        #            "Are you sure you want to create it?")
+        # if (not exists and self.interface and
+        #         not p.user_prompt_bool(tmp_msg)):
+        #     return False, None, ("group did not pass due to "
+        #                          "user request - new group")
+        # elif exists:
 
-            if (not actual_exists and self.interface and
-                    not p.user_prompt_bool("The actual boundary for group \""+val+"\" does not exist. Do you wish to continue?" )):
-                return False, None, "group did not pass due to user request - existing group actual"
+        if exists:
+            actual_search = self.c_asdf.find_one({
+                "type": "boundary",
+                "options.group": clean,
+                "options.group_class": "actual"
+            })
+            actual_exists = actual_search is not None
 
-        return True, str(val), None
+            data['actual_exists'] = actual_exists
+
+            # tmp_msg = ("The actual boundary for group \""+clean+"\" "
+            #            "does not exist. Do you wish to continue?")
+            # if (not actual_exists and self.interface and
+            #         not p.user_prompt_bool(tmp_msg)):
+            #     return False, None, ("group did not pass due to user "
+            #                          "request - existing group actual")
+
+        out.success(val, data)
+        return out
 
 
-    # boundary group_class
     def group_class(self, val):
-        """Check that group class is valid.
+        """Check that boundary group class is valid.
 
         Args:
             val (str): group class
         Returns:
-            Tuple containing
-                - if group class is valid
-                - group class
-                - associate error message
+            ValidationResults instance
         """
-        return val in self.types["group_class"], val, self.error["group_class"]
+        out = ValidationResults(val)
 
+        valid = val in self.types["group_class"]
+
+        if not valid:
+            out.error(self.error["group_class"])
+        else:
+            out.success(val)
+
+        return out
 
 
     def run_group_check(self, group):
