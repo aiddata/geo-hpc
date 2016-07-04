@@ -9,6 +9,15 @@ from collections import OrderedDict
 
 
 class ValidationResults():
+    """Hold validation results
+
+    Attributes:
+        original: raw original value for validation check
+        isvalid: if value was successfull validated
+        value: cleaned and validated value (None if error)
+        data: contains function dependent data (None if empty)
+        error: message if error occurs (None if no error)
+    """
     def __init__(self, original):
         self.original = original
 
@@ -25,27 +34,18 @@ class ValidationResults():
         self.value = value
 
 
-
-# validation functions, fields, etc.
 class ValidationTools():
     """Validation functions and related variables.
 
     Attributes:
         interface (): x
         user_update (): x
-        data (): x
         dir_base (): x
-        licenses (): x
-        file_format (): x
-        types (): x
-        error (): x
         fields (): x
+       
+        types (): x
         client (): x
-        db (): x
         c_asdf (): x
-        group_exists (): x
-        actual_exists (): x
-        is_actual (): x
 
     """
     def __init__(self, client=None):
@@ -53,14 +53,12 @@ class ValidationTools():
         # self.interface = False
         # self.user_update = True
 
-
         # base path
         # self.dir_base = os.path.dirname(os.path.abspath(__file__))
 
         # # current datapackage fields
         # self.fields = json.load(open(self.dir_base + "/fields.json", 'r'),
         #                         object_pairs_hook=OrderedDict)
-
 
         # acceptable inputs for various fields (dataset types,
         # vector formats, raster formats, etc.)
@@ -82,30 +80,13 @@ class ValidationTools():
             "group_class": ['actual', 'sub']
         }
 
-        # error messages to go with validation functions
-        self.error = {
-            "day_range": "could not be converted to int",
-            "group_class": "not a valid group class"
-        }
-
-
         # init mongo
         self.client = client
         self.c_asdf = self.client.asdf.data
 
 
-        # group / group_class variables
-        self.group_exists = False
-        self.actual_exists = {}
-        self.is_actual = False
-
-
-
-
-
 # -----------------------------------------------------------------------------
 # general validation
-
 
     def base(self, val, update=False):
         """Validate and check base path (unique and valid).
@@ -142,7 +123,6 @@ class ValidationTools():
             out.success(clean, search)
 
         return out, exists
-
 
 
     # should we check that there are not consection non-alphanumeric chars
@@ -274,14 +254,18 @@ class ValidationTools():
         Returns:
             ValidationResults instance
         """
+        out = ValidationResults(val)
+
         if val == "":
             val = 1
 
         try:
-            int(float(val))
-            return True, int(float(val)), None
+            clean = int(float(val))
+            out.success(clean)
         except:
-            return False, None, self.error["day_range"]
+            out.error("Could not onvert value to int")
+
+        return out
 
 
 # -----------------------------------------------------------------------------
@@ -335,7 +319,6 @@ class ValidationTools():
             out.success(clean, search)
 
         return out, exists
-
 
 
     def extract_types(self, val):
@@ -403,58 +386,6 @@ class ValidationTools():
 # -----------------------------------------------------------------------------
 # boundary options
 
-    def group(self, val, update=False):
-        """Validate and check boundary group.
-
-        Args:
-            val (str): x
-        Returns:
-            ValidationResults instance
-        """
-        out = ValidationResults(val)
-
-        clean = str(val)
-
-        # check if boundary with group exists
-        search = self.c_asdf.find_one({
-            "type": "boundary",
-            "options.group": clean
-        })
-        exists = search is not None
-
-        data = {'exists': exists}
-
-        # # if script is in auto mode then it assumes you want to
-        # # continue with group name and with existing actual
-        # tmp_msg = ("Group \""+clean+"\" does NOT exist. "
-        #            "Are you sure you want to create it?")
-        # if (not exists and self.interface and
-        #         not p.user_prompt_bool(tmp_msg)):
-        #     return False, None, ("group did not pass due to "
-        #                          "user request - new group")
-        # elif exists:
-
-        if exists:
-            actual_search = self.c_asdf.find_one({
-                "type": "boundary",
-                "options.group": clean,
-                "options.group_class": "actual"
-            })
-            actual_exists = actual_search is not None
-
-            data['actual_exists'] = actual_exists
-
-            # tmp_msg = ("The actual boundary for group \""+clean+"\" "
-            #            "does not exist. Do you wish to continue?")
-            # if (not actual_exists and self.interface and
-            #         not p.user_prompt_bool(tmp_msg)):
-            #     return False, None, ("group did not pass due to user "
-            #                          "request - existing group actual")
-
-        out.success(val, data)
-        return out
-
-
     def group_class(self, val):
         """Check that boundary group class is valid.
 
@@ -468,50 +399,71 @@ class ValidationTools():
         valid = val in self.types["group_class"]
 
         if not valid:
-            out.error(self.error["group_class"])
+            out.error("not a valid group class ({0})".format(val))
         else:
             out.success(val)
 
         return out
 
 
-    def run_group_check(self, group):
+    def group(self, val):
         """Run check on a boundary group to determine parameters used
         in group_check selection
 
         Parameters which are set:
-            group_exists (bool): if the group exists
+            exists (bool): if the group exists
             actual_exists (bool): if the actual boundary for the group
                                   exists yet
-            is_actual (bool): if this dataset is the boundary used to
-                              define the group
+            actual (bool): dataset used to define the group
 
         Args:
-            group (str): group name
+            ValidationResults instance
         """
+        out = ValidationResults(val)
+
+        clean = str(val)
+        data = {
+            "exists": False,
+            "actual_exists": False,
+            "actual": None
+        }
 
         # check if boundary with group exists
-        exists = self.c_asdf.find({
+        data["exists"] = self.c_asdf.find({
             "type": "boundary",
-            "options.group": group
+            "options.group": clean
         }).limit(1).count() > 0
 
-        self.actual_exists = {}
-        self.actual_exists[group] = False
+        # # if script is in auto mode then it assumes you want to
+        # # continue with group name and with existing actual
+        # tmp_msg = ("Group \""+clean+"\" does NOT exist. "
+        #            "Are you sure you want to create it?")
+        # if (not exists and self.interface and
+        #         not p.user_prompt_bool(tmp_msg)):
+        #     return False, None, ("group did not pass due to "
+        #                          "user request - new group")
+        # elif exists:
 
-        if exists:
-            self.group_exists = True
+        if data["exists"]:
 
-            search_actual = self.c_asdf.find({
+            search_actual = self.c_asdf.find_one({
                 "type": "boundary",
-                "options.group": group,
+                "options.group": clean,
                 "options.group_class": "actual"
-            }).limit(1)
-            self.actual_exists[group] =  search_actual.count() > 0
+            })
 
-            if self.actual_exists[group]:
+            data["actual_exists"] = search_actual is not None
 
-                # case where updating actual
-                if search_actual[0]["base"] == self.data["base"]:
-                    self.is_actual = True
+            # tmp_msg = ("The actual boundary for group \""+clean+"\" "
+            #            "does not exist. Do you wish to continue?")
+            # if (not actual_exists and self.interface and
+            #         not p.user_prompt_bool(tmp_msg)):
+            #     return False, None, ("group did not pass due to user "
+            #                          "request - existing group actual")
 
+            if data["actual_exists"]:
+                data["actual"] = search_actual
+        
+
+        out.success(clean, data)
+        return out

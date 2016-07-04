@@ -12,17 +12,12 @@ import datetime
 import calendar
 from dateutil.relativedelta import relativedelta
 
-# import shapefile
-# import itertools
-
-
 
 class ResourceTools():
     """Functions for working with dataset resources.
 
     Attributes:
-
-        dp (Dict): x
+        doc (Dict): x
         file_list (List): x
         temporal (Dict): x
         spatial (): x
@@ -31,7 +26,7 @@ class ResourceTools():
     """
     def __init__(self):
 
-        self.dp = {}
+        self.doc = {}
 
         self.file_list = []
 
@@ -47,9 +42,9 @@ class ResourceTools():
 
 
     def update_dp(self):
-        self.dp["temporal"] = self.temporal
-        self.dp["spatial"] = self.spatial
-        self.dp["resources"] = self.resources
+        self.doc["temporal"] = self.temporal
+        self.doc["spatial"] = self.spatial
+        self.doc["resources"] = self.resources
 
 
     # --------------------------------------------------
@@ -253,48 +248,13 @@ class ResourceTools():
             return (1, "error generating geojson with ad_id")
 
 
-    # # converts shapefile to geojson
-    # # source: https://groups.google.com/forum/#!topic/geospatialpython/7bZnpHkD7ys
-    # def shp_to_geojson(self, path):
-
-    #     out = path[:-3] + "geojson"
-
-    #     try:
-    #         # read the shapefile
-    #         reader = shapefile.Reader(path)
-    #         fields = reader.fields[1:]
-    #         field_names = [field[0] for field in fields]
-    #         buffer = []
-
-    #         # for sr in reader.shapeRecords():
-    #         #     atr = dict(zip(field_names, sr.record))
-    #         #     geom = sr.shape.__geo_interface__
-    #         #     buffer.append(dict(type="Feature", geometry=geom, properties=atr))
-
-    #         for (sr, ss) in itertools.izip(reader.iterRecords(), reader.iterShapes()):
-    #             atr = dict(zip(field_names, sr))
-    #             geom = ss.__geo_interface__
-    #             buffer.append(dict(type="Feature", geometry=geom, properties=atr))
-
-
-    #         # write the GeoJSON file
-    #         geojson = open(out, "w")
-    #         geojson.write(json.dumps({"type": "FeatureCollection","features": buffer}, indent=4) + "\n")
-    #         geojson.close()
-
-    #         return 0
-
-    #     except:
-    #         return 1
-
-
-
-    # --------------------------------------------------
+    # -------------------------------------------------------------------------
     # temporal functions
 
 
-    # extract temporal data from file name
     def run_file_mask(self, fmask, fname, fbase=0):
+        """extract temporal data from file name
+        """
 
         if fbase and fname.startswith(fbase):
             fname = fname[fname.index(fbase) + len(fbase) + 1:]
@@ -308,26 +268,32 @@ class ResourceTools():
         return output
 
 
-    # validate a date object
     def validate_date(self, date_obj):
+        """validate a date object
+        """
+
         # year is always required
-        if date_obj["year"] == "":
+        y = date_obj["year"]
+        m = date_obj["month"]
+        d = date_obj["day"]
+
+        if y == "":
             return False, "No year found for data."
 
         # full 4 digit year required
-        elif len(date_obj["year"]) != 4:
+        elif len(y) != 4:
             return False, "Invalid year."
 
         # months must always use 2 digits
-        elif date_obj["month"] != "" and len(date_obj["month"]) != 2:
+        elif m != "" and len(m) != 2:
             return False, "Invalid month."
 
         # days of month (day when month is given) must always use 2 digits
-        elif date_obj["month"] != "" and date_obj["day"] != "" and len(date_obj["day"]) != 2:
+        elif m != "" and d != "" and len(d) != 2:
             return False, "Invalid day of month."
 
         # days of year (day when month is not given) must always use 3 digits
-        elif date_obj["month"] == "" and date_obj["day"] != "" and len(date_obj["day"]) != 3:
+        elif m == "" and d != "" and len(d) != 3:
             return False, "Invalid day of year."
 
         return True, None
@@ -335,34 +301,40 @@ class ResourceTools():
 
     # generate date range and date type from date object
     def get_date_range(self, date_obj, drange=0):
+  
+        y = date_obj["year"]
+        m = date_obj["month"]
+        d = date_obj["day"]
 
         date_type = "None"
 
         # year, day of year (7)
-        if date_obj["month"] == "" and len(date_obj["day"]) == 3:
-            tmp_start = datetime.datetime(int(date_obj["year"]),1,1) + datetime.timedelta(int(date_obj["day"])-1)
+        if m == "" and len(d) == 3:
+            tmp_start = datetime.datetime(int(y), 1, 1) + datetime.timedelta(int(d)-1)
             tmp_end = tmp_start + relativedelta(days=drange)
             date_type = "day of year"
 
         # year, month, day (8)
-        if date_obj["month"] != "" and len(date_obj["day"]) == 2:
-            tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), int(date_obj["day"]))
+        if m != "" and len(d) == 2:
+            tmp_start = datetime.datetime(int(y), int(m), int(d))
             tmp_end = tmp_start + relativedelta(days=drange)
             date_type = "year month day"
 
         # year, month (6)
-        if date_obj["month"] != "" and date_obj["day"] == "":
-            tmp_start = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), 1)
-            month_range = calendar.monthrange(int(date_obj["year"]), int(date_obj["month"]))[1]
-            tmp_end = datetime.datetime(int(date_obj["year"]), int(date_obj["month"]), month_range)
+        if m != "" and d == "":
+            tmp_start = datetime.datetime(int(y), int(m), 1)
+            month_range = calendar.monthrange(int(y), int(m))[1]
+            tmp_end = datetime.datetime(int(y), int(m), month_range)
             date_type = "year month"
 
         # year (4)
-        if date_obj["month"] == "" and date_obj["day"] == "":
-            tmp_start = datetime.datetime(int(date_obj["year"]), 1, 1)
-            tmp_end = datetime.datetime(int(date_obj["year"]), 12, 31)
+        if m == "" and d == "":
+            tmp_start = datetime.datetime(int(y), 1, 1)
+            tmp_end = datetime.datetime(int(y), 12, 31)
             date_type = "year"
 
-        return int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), date_type
+        return (int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), 
+                int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), 
+                date_type)
 
 

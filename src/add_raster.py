@@ -1,8 +1,8 @@
-# add dataset to system
+# ingest raster dataset to asdf
+#   - create/initialize document
 #   - validate options
 #   - scan and validate dataset resources
 #   - generate metadata for dataset resources
-#   - create document
 #   - update mongo database
 
 
@@ -450,14 +450,17 @@ for f in ru.file_list:
 
 
         if "day_range" in doc:
-            range_start, range_end, range_type = ru.get_date_range(date_str,
-                                                                   doc["day_range"])
+            range_start, range_end, range_type = ru.get_date_range(
+                date_str, doc["day_range"])
         else:
             range_start, range_end, range_type = ru.get_date_range(date_str)
 
-        # name (unique among this dataset's resources - not same name as dataset)
+        # name (unique among this dataset's resources, 
+        # not same name as dataset name)
         resource_tmp["name"] = (doc["name"] +"_"+
-                                date_str["year"] + date_str["month"] + date_str["day"])
+                                date_str["year"] + 
+                                date_str["month"] + 
+                                date_str["day"])
 
     else:
         range_start = 10000101
