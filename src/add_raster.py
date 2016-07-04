@@ -88,7 +88,7 @@ def quit(reason):
 path = sys.argv[2]
 
 if os.path.isfile(path):
-    data = json.load(open(path, 'r'), object_pairs_hook=OrderedDict)
+    data = json.load(open(path, 'r'))
 else:
     quit("invalid input file")
 
