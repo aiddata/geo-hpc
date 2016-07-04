@@ -214,21 +214,21 @@ if len(missing_options) > 0:
 doc["options"] = {}
 
 # resolution (in decimal degrees)
-valid_resolution = v.factor(data["resolution"])
+valid_resolution = v.factor(data["options"]["resolution"])
 
 if not valid_resolution.isvalid:
     quit(valid_resolution.error)
 
-doc["resolution"] = valid_resolution.value
+doc["options"]["resolution"] = valid_resolution.value
 
 
 # multiplication factor (if needed, defaults to 1 if blank)
-valid_factor = v.factor(data["factor"])
+valid_factor = v.factor(data["options"]["factor"])
 
 if not valid_factor.isvalid:
     quit(valid_factor.error)
 
-doc["factor"] = valid_factor.value
+doc["options"]["factor"] = valid_factor.value
 
 # ***
 # if factor changes, any extracts adjust with old factor need to be removed
@@ -236,25 +236,26 @@ doc["factor"] = valid_factor.value
 
 
 # extract_types (multiple, separate your input with commas)
-valid_extract_types = v.extract_types(data["extract_types"])
+valid_extract_types = v.extract_types(data["options"]["extract_types"])
 
 if not valid_extract_types.isvalid:
     quit(valid_extract_types.error)
 
-doc["extract_types"] = valid_extract_types.value
+doc["options"]["extract_types"] = valid_extract_types.value
 
 
 # Description of the variable (units, range, etc.)
-doc["variable_description"] = str(data["variable_description"])
+doc["options"]["variable_description"] = str(
+    data["options"]["variable_description"])
 
 
 # mini name (4 valid chars and unique across datasets)
-valid_mini_name = v.mini_name(data["mini_name"], update)
+valid_mini_name = v.mini_name(data["options"]["mini_name"], update)
 
 if not valid_mini_name.isvalid:
     quit(valid_mini_name.error)
 
-doc["mini_name"] = valid_mini_name.value
+doc["options"]["mini_name"] = valid_mini_name.value
 mini_name_exists = valid_mini_name.data['exists']
 
 if update and mini_name_exists:
@@ -263,7 +264,7 @@ if update and mini_name_exists:
 
     if base_id != mini_name_id:
         quit("Mini name ({0}) already used for another "
-             "dataset".format(doc["mini_name"]))
+             "dataset".format(doc["options"]["mini_name"]))
 
 
 # -----------------------------------------------------------------------------
