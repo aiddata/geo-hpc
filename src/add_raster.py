@@ -201,7 +201,7 @@ if not "options" in data:
     quit("Missing options lookup")
 
 
-require_options = ["resolution", "extract_types", "factor",
+required_options = ["resolution", "extract_types", "factor",
                    "variable_description", "mini_name"]
 
 missing_options = [i for i in required_options
