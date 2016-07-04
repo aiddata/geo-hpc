@@ -1,14 +1,14 @@
 
-"base": "/sciclone/aiddata10/REU/data/stuff",
+"base": "/sciclone/aiddata10/REU/data/rasters/external/global/test/",
 "type": "raster",
-"file_extension": "tif",
-"file_mask": "None",
+"file_extension": ".asc",
+"file_mask": "xxxxxxxx_YYYY.asc",
 "name": "Test",
 "title": "This is a test",
 "description": "Raster test ingest file",
 "version": 0.1,
 "options": {
-    "resolution": 1,
+    "resolution": 0.5,
     "extract_types": ["mean"],
     "factor": 1,
     "variable_description": "Stuff",

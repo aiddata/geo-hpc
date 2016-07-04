@@ -208,22 +208,25 @@ class ValidationTools():
         """
         out = ValidationResults(val)
 
+        if val.startswith('.'):
+            clean = val[1:]
+
         if file_format in self.types["file_extensions"].keys():
             msg = ("Input file format ({0}) not in list of valid file format "
                    "({1})".format(file_format,
                                   self.types["file_extensions"].keys()))
             out.error(msg)
 
-        elif val not in self.types["file_extensions"][file_format]:
+        elif clean not in self.types["file_extensions"][file_format]:
             valid_extensions = self.types["file_extensions"][file_format]
             msg = ("Input file extension ({0}) not in list of valid file "
                    "extensions ({1}) for given file format "
-                   "({2})".format(val, valid_extensions, file_format))
+                   "({2})".format(clean, valid_extensions, file_format))
 
             out.error(msg)
 
         else:
-            out.success(val)
+            out.success(clean)
 
         return out
 
