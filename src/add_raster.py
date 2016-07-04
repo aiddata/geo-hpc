@@ -205,7 +205,7 @@ required_options = ["resolution", "extract_types", "factor",
                    "variable_description", "mini_name"]
 
 missing_options = [i for i in required_options
-                   if i not in data]
+                   if i not in data["options"]]
 
 if len(missing_options) > 0:
     quit("Missing fields from options lookup ({0})".format(missing_options))
