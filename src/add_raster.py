@@ -94,7 +94,7 @@ else:
 
 
 required_core_fields = [
-    "base", "type", "file_format", "file_extension", "file_mask",
+    "base", "type", "file_extension", "file_mask",
     "name", "title", "description", "version"
 ]
 
