@@ -131,6 +131,7 @@ if not valid_base.isvalid:
     quit(valid_base.error)
 
 doc["base"] = valid_base.value
+base_exists = valid_base.data['exists']
 
 
 # validate name
@@ -140,7 +141,7 @@ if not valid_name.isvalid:
     quit(valid_name.error)
 
 doc["name"] = valid_name.value
-
+name_exists = valid_name.data['exists']
 
 
 if update and not base_exists and not name_exists:
@@ -248,12 +249,13 @@ doc["variable_description"] = str(data["variable_description"])
 
 
 # mini name (4 valid chars and unique across datasets)
-valid_mini_name, mini_name_exists = v.mini_name(data["mini_name"], update)
+valid_mini_name = v.mini_name(data["mini_name"], update)
 
 if not valid_mini_name.isvalid:
     quit(valid_mini_name.error)
 
 doc["mini_name"] = valid_mini_name.value
+mini_name_exists = valid_mini_name.data['exists']
 
 if update and mini_name_exists:
     base_id = str(valid_base.data['_id'])

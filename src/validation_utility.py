@@ -97,12 +97,17 @@ class ValidationTools():
             ValidationResults instance
         """
         out = ValidationResults(val)
+        
+        data = {
+            'search': None,
+            'exists': None
+        }
 
         # should we check to make sure path is in .../REU/data folder?
         if not os.path.isdir(val):
             msg = "Could not find base directory provided ({0})".format(val)
-            out.error(msg)
-            return out, None
+            out.error(msg, data)
+            return out
 
         # remove trailing slash from path to prevent multiple unique
         # path strings to same dir
@@ -112,17 +117,17 @@ class ValidationTools():
             clean = val
 
         # check mongodb
-        search = self.c_asdf.find_one({"base": clean})
-        exists = search is not None
+        data['search'] = self.c_asdf.find_one({"base": clean})
+        data['exists'] = data['search'] is not None
 
 
-        if not update and exists:
+        if not update and data['exists']:
             msg = "Dataset with base directory exists ({0})".format(clean)
-            out.error(msg, search)
+            out.error(msg, data)
         else:
-            out.success(clean, search)
+            out.success(clean, data)
 
-        return out, exists
+        return out
 
 
     # should we check that there are not consection non-alphanumeric chars
@@ -145,6 +150,11 @@ class ValidationTools():
             ValidationResults instance
         """
         out = ValidationResults(val)
+        
+        data = {
+            'search': None,
+            'exists': None
+        }
 
         clean = re.sub(' ', '_', val)
         clean = re.sub('[^0-9a-zA-Z._-]+', '', clean)
@@ -152,7 +162,7 @@ class ValidationTools():
 
         if len(clean) < 5:
             msg = "Name must be at least 5 valid chars ({0})".format(clean)
-            out.error(msg)
+            out.error(msg, data)
             return out
 
 
@@ -163,16 +173,16 @@ class ValidationTools():
 
 
         # check mongodb
-        search = self.c_asdf.find_one({"name": clean})
-        exists = search is not None
+        data['search'] = self.c_asdf.find_one({"name": clean})
+        data['exists'] = data['search'] is not None
 
-        if not update and exists:
+        if not update and data['exists']:
             msg = "Dataset with name exists ({0})".format(clean)
-            out.error(msg, search)
+            out.error(msg, data)
         else:
-            out.success(clean, search)
+            out.success(clean, data)
 
-        return out, exists
+        return out
 
 
 
@@ -294,14 +304,18 @@ class ValidationTools():
         """
         out = ValidationResults(val)
 
+        data = {
+            'search': None,
+            'exists': None
+        }
 
         clean = re.sub(' ', '_', val)
-        val = re.sub('[^0-9a-zA-Z]+', '', val)
+        clean = re.sub('[^0-9a-zA-Z]+', '', clean)
         clean = clean.lower()
 
         if len(clean) != 4:
             msg = "Mini name must be at least 4 valid chars ({0})".format(clean)
-            out.error(msg)
+            out.error(msg, data)
             return out
 
 
@@ -312,16 +326,16 @@ class ValidationTools():
 
 
         # check mongodb
-        search = self.c_asdf.find_one({"options.mini_name": clean})
-        exists = search is not None
+        data['search'] = self.c_asdf.find_one({"options.mini_name": clean})
+        data['exists'] = data['search'] is not None
 
-        if not update and exists:
+        if not update and data['exists']:
             msg = "Dataset with mini name exists ({0})".format(clean)
-            out.error(msg, search)
+            out.error(msg, data)
         else:
-            out.success(clean, search)
+            out.success(clean, data)
 
-        return out, exists
+        return out
 
 
     def extract_types(self, val):
