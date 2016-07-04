@@ -287,6 +287,8 @@ for root, dirs, files in os.walk(doc["base"]):
     for file in files:
         file = os.path.join(root, file)
         file_check = file.endswith('.' + doc["file_extension"])
+        if file_check == True:
+            ru.file_list.append(file)
 
 
 # -----------------------------------------------------------------------------
