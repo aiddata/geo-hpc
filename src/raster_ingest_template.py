@@ -12,7 +12,7 @@
 	    "extract_types": ["mean"],
 	    "factor": 1,
 	    "variable_description": "Stuff",
-	    "mini_name": "abcd",
+	    "mini_name": "abcd"
 	},
 	"extras": {
 	    "citation": "cite",
