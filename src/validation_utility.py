@@ -21,13 +21,13 @@ class ValidationResults():
     def __init__(self, original):
         self.original = original
 
-    def error(msg, data=None):
+    def error(self, msg, data=None):
         self.error = msg
         self.data = data
         self.isvalid = False
         self.value = None
 
-    def success(value, data=None):
+    def success(self, value, data=None):
         self.error = None
         self.data = data
         self.isvalid = True
