@@ -125,7 +125,7 @@ if not update:
 
 
 # validate base path
-valid_base, base_exists = v.base(data["base"], update)
+valid_base = v.base(data["base"], update)
 
 if not valid_base.isvalid:
     quit(valid_base.error)
@@ -135,7 +135,7 @@ base_exists = valid_base.data['exists']
 
 
 # validate name
-valid_name, name_exists = v.name(data["name"], update)
+valid_name = v.name(data["name"], update)
 
 if not valid_name.isvalid:
     quit(valid_name.error)
