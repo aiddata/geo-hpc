@@ -209,9 +209,9 @@ class ValidationTools():
         out = ValidationResults(val)
 
         if file_format in self.types["file_extensions"].keys():
-            msg = "Input file format ({0}) not in list of valid file format "
-                  "({1})".format(file_format,
-                                 self.types["file_extensions"].keys())
+            msg = ("Input file format ({0}) not in list of valid file format "
+                   "({1})".format(file_format,
+                                  self.types["file_extensions"].keys()))
             out.error(msg)
 
         elif val not in self.types["file_extensions"][file_format]:

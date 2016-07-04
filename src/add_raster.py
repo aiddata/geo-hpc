@@ -266,7 +266,7 @@ if update and mini_name_exists:
 
 # -----------------------------------------------------------------------------
 # extras
-if not "extras" in data
+if not "extras" in data:
     print("Although fields in extras are not required, it may contain "
           "commonly used field which should be added whenever possible "
           "(example: sources_web field)")
