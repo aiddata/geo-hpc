@@ -502,17 +502,18 @@ doc["resources"] = ru.resources
 # update mongo
 
 print "\nFinal document..."
-print doc
+from pprint import pprint
+pprint(doc)
 
 
-print "\nWriting document to mongo..."
+# print "\nWriting document to mongo..."
 
-core_update_status = update_db.update_core(doc)
+# core_update_status = update_db.update_core(doc)
 
-tracker_update_status = update_db.update_trackers(doc,
-                                                  v.new_boundary,
-                                                  v.update_geometry,
-                                                  update_data_package)
+# tracker_update_status = update_db.update_trackers(doc,
+#                                                   v.new_boundary,
+#                                                   v.update_geometry,
+#                                                   update_data_package)
 
 
-print "\nDone.\n"
+# print "\nDone.\n"
