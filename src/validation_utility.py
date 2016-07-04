@@ -284,7 +284,7 @@ class ValidationTools():
 # -----------------------------------------------------------------------------
 # raster options
 
-    def mini_name(self, val):
+    def mini_name(self, val, update=False):
         """Validate and check mini_name for dataset types which require it
 
         Used for any dataset which will be given to used in extract format
