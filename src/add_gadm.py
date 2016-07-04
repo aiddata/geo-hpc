@@ -196,7 +196,6 @@ doc["active"] = 0
 # resource utils class instance
 ru = ResourceTools()
 
-
 # find all files with file_extension in path
 for root, dirs, files in os.walk(doc["base"]):
     for fname in files:
@@ -216,6 +215,10 @@ elif len(ru.file_list) > 1:
     quit("Boundaries must be submitted individually.")
 
 
+f = ru.file_list[0]
+print f
+
+
 # -------------------------------------
 print "\nProcessing temporal..."
 
@@ -230,49 +233,21 @@ ru.temporal["end"] = 99991231
 # -------------------------------------
 print "\nProcessing spatial..."
 
-
-# iterate over files to get bbox and do basic spatial validation (mainly make
-# sure rasters are all same size)
-f = ru.file_list[0]
-
-# boundary datasets can be multiple files (for administrative zones)
-print f
-
-bnd_collection = fiona.open(f, 'r')
-
-# env = [xmin, ymin, xmax, ymax]
-env = bnd_collection.bounds
-geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
-
-# geo_ext = ru.vector_envelope(f)
-
-convert_status = ru.add_ad_id(f)
+convert_status = ru.add_asdf_id(f)
 if convert_status == 1:
      quit("Error adding ad_id to boundary file & outputting geojson.")
 
 
-
-# clip extents if they are outside global bounding box
-for c in range(len(geo_ext)):
-    if geo_ext[c][0] < -180:
-        geo_ext[c][0] = -180
-
-    elif geo_ext[c][0] > 180:
-        geo_ext[c][0] = 180
-
-    if geo_ext[c][1] < -90:
-        geo_ext[c][1] = -90
-
-    elif geo_ext[c][1] > 90:
-        geo_ext[c][1] = 90
+env = ru.vector_envelope(f)
+env = ru.trim_envelope(env)
 
 
 # display datset info to user
-print "Dataset bounding box: ", geo_ext
+print "Dataset bounding box: ", env
 
 # check bbox size
-xsize = geo_ext[2][0] - geo_ext[1][0]
-ysize = geo_ext[0][1] - geo_ext[1][1]
+xsize = env[2][0] - env[1][0]
+ysize = env[0][1] - env[1][1]
 tsize = abs(xsize * ysize)
 
 scale = "regional"
@@ -282,19 +257,8 @@ if tsize >= 32400:
 doc["scale"] = scale
 
 
-# spatial
-# get generic spatial data for rasters
-# something else for vectors?
-ru.spatial = {
-    "type": "Polygon",
-    "coordinates": [ [
-        geo_ext[0],
-        geo_ext[1],
-        geo_ext[2],
-        geo_ext[3],
-        geo_ext[0]
-    ] ]
-}
+# set spatial
+ru.spatial = ru.envelope_to_geom(env)
 
 
 # -------------------------------------

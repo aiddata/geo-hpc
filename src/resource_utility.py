@@ -3,9 +3,10 @@ import sys
 import os
 import json
 
+import fiona
+import rasterio
 import pandas as pd
 import geopandas as gpd
-from osgeo import gdal,ogr,osr
 from shapely.geometry import Point
 
 import datetime
@@ -26,9 +27,9 @@ class ResourceTools():
     """
     def __init__(self):
 
-        self.doc = {}
-
         self.file_list = []
+
+        self.doc = {}
 
         self.temporal = {
             "start": 0,
@@ -50,69 +51,46 @@ class ResourceTools():
     # --------------------------------------------------
     # spatial functions
 
+    def envelope_to_geom(self, env):
+        """convert envelope array to geojson 
+        """
+        geom = {
+            "type": "Polygon",
+            "coordinates": [ [
+                env[0],
+                env[1],
+                env[2],
+                env[3],
+                env[0]
+            ] ]
+        }
+        return geom
 
-    # get bounding box
-    # http://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
-    # gets raw extent of raster
-    def GetExtent(self, gt, cols, rows):
-        ''' Return list of corner coordinates from a geotransform
+        
+    def trim_envelope(self, env):
+        """Trim envelope to global extents
+        """
+        # clip extents if they are outside global bounding box
+        for c in range(len(env)):
+            if env[c][0] < -180:
+                env[c][0] = -180
 
-            @type gt:   C{tuple/list}
-            @param gt: geotransform
-            @type cols:   C{int}
-            @param cols: number of columns in the dataset
-            @type rows:   C{int}
-            @param rows: number of rows in the dataset
-            @rtype:    C{[float,...,float]}
-            @return:   coordinates of each corner
-        '''
+            elif env[c][0] > 180:
+                env[c][0] = 180
 
-        ext=[]
-        xarr=[0,cols]
-        yarr=[0,rows]
+            if env[c][1] < -90:
+                env[c][1] = -90
 
-        for px in xarr:
-            for py in yarr:
-                x = gt[0] + (px*gt[1]) + (py*gt[2])
-                y = gt[3] + (px*gt[4]) + (py*gt[5])
-                ext.append([x,y])
-                # print x,y
+            elif env[c][1] > 90:
+                env[c][1] = 90
 
-            yarr.reverse()
-
-        return ext
-
-
-    # reprojects raster
-    # def ReprojectCoords(self, coords, src_srs, tgt_srs):
-    #     ''' Reproject a list of x,y coordinates.
-
-    #         @type geom:     C{tuple/list}
-    #         @param geom:    List of [[x,y],...[x,y]] coordinates
-    #         @type src_srs:  C{osr.SpatialReference}
-    #         @param src_srs: OSR SpatialReference object
-    #         @type tgt_srs:  C{osr.SpatialReference}
-    #         @param tgt_srs: OSR SpatialReference object
-    #         @rtype:         C{tuple/list}
-    #         @return:        List of transformed [[x,y],...[x,y]] coordinates
-    #     '''
-
-    #     print src_srs
-
-    #     trans_coords=[]
-    #     transform = osr.CoordinateTransformation(src_srs, tgt_srs)
-
-    #     for x,y in coords:
-    #         x,y,z = transform.TransformPoint(x,y)
-    #         trans_coords.append([x,y])
-
-    #     return trans_coords
+        return env
 
 
-    # acceptas new and old envelope
-    # updates old envelope is new envelope bounds exceed old envelope bounds
-    # envelope format [xmin, xmax, ymin, ymax]
+
     def check_envelope(self, new, old):
+        """expand old envelope to max extents of new envelope 
+        """
         if len(new) == len(old) and len(new) == 4:
             # update envelope if polygon extends beyond bounds
 
@@ -134,67 +112,49 @@ class ResourceTools():
         return old
 
 
-    # gets bounds of specified raster file
     def raster_envelope(self, path):
-        ds = gdal.Open(path)
+        """Get geojson style envelope of raster file
+        """
+        raster = rasterio.open(path, 'r')
+        
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = raster.bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-        gt = ds.GetGeoTransform()
-        cols = ds.RasterXSize
-        rows = ds.RasterYSize
-        ext = self.GetExtent(gt,cols,rows)
-
-        # src_srs = osr.SpatialReference()
-        # src_srs.ImportFromWkt(ds.GetProjection())
-
-        # tgt_srs = osr.SpatialReference()
-        # tgt_srs.ImportFromEPSG(4326)
-        # # tgt_srs = src_srs.CloneGeogCS()
-
-        # geo_ext = self.ReprojectCoords(ext, src_srs, tgt_srs)
-        # # geo_ext = [[-155,50],[-155,-30],[22,-30],[22,50]]
-
-        geo_ext = ext
-
-        return geo_ext
+        return env
 
 
-    # gets bounds of specified vector file
-    # iterates over polygons and generates envelope using check_envelope function
     def vector_envelope(self, path):
-        ds = ogr.Open(path)
-        lyr_name = path[path.rindex('/')+1:path.rindex('.')]
-        # lyr = ds.GetLayerByName(lyr_name)
-        lyr = ds.GetLayer(0)
+        """Get geojson style envelope of vector file
+        """
+        vector = fiona.open(path, 'r')
+
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = vector.bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
+
+        return env
+
+
+    def vector_list(self, vlist=[]):
+        """Get envelope for multiple vector files
+        """
         env = []
+        for f in vlist:
+            f_env = vectory_envelope(f)
+            env = self.check_envelope(f_env, env)
 
-        for feat in lyr:
-            temp_env = feat.GetGeometryRef().GetEnvelope()
-            env = self.check_envelope(temp_env, env)
-            # print temp_env
-
-        # env = [xmin, xmax, ymin, ymax]
-        geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
-        # print "final env:",env
-        # print "bbox:",geo_ext
-
-        return geo_ext
+        return env
 
 
-    # def vector_list(self, list=[]):
-    #     env = []
-    #     for file in list:
-    #         f_env = vectory_envelope(file)
-    #         env = self.check_envelope(f_env, env)
-
-    #     geo_ext = [[env[0],env[3]], [env[0],env[2]], [env[1],env[2]], [env[1],env[3]]]
-    #     return geo_ext
-
-
-    # return a point given a pandas row (or any object) which
-    #   includes longitude and latitude
-    # return "None" if valid lon,lat not found
     def point_gen(self, item):
+        """create point from dict with lon, lat
 
+        return a point given a pandas row (or any object) which
+           includes longitude and latitude
+        
+        return "None" if valid lon,lat not found
+        """
         try:
             lon = float(item['longitude'])
             lat = float(item['latitude'])
@@ -204,7 +164,8 @@ class ResourceTools():
 
 
     def release_envelope(self, path):
-
+        """create geojson style envelope from csv with lon, lat
+        """
         if not os.path.isfile(path):
             quit("Locations table could not be found.")
 
@@ -213,39 +174,33 @@ class ResourceTools():
         except:
             quit("Error reading locations table.")
 
-
         df['geometry'] = df.apply(self.point_gen, axis=1)
-
         gdf = gpd.GeoDataFrame(df.loc[df.geometry != "None"])
 
-        env = gdf.total_bounds
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = gdf.total_bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-        # env = (minx, miny, maxx, maxy)
-        geo_ext = [[env[0],env[3]], [env[0],env[1]], [env[2],env[1]], [env[2],env[3]]]
-
-        return geo_ext
-
-
-    # adds unique id field (ad_id) and outputs geojson (serves as shp to geojson converter)
-    def add_ad_id(self, path):
-
-        try:
-            geo_df = gpd.GeoDataFrame.from_file(path)
-            geo_df["asdf_id"] = range(len(geo_df))
-
-            geo_json = geo_df.to_json()
-            geo_file = open(os.path.splitext(path)[0] + ".geojson", "w")
-            json.dump(json.loads(geo_json), geo_file, indent = 4)
-
-            # create simplified geojson for use with leaflet web map
-            geo_df['geometry'] = geo_df['geometry'].simplify(0.01)
-            json.dump(json.loads(geo_df.to_json()), open(os.path.dirname(path)+"/simplified.geojson", "w"), indent=4)
+        return env
 
 
-            return 0
+    def add_asdf_id(self, path):
+        """Adds unique id field (asdf_id) and outputs geojson 
 
-        except:
-            return (1, "error generating geojson with ad_id")
+        serves as shp to geojson converter as well
+        """
+        geo_df = gpd.GeoDataFrame.from_file(path)
+        geo_df["asdf_id"] = range(len(geo_df))
+
+        geo_json = geo_df.to_json()
+        geo_file = open(os.path.splitext(path)[0] + ".geojson", "w")
+        json.dump(json.loads(geo_json), geo_file, indent = 4)
+
+        # create simplified geojson for use with leaflet web map
+        geo_df['geometry'] = geo_df['geometry'].simplify(0.01)
+        json.dump(json.loads(geo_df.to_json()), open(os.path.dirname(path)+"/simplified.geojson", "w"), indent=4)
+
+        return 0
 
 
     # -------------------------------------------------------------------------
