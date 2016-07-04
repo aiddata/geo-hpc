@@ -221,7 +221,7 @@ class ValidationTools():
         if val.startswith('.'):
             clean = val[1:]
 
-        if file_format in self.types["file_extensions"].keys():
+        if file_format not in self.types["file_extensions"].keys():
             msg = ("Input file format ({0}) not in list of valid file format "
                    "({1})".format(file_format,
                                   self.types["file_extensions"].keys()))
