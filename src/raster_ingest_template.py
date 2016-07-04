@@ -3,7 +3,7 @@
 	"type": "raster",
 	"file_extension": ".asc",
 	"file_mask": "xxxxxxxx_YYYY.asc",
-	"name": "Test",
+	"name": "Test_data",
 	"title": "This is a test",
 	"description": "Raster test ingest file",
 	"version": 0.1,
