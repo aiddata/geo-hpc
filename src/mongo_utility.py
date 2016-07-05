@@ -100,7 +100,7 @@ class MongoUpdate():
             new_tracker = (new_boundary or update_geometry or
                            doc["options"]["group"] not in existing_groups)
 
-            if new tracker:
+            if new_tracker:
 
                 # if dataset is boundary and a group actual
                 # create new boundary tracker collection
