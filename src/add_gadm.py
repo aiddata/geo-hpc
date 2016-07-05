@@ -31,7 +31,7 @@ if config.connection_status != 0:
 
 # -----------------------------------------------------------------------------
 
-
+from pprint import pprint
 import datetime
 import json
 import pymongo
@@ -199,23 +199,22 @@ ru = ResourceTools()
 # find all files with file_extension in path
 for root, dirs, files in os.walk(doc["base"]):
     for fname in files:
-
+        
         fname = os.path.join(root, fname)
-
         file_check = fname.endswith('.' + doc["file_extension"])
 
         if file_check == True and not fname.endswith('simplified.geojson'):
-            ru.file_list.append(fname)
+            file_list.append(fname)
 
 
-if len(ru.file_list) == 0:
+if len(file_list) == 0:
     quit("No vector file found in " + doc["base"])
 
-elif len(ru.file_list) > 1:
+elif len(file_list) > 1:
     quit("Boundaries must be submitted individually.")
 
 
-f = ru.file_list[0]
+f = file_list[0]
 print f
 
 
@@ -229,6 +228,8 @@ ru.temporal["type"] = "None"
 ru.temporal["start"] = 10000101
 ru.temporal["end"] = 99991231
 
+doc["temporal"] = ru.temporal
+
 
 # -------------------------------------
 print "\nProcessing spatial..."
@@ -241,41 +242,33 @@ if convert_status == 1:
 env = ru.vector_envelope(f)
 env = ru.trim_envelope(env)
 
-
-# display datset info to user
 print "Dataset bounding box: ", env
 
-# check bbox size
-xsize = env[2][0] - env[1][0]
-ysize = env[0][1] - env[1][1]
-tsize = abs(xsize * ysize)
-
-scale = "regional"
-if tsize >= 32400:
-    scale = "global"
-
-doc["scale"] = scale
+doc["scale"] = ru.envelope_to_scale(env)
 
 
 # set spatial
-ru.spatial = ru.envelope_to_geom(env)
+doc["spatial"] = ru.envelope_to_geom(env)
 
 
 # -------------------------------------
 print '\nProcessing resources...'
 
-print f
-
 # resources
 # individual resource info
 resource_tmp = {}
 
-# path relative to datapackage.json
+# path relative to base
 resource_tmp["path"] = f[f.index(doc["base"]) + len(doc["base"]) + 1:]
+
+resource_tmp["name"] = doc["name"]
+resource_tmp["bytes"] = os.path.getsize(f)
+resource_tmp["start"] = 10000101
+resource_tmp["end"] = 99991231
 
 
 # get adm unit name for country and add to gadm info and description
-tmp_feature = bnd_collection.next()
+tmp_feature = fiona.open(f, 'r').next()
 
 if gadm_adm.lower() == "adm0":
     doc["extras"]["gadm_name"] = "Country"
@@ -285,14 +278,6 @@ else:
 doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
     gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
 
-# file size
-resource_tmp["bytes"] = os.path.getsize(f)
-
-resource_tmp["name"] = doc["name"]
-
-# file date range
-resource_tmp["start"] = 10000101
-resource_tmp["end"] = 99991231
 
 # reorder resource fields
 # resource_order = ["name", "path", "bytes", "start", "end"]
@@ -301,12 +286,6 @@ resource_tmp["end"] = 99991231
 # update main list
 ru.resources.append(resource_tmp)
 
-
-# -------------------------------------
-# add temporal, spatial and resources info
-
-doc["temporal"] = ru.temporal
-doc["spatial"] = ru.spatial
 doc["resources"] = ru.resources
 
 
@@ -314,14 +293,8 @@ doc["resources"] = ru.resources
 # database update(s) and datapackage output
 
 print "\nFinal document..."
-print doc
+pprint(doc)
 
-# json_out = '/home/userz/Desktop/summary.json'
-# json_handle = open(json_out, 'w')
-# json.dump(doc, json_handle, sort_keys=False, indent=4,
-#           ensure_ascii=False)
-
-# quit("!!!")
 
 # update mongo
 print "\nWriting datapackage to system..."
@@ -386,7 +359,6 @@ if doc["options"]["group_class"] == "actual":
 
 # except:
 #      quit("Error updating tracker.")
-
 
 
 print "\nadd_gadm.py: Done.\n"

@@ -34,7 +34,7 @@ if config.connection_status != 0:
 
 # -----------------------------------------------------------------------------
 
-
+from pprint import pprint
 import datetime
 import json
 from collections import OrderedDict
@@ -288,10 +288,12 @@ else:
 # find all files with file_extension in path
 for root, dirs, files in os.walk(doc["base"]):
     for file in files:
+       
         file = os.path.join(root, file)
         file_check = file.endswith('.' + doc["file_extension"])
+       
         if file_check == True:
-            ru.file_list.append(file)
+            file_list.append(file)
 
 
 # -----------------------------------------------------------------------------
@@ -305,7 +307,7 @@ def validate_file_mask(vmask):
         return True, None
 
     # test file_mask for first file in file_list
-    test_date_str = ru.run_file_mask(vmask, ru.file_list[0], doc["base"])
+    test_date_str = ru.run_file_mask(vmask, file_list[0], doc["base"])
     valid_date = ru.validate_date(test_date_str)
 
     if valid_date[0] == False:
@@ -330,13 +332,13 @@ if doc["file_mask"] == "None":
     ru.temporal["format"] = "None"
     ru.temporal["type"] = "None"
 
-elif len(ru.file_list) > 0:
+elif len(file_list) > 0:
 
     # name for temporal data format
     ru.temporal["name"] = "Date Range"
     ru.temporal["format"] = "%Y%m%d"
     ru.temporal["type"] = ru.get_date_range(ru.run_file_mask(
-        doc["file_mask"], ru.file_list[0], doc["base"]))[2]
+        doc["file_mask"], file_list[0], doc["base"]))[2]
 
     # day range for each file (eg: MODIS 8 day composites)
     # if "day_range" in v.data:
@@ -348,86 +350,51 @@ else:
     # ru.temporal["format"] = "Unknown"
     # ru.temporal["type"] = "Unknown"
 
+doc["temporal"] = ru.temporal
+
 
 # -----------------------------------------------------------------------------
-# spatial info
-
-print "\nChecking spatial data ("+doc["file_format"]+")..."
-
+print "\nProcessing spatial..."
 
 # iterate over files to get bbox and do basic spatial validation
 # (mainly make sure rasters are all same size)
 f_count = 0
-for f in ru.file_list:
+for f in file_list:
 
     # get basic geo info from each file
-    geo_ext = ru.raster_envelope(f)
+    env = ru.raster_envelope(f)
     # get full geo info from first file
     if f_count == 0:
-        base_geo = geo_ext
+        base_geo = env
 
         f_count += 1
 
     # exit if basic geo does not match
-    if base_geo != geo_ext:
+    if base_geo != env:
         quit("Raster bounding box does not match")
 
 
+env = ru.trim_envelope(env)
 
-# clip extents if they are outside global bounding box
-for c in range(len(geo_ext)):
-    if geo_ext[c][0] < -180:
-        geo_ext[c][0] = -180
+print "Dataset bounding box: ", env
 
-    elif geo_ext[c][0] > 180:
-        geo_ext[c][0] = 180
+doc["scale"] = ru.envelope_to_scale(env)
 
-    if geo_ext[c][1] < -90:
-        geo_ext[c][1] = -90
-
-    elif geo_ext[c][1] > 90:
-        geo_ext[c][1] = 90
-
-
-# display datset info to user
-print "Dataset bounding box: ", geo_ext
-
-# check bbox size
-xsize = geo_ext[2][0] - geo_ext[1][0]
-ysize = geo_ext[0][1] - geo_ext[1][1]
-tsize = abs(xsize * ysize)
-
-scale = "regional"
-if tsize >= 32400:
-    scale = "global"
+if doc["scale"] == "global":
     print ("This dataset has a bounding box larger than a hemisphere "
            "and will be treated as a global dataset. If this is not a "
            "global (or near global) dataset you may want to turn it into "
            "multiple smaller datasets and ingest them individually.")
 
-doc["scale"] = scale
-
 
 # set spatial
-ru.spatial = {
-                "type": "Polygon",
-                "coordinates": [ [
-                    geo_ext[0],
-                    geo_ext[1],
-                    geo_ext[2],
-                    geo_ext[3],
-                    geo_ext[0]
-                ] ]
-            }
+doc["spatial"] = ru.envelope_to_geom(env)
 
 
 # -----------------------------------------------------------------------------
-# resource info
-
 print '\nProcessing resources...'
 
-
-for f in ru.file_list:
+for f in file_list:
     print f
 
     # resources
@@ -493,11 +460,6 @@ for f in ru.file_list:
         ru.temporal["end"] = range_end
 
 
-# -----------------------------------------------------------------------------
-# add temporal, spatial and resources info
-
-doc["temporal"] = ru.temporal
-doc["spatial"] = ru.spatial
 doc["resources"] = ru.resources
 
 
@@ -505,7 +467,6 @@ doc["resources"] = ru.resources
 # update mongo
 
 print "\nFinal document..."
-from pprint import pprint
 pprint(doc)
 
 

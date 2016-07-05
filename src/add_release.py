@@ -7,6 +7,7 @@
 
 import sys
 import os
+from pprint import pprint
 import datetime
 import json
 import pymongo
@@ -112,12 +113,13 @@ def run(path=None, generator="auto", client=None, config=None):
                 doc['extras'][rkey] = g['value']
 
 
-
     # -----------------------------------------------------------------------------
 
     # resource utils class instance
     ru = ResourceTools()
 
+
+    # -----------------------------------------------------------------------------
     print "\nProcessing temporal..."
 
     # set temporal using release datapackage
@@ -127,53 +129,25 @@ def run(path=None, generator="auto", client=None, config=None):
     ru.temporal["start"] = doc['extras']['temporal_start']
     ru.temporal["end"] = doc['extras']['temporal_end']
 
+    doc["temporal"] = ru.temporal
+
 
     # -------------------------------------
     print "\nProcessing spatial..."
 
     # get extemt
     loc_table_path = doc['base'] + "/data/locations.csv"
-    geo_ext = ru.release_envelope(loc_table_path)
+    
+    env = ru.release_envelope(loc_table_path)
+    env = ru.trim_envelope(env)
 
-    # clip extents if they are outside global bounding box
-    for c in range(len(geo_ext)):
+    print "Dataset bounding box: ", env
 
-        if geo_ext[c][0] < -180:
-            geo_ext[c][0] = -180
-        elif geo_ext[c][0] > 180:
-            geo_ext[c][0] = 180
-
-        if geo_ext[c][1] < -90:
-            geo_ext[c][1] = -90
-        elif geo_ext[c][1] > 90:
-            geo_ext[c][1] = 90
+    doc["scale"] = ru.envelope_to_scale(env)
 
 
-    # display datset info to user
-    print "Dataset bounding box: ", geo_ext
-
-    # check bbox size
-    xsize = geo_ext[2][0] - geo_ext[1][0]
-    ysize = geo_ext[0][1] - geo_ext[1][1]
-    tsize = abs(xsize * ysize)
-
-    scale = "regional"
-    if tsize >= 32400:
-        scale = "global"
-
-    doc["scale"] = scale
-
-    # spatial
-    ru.spatial = {
-        "type": "Polygon",
-        "coordinates": [ [
-            geo_ext[0],
-            geo_ext[1],
-            geo_ext[2],
-            geo_ext[3],
-            geo_ext[0]
-        ] ]
-    }
+    # set spatial
+    doc["spatial"] = ru.envelope_to_geom(env)
 
 
     # -------------------------------------
@@ -183,38 +157,26 @@ def run(path=None, generator="auto", client=None, config=None):
         "name": doc['name'],
         "bytes": 0,
         "path": "",
-        "start": ru.temporal['start'],
-        "end": ru.temporal['end']
+        "start": doc["temporal"]['start'],
+        "end": doc["temporal"]['end']
     }
 
     # resource_order = ["name", "path", "bytes", "start", "end"]
     # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
     ru.resources.append(resource_tmp)
 
-
-    # -------------------------------------
-    # add temporal, spatial and resources info
-
-    doc["temporal"] = ru.temporal
-    doc["spatial"] = ru.spatial
     doc["resources"] = ru.resources
 
 
     # -----------------------------------------------------------------------------
-    # database update(s) and datapackage output
+    # database update(s) and document output
 
-    print "\nFinal datapackage..."
-    print doc
-
-    # json_out = '/home/userz/Desktop/summary.json'
-    # json_handle = open(json_out, 'w')
-    # json.dump(doc, json_handle, sort_keys=False, indent=4,
-    #           ensure_ascii=False)
+    print "\nFinal document..."
+    pprint(doc)
 
 
     # update mongo
     print "\nWriting document to mongo..."
-
 
     # connect to database and asdf collection
     client = pymongo.MongoClient(config.server)
@@ -263,7 +225,7 @@ def run(path=None, generator="auto", client=None, config=None):
     release_to_mongo.run(name=doc['name'], path=doc['base'],
                          client=client, config=config)
 
-    print "\nDone.\n"
+    print "\nadd_release.py: Done.\n"
 
 
 

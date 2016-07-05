@@ -18,18 +18,11 @@ class ResourceTools():
     """Functions for working with dataset resources.
 
     Attributes:
-        doc (Dict): x
-        file_list (List): x
         temporal (Dict): x
-        spatial (): x
         resources (List): x
 
     """
     def __init__(self):
-
-        self.file_list = []
-
-        self.doc = {}
 
         self.temporal = {
             "start": 0,
@@ -37,19 +30,26 @@ class ResourceTools():
             "name": ""
         }
 
-        self.spatial = ""
-
         self.resources = []
-
-
-    def update_dp(self):
-        self.doc["temporal"] = self.temporal
-        self.doc["spatial"] = self.spatial
-        self.doc["resources"] = self.resources
 
 
     # --------------------------------------------------
     # spatial functions
+
+    def envelope_to_scale(self, env):
+        """Get scale info from envelope
+        """
+        # check bbox size
+        xsize = env[2][0] - env[1][0]
+        ysize = env[0][1] - env[1][1]
+        tsize = abs(xsize * ysize)
+
+        scale = "regional"
+        if tsize >= 32400:
+            scale = "global"
+
+        return scale
+
 
     def envelope_to_geom(self, env):
         """convert envelope array to geojson 
@@ -66,7 +66,7 @@ class ResourceTools():
         }
         return geom
 
-        
+
     def trim_envelope(self, env):
         """Trim envelope to global extents
         """
