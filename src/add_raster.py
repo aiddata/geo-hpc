@@ -26,7 +26,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     script = os.path.basename(__file__)
     version = config.versions["asdf-rasters"]
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def quit(reason):
         """quit script cleanly
@@ -70,11 +70,22 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
             raise Exception("update specified but no dataset with matching "
                             "base exists")
 
-        print ("Warning: currently, updates will completely replace the existing "
-               "dataset.")
+        print ("Warning: currently, updates will completely " 
+               "replace the existing dataset.")
     else:
         update = False
 
+
+    # init document
+    doc = {}
+
+    doc["asdf"] = {}
+    doc["asdf"]["script"] = script
+    doc["asdf"]["version"] = version
+    doc["asdf"]["generator"] = generator
+    doc["asdf"]["date_updated"] = str(datetime.date.today())
+    if not update:
+        doc["asdf"]["date_added"] = str(datetime.date.today())
 
     # -------------------------------------
 
@@ -98,18 +109,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
     # -------------------------------------
-
-    # init document
-    doc = {}
-
-    doc["asdf"] = {}
-    doc["asdf"]["script"] = script
-    doc["asdf"]["version"] = version
-    doc["asdf"]["generator"] = generator
-    doc["asdf"]["date_updated"] = str(datetime.date.today())
-    if not update:
-        doc["asdf"]["date_added"] = str(datetime.date.today())
-
 
     # validate class instance
     v = ValidationTools(client)
@@ -137,7 +136,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     if update and not base_exists and not name_exists:
         quit(("Update option specified but no dataset with base path "
-              "({0}) or name ({1}) was found").format(doc["base"], doc["name"]))
+              "({0}) or name ({1}) was found").format(doc["base"], 
+                                                      doc["name"]))
 
 
     elif update and base_exists and name_exists:
@@ -146,10 +146,10 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         name_id = str(valid_name.data['_id'])
 
         if base_id != name_id:
-            quit("Update option specified but identifying fields (base and name) "
-                 "belong to different existing datasets."
-                 "\n\tBase: {0}\n\tName: {1}".format(doc["base"], doc["name"]))
-
+            quit("Update option specified but identifying fields (base "
+                 "and name) belong to different existing datasets."
+                 "\n\tBase: {0}\n\tName: {1}".format(doc["base"], 
+                                                     doc["name"]))
 
 
 
@@ -168,15 +168,14 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
 
-
     # validate file extension (validation depends on file format)
-    valid_extension = v.file_extension(data["file_extension"], doc["file_format"])
+    valid_extension = v.file_extension(data["file_extension"], 
+                                       doc["file_format"])
 
     if not valid_extension.isvalid:
         quit(valid_extension.error)
 
     doc["file_extension"] = valid_extension.value
-
 
 
     # validate title, description and version
@@ -187,7 +186,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["active"] = int(data["active"])
 
 
-    # -----------------------------------------------------------------------------
     # validate options for raster
 
     if not "options" in data:
@@ -201,7 +199,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
                        if i not in data["options"]]
 
     if len(missing_options) > 0:
-        quit("Missing fields from options lookup ({0})".format(missing_options))
+        quit("Missing fields from options lookup ({0})".format(
+            missing_options))
 
 
     doc["options"] = {}
@@ -224,7 +223,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["options"]["factor"] = valid_factor.value
 
     # ***
-    # if factor changes, any extracts adjust with old factor need to be removed
+    # if factor changes, any extracts adjust with 
+    # old factor need to be removed
     # ***
 
 
@@ -260,7 +260,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
                  "dataset".format(doc["options"]["mini_name"]))
 
 
-    # -----------------------------------------------------------------------------
     # extras
     if not "extras" in data:
         print("Although fields in extras are not required, it may contain "
@@ -275,8 +274,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         doc["extras"] = data["extras"]
 
 
-    # -----------------------------------------------------------------------------
-    # resource scan and validation
+    # -------------------------------------------------------------------------
+    # resource scan
 
     # resource utils class instance
     ru = ResourceTools()
@@ -292,8 +291,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
                 file_list.append(file)
 
 
-    # -----------------------------------------------------------------------------
-    # temporal info
+    # -------------------------------------------------------------------------
+    print "\nProcessing temporal..."
 
     def validate_file_mask(vmask):
         """Validate a file mask"""
@@ -349,7 +348,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         # doc["temporal"]["type"] = "Unknown"
 
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     print "\nProcessing spatial..."
 
     # iterate over files to get bbox and do basic spatial validation
@@ -387,7 +386,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["spatial"] = ru.envelope_to_geom(env)
 
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     print '\nProcessing resources...'
 
     resource_list = []
@@ -423,7 +422,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
                 range_start, range_end, range_type = ru.get_date_range(
                     date_str, doc["day_range"])
             else:
-                range_start, range_end, range_type = ru.get_date_range(date_str)
+                range_start, range_end, range_type = ru.get_date_range(
+                    date_str)
 
             # name (unique among this dataset's resources,
             # not same name as dataset name)
@@ -445,30 +445,33 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
         # # reorder resource fields
         # resource_order = ["name", "path", "bytes", "start", "end"]
-        # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
+        # resource_tmp = OrderedDict((k, resource_tmp[k]) 
+        #                            for k in resource_order)
 
         # update main list
         resource_list.append(resource_tmp)
 
 
         # update dataset temporal info
-        if not doc["temporal"]["start"] or range_start < doc["temporal"]["start"]:
+        if (not doc["temporal"]["start"] or 
+                range_start < doc["temporal"]["start"]):
             doc["temporal"]["start"] = range_start
-        elif not doc["temporal"]["end"] or range_end > doc["temporal"]["end"]:
+        elif (not doc["temporal"]["end"] or 
+                range_end > doc["temporal"]["end"]):
             doc["temporal"]["end"] = range_end
 
 
     doc["resources"] = resource_list
 
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # database updates
 
     print "\nFinal document..."
     pprint(doc)
 
 
-    print "\nWriting document to mongo..."
+    print "\nUpdating database..."
 
     # update mongo class instance
     update_db = MongoUpdate(client)

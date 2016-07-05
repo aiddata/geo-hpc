@@ -80,16 +80,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     else:
         update = False
 
-    # -------------------------------------
-
-    if os.path.isdir(path):
-        # remove trailing slash from path
-        if path.endswith("/"):
-            path = path[:-1]
-    else:
-        quit("Invalid base directory provided.")
-
-    # -------------------------------------
 
     # init document
     doc = {}
@@ -102,6 +92,17 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     if not update:
         doc["asdf"]["date_added"] = str(datetime.date.today())
 
+    # -------------------------------------
+
+    if os.path.isdir(path):
+        # remove trailing slash from path
+        if path.endswith("/"):
+            path = path[:-1]
+    else:
+        quit("Invalid base directory provided.")
+
+    # -------------------------------------
+
     doc['base'] = path
 
     doc["type"] = "boundary"
@@ -111,8 +112,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["active"] = 0
 
-
-    # -------------------------------------
 
     gadm_name = os.path.basename(doc["base"])
 
@@ -152,21 +151,10 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["extras"]["gadm_iso3"] = gadm_iso3
     doc["extras"]["gadm_adm"] = int(gadm_adm[-1:])
     doc["extras"]["gadm_name"] = "PLACEHOLDER"
+    doc["extras"]["tags"] = ["gadm"]
 
-    try:
-        doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
-                                                              gadm_version)
-    except Exception as e:
-        print gadm_country
-        print gadm_version
-        raise Exception(e)
-
-
-    # v = ValidationTools()
-
-    # probably do not need this
-    # run check on group to prep for group_class selection
-    # v.run_group_check(doc['options']['group'])
+    doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
+                                                          gadm_version)
 
 
     # boundary group
@@ -177,6 +165,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
     # -------------------------------------------------------------------------
+    # resource scan
 
     # find all files with file_extension in path
     for root, dirs, files in os.walk(doc["base"]):
@@ -271,14 +260,14 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["resources"] = resource_list
 
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # database updates
 
     print "\nFinal document..."
     pprint(doc)
 
 
-    print "\nWriting document to mongo..."
+    print "\nUpdating database..."
 
 
     update_spatial = False
@@ -292,25 +281,23 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     db_asdf = client.asdf
     db_tracker = client.trackers
 
-
-    gadm_col_str = "data"
-    # gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
-
     # prep collection if needed
-    if not gadm_col_str in db_asdf.collection_names():
-        c_data = db_asdf[gadm_col_str]
+    if not "data" in db_asdf.collection_names():
+        c_data = db_asdf.data
 
         c_data.create_index("base", unique=True)
         c_data.create_index("name", unique=True)
         c_data.create_index([("spatial", pymongo.GEOSPHERE)])
 
     else:
-        c_data = db_asdf[gadm_col_str]
+        c_data = db_asdf.data
 
 
     # update core
     # try:
-    c_data.replace_one({"base": doc["base"]}, doc, upsert=True)
+    c_data.replace_one({"base": doc["base"]}, 
+                       doc, 
+                       upsert=True)
     print "successful core update"
     # except:
     #      quit("Error updating core.")

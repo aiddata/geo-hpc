@@ -38,7 +38,10 @@ class MongoUpdate():
         else:
             self.c_asdf = self.db_asdf.data
 
+    def update(self, doc):
+        pass
 
+        
     def update_core(self, doc):
         """Update main data collection (db:asdf, collection:data).
 

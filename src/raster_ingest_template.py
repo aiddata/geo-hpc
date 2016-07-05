@@ -17,7 +17,8 @@
 	"extras": {
 	    "citation": "cite",
 	    "sources_web": "www.google.com",
-	    "sources_name": "Google"
+	    "sources_name": "Google",
+	    "tags": ["google", "data"]
 	},
 	"active": 1
 }

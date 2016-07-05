@@ -70,17 +70,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     else:
         update = False
 
-    # -------------------------------------
-
-    if os.path.isdir(path):
-        # remove trailing slash from path
-        if path.endswith("/"):
-            path = path[:-1]
-    else:
-        quit("Invalid base directory provided.")
-
-    # -------------------------------------
-
+   
     # init document
     doc = {}
 
@@ -91,6 +81,17 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["asdf"]["date_updated"] = str(datetime.date.today())
     if not update:
         doc["asdf"]["date_added"] = str(datetime.date.today())
+
+    # -------------------------------------
+
+    if os.path.isdir(path):
+        # remove trailing slash from path
+        if path.endswith("/"):
+            path = path[:-1]
+    else:
+        quit("Invalid base directory provided.")
+
+    # -------------------------------------
 
     doc['base'] = path
 
@@ -113,6 +114,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     core_fields = ['name', 'title', 'description', 'version']
 
+    doc["extras"] = {}
+
     for f in release_package.keys():
 
         if f in core_fields:
@@ -120,11 +123,12 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
             doc[f] = release_package[f]
 
         elif f == 'extras':
-            doc["extras"] = {}
 
             for g in release_package['extras']:
                 rkey = g['key'].replace (" ", "_").lower()
                 doc['extras'][rkey] = g['value']
+
+    doc["extras"]["tags"] = ["aiddata", "geocoded", "release"]
 
 
     # -------------------------------------------------------------------------
@@ -182,7 +186,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     pprint(doc)
 
 
-    print "\nWriting document to mongo..."
+    print "\nUpdating database..."
 
     # update mongo class instance
     update_db = MongoUpdate(client)
