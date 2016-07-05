@@ -2,10 +2,6 @@
 import os
 import json
 import re
-import pymongo
-
-from collections import OrderedDict
-
 
 
 class ValidationResults():
@@ -42,7 +38,7 @@ class ValidationTools():
         user_update (): x
         dir_base (): x
         fields (): x
-       
+
         types (): x
         client (): x
         c_asdf (): x
@@ -57,8 +53,7 @@ class ValidationTools():
         # self.dir_base = os.path.dirname(os.path.abspath(__file__))
 
         # # current datapackage fields
-        # self.fields = json.load(open(self.dir_base + "/fields.json", 'r'),
-        #                         object_pairs_hook=OrderedDict)
+        # self.fields = json.load(open(self.dir_base + "/fields.json", 'r'))
 
         # acceptable inputs for various fields (dataset types,
         # vector formats, raster formats, etc.)
@@ -97,7 +92,7 @@ class ValidationTools():
             ValidationResults instance
         """
         out = ValidationResults(val)
-        
+
         data = {
             'search': None,
             'exists': None
@@ -150,7 +145,7 @@ class ValidationTools():
             ValidationResults instance
         """
         out = ValidationResults(val)
-        
+
         data = {
             'search': None,
             'exists': None
@@ -480,7 +475,7 @@ class ValidationTools():
 
             if data["actual_exists"]:
                 data["actual"] = search_actual
-        
+
 
         out.success(clean, data)
         return out

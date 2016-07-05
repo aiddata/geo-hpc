@@ -1,5 +1,4 @@
 
-import sys
 import os
 import json
 
@@ -23,14 +22,7 @@ class ResourceTools():
 
     """
     def __init__(self):
-
-        self.temporal = {
-            "start": 0,
-            "end": 0,
-            "name": ""
-        }
-
-        self.resources = []
+        pass
 
 
     # --------------------------------------------------
@@ -52,7 +44,7 @@ class ResourceTools():
 
 
     def envelope_to_geom(self, env):
-        """convert envelope array to geojson 
+        """convert envelope array to geojson
         """
         geom = {
             "type": "Polygon",
@@ -89,7 +81,7 @@ class ResourceTools():
 
 
     def check_envelope(self, new, old):
-        """expand old envelope to max extents of new envelope 
+        """expand old envelope to max extents of new envelope
         """
         if len(new) == len(old) and len(new) == 4:
             # update envelope if polygon extends beyond bounds
@@ -116,7 +108,7 @@ class ResourceTools():
         """Get geojson style envelope of raster file
         """
         raster = rasterio.open(path, 'r')
-        
+
         # bounds = (xmin, ymin, xmax, ymax)
         b = raster.bounds
         env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
@@ -152,7 +144,7 @@ class ResourceTools():
 
         return a point given a pandas row (or any object) which
            includes longitude and latitude
-        
+
         return "None" if valid lon,lat not found
         """
         try:
@@ -185,7 +177,7 @@ class ResourceTools():
 
 
     def add_asdf_id(self, path):
-        """Adds unique id field (asdf_id) and outputs geojson 
+        """Adds unique id field (asdf_id) and outputs geojson
 
         serves as shp to geojson converter as well
         """
@@ -256,7 +248,7 @@ class ResourceTools():
 
     # generate date range and date type from date object
     def get_date_range(self, date_obj, drange=0):
-  
+
         y = date_obj["year"]
         m = date_obj["month"]
         d = date_obj["day"]
@@ -288,8 +280,8 @@ class ResourceTools():
             tmp_end = datetime.datetime(int(y), 12, 31)
             date_type = "year"
 
-        return (int(datetime.datetime.strftime(tmp_start, '%Y%m%d')), 
-                int(datetime.datetime.strftime(tmp_end, '%Y%m%d')), 
+        return (int(datetime.datetime.strftime(tmp_start, '%Y%m%d')),
+                int(datetime.datetime.strftime(tmp_end, '%Y%m%d')),
                 date_type)
 
 

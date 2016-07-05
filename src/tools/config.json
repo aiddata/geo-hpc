@@ -20,9 +20,9 @@
         ],
         "versions": {
             "asdf": "0.4.0",
-            "asdf-gadm": "0.4.0",
-            "asdf-releases": "0.4",
-            "asdf-generic": "0.3.0",
+            "asdf-gadm": "0.4.1",
+            "asdf-releases": "0.4.1",
+            "asdf-rasters": "0.4.1",
             "extract-scripts": "0.2.0",
             "mean-surface-rasters": "0.11.0"
         }

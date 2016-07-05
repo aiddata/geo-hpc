@@ -1,68 +1,54 @@
-# add dataset to system
-#   - generate metadata for dataset resources
-#   - create datapackage
-#   - update mongo database
-
-# -----------------------------------------------------------------------------
+"""
+add release dataset to asdf
+    - compile options from release datapackage
+    - generate metadata for dataset resources
+    - create document
+    - update mongo database
+"""
 
 import sys
 import os
+
 from pprint import pprint
 import datetime
 import json
 import pymongo
 
-import release_to_mongo
 from resource_utility import ResourceTools
+from mongo_utility import MongoUpdate
 
 
-def run(path=None, generator="auto", client=None, config=None):
+def run(path=None, client=None, config=None, generator="auto", update=False):
 
+    parent = os.path.dirname(os.path.abspath(__file__))
 
     script = os.path.basename(__file__)
     version = config.versions["asdf-releases"]
-    default_generator = "auto"
-
 
     # -------------------------------------------------------------------------
 
-
     def quit(reason):
+        """quit script cleanly
 
-        # do error log stuff
-        #
-
-        # output error logs somewhere
-        #
-
-        # if auto, move job file to error location
-        #
-
-        sys.exit("add_release.py: terminating script - " + str(reason) + "\n")
+        to do:
+        - do error log stuff
+        - output error logs somewhere
+        - if auto, move job file to error location
+        """
+        sys.exit("{0}: terminating script - {1}\n").format(script, reason)
 
 
-    # init data package
-    doc = {}
-
-    # get release base path
+    # check path
     if path is not None:
-
-        if os.path.isdir(path):
-            doc['base'] = path
-        else:
-            quit("Invalid base directory provided.")
-
+        if not os.path.exists(path):
+            quit("Invalid path provided.")
     else:
-        quit("No base directory provided")
+        quit("No path provided")
 
 
-    # optional arg
-    # mainly for user to specify manual run
-    if generator is None:
-        generator = default_generator
-
-    elif generator not in ['auto', 'manual']:
-        quit("Invalid additional inputs")
+    # optional arg - mainly for user to specify manual run
+    if generator not in ['auto', 'manual']:
+        quit("Invalid generator input")
 
 
     if client is None:
@@ -72,17 +58,41 @@ def run(path=None, generator="auto", client=None, config=None):
         quit("No config object provided")
 
 
-    # remove trailing slash from path
-    if doc["base"].endswith("/"):
-        doc["base"] = doc["base"][:-1]
+    if update in ["update", True, 1, "True"]:
+        update = True
+        if not "data" in client.asdf.collection_names():
+            raise Exception("update specified but no data collection exists")
 
+        original = client.asdf.data.find_one({'base': path})
+        if original is None:
+            raise Exception("update specified but no dataset with matching "
+                            "base exists")
+    else:
+        update = False
+
+    # -------------------------------------
+
+    if os.path.isdir(path):
+        # remove trailing slash from path
+        if path.endswith("/"):
+            path = path[:-1]
+    else:
+        quit("Invalid base directory provided.")
+
+    # -------------------------------------
+
+    # init document
+    doc = {}
 
     doc["asdf"] = {}
-    doc["asdf"]["date_added"] = str(datetime.date.today())
-    doc["asdf"]["date_updated"] = str(datetime.date.today())
     doc["asdf"]["script"] = script
     doc["asdf"]["version"] = version
     doc["asdf"]["generator"] = generator
+    doc["asdf"]["date_updated"] = str(datetime.date.today())
+    if not update:
+        doc["asdf"]["date_added"] = str(datetime.date.today())
+
+    doc['base'] = path
 
     doc["type"] = "release"
     doc["file_format"] = "release"
@@ -91,9 +101,11 @@ def run(path=None, generator="auto", client=None, config=None):
 
     doc["active"] = 1
 
-    doc["extras"] = {}
 
     # -------------------------------------
+
+    # resource utils class instance
+    ru = ResourceTools()
 
     # get release datapackage
     release_path = doc["base"] + '/datapackage.json'
@@ -108,28 +120,23 @@ def run(path=None, generator="auto", client=None, config=None):
             doc[f] = release_package[f]
 
         elif f == 'extras':
+            doc["extras"] = {}
+
             for g in release_package['extras']:
                 rkey = g['key'].replace (" ", "_").lower()
                 doc['extras'][rkey] = g['value']
 
 
-    # -----------------------------------------------------------------------------
-
-    # resource utils class instance
-    ru = ResourceTools()
-
-
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     print "\nProcessing temporal..."
 
     # set temporal using release datapackage
-    ru.temporal["name"] = doc['extras']['temporal_name']
-    ru.temporal["format"] = "%Y"
-    ru.temporal["type"] = "year"
-    ru.temporal["start"] = doc['extras']['temporal_start']
-    ru.temporal["end"] = doc['extras']['temporal_end']
-
-    doc["temporal"] = ru.temporal
+    doc["temporal"] = {}
+    doc["temporal"]["name"] = doc['extras']['temporal_name']
+    doc["temporal"]["format"] = "%Y"
+    doc["temporal"]["type"] = "year"
+    doc["temporal"]["start"] = doc['extras']['temporal_start']
+    doc["temporal"]["end"] = doc['extras']['temporal_end']
 
 
     # -------------------------------------
@@ -137,7 +144,7 @@ def run(path=None, generator="auto", client=None, config=None):
 
     # get extemt
     loc_table_path = doc['base'] + "/data/locations.csv"
-    
+
     env = ru.release_envelope(loc_table_path)
     env = ru.trim_envelope(env)
 
@@ -163,25 +170,34 @@ def run(path=None, generator="auto", client=None, config=None):
 
     # resource_order = ["name", "path", "bytes", "start", "end"]
     # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
-    ru.resources.append(resource_tmp)
+    resource_list = [resource_tmp]
 
-    doc["resources"] = ru.resources
+    doc["resources"] = resource_list
 
 
-    # -----------------------------------------------------------------------------
-    # database update(s) and document output
+    # -------------------------------------------------------------------------
+    # database updates
 
     print "\nFinal document..."
     pprint(doc)
 
 
-    # update mongo
     print "\nWriting document to mongo..."
 
-    # connect to database and asdf collection
-    client = pymongo.MongoClient(config.server)
-    db_asdf = client.asdf
+    # update mongo class instance
+    update_db = MongoUpdate(client)
 
+    update_spatial = False
+    if update and doc['spatial'] != original['spatial']:
+        update_spatial = True
+
+    # create mongodb for dataset
+    update_db.release_to_mongo_wrapper(name=doc['name'], path=doc['base'])
+
+    # =======================================
+
+
+    db_asdf = client.asdf
 
     # prep collection if needed
     if not "data" in db_asdf.collection_names():
@@ -212,20 +228,18 @@ def run(path=None, generator="auto", client=None, config=None):
     #     'status': -1
     # }
 
-    # bnds = self.c_asdf.find({"type": "boundary", "options.group_class": "actual"}, {"options": 1})
+    # bnds = self.c_asdf.find({
+    #     "type": "boundary",
+    #     "options.group_class": "actual"
+    #     }, {"options": 1})
     # for bnd in bnds:
     #     c_bnd = self.asdf[bnd["options"]["group"]]
     #     # c_bnd.insert(dset)
     #     c_bnd.replace_one({"name": dset["name"]}, dset, upsert=True)
 
+    # =======================================
 
-    # create mongodb for dataset
-    # ru.release_to_mongo(doc['name'], doc['base'], client)
-
-    release_to_mongo.run(name=doc['name'], path=doc['base'],
-                         client=client, config=config)
-
-    print "\nadd_release.py: Done.\n"
+    print "\n{0}: Done.\n".format(script)
 
 
 
@@ -233,13 +247,14 @@ if __name__ == '__main__':
 
     # if calling script directly, use following input args:
     #   branch (required)
-    #   absolute path to release (required)
+    #   path (absolute) to release (required)
     #   generator (optional, defaults to "manual")
+    #   update (bool)
 
     # import sys
     # import os
 
-    branch = sys.argv[0]
+    branch = sys.argv[1]
 
     branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
 
@@ -260,13 +275,21 @@ if __name__ == '__main__':
     if config.connection_status != 0:
         sys.exit("connection status error: " + str(config.connection_error))
 
-    # -----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     client = pymongo.MongoClient(config.server)
 
-    if len(generator) < 3:
-        main_generator = "manual"
-    else:
-        main_generator = sys.argv[2]
+    path = sys.argv[2]
 
-    run(path=sys.argv[1], generator=main_generator, client=client, config=config)
+    generator = sys.argv[3]
+
+    if len(sys.argv) == 5:
+        update = sys.argv[4]
+    else:
+        update = False
+
+
+    run(path=path, client=client, config=config,
+        generator=main_generator, update=update)
+
+

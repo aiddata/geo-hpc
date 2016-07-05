@@ -1,365 +1,407 @@
-# add dataset to system
-#   - generate metadata for dataset resources
-#   - create datapackage
-#   - update mongo database
-
-# -----------------------------------------------------------------------------
+"""
+add gadm dataset to asdf
+    - build gadm specific dataset options
+    - generate metadata for dataset resources
+    - create document
+    - update mongo database
+"""
 
 import sys
 import os
-
-branch = sys.argv[1]
-
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-sys.path.insert(0, config_dir)
-
-from config_utility import *
-
-config = BranchConfig(branch=branch)
-
-# -------------------------------------
-
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
-
-# -----------------------------------------------------------------------------
 
 from pprint import pprint
 import datetime
 import json
 import pymongo
+
 import fiona
-
 from resource_utility import ResourceTools
+from mongo_utility import MongoUpdate
 
 
-# -----------------------------------------------------------------------------
+def run(path=None, client=None, config=None, generator="auto", update=False):
 
-parent = os.path.dirname(os.path.abspath(__file__))
-script = os.path.basename(sys.argv[0])
-version = "0.4"
-generator = "auto"
+    parent = os.path.dirname(os.path.abspath(__file__))
 
-# -----------------------------------------------------------------------------
+    script = os.path.basename(__file__)
+    version = config.versions["asdf-gadm"]
 
 
-def quit(reason):
+    # resource utils class instance
+    ru = ResourceTools()
 
-    # do error log stuff
-    #
-
-    # output error logs somewhere
-    #
-
-    # if auto, move job file to error location
-    #
-
-    sys.exit("add_gadm.py: Terminating script - "+str(reason)+"\n")
+    # update mongo class instance
+    update_db = MongoUpdate(client)
 
 
-# init data package
-doc = {}
+    # -------------------------------------------------------------------------
 
-# get release base path
-if len(sys.argv) > 2:
+    def quit(reason):
+        """quit script cleanly
 
-    path = sys.argv[2]
+        to do:
+        - do error log stuff
+        - output error logs somewhere
+        - if auto, move job file to error location
+        """
+        sys.exit("{0}: terminating script - {1}\n").format(script, reason)
+
+
+
+    # check path
+    if path is not None:
+        if not os.path.exists(path):
+            quit("Invalid path provided.")
+    else:
+        quit("No path provided")
+
+
+    # optional arg - mainly for user to specify manual run
+    if generator not in ['auto', 'manual']:
+        quit("Invalid generator input")
+
+
+    if client is None:
+        quit("No mongodb client connection provided")
+
+    if config is None:
+        quit("No config object provided")
+
+
+    if update in ["update", True, 1, "True"]:
+        update = True
+        if not "data" in client.asdf.collection_names():
+            raise Exception("update specified but no data collection exists")
+
+        original = client.asdf.data.find_one({'base': path})
+        if original is None:
+            raise Exception("update specified but no dataset with matching "
+                            "base exists")
+    else:
+        update = False
+
+    # -------------------------------------
 
     if os.path.isdir(path):
-        doc['base'] = path
+        # remove trailing slash from path
+        if path.endswith("/"):
+            path = path[:-1]
     else:
         quit("Invalid base directory provided.")
 
-else:
-    quit("No base directory provided")
+    # -------------------------------------
+
+    # init document
+    doc = {}
+
+    doc["asdf"] = {}
+    doc["asdf"]["script"] = script
+    doc["asdf"]["version"] = version
+    doc["asdf"]["generator"] = generator
+    doc["asdf"]["date_updated"] = str(datetime.date.today())
+    if not update:
+        doc["asdf"]["date_added"] = str(datetime.date.today())
+
+    doc['base'] = path
+
+    doc["type"] = "boundary"
+    doc["file_format"] = "vector"
+    doc["file_extension"] = "geojson"
+    doc["file_mask"] = "None"
+
+    doc["active"] = 0
 
 
-# add version input here
-if len(sys.argv) > 3:
+    # -------------------------------------
 
-    gadm_version = sys.argv[3]
+    gadm_name = os.path.basename(doc["base"])
+
+    gadm_version = os.path.basename(os.path.dirname(os.path.dirname(path)))[4:]
+
+    gadm_iso3 = gadm_name[:3]
+    gadm_adm = gadm_name[4:]
+
+    gadm_lookup_path = parent + '/gadm_iso3.json'
+    gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
+
+    gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
+
+    doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
+                 str(gadm_version).replace('.', ''))
+
+    doc["title"] = (gadm_country + " " + gadm_adm.upper() +
+                  " Boundary - GADM " + str(gadm_version))
+
+    doc["description"] = "PLACEHOLDER"
+
+    doc["version"] = gadm_version
+
+
+    doc["options"] = {}
+    doc["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
+                             str(gadm_version).replace('.', ''))
+
+    doc["extras"] = {}
+
+    doc["extras"]["citation"] = ("Global Administrative Areas "
+                                 "(GADM) http://www.gadm.org.")
+    doc["extras"]["sources_web"] = "http://www.gadm.org"
+    doc["extras"]["sources_name"] = "Global Administrative Areas (GADM)"
+
+    doc["extras"]["gadm_country"] = gadm_country
+    doc["extras"]["gadm_iso3"] = gadm_iso3
+    doc["extras"]["gadm_adm"] = int(gadm_adm[-1:])
+    doc["extras"]["gadm_name"] = "PLACEHOLDER"
 
     try:
-        gadm_version = float(gadm_version)
-    except:
-        quit("Invalid GADM version provided.")
+        doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
+                                                              gadm_version)
+    except Exception as e:
+        print gadm_country
+        print gadm_version
+        raise Exception(e)
 
-else:
-    quit("No GADM version provided")
+
+    # v = ValidationTools()
+
+    # probably do not need this
+    # run check on group to prep for group_class selection
+    # v.run_group_check(doc['options']['group'])
 
 
-# optional arg
-# mainly for user to specify manual run
-if len(sys.argv) > 4:
-    if sys.argv[4] in ['auto', 'manual']:
-        generator = sys.argv[4]
+    # boundary group
+    if "adm0" in gadm_name.lower():
+         doc["options"]["group_class"] = "actual"
     else:
-        quit("Invalid additional inputs")
+         doc["options"]["group_class"] = "sub"
 
 
-# exit if too many args
-if len(sys.argv) > 5:
-        quit("Invalid inputs arguments count")
+    # -------------------------------------------------------------------------
 
+    # find all files with file_extension in path
+    for root, dirs, files in os.walk(doc["base"]):
+        for fname in files:
 
-# remove trailing slash from path
-if doc["base"].endswith("/"):
-    doc["base"] = doc["base"][:-1]
+            fname = os.path.join(root, fname)
+            file_check = fname.endswith('.' + doc["file_extension"])
 
+            if file_check == True and not fname.endswith('simplified.geojson'):
+                file_list.append(fname)
 
-doc["asdf"] = {}
-doc["asdf"]["date_added"] = str(datetime.date.today())
-doc["asdf"]["date_updated"] = str(datetime.date.today())
-doc["asdf"]["script"] = script
-doc["asdf"]["version"] = version
-doc["asdf"]["generator"] = generator
 
-doc["type"] = "boundary"
-doc["file_format"] = "vector"
-doc["file_extension"] = "geojson"
-doc["file_mask"] = "None"
+    if len(file_list) == 0:
+        quit("No vector file found in " + doc["base"])
 
-# -------------------------------------
+    elif len(file_list) > 1:
+        quit("Boundaries must be submitted individually.")
 
 
-gadm_name = os.path.basename(doc["base"])
+    f = file_list[0]
+    print f
 
-gadm_iso3 = gadm_name[:3]
-gadm_adm = gadm_name[4:]
 
-gadm_lookup_path = parent + '/gadm_iso3.json'
-gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
+    # -------------------------------------
+    print "\nProcessing temporal..."
 
-gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
+    # temporally invariant dataset
+    doc["temporal"] = {}
+    doc["temporal"]["name"] = "Temporally Invariant"
+    doc["temporal"]["format"] = "None"
+    doc["temporal"]["type"] = "None"
+    doc["temporal"]["start"] = 10000101
+    doc["temporal"]["end"] = 99991231
 
-doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
-             str(gadm_version).replace('.', ''))
 
-doc["title"] = (gadm_country + " " + gadm_adm.upper() +
-              " Boundary - GADM " + str(gadm_version))
+    # -------------------------------------
+    print "\nProcessing spatial..."
 
-doc["description"] = "PLACEHOLDER"
+    convert_status = ru.add_asdf_id(f)
+    if convert_status == 1:
+         quit("Error adding ad_id to boundary file & outputting geojson.")
 
-doc["version"] = gadm_version
 
+    env = ru.vector_envelope(f)
+    env = ru.trim_envelope(env)
 
-doc["options"] = {}
-doc["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
-                         str(gadm_version).replace('.', ''))
+    print "Dataset bounding box: ", env
 
-doc["extras"] = {}
+    doc["scale"] = ru.envelope_to_scale(env)
 
-doc["extras"]["citation"] = "Global Administrative Areas (GADM) http://www.gadm.org."
-doc["extras"]["sources_web"] = "http://www.gadm.org"
-doc["extras"]["sources_name"] = "Global Administrative Areas (GADM)"
 
-doc["extras"]["gadm_country"] = gadm_country
-doc["extras"]["gadm_iso3"] = gadm_iso3
-doc["extras"]["gadm_adm"] = int(gadm_adm[-1:])
-doc["extras"]["gadm_name"] = "PLACEHOLDER"
+    # set spatial
+    doc["spatial"] = ru.envelope_to_geom(env)
 
-try:
-    doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
-                                                         gadm_version)
-except Exception as e:
-    print gadm_country
-    print gadm_version
-    raise Exception(e)
 
+    # -------------------------------------
+    print '\nProcessing resources...'
 
-# v = ValidationTools()
+    # resources
+    # individual resource info
+    resource_tmp = {}
 
-# probably do not need this
-# run check on group to prep for group_class selection
-# v.run_group_check(doc['options']['group'])
+    # path relative to base
+    resource_tmp["path"] = f[f.index(doc["base"]) + len(doc["base"]) + 1:]
 
+    resource_tmp["name"] = doc["name"]
+    resource_tmp["bytes"] = os.path.getsize(f)
+    resource_tmp["start"] = 10000101
+    resource_tmp["end"] = 99991231
 
-# boundary group
-if "adm0" in gadm_name.lower():
-     doc["options"]["group_class"] = "actual"
-else:
-     doc["options"]["group_class"] = "sub"
 
+    # get adm unit name for country and add to gadm info and description
+    tmp_feature = fiona.open(f, 'r').next()
 
-doc["active"] = 0
+    if gadm_adm.lower() == "adm0":
+        doc["extras"]["gadm_name"] = "Country"
+    else:
+        doc["extras"]["gadm_name"] = (
+            tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]])
 
+    doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
+        gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
 
-# -----------------------------------------------------------------------------
 
-# resource utils class instance
-ru = ResourceTools()
+    # reorder resource fields
+    # resource_order = ["name", "path", "bytes", "start", "end"]
+    # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
 
-# find all files with file_extension in path
-for root, dirs, files in os.walk(doc["base"]):
-    for fname in files:
-        
-        fname = os.path.join(root, fname)
-        file_check = fname.endswith('.' + doc["file_extension"])
+    # update main list
+    resource_list = [resource_tmp]
 
-        if file_check == True and not fname.endswith('simplified.geojson'):
-            file_list.append(fname)
+    doc["resources"] = resource_list
 
 
-if len(file_list) == 0:
-    quit("No vector file found in " + doc["base"])
+    # -----------------------------------------------------------------------------
+    # database updates
 
-elif len(file_list) > 1:
-    quit("Boundaries must be submitted individually.")
+    print "\nFinal document..."
+    pprint(doc)
 
 
-f = file_list[0]
-print f
+    print "\nWriting document to mongo..."
 
 
-# -------------------------------------
-print "\nProcessing temporal..."
+    update_spatial = False
+    if update and doc['spatial'] != original['spatial']:
+        update_spatial = True
 
-# temporally invariant dataset
-ru.temporal["name"] = "Temporally Invariant"
-ru.temporal["format"] = "None"
-ru.temporal["type"] = "None"
-ru.temporal["start"] = 10000101
-ru.temporal["end"] = 99991231
+    # =======================================
 
-doc["temporal"] = ru.temporal
 
+    # connect to database and asdf collection
+    db_asdf = client.asdf
+    db_tracker = client.trackers
 
-# -------------------------------------
-print "\nProcessing spatial..."
 
-convert_status = ru.add_asdf_id(f)
-if convert_status == 1:
-     quit("Error adding ad_id to boundary file & outputting geojson.")
+    gadm_col_str = "data"
+    # gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
 
+    # prep collection if needed
+    if not gadm_col_str in db_asdf.collection_names():
+        c_data = db_asdf[gadm_col_str]
 
-env = ru.vector_envelope(f)
-env = ru.trim_envelope(env)
+        c_data.create_index("base", unique=True)
+        c_data.create_index("name", unique=True)
+        c_data.create_index([("spatial", pymongo.GEOSPHERE)])
 
-print "Dataset bounding box: ", env
+    else:
+        c_data = db_asdf[gadm_col_str]
 
-doc["scale"] = ru.envelope_to_scale(env)
 
+    # update core
+    # try:
+    c_data.replace_one({"base": doc["base"]}, doc, upsert=True)
+    print "successful core update"
+    # except:
+    #      quit("Error updating core.")
 
-# set spatial
-doc["spatial"] = ru.envelope_to_geom(env)
 
+    # create/initialize tracker
+    # try:
 
-# -------------------------------------
-print '\nProcessing resources...'
+    if doc["options"]["group_class"] == "actual":
 
-# resources
-# individual resource info
-resource_tmp = {}
+        # drop boundary tracker if exists
+        if doc["options"]["group"] in db_tracker.collection_names():
+            db_tracker.drop_collection(doc["options"]["group"])
 
-# path relative to base
-resource_tmp["path"] = f[f.index(doc["base"]) + len(doc["base"]) + 1:]
+        # create new boundary tracker collection
+        c_bnd = db_tracker[doc["options"]["group"]]
+        c_bnd.create_index("name", unique=True)
+        # c_bnd.create_index("base", unique=True)
+        c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
-resource_tmp["name"] = doc["name"]
-resource_tmp["bytes"] = os.path.getsize(f)
-resource_tmp["start"] = 10000101
-resource_tmp["end"] = 99991231
+        # # add each non-boundary dataset item to new boundary
+        # # collection with "unprocessed" flag
+        # dsets = c_data.find({"type": {"$ne": "boundary"}})
+        # for full_dset in dsets:
+        #     dset = {
+        #         'name': full_dset["name"],
+        #         'spatial': full_dset["spatial"],
+        #         'scale': full_dset["scale"],
+        #         'status': -1
+        #     }
+        #     c_bnd.insert(dset)
 
+        print "successful tracker creation"
 
-# get adm unit name for country and add to gadm info and description
-tmp_feature = fiona.open(f, 'r').next()
 
-if gadm_adm.lower() == "adm0":
-    doc["extras"]["gadm_name"] = "Country"
-else:
-    doc["extras"]["gadm_name"] = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+    # except:
+    #      quit("Error updating tracker.")
 
-doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
-    gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
 
+    # =======================================
 
-# reorder resource fields
-# resource_order = ["name", "path", "bytes", "start", "end"]
-# resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
+    print "\n{0}: Done.\n".format(script)
 
-# update main list
-ru.resources.append(resource_tmp)
 
-doc["resources"] = ru.resources
 
+if __name__ == '__main__':
 
-# -----------------------------------------------------------------------------
-# database update(s) and datapackage output
+    # if calling script directly, use following input args:
+    #   branch (required)
+    #   path (absolute) to release (required)
+    #   generator (optional, defaults to "manual")
+    #   update (bool)
 
-print "\nFinal document..."
-pprint(doc)
+    # import sys
+    # import os
 
+    branch = sys.argv[1]
 
-# update mongo
-print "\nWriting datapackage to system..."
+    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
 
-# connect to database and asdf collection
-client = pymongo.MongoClient(config.server)
-db_asdf = client.asdf
-db_tracker = client.trackers
+    if not os.path.isdir(branch_dir):
+        raise Exception('Branch directory does not exist')
 
 
-gadm_col_str = "data"
-# gadm_col_str = "gadm" + str(gadm_version).replace('.', '')
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    sys.path.insert(0, config_dir)
 
-# prep collection if needed
-if not gadm_col_str in db_asdf.collection_names():
-    c_data = db_asdf[gadm_col_str]
+    from config_utility import BranchConfig
 
-    c_data.create_index("base", unique=True)
-    c_data.create_index("name", unique=True)
-    c_data.create_index([("spatial", pymongo.GEOSPHERE)])
+    config = BranchConfig(branch=branch)
 
-else:
-    c_data = db_asdf[gadm_col_str]
+    # -------------------------------------
 
+    # check mongodb connection
+    if config.connection_status != 0:
+        sys.exit("connection status error: " + str(config.connection_error))
 
-# update core
-# try:
-c_data.replace_one({"base": doc["base"]}, doc, upsert=True)
-print "successful core update"
-# except:
-#      quit("Error updating core.")
+    # -------------------------------------------------------------------------
 
+    client = pymongo.MongoClient(config.server)
 
-# create/initialize tracker
-# try:
+    path = sys.argv[2]
 
-if doc["options"]["group_class"] == "actual":
+    generator = sys.argv[3]
 
-    # drop boundary tracker if exists
-    if doc["options"]["group"] in db_tracker.collection_names():
-        db_tracker.drop_collection(doc["options"]["group"])
+    if len(sys.argv) == 5:
+        update = sys.argv[4]
+    else:
+        update = False
 
-    # create new boundary tracker collection
-    c_bnd = db_tracker[doc["options"]["group"]]
-    c_bnd.create_index("name", unique=True)
-    # c_bnd.create_index("base", unique=True)
-    c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
-    # # add each non-boundary dataset item to new boundary collection with "unprocessed" flag
-    # dsets = c_data.find({"type": {"$ne": "boundary"}})
-    # for full_dset in dsets:
-    #     dset = {
-    #         'name': full_dset["name"],
-    #         'spatial': full_dset["spatial"],
-    #         'scale': full_dset["scale"],
-    #         'status': -1
-    #     }
-    #     c_bnd.insert(dset)
-
-    print "successful tracker creation"
-
-
-# except:
-#      quit("Error updating tracker.")
-
-
-print "\nadd_gadm.py: Done.\n"
+    run(path=path, client=client, config=config,
+        generator=main_generator, update=update)
 
