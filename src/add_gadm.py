@@ -13,10 +13,11 @@ from pprint import pprint
 import datetime
 import json
 import pymongo
+from warnings import warn
 
 import fiona
 from resource_utility import ResourceTools
-from mongo_utility import MongoUpdate
+from database_utility import MongoUpdate
 
 
 def run(path=None, client=None, config=None, generator="auto", update=False):
@@ -30,9 +31,8 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     # resource utils class instance
     ru = ResourceTools()
 
-    # update mongo class instance
-    update_db = MongoUpdate(client)
-
+    # database utils class instance
+    dbu = MongoUpdate(client)
 
     # -------------------------------------------------------------------------
 
@@ -45,7 +45,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         - if auto, move job file to error location
         """
         sys.exit("{0}: terminating script - {1}\n").format(script, reason)
-
 
 
     # check path
@@ -68,17 +67,24 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         quit("No config object provided")
 
 
-    if update in ["update", True, 1, "True"]:
-        update = True
-        if not "data" in client.asdf.collection_names():
-            raise Exception("update specified but no data collection exists")
-
-        original = client.asdf.data.find_one({'base': path})
-        if original is None:
-            raise Exception("update specified but no dataset with matching "
-                            "base exists")
+    if update in ["update", True, 1, "True", "full", "all"]:
+        update = "full"
+    elif update in ["partial", "meta"]:
+        update = "partial"
     else:
         update = False
+
+    if update:
+        if not "data" in client.asdf.collection_names():
+            update = False
+            warn("Update specified but no data collection exists. "
+                 "Treating as new dataset.")
+        else:
+            original = client.asdf.data.find_one({'base': path})
+            if original is None:
+                update = False
+                warn("Update specified but no dataset with matching "
+                     "base found. Treating as new dataset")
 
 
     # init document
@@ -156,13 +162,11 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
                                                           gadm_version)
 
-
     # boundary group
     if "adm0" in gadm_name.lower():
          doc["options"]["group_class"] = "actual"
     else:
          doc["options"]["group_class"] = "sub"
-
 
     # -------------------------------------------------------------------------
     # resource scan
@@ -188,6 +192,29 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     f = file_list[0]
     print f
 
+    # get adm unit name for country and add to gadm info and description
+    tmp_feature = fiona.open(f, 'r').next()
+
+    if gadm_adm.lower() == "adm0":
+        doc["extras"]["gadm_name"] = "Country"
+    else:
+        doc["extras"]["gadm_name"] = (
+            tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]])
+
+    doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
+        gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
+
+    # -------------------------------------------------------------------------
+
+    if update == "partial":
+        print "\nProcessed document:"
+        pprint(doc)
+
+        print "\nUpdating database..."
+        dbu.update(doc, update)
+
+        print "\n{0}: Done ({1} update).\n".format(script, update)
+        return 0
 
     # -------------------------------------
     print "\nProcessing temporal..."
@@ -199,7 +226,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["temporal"]["type"] = "None"
     doc["temporal"]["start"] = 10000101
     doc["temporal"]["end"] = 99991231
-
 
     # -------------------------------------
     print "\nProcessing spatial..."
@@ -220,7 +246,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     # set spatial
     doc["spatial"] = ru.envelope_to_geom(env)
 
-
     # -------------------------------------
     print '\nProcessing resources...'
 
@@ -236,20 +261,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     resource_tmp["start"] = 10000101
     resource_tmp["end"] = 99991231
 
-
-    # get adm unit name for country and add to gadm info and description
-    tmp_feature = fiona.open(f, 'r').next()
-
-    if gadm_adm.lower() == "adm0":
-        doc["extras"]["gadm_name"] = "Country"
-    else:
-        doc["extras"]["gadm_name"] = (
-            tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]])
-
-    doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
-        gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
-
-
     # reorder resource fields
     # resource_order = ["name", "path", "bytes", "start", "end"]
     # resource_tmp = OrderedDict((k, resource_tmp[k]) for k in resource_order)
@@ -259,52 +270,30 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["resources"] = resource_list
 
-
     # -------------------------------------------------------------------------
     # database updates
 
-    print "\nFinal document..."
+    print "\nProcessed document:"
     pprint(doc)
 
-
     print "\nUpdating database..."
-
 
     update_spatial = False
     if update and doc['spatial'] != original['spatial']:
         update_spatial = True
 
+    dbu.update(doc, update, update_spatial)
+
+    if update:
+        print "\n{0}: Done ({1} update).\n".format(script, update)
+    else:
+        print "\n{0}: Done.\n".format(script)
+
+    return 0
+
+
     # =======================================
 
-
-    # connect to database and asdf collection
-    db_asdf = client.asdf
-    db_tracker = client.trackers
-
-    # prep collection if needed
-    if not "data" in db_asdf.collection_names():
-        c_data = db_asdf.data
-
-        c_data.create_index("base", unique=True)
-        c_data.create_index("name", unique=True)
-        c_data.create_index([("spatial", pymongo.GEOSPHERE)])
-
-    else:
-        c_data = db_asdf.data
-
-
-    # update core
-    # try:
-    c_data.replace_one({"base": doc["base"]}, 
-                       doc, 
-                       upsert=True)
-    print "successful core update"
-    # except:
-    #      quit("Error updating core.")
-
-
-    # create/initialize tracker
-    # try:
 
     if doc["options"]["group_class"] == "actual":
 
@@ -318,6 +307,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         # c_bnd.create_index("base", unique=True)
         c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
+
         # # add each non-boundary dataset item to new boundary
         # # collection with "unprocessed" flag
         # dsets = c_data.find({"type": {"$ne": "boundary"}})
@@ -329,17 +319,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         #         'status': -1
         #     }
         #     c_bnd.insert(dset)
-
-        print "successful tracker creation"
-
-
-    # except:
-    #      quit("Error updating tracker.")
-
-
-    # =======================================
-
-    print "\n{0}: Done.\n".format(script)
 
 
 
