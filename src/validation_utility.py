@@ -398,27 +398,7 @@ class ValidationTools():
 # -----------------------------------------------------------------------------
 # boundary options
 
-    def group_class(self, val):
-        """Check that boundary group class is valid.
-
-        Args:
-            val (str): group class
-        Returns:
-            ValidationResults instance
-        """
-        out = ValidationResults(val)
-
-        valid = val in self.types["group_class"]
-
-        if not valid:
-            out.error("not a valid group class ({0})".format(val))
-        else:
-            out.success(val)
-
-        return out
-
-
-    def group(self, val):
+    def group(self, val, group_class):
         """Run check on a boundary group to determine parameters used
         in group_check selection
 
@@ -432,6 +412,10 @@ class ValidationTools():
             ValidationResults instance
         """
         out = ValidationResults(val)
+
+
+        if not group_class in self.types["group_class"]:
+            out.error("not a valid group class ({0})".format(group_class))
 
         clean = str(val)
         data = {
