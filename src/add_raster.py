@@ -6,27 +6,23 @@ add raster dataset to asdf
     - update mongo database
 """
 
-import sys
 import os
-
 from pprint import pprint
 import datetime
 import json
 import pymongo
+from warnings import warn
 
+import resource_utility as ru
 from validation_utility import ValidationTools
-from resource_utility import ResourceTools
-from mongo_utility import MongoUpdate
+from database_utility import MongoUpdate
 
 
-def run(path=None, client=None, config=None, generator="auto", update=False):
+def run(path=None, client=None, version=None, config=None,
+        generator="auto", update=False):
 
     parent = os.path.dirname(os.path.abspath(__file__))
-
     script = os.path.basename(__file__)
-    version = config.versions["asdf-rasters"]
-
-    # -------------------------------------------------------------------------
 
     def quit(reason):
         """quit script cleanly
@@ -36,7 +32,19 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         - output error logs somewhere
         - if auto, move job file to error location
         """
-        sys.exit("{0}: terminating script - {1}\n").format(script, reason)
+        raise Exception("{0}: terminating script - {1}\n").format(script, reason)
+
+
+    if config is not None:
+        client = config.client
+        version = config.versions["asdf-rasters"]
+    elif client is None or version is None:
+        quit('Neither config nor client/version provided.')
+
+    # update mongo class instance
+    dbu = MongoUpdate(client)
+
+    # -------------------------------------
 
 
     # check path
@@ -59,21 +67,21 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         quit("No config object provided")
 
 
-    if update in ["update", True, 1, "True"]:
-        update = True
-
-        if not "data" in client.asdf.collection_names():
-            raise Exception("update specified but no data collection exists")
-
-        original = client.asdf.data.find_one({'base': path})
-        if original is None:
-            raise Exception("update specified but no dataset with matching "
-                            "base exists")
-
-        print ("Warning: currently, updates will completely " 
-               "replace the existing dataset.")
+    if update in ["update", True, 1, "True", "full", "all"]:
+        update = "full"
+    elif update in ["partial", "meta"]:
+        update = "partial"
     else:
         update = False
+
+    existing_original = None
+    if update:
+        if not "data" in client.asdf.collection_names():
+            update = False
+            warn("Update specified but no data collection exists. "
+                 "Treating as new dataset.")
+        else:
+            base_original = client.asdf.data.find_one({'base': path})
 
 
     # init document
@@ -107,7 +115,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     if len(missing_core_fields) > 0:
         quit("Missing core fields ({0})".format(missing_core_fields))
 
-
     # -------------------------------------
 
     # validate class instance
@@ -134,23 +141,30 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     name_exists = valid_name.data['exists']
 
 
-    if update and not base_exists and not name_exists:
-        quit(("Update option specified but no dataset with base path "
-              "({0}) or name ({1}) was found").format(doc["base"], 
-                                                      doc["name"]))
+    if update:
+        if not base_exists and not name_exists:
+            quit(("Update specified but no dataset with base path "
+                  "({0}) or name ({1}) was found").format(doc["base"],
+                                                          doc["name"]))
 
+        elif base_exists and name_exists:
 
-    elif update and base_exists and name_exists:
+            base_id = str(valid_base.data['_id'])
+            name_id = str(valid_name.data['_id'])
 
-        base_id = str(valid_base.data['_id'])
-        name_id = str(valid_name.data['_id'])
+            if base_id != name_id:
+                quit("Update option specified but identifying fields (base "
+                     "and name) belong to different existing datasets."
+                     "\n\tBase: {0}\n\tName: {1}".format(doc["base"],
+                                                         doc["name"]))
+            else:
+                existing_original = valid_name.data['search']
 
-        if base_id != name_id:
-            quit("Update option specified but identifying fields (base "
-                 "and name) belong to different existing datasets."
-                 "\n\tBase: {0}\n\tName: {1}".format(doc["base"], 
-                                                     doc["name"]))
+        elif name_exists:
+            existing_original = valid_name.data['search']
 
+        elif base_exists:
+            existing_original = valid_base.data['search']
 
 
     # validate type and set file_format
@@ -162,14 +176,12 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["type"] = valid_type.value
     doc["file_format"] = valid_type.data["file_format"]
 
-
     if doc["type"] != "raster":
         quit("Invalid type ({0}), must be raster.".format(doc["type"]))
 
 
-
     # validate file extension (validation depends on file format)
-    valid_extension = v.file_extension(data["file_extension"], 
+    valid_extension = v.file_extension(data["file_extension"],
                                        doc["file_format"])
 
     if not valid_extension.isvalid:
@@ -223,10 +235,9 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["options"]["factor"] = valid_factor.value
 
     # ***
-    # if factor changes, any extracts adjust with 
+    # if factor changes, any extracts adjust with
     # old factor need to be removed
     # ***
-
 
     # extract_types (multiple, separate your input with commas)
     valid_extract_types = v.extract_types(data["options"]["extract_types"])
@@ -273,12 +284,20 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     else:
         doc["extras"] = data["extras"]
 
+    # -------------------------------------
 
-    # -------------------------------------------------------------------------
+    if update == "partial":
+        print "\nProcessed document:"
+        pprint(doc)
+
+        print "\nUpdating database..."
+        dbu.update(doc, update, existing_original)
+
+        print "\n{0}: Done ({1} update).\n".format(script, update)
+        return 0
+
+    # -------------------------------------
     # resource scan
-
-    # resource utils class instance
-    ru = ResourceTools()
 
     # find all files with file_extension in path
     for root, dirs, files in os.walk(doc["base"]):
@@ -290,8 +309,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
             if file_check == True:
                 file_list.append(file)
 
-
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     print "\nProcessing temporal..."
 
     def validate_file_mask(vmask):
@@ -347,8 +365,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         # doc["temporal"]["format"] = "Unknown"
         # doc["temporal"]["type"] = "Unknown"
 
-
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     print "\nProcessing spatial..."
 
     # iterate over files to get bbox and do basic spatial validation
@@ -370,7 +387,6 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
     env = ru.trim_envelope(env)
-
     print "Dataset bounding box: ", env
 
     doc["scale"] = ru.envelope_to_scale(env)
@@ -385,8 +401,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     # set spatial
     doc["spatial"] = ru.envelope_to_geom(env)
 
-
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     print '\nProcessing resources...'
 
     resource_list = []
@@ -445,7 +460,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
         # # reorder resource fields
         # resource_order = ["name", "path", "bytes", "start", "end"]
-        # resource_tmp = OrderedDict((k, resource_tmp[k]) 
+        # resource_tmp = OrderedDict((k, resource_tmp[k])
         #                            for k in resource_order)
 
         # update main list
@@ -453,18 +468,17 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
         # update dataset temporal info
-        if (not doc["temporal"]["start"] or 
+        if (not doc["temporal"]["start"] or
                 range_start < doc["temporal"]["start"]):
             doc["temporal"]["start"] = range_start
-        elif (not doc["temporal"]["end"] or 
+        elif (not doc["temporal"]["end"] or
                 range_end > doc["temporal"]["end"]):
             doc["temporal"]["end"] = range_end
 
 
     doc["resources"] = resource_list
 
-
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     # database updates
 
     print "\nFinal document..."
@@ -472,28 +486,17 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
     print "\nUpdating database..."
+    dbu.update(doc, update, existing_original)
 
-    # update mongo class instance
-    update_db = MongoUpdate(client)
+    if update:
+        print "\n{0}: Done ({1} update).\n".format(script, update)
+    else:
+        print "\n{0}: Done.\n".format(script)
 
-    update_spatial = False
-    if update and doc['spatial'] != original['spatial']:
-        update_spatial = True
-
-    # =======================================
-
-    # core_update_status = update_db.update_core(doc)
-
-    # tracker_update_status = update_db.update_trackers(doc,
-    #                                                   v.new_boundary,
-    #                                                   v.update_geometry,
-    #                                                   update_data_package)
-
-    # =======================================
+    return 0
 
 
-    print "\{0}: Done.\n".format(script)
-
+# -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
@@ -503,8 +506,8 @@ if __name__ == '__main__':
     #   generator (optional, defaults to "manual")
     #   update (bool)
 
-    # import sys
-    # import os
+    import sys
+    import os
 
     branch = sys.argv[1]
 
@@ -521,15 +524,13 @@ if __name__ == '__main__':
 
     config = BranchConfig(branch=branch)
 
-    # -------------------------------------
 
     # check mongodb connection
     if config.connection_status != 0:
-        sys.exit("connection status error: " + str(config.connection_error))
+        raise Exception("connection status error: {0}".format(config.connection_error))
 
-    # -------------------------------------------------------------------------
+    # -------------------------------------
 
-    client = pymongo.MongoClient(config.server)
 
     path = sys.argv[2]
 
@@ -541,7 +542,5 @@ if __name__ == '__main__':
         update = False
 
 
-    run(path=path, client=client, config=config,
-        generator=main_generator, update=update)
-
+    run(path=path, config=config, generator=generator, update=update)
 

@@ -6,26 +6,22 @@ add release dataset to asdf
     - update mongo database
 """
 
-import sys
 import os
-
 from pprint import pprint
 import datetime
 import json
 import pymongo
+from warnings import warn
 
-from resource_utility import ResourceTools
-from mongo_utility import MongoUpdate
+import resource_utility as ru
+from database_utility import MongoUpdate
 
 
-def run(path=None, client=None, config=None, generator="auto", update=False):
+def run(path=None, client=None, version=None, config=None,
+        generator="auto", update=False):
 
     parent = os.path.dirname(os.path.abspath(__file__))
-
     script = os.path.basename(__file__)
-    version = config.versions["asdf-releases"]
-
-    # -------------------------------------------------------------------------
 
     def quit(reason):
         """quit script cleanly
@@ -35,7 +31,19 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         - output error logs somewhere
         - if auto, move job file to error location
         """
-        sys.exit("{0}: terminating script - {1}\n").format(script, reason)
+        raise Exception("{0}: terminating script - {1}\n").format(script, reason)
+
+
+    if config is not None:
+        client = config.client
+        version = config.versions["asdf-releases"]
+    elif client is None or version is None:
+        quit('Neither config nor client/version provided.')
+
+    # update mongo class instance
+    dbu = MongoUpdate(client)
+
+    # -------------------------------------
 
 
     # check path
@@ -58,19 +66,23 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         quit("No config object provided")
 
 
-    if update in ["update", True, 1, "True"]:
-        update = True
-        if not "data" in client.asdf.collection_names():
-            raise Exception("update specified but no data collection exists")
-
-        original = client.asdf.data.find_one({'base': path})
-        if original is None:
-            raise Exception("update specified but no dataset with matching "
-                            "base exists")
+    if update in ["update", True, 1, "True", "full", "all"]:
+        update = "full"
+    elif update in ["partial", "meta"]:
+        update = "partial"
     else:
         update = False
 
-   
+    existing_original = None
+    if update:
+        if not "data" in client.asdf.collection_names():
+            update = False
+            warn("Update specified but no data collection exists. "
+                 "Treating as new dataset.")
+        else:
+            base_original = client.asdf.data.find_one({'base': path})
+
+
     # init document
     doc = {}
 
@@ -102,11 +114,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["active"] = 1
 
-
     # -------------------------------------
-
-    # resource utils class instance
-    ru = ResourceTools()
 
     # get release datapackage
     release_path = doc["base"] + '/datapackage.json'
@@ -131,7 +139,45 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["extras"]["tags"] = ["aiddata", "geocoded", "release"]
 
 
-    # -------------------------------------------------------------------------
+    if update:
+        name_original = client.asdf.data.find_one({'name': doc["name"]})
+
+        if name_original is None and base_original is None:
+            update = False
+            warn("Update specified but no dataset with matching "
+                 "base or name found. Treating as new dataset")
+
+            # in case we ended up not finding a match for name
+            doc["asdf"]["date_added"] = str(datetime.date.today())
+
+        elif name_original is not None and base_original is not None:
+
+            if str(name_original['_id']) != str(base_original['_id']):
+                quit("Update specified but base and name match "
+                     "different existing datasets.")
+            else:
+                existing_original = name_original
+
+        elif name_original is not None:
+            existing_original = name_original
+
+        elif base_original is not None:
+            existing_original = base_original
+
+
+   # -------------------------------------
+
+    if update == "partial":
+        print "\nProcessed document:"
+        pprint(doc)
+
+        print "\nUpdating database..."
+        dbu.update(doc, update, existing_original)
+
+        print "\n{0}: Done ({1} update).\n".format(script, update)
+        return 0
+
+    # -------------------------------------
     print "\nProcessing temporal..."
 
     # set temporal using release datapackage
@@ -151,15 +197,12 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     env = ru.release_envelope(loc_table_path)
     env = ru.trim_envelope(env)
-
     print "Dataset bounding box: ", env
 
     doc["scale"] = ru.envelope_to_scale(env)
 
-
     # set spatial
     doc["spatial"] = ru.envelope_to_geom(env)
-
 
     # -------------------------------------
     print '\nProcessing resources...'
@@ -178,8 +221,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["resources"] = resource_list
 
-
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     # database updates
 
     print "\nFinal document..."
@@ -187,65 +229,17 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
 
     print "\nUpdating database..."
+    dbu.update(doc, update, existing_original)
 
-    # update mongo class instance
-    update_db = MongoUpdate(client)
-
-    update_spatial = False
-    if update and doc['spatial'] != original['spatial']:
-        update_spatial = True
-
-    # create mongodb for dataset
-    update_db.release_to_mongo_wrapper(name=doc['name'], path=doc['base'])
-
-    # =======================================
-
-
-    db_asdf = client.asdf
-
-    # prep collection if needed
-    if not "data" in db_asdf.collection_names():
-        c_asdf = db_asdf["data"]
-
-        c_asdf.create_index("base", unique=True)
-        c_asdf.create_index("name", unique=True)
-        c_asdf.create_index([("spatial", pymongo.GEOSPHERE)])
-
+    if update:
+        print "\n{0}: Done ({1} update).\n".format(script, update)
     else:
-        c_asdf = db_asdf["data"]
+        print "\n{0}: Done.\n".format(script)
+
+    return 0
 
 
-    # update core
-    # try:
-    c_asdf.replace_one({"base": doc["base"]}, doc, upsert=True)
-    print "successful core update"
-    # except:
-    #      quit("Error updating core.")
-
-
-    # # update trackers
-    # # add dataset to each boundary collection with "unprocessed" flag
-    # dset = {
-    #     'name': in_data["name"],
-    #     'spatial': in_data["spatial"],
-    #     'scale': in_data["scale"],
-    #     'status': -1
-    # }
-
-    # bnds = self.c_asdf.find({
-    #     "type": "boundary",
-    #     "options.group_class": "actual"
-    #     }, {"options": 1})
-    # for bnd in bnds:
-    #     c_bnd = self.asdf[bnd["options"]["group"]]
-    #     # c_bnd.insert(dset)
-    #     c_bnd.replace_one({"name": dset["name"]}, dset, upsert=True)
-
-    # =======================================
-
-    print "\n{0}: Done.\n".format(script)
-
-
+# -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
@@ -255,8 +249,8 @@ if __name__ == '__main__':
     #   generator (optional, defaults to "manual")
     #   update (bool)
 
-    # import sys
-    # import os
+    import sys
+    import os
 
     branch = sys.argv[1]
 
@@ -273,15 +267,13 @@ if __name__ == '__main__':
 
     config = BranchConfig(branch=branch)
 
-    # -------------------------------------
 
     # check mongodb connection
     if config.connection_status != 0:
-        sys.exit("connection status error: " + str(config.connection_error))
+        raise Exception("connection status error: {0}".format(config.connection_error))
 
     # -------------------------------------------------------------------------
 
-    client = pymongo.MongoClient(config.server)
 
     path = sys.argv[2]
 
@@ -293,7 +285,6 @@ if __name__ == '__main__':
         update = False
 
 
-    run(path=path, client=client, config=config,
-        generator=main_generator, update=update)
+    run(path=path, config=config, generator=generator, update=update)
 
 

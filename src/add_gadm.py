@@ -6,9 +6,7 @@ add gadm dataset to asdf
     - update mongo database
 """
 
-import sys
 import os
-
 from pprint import pprint
 import datetime
 import json
@@ -16,25 +14,15 @@ import pymongo
 from warnings import warn
 
 import fiona
-from resource_utility import ResourceTools
+import resource_utility as ru
 from database_utility import MongoUpdate
 
 
-def run(path=None, client=None, config=None, generator="auto", update=False):
+def run(path=None, client=None, version=None, config=None,
+        generator="auto", update=False):
 
     parent = os.path.dirname(os.path.abspath(__file__))
-
     script = os.path.basename(__file__)
-    version = config.versions["asdf-gadm"]
-
-
-    # resource utils class instance
-    ru = ResourceTools()
-
-    # database utils class instance
-    dbu = MongoUpdate(client)
-
-    # -------------------------------------------------------------------------
 
     def quit(reason):
         """quit script cleanly
@@ -44,7 +32,19 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
         - output error logs somewhere
         - if auto, move job file to error location
         """
-        sys.exit("{0}: terminating script - {1}\n").format(script, reason)
+        raise Exception("{0}: terminating script - {1}\n").format(script, reason)
+
+
+    if config is not None:
+        client = config.client
+        version = config.versions["asdf-gadm"]
+    elif client is None or version is None:
+        quit('Neither config nor client/version provided.')
+
+    # update mongo class instance
+    dbu = MongoUpdate(client)
+
+    # -------------------------------------
 
 
     # check path
@@ -74,17 +74,14 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     else:
         update = False
 
+    existing_original = None
     if update:
         if not "data" in client.asdf.collection_names():
             update = False
             warn("Update specified but no data collection exists. "
                  "Treating as new dataset.")
         else:
-            original = client.asdf.data.find_one({'base': path})
-            if original is None:
-                update = False
-                warn("Update specified but no dataset with matching "
-                     "base found. Treating as new dataset")
+            base_original = client.asdf.data.find_one({'base': path})
 
 
     # init document
@@ -118,6 +115,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["active"] = 0
 
+    # -------------------------------------
 
     gadm_name = os.path.basename(doc["base"])
 
@@ -133,6 +131,32 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
                  str(gadm_version).replace('.', ''))
+
+    if update:
+        name_original = client.asdf.data.find_one({'name': doc["name"]})
+
+        if name_original is None and base_original is None:
+            update = False
+            warn("Update specified but no dataset with matching "
+                 "base or name found. Treating as new dataset")
+
+            # in case we ended up not finding a match for name
+            doc["asdf"]["date_added"] = str(datetime.date.today())
+
+        elif name_original is not None and base_original is not None:
+
+            if str(name_original['_id']) != str(base_original['_id']):
+                quit("Update specified but base and name match "
+                     "different existing datasets.")
+            else:
+                existing_original = name_original
+
+        elif name_original is not None:
+            existing_original = name_original
+
+        elif base_original is not None:
+            existing_original = base_original
+
 
     doc["title"] = (gadm_country + " " + gadm_adm.upper() +
                   " Boundary - GADM " + str(gadm_version))
@@ -168,7 +192,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     else:
          doc["options"]["group_class"] = "sub"
 
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     # resource scan
 
     # find all files with file_extension in path
@@ -204,14 +228,14 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
         gadm_adm.upper(), doc["extras"]["gadm_name"], gadm_country)
 
-    # -------------------------------------------------------------------------
+    # -------------------------------------
 
     if update == "partial":
         print "\nProcessed document:"
         pprint(doc)
 
         print "\nUpdating database..."
-        dbu.update(doc, update)
+        dbu.update(doc, update, existing_original)
 
         print "\n{0}: Done ({1} update).\n".format(script, update)
         return 0
@@ -237,11 +261,9 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     env = ru.vector_envelope(f)
     env = ru.trim_envelope(env)
-
     print "Dataset bounding box: ", env
 
     doc["scale"] = ru.envelope_to_scale(env)
-
 
     # set spatial
     doc["spatial"] = ru.envelope_to_geom(env)
@@ -270,19 +292,14 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
 
     doc["resources"] = resource_list
 
-    # -------------------------------------------------------------------------
+    # -------------------------------------
     # database updates
 
     print "\nProcessed document:"
     pprint(doc)
 
     print "\nUpdating database..."
-
-    update_spatial = False
-    if update and doc['spatial'] != original['spatial']:
-        update_spatial = True
-
-    dbu.update(doc, update, update_spatial)
+    dbu.update(doc, update, existing_original)
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
@@ -292,35 +309,7 @@ def run(path=None, client=None, config=None, generator="auto", update=False):
     return 0
 
 
-    # =======================================
-
-
-    if doc["options"]["group_class"] == "actual":
-
-        # drop boundary tracker if exists
-        if doc["options"]["group"] in db_tracker.collection_names():
-            db_tracker.drop_collection(doc["options"]["group"])
-
-        # create new boundary tracker collection
-        c_bnd = db_tracker[doc["options"]["group"]]
-        c_bnd.create_index("name", unique=True)
-        # c_bnd.create_index("base", unique=True)
-        c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
-
-
-        # # add each non-boundary dataset item to new boundary
-        # # collection with "unprocessed" flag
-        # dsets = c_data.find({"type": {"$ne": "boundary"}})
-        # for full_dset in dsets:
-        #     dset = {
-        #         'name': full_dset["name"],
-        #         'spatial': full_dset["spatial"],
-        #         'scale': full_dset["scale"],
-        #         'status': -1
-        #     }
-        #     c_bnd.insert(dset)
-
-
+# -----------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
@@ -330,8 +319,8 @@ if __name__ == '__main__':
     #   generator (optional, defaults to "manual")
     #   update (bool)
 
-    # import sys
-    # import os
+    import sys
+    import os
 
     branch = sys.argv[1]
 
@@ -348,15 +337,13 @@ if __name__ == '__main__':
 
     config = BranchConfig(branch=branch)
 
-    # -------------------------------------
 
     # check mongodb connection
     if config.connection_status != 0:
-        sys.exit("connection status error: " + str(config.connection_error))
+        raise Exception("connection status error: {0}".format(config.connection_error))
 
-    # -------------------------------------------------------------------------
+    # -------------------------------------
 
-    client = pymongo.MongoClient(config.server)
 
     path = sys.argv[2]
 
@@ -368,6 +355,5 @@ if __name__ == '__main__':
         update = False
 
 
-    run(path=path, client=client, config=config,
-        generator=main_generator, update=update)
+    run(path=path, config=config, generator=generator, update=update)
 
