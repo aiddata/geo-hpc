@@ -64,7 +64,7 @@ for bnd in bnds:
     # do not process inactive boundaries
     if "extras" in bnd and "gadm_iso3" in bnd["extras"]:
 
-        print "GADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
+        print "\tGADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
         is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
 
         print "\tGADM boundary is active: {0}".format(is_active_gadm)
@@ -144,7 +144,7 @@ for bnd in bnds:
     # first stage search (second stage search)
     # search boundary actual vs dataset actual
     for match in matches:
-        print 'checking ' + match['name'] + ' dataset'
+        print "\tChecking dataset: {0}".format(match['name'])
 
         # boundary base and type
         bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
@@ -164,7 +164,7 @@ for bnd in bnds:
         result = False
         if meta['file_format'] in ["raster", "release"]:
 
-            if bnd_type == "boundary" and dset_type == "raster":
+            if dset_type == "raster":
                 # python raster stats extract
                 # bnd_geo = cascaded_union(
                 #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
@@ -176,8 +176,17 @@ for bnd in bnds:
                 if extract[0]['min'] != extract[0]['max']:
                     result = True
 
-            elif bnd_type == "boundary" and dset_type == "release":
-                result = True
+            elif dset_type == "release":
+
+                # iterate over active (premable, iso3) in
+                # release_gadm field of config
+                for k, v in config.release_gadm.items():
+                    if (match['name'].lower().startswith(k) and
+                            (v == bnd["extras"]["gadm_iso3"].upper() or
+                             v == "Global"):
+
+                        result = True
+
 
             else:
                 print ("\tError - Dataset type not yet supported (skipping " +
