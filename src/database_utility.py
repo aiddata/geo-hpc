@@ -147,6 +147,8 @@ class MongoUpdate():
 
             for bnd_group in db_trackers.collection_names():
                 c_bnd = db_trackers[bnd_group]
+                print bnd_group
+                print search_name
                 c_bnd.remove_one({"name": search_name})
 
 
