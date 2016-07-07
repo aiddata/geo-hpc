@@ -143,9 +143,9 @@ def run(path=None, client=None, version=None, config=None,
 
     if update:
         if not base_exists and not name_exists:
-            quit(("Update specified but no dataset with base path "
-                  "({0}) or name ({1}) was found").format(doc["base"],
-                                                          doc["name"]))
+            warn(("Update specified but no dataset with matching "
+                  "base ({0}) or name ({1}) was found").format(doc["base"],
+                                                               doc["name"]))
 
         elif base_exists and name_exists:
 

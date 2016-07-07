@@ -137,8 +137,9 @@ def run(path=None, client=None, version=None, config=None,
 
         if name_original is None and base_original is None:
             update = False
-            warn("Update specified but no dataset with matching "
-                 "base or name found. Treating as new dataset")
+            warn(("Update specified but no dataset with matching "
+                  "base ({0}) or name ({1}) was found").format(doc["base"],
+                                                               doc["name"]))
 
             # in case we ended up not finding a match for name
             doc["asdf"]["date_added"] = str(datetime.date.today())
@@ -146,8 +147,10 @@ def run(path=None, client=None, version=None, config=None,
         elif name_original is not None and base_original is not None:
 
             if str(name_original['_id']) != str(base_original['_id']):
-                quit("Update specified but base and name match "
-                     "different existing datasets.")
+                quit("Update option specified but identifying fields (base "
+                     "and name) belong to different existing datasets."
+                     "\n\tBase: {0}\n\tName: {1}".format(doc["base"],
+                                                         doc["name"]))
             else:
                 existing_original = name_original
 

@@ -20,7 +20,6 @@ from config_utility import BranchConfig
 
 config = BranchConfig(branch=branch)
 
-# -------------------------------------
 
 # check mongodb connection
 if config.connection_status != 0:
@@ -30,7 +29,7 @@ if config.connection_status != 0:
 
 
 import errno
-import pymongo
+# import pymongo
 import zipfile
 import re
 from check_releases import ReleaseTools
@@ -96,7 +95,7 @@ outdated_data_dirnames = [i for i in os.listdir(data_dir)
                           if i not in latest_data_dirnames]
 
 
-client = pymongo.MongoClient(config.server)
+client = config.client
 c_asdf = client.asdf.data
 
 version = config.versions["asdf-releases"]
@@ -117,8 +116,8 @@ for i in latest_data_dirnames:
     if not latest_exists:
         print "adding " + i + "..."
         add_release_instance = add_release
-        add_release_instance.run(path=ipath, generator="auto",
-                                 client=client, config=config)
+        add_release_instance.run(path=ipath, config=config,
+                                 generator="auto", update="full")
 
 
 # mark as inactive in asdf
