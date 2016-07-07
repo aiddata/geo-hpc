@@ -164,81 +164,63 @@ for bnd in bnds:
         dset_type = meta['type']
 
         result = False
-        if meta['file_format'] in ["raster", "release"]:
 
-            if dset_type == "raster":
-                # python raster stats extract
-                # bnd_geo = cascaded_union(
-                #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-                bnd_geo = cascaded_union([shape(shp['geometry'])
-                                          for shp in fiona.open(bnd_base, 'r')])
+        if dset_type == "raster":
+            # python raster stats extract
+            # bnd_geo = cascaded_union(
+            #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+            bnd_geo = cascaded_union([shape(shp['geometry'])
+                                      for shp in fiona.open(bnd_base, 'r')])
 
-                extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
+            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
 
-                if extract[0]['min'] != extract[0]['max']:
+            if extract[0]['min'] != extract[0]['max']:
+                result = True
+
+        elif dset_type == "release":
+
+            # iterate over active (premable, iso3) in
+            # release_gadm field of config
+            for k, v in config.release_gadm.items():
+                if (match['name'].startswith(k.lower() and
+                        (v == bnd["extras"]["gadm_iso3"].upper() or
+                         v == "Global")):
+
                     result = True
 
-            elif dset_type == "release":
 
-                # iterate over active (premable, iso3) in
-                # release_gadm field of config
-                for k, v in config.release_gadm.items():
-                    if (match['name'].lower().startswith(k) and
-                            (v == bnd["extras"]["gadm_iso3"].upper() or
-                             v == "Global")):
+        # elif dset_type == "polydata":
 
-                        result = True
+        #   # shapely intersect
+        #   bnd_geo = cascaded_union(
+        #       [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+        #   dset_geo = cascaded_union(
+        #       [shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
 
+        #   intersect = bnd_geo.intersects(dset_geo)
 
-            else:
-                print ("\tError - Dataset type not yet supported (skipping " +
-                       "dataset).")
-                continue
+        #   if intersect == True:
+        #       result = True
 
-            print '\t\tactive: {0}'.format(result)
-
-            # check results and update tracker
-            if result == True:
-                c_bnd.update_one({"name": match['name']},
-                                 {"$set": {"status": 1}}, upsert=False)
-            else:
-                c_bnd.update_one({"name": match['name']},
-                                 {"$set": {"status": 0}}, upsert=False)
-
-        # elif meta['format'] == "vector":
-
-        #   if bnd_type == "boundary" and dset_type == "polydata":
-        #       # shapely intersect
-        #       bnd_geo = cascaded_union(
-            #       [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-    #           dset_geo = cascaded_union(
-        #           [shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
-
-    #           intersect = bnd_geo.intersects(dset_geo)
-
-        #       if intersect == True:
-        #           result = True
-
-        #   else:
-        #       print ("Error - Dataset type not yet supported (skipping " +
-            #          "dataset).\n")
-        #       continue
-
-        #   # check results and update tracker
-        #   if result == True:
-        #       c_bnd.update({"name": match['name']},
-            #                {"$set": {"status": 1}}, upsert=False)
-        #   else:
-        #       c_bnd.update({"name": match['name']},
-            #                {"$set": {"status": 0}}, upsert=False)
 
         else:
-            # update tracker with error status for dataset and continue
-            print ("\tError - Invalid format for dataset \"" + match['name'] +
-                  "\" in \"" + c_bnd + "\" tracker (skipping dataset).")
+            print ("\tError - Dataset type not yet supported (skipping)")
             c_bnd.update_one({"name": match['name']},
                              {"$set": {"status": -2}}, upsert=False)
             continue
+
+
+        print '\t\tactive: {0}'.format(result)
+
+        # check results and update tracker
+        if result == True:
+            c_bnd.update_one({"name": match['name']},
+                             {"$set": {"status": 1}}, upsert=False)
+        else:
+            c_bnd.update_one({"name": match['name']},
+                             {"$set": {"status": 0}}, upsert=False)
+
+
 
 
         # run third stage search on second stage matches
