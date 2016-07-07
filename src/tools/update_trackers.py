@@ -87,7 +87,7 @@ for bnd in bnds:
 
     # ---------------------------------
 
-    print '\tprocessing...'
+    print '\tInitializing and populating tracker...'
 
     if not bnd["options"]["group"] in db_trackers.collection_names():
         c_bnd = db_trackers[bnd["options"]["group"]]
@@ -121,6 +121,8 @@ for bnd in bnds:
 
     # ---------------------------------
 
+
+    print '\tRunning relevance checks...'
 
     # lookup unprocessed data in boundary tracker that
     # intersect boundary (first stage search)
@@ -192,6 +194,8 @@ for bnd in bnds:
                 print ("\tError - Dataset type not yet supported (skipping " +
                        "dataset).")
                 continue
+
+            print '\t\tactive: {0}'.format(result)
 
             # check results and update tracker
             if result == True:
