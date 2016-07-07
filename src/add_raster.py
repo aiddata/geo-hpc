@@ -263,8 +263,8 @@ def run(path=None, client=None, version=None, config=None,
     mini_name_exists = valid_mini_name.data['exists']
 
     if update and mini_name_exists:
-        base_id = str(valid_base.data['_id'])
-        mini_name_id = str(valid_mini_name.data['_id'])
+        base_id = str(valid_base.data['search']['_id'])
+        mini_name_id = str(valid_mini_name.data['search']['_id'])
 
         if base_id != mini_name_id:
             quit("Mini name ({0}) already used for another "
