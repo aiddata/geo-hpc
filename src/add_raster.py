@@ -300,6 +300,7 @@ def run(path=None, client=None, version=None, config=None,
     # resource scan
 
     # find all files with file_extension in path
+    file_list = []
     for root, dirs, files in os.walk(doc["base"]):
         for file in files:
 
@@ -346,6 +347,8 @@ def run(path=None, client=None, version=None, config=None,
         doc["temporal"]["name"] = "Temporally Invariant"
         doc["temporal"]["format"] = "None"
         doc["temporal"]["type"] = "None"
+        doc["temporal"]["start"] = 10000101
+        doc["temporal"]["end"] = 99991231
 
     elif len(file_list) > 0:
 
@@ -354,7 +357,8 @@ def run(path=None, client=None, version=None, config=None,
         doc["temporal"]["format"] = "%Y%m%d"
         doc["temporal"]["type"] = ru.get_date_range(ru.run_file_mask(
             doc["file_mask"], file_list[0], doc["base"]))[2]
-
+        doc["temporal"]["start"] = None
+        doc["temporal"]["end"] = None
         # day range for each file (eg: MODIS 8 day composites)
         # if "day_range" in v.data:
             # "day_range", "File day range? (Must be integer)", v.day_range
@@ -364,6 +368,8 @@ def run(path=None, client=None, version=None, config=None,
         # doc["temporal"]["name"] = "Unknown"
         # doc["temporal"]["format"] = "Unknown"
         # doc["temporal"]["type"] = "Unknown"
+        # doc["temporal"]["start"] = "Unknown"
+        # doc["temporal"]["end"] = "Unknown"
 
     # -------------------------------------
     print "\nProcessing spatial..."
@@ -468,10 +474,10 @@ def run(path=None, client=None, version=None, config=None,
 
 
         # update dataset temporal info
-        if (not doc["temporal"]["start"] or
+        if (doc["temporal"]["start"] is None or
                 range_start < doc["temporal"]["start"]):
             doc["temporal"]["start"] = range_start
-        elif (not doc["temporal"]["end"] or
+        elif (doc["temporal"]["end"] is None or
                 range_end > doc["temporal"]["end"]):
             doc["temporal"]["end"] = range_end
 

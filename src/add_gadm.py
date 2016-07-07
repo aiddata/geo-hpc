@@ -196,6 +196,7 @@ def run(path=None, client=None, version=None, config=None,
     # resource scan
 
     # find all files with file_extension in path
+    file_list = []
     for root, dirs, files in os.walk(doc["base"]):
         for fname in files:
 
