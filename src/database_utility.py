@@ -58,13 +58,13 @@ class MongoUpdate():
         self.update_core(doc, search_name)
 
         if update != "partial":
-            try:
-                self.update_trackers(doc, search_name, existing)
-            except Exception as e:
-                print "Error updating trackers. Removing core entry."
+            # try:
+            self.update_trackers(doc, search_name, existing)
+            # except Exception as e:
+                # print "Error updating trackers. Removing core entry."
                 # print e
                 # self.c_asdf.remove_one({"name": search_name})
-                raise e
+                # raise e
 
         return 0
 
