@@ -232,18 +232,19 @@ function get_boundaries() {
 
     $query = array('type' => 'boundary', 'active' => 1);
 
-    $fields = array(
-        'name' => true,
-        'title' => true,
-        'description' => true,
-        'extras.sources_name' => true,
-        'extras.sources_web' => true,
-        'options.group' => true,
-        'options.group_class' => true,
-        'options.group_title' => true,
-        'base' => true,
-        'resources.path' => true
-    );
+    // $fields = array(
+    //     'base' => true,
+    //     'name' => true,
+    //     'title' => true,
+    //     'description' => true,
+    //     'version' => true,
+    //     'options.group' => true,
+    //     'options.group_class' => true,
+    //     'options.group_title' => true,
+    //     'resources.path' => true,
+    //     'extras' => true
+    // );
+    $fields = [];
 
     $cursor = $col->find($query, $fields);
     //// $cursor->snapshot();
@@ -331,13 +332,13 @@ function get_relevant_datasets() {
 
 
             // get years from datapackage
-            // $tmp_format = $doc['temporal'][0]['format'];
-            // $tmp_start = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
-            // $tmp_end = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
-            // $doc['years'] = range($tmp_start, $tmp_end)
+            $tmp_format = $doc['temporal'][0]['format'];
+            $tmp_start = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
+            $tmp_end = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
+            $doc['years'] = range($tmp_start, $tmp_end)
 
             // placeholder for no year selection (only 'All')
-            $doc['years'] = [];
+            // $doc['years'] = [];
 
             // get years based on min transaction_first and max
             // transaction_last
