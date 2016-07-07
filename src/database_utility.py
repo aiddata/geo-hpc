@@ -177,14 +177,18 @@ class MongoUpdate():
             bnds = self.c_asdf.find({
                 "type": "boundary",
                 "options.group_class": "actual"
-            }, {"options": 1})
+            }, {
+                "options": 1
+            })
 
             for bnd in bnds:
-                c_bnd = self.db_asdf[bnd["options"]["group"]]
-                # c_bnd.insert(dset)
-                c_bnd.update_one({"name": search_name},
-                                 {"$set": dset},
-                                 upsert=True)
+                bnd_group = bnd["options"]["group"]
+                if bnd_group in db_trackers.collection_names():
+                    c_bnd = db_trackers[bnd_group]
+                    # c_bnd.insert(dset)
+                    c_bnd.update_one({"name": search_name},
+                                     {"$set": dset},
+                                     upsert=True)
 
             # update msr
             # clear all existing msr using release
