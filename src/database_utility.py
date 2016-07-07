@@ -58,13 +58,12 @@ class MongoUpdate():
         self.update_core(doc, search_name)
 
         if update != "partial":
-            # try:
-            self.update_trackers(doc, search_name, existing)
-            # except Exception as e:
-                # print "Error updating trackers. Removing core entry."
-                # print e
-                # self.c_asdf.remove_one({"name": search_name})
-                # raise e
+            try:
+                self.update_trackers(doc, search_name, existing)
+            except Exception as e:
+                print "Error updating trackers. Removing core entry..."
+                self.c_asdf.delete_one({"name": search_name})
+                raise e
 
         return 0
 
@@ -134,7 +133,7 @@ class MongoUpdate():
             # update extracts
             # clear all existing extracts using boundary
             c_extracts = self.db_asdf.extracts
-            delete_extracts = c_extracts.remove_many({
+            delete_extracts = c_extracts.delete_many({
                 'boundary': doc['name']
             })
             if delete_extracts.deleted_count > 0:
@@ -147,9 +146,7 @@ class MongoUpdate():
 
             for bnd_group in db_trackers.collection_names():
                 c_bnd = db_trackers[bnd_group]
-                print bnd_group
-                print search_name
-                c_bnd.remove_one({"name": search_name})
+                c_bnd.delete_one({"name": search_name})
 
 
             # update msr
@@ -157,7 +154,7 @@ class MongoUpdate():
             if (doc["type"] == "release" and
                     "msr" in self.db_asdf.collection_names()):
                 c_msr = self.db_asdf.msr
-                delete_msr = c_msr.remove_many({
+                delete_msr = c_msr.delete_many({
                     'dataset': search_name
                 })
                 if delete_msr.deleted_count > 0:
@@ -168,7 +165,7 @@ class MongoUpdate():
             # clear all existing extracts using dataset
             if "extracts" in self.db_asdf.collection_names():
                 c_extracts = self.db_asdf.extracts
-                delete_extracts = c_extracts.remove_many({
+                delete_extracts = c_extracts.delete_many({
                     'raster': {'$regex': r'^{0}'.format(search_name)}
                 })
                 if delete_extracts.deleted_count > 0:
