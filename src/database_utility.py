@@ -183,7 +183,8 @@ class MongoUpdate():
 
             # update msr
             # clear all existing msr using release
-            if doc["type"] == "release":
+            if (doc["type"] == "release" and
+                    "msr" in self.db_asdf.collection_names()):
                 c_msr = self.db_asdf.msr
                 delete_msr = c_msr.remove_many({
                     'dataset': search_name
@@ -194,12 +195,13 @@ class MongoUpdate():
 
             # update extracts
             # clear all existing extracts using dataset
-            c_extracts = self.db_asdf.extracts
-            delete_extracts = c_extracts.remove_many({
-                'raster': {'$regex': r'^{0}'.format(search_name)}
-            })
-            if delete_extracts.deleted_count > 0:
-                print "Clearing extracts for dataset"
+            if "extracts" in self.db_asdf.collection_names():
+                c_extracts = self.db_asdf.extracts
+                delete_extracts = c_extracts.remove_many({
+                    'raster': {'$regex': r'^{0}'.format(search_name)}
+                })
+                if delete_extracts.deleted_count > 0:
+                    print "Clearing extracts for dataset"
 
 
         return 0

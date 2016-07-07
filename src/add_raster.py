@@ -492,7 +492,7 @@ def run(path=None, client=None, version=None, config=None,
 
 
     print "\nUpdating database..."
-    #dbu.update(doc, update, existing_original)
+    dbu.update(doc, update, existing_original)
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
