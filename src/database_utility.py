@@ -130,26 +130,27 @@ class MongoUpdate():
                     db_trackers.drop_collection(existing["options"]["group"])
 
 
-                c_bnd = db_trackers[new_group]
-                c_bnd.create_index("name", unique=True)
-                c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
+                # c_bnd = db_trackers[new_group]
+                # c_bnd.create_index("name", unique=True)
+                # c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
 
-                # add each non-boundary dataset item to new
-                # tracker collection with "unprocessed" flag
-                dsets = self.c_asdf.find({
-                    "type": {"$ne": "boundary"},
-                    "active": 1
-                })
-                for full_dset in dsets:
-                    dset = {
-                        'name': full_dset["name"],
-                        'spatial': full_dset["spatial"],
-                        'scale': full_dset["scale"],
-                        'status': -1
-                    }
-                    c_bnd.update_one({"name": dset["name"]},
-                                     {"$set": dset},
-                                     upsert=True)
+                # # add each non-boundary dataset item to new
+                # # tracker collection with "unprocessed" flag
+                # dsets = self.c_asdf.find({
+                #     "type": {"$ne": "boundary"},
+                #     "active": 1
+                # })
+                # for full_dset in dsets:
+                #     dset = {
+                #         'name': full_dset["name"],
+                #         'spatial': full_dset["spatial"],
+                #         'scale': full_dset["scale"],
+                #         'status': -1
+                #     }
+                #     c_bnd.update_one({"name": dset["name"]},
+                #                      {"$set": dset},
+                #                      upsert=True)
+
 
             # update extracts
             # clear all existing extracts using boundary
@@ -165,30 +166,32 @@ class MongoUpdate():
 
             # update trackers
 
-            # add dataset to each boundary collection
-            # with "unprocessed" flag
-            dset = {
-                'name': doc["name"],
-                'spatial': doc["spatial"],
-                'scale': doc["scale"],
-                'status': -1
-            }
 
-            bnds = self.c_asdf.find({
-                "type": "boundary",
-                "options.group_class": "actual"
-            }, {
-                "options": 1
-            })
+            # # add dataset to each boundary collection
+            # # with "unprocessed" flag
+            # dset = {
+            #     'name': doc["name"],
+            #     'spatial': doc["spatial"],
+            #     'scale': doc["scale"],
+            #     'status': -1
+            # }
 
-            for bnd in bnds:
-                bnd_group = bnd["options"]["group"]
-                if bnd_group in db_trackers.collection_names():
-                    c_bnd = db_trackers[bnd_group]
-                    # c_bnd.insert(dset)
-                    c_bnd.update_one({"name": search_name},
-                                     {"$set": dset},
-                                     upsert=True)
+            # bnds = self.c_asdf.find({
+            #     "type": "boundary",
+            #     "options.group_class": "actual"
+            # }, {
+            #     "options": 1
+            # })
+
+            # for bnd in bnds:
+            #     bnd_group = bnd["options"]["group"]
+            #     if bnd_group in db_trackers.collection_names():
+            #         c_bnd = db_trackers[bnd_group]
+            #         # c_bnd.insert(dset)
+            #         c_bnd.update_one({"name": search_name},
+            #                          {"$set": dset},
+            #                          upsert=True)
+
 
             # update msr
             # clear all existing msr using release

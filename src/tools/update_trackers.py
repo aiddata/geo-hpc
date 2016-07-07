@@ -21,8 +21,6 @@ from config_utility import *
 
 config = BranchConfig(branch=branch)
 
-# -------------------------------------
-
 
 # check mongodb connection
 if config.connection_status != 0:
@@ -33,75 +31,78 @@ if config.connection_status != 0:
 
 
 import pymongo
-from osgeo import gdal,ogr,osr
-# import shapefile
-import pygeoj
+import fiona
 from shapely.geometry import Point, shape, box
 from shapely.ops import cascaded_union
 import rasterstats as rs
 
 
-
 # connect to mongodb
-client = pymongo.MongoClient(config.server)
+client = config.client
 c_asdf = client.asdf.data
 db_trackers = client.trackers
 
 # lookup all boundary datasets
-bnds = c_asdf.find({"type": "boundary", "options.group_class": "actual"})
+bnds = c_asdf.find({
+    "type": "boundary",
+    "options.group_class": "actual"
+})
 
 
 active_iso3_list = config.release_gadm.values() + config.other_gadm
-
 print active_iso3_list
 
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
 
-    print "\n"
-    print bnd['options']['group'] + ' tracker'
-
-    print "active flag: " + str(bnd["active"])
+    print "\nTracker for: {0}".format(bnd['options']['group'])
+    print "\tdataset active status: {0}".format(bnd["active"])
 
     is_active = 0
 
     # manage active state for gadm boundaries based on config settings
     # do not process inactive boundaries
-    if "gadm_info" in bnd:
+    if "extras" in bnd and "gadm_info" in bnd["extras"]:
 
-        print bnd["gadm_info"]["iso3"]
-        is_active_gadm = bnd["gadm_info"]["iso3"].upper() in active_iso3_list
+        print bnd["extras"]["gadm_iso3"]
+        is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
 
-        print "active gadm: "  + str(is_active_gadm)
+        print "\tactive gadm: {0}".format(is_active_gadm)
 
         if is_active_gadm:
-            print "setting group active"
+            print "\tsetting group active"
             c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
             is_active = 1
 
         elif not is_active_gadm:
-            print "setting group inactive"
-            c_asdf.update_one({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
+            print "\tsetting group inactive"
+            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
             continue
 
 
     if not is_active and bnd["active"] == 0:
-        print "inactive"
+        print "\tinactive"
         continue
 
 
     # ---------------------------------
 
-    print 'processing...'
+    print '\tprocessing...'
 
-    c_bnd = db_trackers[bnd["options"]["group"]]
+    if not bnd["options"]["group"] in db_trackers.collection_names():
+        c_bnd = db_trackers[bnd["options"]["group"]]
+        c_bnd.create_index("name", unique=True)
+        c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
+    else:
+        c_bnd = db_trackers[bnd["options"]["group"]]
 
     # ---------------------------------
 
 
-    # add each non-boundary dataset item to boundary tracker collection with
-    #   "unprocessed" flag if it is not already in collection
-    # (no longer done in add gadm/release)
+    # add each non-boundary dataset item to boundary tracker
+    # collection with "unprocessed" flag if it is not already
+    # in collection
+    # (no longer done during ingest)
     dsets = c_asdf.find({
         'type': {'$ne': 'boundary'},
         'active': {'$gte': 1}
@@ -143,7 +144,7 @@ for bnd in bnds:
     # first stage search (second stage search)
     # search boundary actual vs dataset actual
     for match in matches:
-        print '\tchecking ' + match['name'] + ' dataset'
+        print 'checking ' + match['name'] + ' dataset'
 
         # boundary base and type
         bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
@@ -167,8 +168,8 @@ for bnd in bnds:
                 # python raster stats extract
                 # bnd_geo = cascaded_union(
                 #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-                bnd_geo = cascaded_union([shape(shp.geometry)
-                                          for shp in pygeoj.load(bnd_base)])
+                bnd_geo = cascaded_union([shape(shp['geometry'])
+                                          for shp in fiona.open(bnd_base, 'r')])
 
                 extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
 
@@ -179,8 +180,8 @@ for bnd in bnds:
                 result = True
 
             else:
-                print ("Error - Dataset type not yet supported (skipping " +
-                       "dataset).\n")
+                print ("\tError - Dataset type not yet supported (skipping " +
+                       "dataset).")
                 continue
 
             # check results and update tracker
@@ -220,8 +221,8 @@ for bnd in bnds:
 
         else:
             # update tracker with error status for dataset and continue
-            print ("Error - Invalid format for dataset \"" + match['name'] +
-                  "\" in \"" + c_bnd + "\" tracker (skipping dataset).\n")
+            print ("\tError - Invalid format for dataset \"" + match['name'] +
+                  "\" in \"" + c_bnd + "\" tracker (skipping dataset).")
             c_bnd.update_one({"name": match['name']},
                              {"$set": {"status": -2}}, upsert=False)
             continue
