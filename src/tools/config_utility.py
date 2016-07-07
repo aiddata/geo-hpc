@@ -89,18 +89,20 @@ class BranchConfig():
             self.client = pymongo.MongoClient(
                 self.server, serverSelectionTimeoutMS=connection_timeout_ms)
 
-            client.server_info()
+            self.client.server_info()
             self.connection_status = 0
             self.connection_error = None
 
         except pymongo.errors.ServerSelectionTimeoutError as err:
             # print "Error (ServerSelectionTimeoutError) connecting to mongodb ("+str(config.server)+")"
             # print err
+            self.client = None
             self.connection_status = 1
             self.connection_error = err
 
         except Exception as err:
             # print "Other error connecting to mongodb ("+str(config.server)+")"
             # print err
+            self.client = None
             self.connection_status = 2
             self.connection_error = err
