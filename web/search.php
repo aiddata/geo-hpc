@@ -14,13 +14,13 @@ if (empty($_POST['call'])) {
     exit;
 }
 
+
 $call = $_POST['call'];
 
 if (!function_exists($call)) {
     $output->error('invalid call')->send();
     exit;
 }
-
 
 // run specified function
 call_user_func($call);
@@ -244,9 +244,10 @@ function get_boundaries() {
     //     'resources.path' => true,
     //     'extras' => true
     // );
-    $fields = [];
+    // $cursor = $col->find($query, $fields);
 
-    $cursor = $col->find($query, $fields);
+
+    $cursor = $col->find($query);
     //// $cursor->snapshot();
 
     $result = array();
@@ -332,10 +333,10 @@ function get_relevant_datasets() {
 
 
             // get years from datapackage
-            $tmp_format = $doc['temporal'][0]['format'];
-            $tmp_start = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
-            $tmp_end = 1900 + strptime($doc['temporal'][0]['start'], $tmp_format);
-            $doc['years'] = range($tmp_start, $tmp_end)
+            $tmp_format = $doc['temporal']['format'];
+            $tmp_start = 1900 + strptime($doc['temporal']['start'], $tmp_format)['tm_year'];
+            $tmp_end = 1900 + strptime($doc['temporal']['end'], $tmp_format)['tm_year'];
+            $doc['years'] = range($tmp_start, $tmp_end);
 
             // placeholder for no year selection (only 'All')
             // $doc['years'] = [];
