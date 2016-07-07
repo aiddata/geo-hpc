@@ -61,8 +61,9 @@ class MongoUpdate():
             try:
                 self.update_trackers(doc, search_name, existing)
             except Exception as e:
-                self.c_asdf.remove_one({"name": search_name})
                 print "Error updating trackers. Removing core entry."
+                # print e
+                # self.c_asdf.remove_one({"name": search_name})
                 raise e
 
         return 0
