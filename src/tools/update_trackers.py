@@ -50,7 +50,7 @@ bnds = c_asdf.find({
 
 
 active_iso3_list = config.release_gadm.values() + config.other_gadm
-print active_iso3_list
+print "Active iso3 list: {0}".format(active_iso3_list)
 
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
@@ -62,26 +62,26 @@ for bnd in bnds:
 
     # manage active state for gadm boundaries based on config settings
     # do not process inactive boundaries
-    if "extras" in bnd and "gadm_info" in bnd["extras"]:
+    if "extras" in bnd and "gadm_iso3" in bnd["extras"]:
 
-        print bnd["extras"]["gadm_iso3"]
+        print "GADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
         is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
 
-        print "\tactive gadm: {0}".format(is_active_gadm)
+        print "\tGADM boundary is active: {0}".format(is_active_gadm)
 
         if is_active_gadm:
-            print "\tsetting group active"
+            print "\t\tsetting group active"
             c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
             is_active = 1
 
         elif not is_active_gadm:
-            print "\tsetting group inactive"
+            print "\t\tsetting group inactive"
             c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
             continue
 
 
     if not is_active and bnd["active"] == 0:
-        print "\tinactive"
+        print "\tdataset inactive"
         continue
 
 
