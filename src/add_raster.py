@@ -149,8 +149,8 @@ def run(path=None, client=None, version=None, config=None,
 
         elif base_exists and name_exists:
 
-            base_id = str(valid_base.data['_id'])
-            name_id = str(valid_name.data['_id'])
+            base_id = str(valid_base.data['search']['_id'])
+            name_id = str(valid_name.data['search']['_id'])
 
             if base_id != name_id:
                 quit("Update option specified but identifying fields (base "
