@@ -182,7 +182,7 @@ for bnd in bnds:
             # iterate over active (premable, iso3) in
             # release_gadm field of config
             for k, v in config.release_gadm.items():
-                if (match['name'].startswith(k.lower() and
+                if (match['name'].startswith(k.lower()) and
                         (v == bnd["extras"]["gadm_iso3"].upper() or
                          v == "Global")):
 
