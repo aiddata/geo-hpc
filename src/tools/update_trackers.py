@@ -185,7 +185,7 @@ for bnd in bnds:
                 for k, v in config.release_gadm.items():
                     if (match['name'].lower().startswith(k) and
                             (v == bnd["extras"]["gadm_iso3"].upper() or
-                             v == "Global"):
+                             v == "Global")):
 
                         result = True
 
