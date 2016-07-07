@@ -183,8 +183,8 @@ for bnd in bnds:
             # release_gadm field of config
             for k, v in config.release_gadm.items():
                 if (match['name'].startswith(k.lower()) and
-                        (v == bnd["extras"]["gadm_iso3"].upper() or
-                         v == "Global")):
+                        (bnd["extras"]["gadm_iso3"].upper() in v or
+                         "Global" in v)):
 
                     result = True
 
