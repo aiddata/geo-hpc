@@ -175,7 +175,7 @@ class MongoUpdate():
         return 0
 
 
-    def release_to_mongo(name=None, path=None):
+    def release_to_mongo(self, name=None, path=None):
 
         if name is None:
             quit("No name provided")
