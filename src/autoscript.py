@@ -114,7 +114,8 @@ for i in range(extract_limit):
 
             print 'finding request:'
             find_request = c_extracts.find_one({
-                'status': 0
+                'status': 0,
+                'classification': 'raster'
             }, sort=[("priority", -1), ("submit_time", 1)])
 
             print find_request
@@ -191,14 +192,12 @@ for i in extract_list:
     tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
                            bnd_info['resources'][0]['path'])
 
+    tmp['raster_name'] = i['data']
 
-    tmp['raster_name'] = i['raster']
 
-    tmp['classification'] = i['classification']
+    if i['generator'] == 'msr':
 
-    if i['classification'] == 'msr':
-
-        rname = i['raster']
+        rname = i['data']
         rdataset = rname[:rname.rindex('_')]
         rhash = rname[rname.rindex('_')+1:]
 
@@ -210,12 +209,12 @@ for i in extract_list:
 
     else:
 
-        tmp['data_name'] = i['raster'][:i["raster"].rindex("_")]
-        # print i['raster']
+        tmp['data_name'] = i['data'][:i['data'].rindex("_")]
+        # print i['data']
         # print tmp['data_name']
 
         data_info = c_asdf.find_one(
-            {'resources.name': i['raster']},
+            {'resources.name': i['data']},
             {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
 
 
@@ -225,7 +224,7 @@ for i in extract_list:
             data_info['base'] + '/'+
             [
                 j['path'] for j in data_info['resources']
-                if j['name'] == i['raster']
+                if j['name'] == i['data']
             ][0])
 
         tmp['file_mask'] = data_info['file_mask']
