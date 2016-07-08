@@ -89,7 +89,8 @@ for request_obj in request_objects:
         continue
 
 
-    cr_status, missing_items, merge_list = queue.check_request(request_obj, dry_run=False)
+    cr_status, missing_items, merge_list = queue.check_request(request_obj,
+                                                               dry_run=False)
 
     if not cr_status:
         warnings.warn("unable to run check_request")
@@ -100,16 +101,19 @@ for request_obj in request_objects:
         # send email
         mail_to = request_obj['email']
 
-        mail_subject = "AidData Data Extract Tool - Request "+request_id[:7]+".. Received"
+        mail_subject = ("AidData Data Extract Tool - "
+                        "Request {0}.. Received").format(request_id[:7])
 
         mail_message = ("Your request has been received. \n"
                         "You will receive an additional email when the"
                         " request has been completed. \n\n"
                         "The status of your request can be viewed using"
                         " the following link: \n"
-                        "http://" + branch_info['server'] + "/DET/status/#" + request_id + "\n\n"
-                        "You can also view all your current and previous requests using: \n"
-                        "http://" + branch_info['server'] + "/DET/status/#" + mail_to + "\n\n")
+                        "http://{0}/DET/status/#{1}\n\n"
+                        "You can also view all your current and previous "
+                        "requests using: \n"
+                        "http://{0}/DET/status/#{2}\n\n").format(
+                            branch_info['server'], request_id, mail_to)
 
         mail_status = queue.send_email(mail_to, mail_subject, mail_message)
 
@@ -139,13 +143,18 @@ for request_obj in request_objects:
         # send email
         mail_to = request_obj['email']
 
-        mail_subject = "AidData Data Extract Tool - Request "+request_id[:7]+".. Completed"
+        mail_subject = ("AidData Data Extract Tool - "
+                        "Request {0}.. Completed").format(request_id[:7])
 
         mail_message = ("Your request has been completed. \n"
-                        "The results can be accessed using the following link: \n"
-                        "http://" + branch_info['server'] + "/DET/status/#" + request_id + "\n\n"
-                        "You can also view all your current and previous requests using: \n"
-                        "http://" + branch_info['server'] + "/DET/status/#" + mail_to + "\n\n")
+                        "The results can be accessed using the following "
+                        "link: \n"
+                        "http://{0}/DET/status/#{1}\n\n"
+                        "You can also view all your current and previous "
+                        "requests using: \n"
+                        "http://{0}/DET/status/#{2}\n\n").format(
+                            branch_info['server'], request_id, mail_to)
+
         mail_status = queue.send_email(mail_to, mail_subject, mail_message)
 
         print "request completed"

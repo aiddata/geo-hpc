@@ -8,8 +8,8 @@ import pymongo
 class ExtractItem():
     """stuff
     """
-    def __init__(self, boundary, dataset, raster,
-                 extract_type, reliability, temporal_type, base):
+    def __init__(self, boundary, dataset, data,
+                 extract_type, temporal_type, base):
 
         self.client = pymongo.MongoClient()
 
@@ -19,9 +19,8 @@ class ExtractItem():
 
         self.boundary = boundary
         self.dataset = dataset
-        self.raster = raster
+        self.data = data
         self.extract_type = extract_type
-        self.reliability = reliability
 
         self.temporal_type = temporal_type
 
@@ -67,9 +66,8 @@ class ExtractItem():
         """
         check_data = {
             "boundary": self.boundary,
-            "raster": self.raster,
-            "extract_type": self.extract_type,
-            "reliability": self.reliability
+            "data": self.data,
+            "extract_type": self.extract_type
         }
 
         # check db
@@ -89,7 +87,7 @@ class ExtractItem():
         # does not include file type identifier
         #   (...e.ext for extracts and ...r.ext for reliability)
         #   or file extension
-        partial_name = self.raster
+        partial_name = self.data
         if self.temporal_type == "None":
             partial_name = partial_name + "_"
 
@@ -163,7 +161,7 @@ class ExtractItem():
         ctime = int(time.time())
 
         query = {
-            'raster': self.raster,
+            'data': self.data,
             'boundary': self.boundary,
             'extract_type': self.extract_type,
             'reliability': self.reliability
@@ -171,6 +169,7 @@ class ExtractItem():
 
         details = {
             'classification': classification,
+            'generator': 'det',
             'status': 0,
             'priority': 0,
             'submit_time': ctime,

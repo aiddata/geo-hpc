@@ -396,7 +396,7 @@ class QueueToolBox():
                         # add to extract queue if it does not already
                         # exist in queue
                         if not dry_run:
-                            extract_item.add_to_queue("external")
+                            extract_item.add_to_queue("raster")
 
                     else:
 
@@ -406,7 +406,8 @@ class QueueToolBox():
 
                         if i["reliability"]:
                             merge_list.append(
-                                ('raster_data', extract_item.reliability_path, None))
+                                ('raster_data', extract_item.reliability_path,
+                                 None))
 
 
         print ''
@@ -492,19 +493,22 @@ class QueueToolBox():
 
                 if merge_class == 'raster_data':
                     # get field name from file
-                    result_field =  os.path.splitext(os.path.basename(result_csv))[0]
+                    result_field =  os.path.splitext(os.path.basename(
+                        result_csv))[0]
 
                 elif merge_class == 'release_data':
 
-                    csv_basename = os.path.splitext(os.path.basename(result_csv))[0]
+                    csv_basename = os.path.splitext(os.path.basename(
+                        result_csv))[0]
 
                     merge_log_name = csv_basename[:-2]
 
                     if not merge_log_name in merge_log.keys():
 
-                        dynamic_merge_string = '{0:03d}'.format(dynamic_merge_count)
+                        # dynamic merge string
+                        tmp_str = '{0:03d}'.format(dynamic_merge_count)
 
-                        merge_log[merge_log_name] = 'ad_msr' + dynamic_merge_string
+                        merge_log[merge_log_name] = 'ad_msr' + tmp_str
 
 
                     result_field = merge_log[merge_log_name] + csv_basename[-1:]

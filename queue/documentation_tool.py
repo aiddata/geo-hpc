@@ -167,14 +167,15 @@ class DocBuilder():
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
-            data = [['Dataset ',dset['dataset']],
-                    ['Type', 'release'],
-                    ['Donors', ', '.join(dset['filters']['donors'])],
-                    ['Sectors', ', '.join(dset['filters']['ad_sector_names'])],
-                    ['Years', ', '.join(dset['filters']['years'])],
-                    ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
-                    ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
-                    ]
+            data = [
+                ['Dataset ',dset['dataset']],
+                ['Type', 'release'],
+                ['Donors', ', '.join(dset['filters']['donors'])],
+                ['Sectors', ', '.join(dset['filters']['ad_sector_names'])],
+                ['Years', ', '.join(dset['filters']['years'])],
+                ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
+                ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
+            ]
 
             t = Table(data)
             t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -227,7 +228,6 @@ class DocBuilder():
             ['Name', meta['name']],
             ['Version', meta['version']],
             ['Description', meta['description']],
-            ['Source Link', meta['source_link']],
 
             ['Type', meta['type']],
             ['File Format', meta['file_format']],
@@ -240,9 +240,12 @@ class DocBuilder():
         data.append(['Temporal Type', meta['temporal']['name']])
 
         if meta['temporal']['format'] != 'None':
+            data.append(['Temporal Name', meta['temporal']['name']])
+            data.append(['Temporal Type', meta['temporal']['type']])
+            data.append(['Temporal Format', meta['temporal']['format']])
             data.append(['Temporal Start', meta['temporal']['start']])
             data.append(['Temporal End', meta['temporal']['end']])
-            data.append(['Temporal Format', meta['temporal']['format']])
+
 
 
         data.append(['Bounding Box', Paragraph(str(meta['spatial']['coordinates']), self.styles['Normal'])])
@@ -251,24 +254,19 @@ class DocBuilder():
         # for i in range(len(meta['sources'])):
         #     data.append(['Source #'+str(i+1), Paragraph('<i>name:</i> '+meta['sources'][i]['name']+'<br /><i>web:</i> '+meta['sources'][i]['web'], self.styles['Normal'])])
 
-        # for i in range(len(meta['licenses'])):
-        #     data.append(['License #'+str(i+1), Paragraph('<i>name:</i> '+meta['licenses'][i]['name']+'<br /><i>version:</i> '+meta['licenses'][i]['version']+'<br /><i>url:</i> '+meta['licenses'][i]['url'], self.styles['Normal'])])
-
 
         # for i in range(len(meta['maintainers'])):
         #     data.append(['Maintainer #'+str(i+1), Paragraph('<i>name:</i> '+meta['maintainers'][i]['name']+'<br /><i>web:</i> '+meta['maintainers'][i]['web']+'<br /><i>email:</i> '+meta['maintainers'][i]['email'], self.styles['Normal'])])
 
-        # for i in range(len(meta['publishers'])):
-        #     data.append(['Publisher #'+str(i+1), Paragraph('<i>name:</i> '+meta['publishers'][i]['name']+'<br /><i>web:</i> '+meta['publishers'][i]['web']+'<br /><i>email:</i> '+meta['publishers'][i]['email'], self.styles['Normal'])])
-
-        # data.append(['Date Added', meta['date_added']])
-        # data.append(['Date Updated', meta['date_updated']])
+        data.append(['Date Added', meta['asdf']['date_added']])
+        data.append(['Date Updated', meta['asdf']['date_updated']])
 
 
 
         if item_type == 'boundary':
             data.append(['Group', meta['options']['group']])
             data.append(['Group Class', meta['options']['group_class']])
+            data.append(['Group Title', meta['options']['group_title']])
 
         elif item_type == 'raster':
             data.append(['Mini Name', meta['options']['mini_name']])
