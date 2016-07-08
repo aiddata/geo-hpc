@@ -21,24 +21,21 @@ from config_utility import *
 
 config = BranchConfig(branch=branch)
 
-# -------------------------------------
-
 
 # check mongodb connection
 if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
 
-
 # -----------------------------------------------------------------------------
 
 
 import time
-import pymongo
+# import pymongo
 import copy
 
 
 # connect to mongodb
-client = pymongo.MongoClient(config.server)
+client = config.client
 c_asdf = client.asdf.data
 c_extracts = client.asdf.extracts
 
@@ -86,7 +83,7 @@ print (str(deleted_count) + ' unprocessed outdated automated extract ' +
 
 
 # -------------------------------------
-
+# add raster extracts
 
 # lookup all raster datasets
 rasters = c_asdf.find({
@@ -106,7 +103,7 @@ for raster in rasters:
     items += [
         {
             'boundary': b,
-            'raster': r['name'],
+            'data': r['name'],
             'extract_type': e,
             'version': version
         }
@@ -126,7 +123,8 @@ for i in items:
 
     i_full = copy.deepcopy(i)
     i_full["status"] = 0
-    i_full["classification"] = "auto-external"
+    i_full["classification"] = "raster"
+    i_full["generator"] = "auto"
     i_full["priority"] = -1
 
     i_full["submit_time"] = ctime
