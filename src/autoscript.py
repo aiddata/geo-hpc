@@ -194,6 +194,7 @@ for i in extract_list:
 
     tmp['data_name'] = i['data']
 
+    tmp['classification'] = i['classification']
 
     if i['classification'] == 'msr':
 
@@ -378,8 +379,9 @@ def tmp_worker_job(self, task_id):
         stats = run_data,
         bnd_name = bnd_name,
         data_name = data_name,
-        ex_version = version,
         ex_method = extract_type,
+        classification = task['classification'],
+        ex_version = version,
         c_features = c_features
     )
 
