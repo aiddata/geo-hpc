@@ -115,7 +115,7 @@ for i in range(extract_limit):
             print 'finding request:'
             find_request = c_extracts.find_one({
                 'status': 0,
-                'classification': 'raster'
+                'classification': {'$in': ['raster', 'msr']}
             }, sort=[("priority", -1), ("submit_time", 1)])
 
             print find_request
@@ -192,16 +192,16 @@ for i in extract_list:
     tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
                            bnd_info['resources'][0]['path'])
 
-    tmp['raster_name'] = i['data']
+    tmp['data_name'] = i['data']
 
 
-    if i['generator'] == 'msr':
+    if i['classification'] == 'msr':
 
         rname = i['data']
         rdataset = rname[:rname.rindex('_')]
         rhash = rname[rname.rindex('_')+1:]
 
-        tmp['data_name'] = rdataset
+        tmp['dataset_name'] = rdataset
         tmp['data_path'] = os.path.join("/sciclone/aiddata10/REU/outputs/",
                                             branch , "msr", "done",
                                             rdataset, rhash, "raster.tif")
@@ -209,16 +209,16 @@ for i in extract_list:
 
     else:
 
-        tmp['data_name'] = i['data'][:i['data'].rindex("_")]
+        tmp['dataset_name'] = i['data'][:i['data'].rindex("_")]
         # print i['data']
-        # print tmp['data_name']
+        # print tmp['dataset_name']
 
         data_info = c_asdf.find_one(
             {'resources.name': i['data']},
             {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
 
 
-        tmp['data_name'] = data_info['name']
+        tmp['dataset_name'] = data_info['name']
 
         tmp['data_path'] = (
             data_info['base'] + '/'+
@@ -319,8 +319,8 @@ def tmp_worker_job(self, task_id):
 
     # boundary, dataset and raster names
     bnd_name = task['bnd_name']
+    dataset_name = task['dataset_name']
     data_name = task['data_name']
-    raster_name = task['raster_name']
 
     # output directory
     output_base = task['output_base']
@@ -342,7 +342,7 @@ def tmp_worker_job(self, task_id):
 
     # =================================
 
-    output_dir = os.path.join(output_base, bnd_name, "cache", data_name)
+    output_dir = os.path.join(output_base, bnd_name, "cache", dataset_name)
 
     # creates directories
     try:
@@ -360,15 +360,15 @@ def tmp_worker_job(self, task_id):
     # run extract
     print ((worker_tagline + 'running extract: ' +
            '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-           (bnd_name, bnd_absolute, raster_name, raster, extract_type))
+           (bnd_name, bnd_absolute, data_name, raster, extract_type))
 
     run_data = exo.run_feature_extract(raster)
 
 
     # generate output path
-    temporal = raster_name[raster_name.rindex('_')+1:]
+    temporal = data_name[data_name.rindex('_')+1:]
     temporal = temporal if temporal != '' else 'na'
-    file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
+    file_name = '.'.join([dataset_name, temporal, exo._extract_type]) + ".csv"
     output = os.path.join(output_dir, file_name)
 
     run_data = exo.export_to_csv(run_data, output)
@@ -377,7 +377,7 @@ def tmp_worker_job(self, task_id):
     run_data = exo.export_to_db(
         stats = run_data,
         bnd_name = bnd_name,
-        raster_name = raster_name,
+        data_name = data_name,
         ex_version = version,
         ex_method = extract_type,
         c_features = c_features
@@ -392,20 +392,20 @@ def tmp_worker_job(self, task_id):
         extract_status = 1
         print ((worker_tagline + 'completed extract in %s seconds' +
                '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (Te_run, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+               (Te_run, bnd_name, bnd_absolute, data_name, raster, extract_type))
 
 
     except MemoryError as e:
         extract_status = -2
         print ((worker_tagline + 'memory error (%s)' +
                '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+               (extract_status, bnd_name, bnd_absolute, data_name, raster, extract_type))
 
     except Exception as e:
         extract_status = -1
         print ((worker_tagline + 'unknown error (%s)' +
                '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (extract_status, bnd_name, bnd_absolute, raster_name, raster, extract_type))
+               (extract_status, bnd_name, bnd_absolute, data_name, raster, extract_type))
 
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
