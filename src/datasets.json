@@ -69,12 +69,12 @@
         "data_name": "v4composites_calibrated",
         "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif"
     },
-    "terrestrial_air_temperature_v4.01": {
+    "terrestrial_air_temperature_v4_01": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/terrestrial_air_temperature_v4.01",
         "data_name": "terrestrial_air_temperature_v4.01",
         "file_mask": "yyyy/air_temp_YYYY_MM.tif"
     },
-    "terrestrial_precipitation_v4.01": {
+    "terrestrial_precipitation_v4_01": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/terrestrial_precipitation_v4.01",
         "data_name": "terrestrial_precipitation_v4.01",
         "file_mask": "yyyy/precip_YYYY_MM.tif"
