@@ -1009,7 +1009,7 @@ class MergeObject():
                 result_df = pd.read_csv(result_csv, quotechar='\"',
                                         na_values='', keep_default_na=False)
 
-                tmp_field = result_csv[result_csv.rindex('/')+1:-4]
+                base_field = result_csv[result_csv.rindex('/')+1:-4]
 
                 if not isinstance(merge, pd.DataFrame):
                     merge = result_df.copy(deep=True)
@@ -1020,6 +1020,10 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
+                        tmp_field = base_field
+                        if base_field.endswith('categorical'):
+                            tmp_field = base_field + '_' + c[len("exfield_"):]
+                        
                         merge.rename(columns={c: tmp_field},
                                      inplace=True)
 
@@ -1030,6 +1034,10 @@ class MergeObject():
                         if cname.startswith("exfield_")
                     ]
                     for c in cat_fields:
+                        tmp_field = base_field
+                        if base_field.endswith('categorical'):
+                            tmp_field = base_field + '_' + c[len("exfield_"):]
+
                         merge[tmp_field] = result_df[c]
 
 
@@ -1437,7 +1445,7 @@ class FeatureExtractTool():
 #                 result_df = pd.read_csv(result_csv, quotechar='\"',
 #                                         na_values='', keep_default_na=False)
 
-#                 tmp_field = result_csv[result_csv.rindex('/')+1:-4]
+#                 base_field = result_csv[result_csv.rindex('/')+1:-4]
 
 #                 if not isinstance(merge, pd.DataFrame):
 #                     merge = result_df.copy(deep=True)
