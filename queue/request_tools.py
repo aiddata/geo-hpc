@@ -310,7 +310,8 @@ class QueueToolBox():
             print '\t %s' % data
             print '\t----------'
 
-            msr_item = MSRItem(data["dataset"],
+            msr_item = MSRItem(self.client,
+                               data["dataset"],
                                data_hash,
                                data,
                                msr_base)
@@ -323,7 +324,8 @@ class QueueToolBox():
 
             if msr_completed == True:
 
-                msr_ex_item = ExtractItem(request["boundary"]["name"],
+                msr_ex_item = ExtractItem(self.client,
+                                           request["boundary"]["name"],
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
                                           "sum",
@@ -374,7 +376,8 @@ class QueueToolBox():
                     print '\textract type: %s' % extract_type
                     print '\t----------'
 
-                    extract_item = ExtractItem(request["boundary"]["name"],
+                    extract_item = ExtractItem(self.client,
+                                               request["boundary"]["name"],
                                                data["name"],
                                                i["name"],
                                                extract_type,

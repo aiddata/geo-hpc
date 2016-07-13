@@ -2,16 +2,15 @@
 
 import os
 import time
-import pymongo
 
 
 class ExtractItem():
     """stuff
     """
-    def __init__(self, boundary, dataset, data,
+    def __init__(self, client, boundary, dataset, data,
                  extract_type, temporal_type, base):
 
-        self.client = pymongo.MongoClient()
+        self.client = client
 
         self.c_extracts = self.client.asdf.extracts
         self.c_msr = self.client.asdf.msr
@@ -36,7 +35,7 @@ class ExtractItem():
             "sum": "s",
             "min": "m",
             "max": "x",
-            "std": "d",
+            # "std": "d",
 
             "reliability": "r"
 
@@ -51,8 +50,6 @@ class ExtractItem():
 
             # "var": "v"
             # "mode": "?"
-
-
         }
 
         if self.extract_type in self.extract_options:
@@ -163,8 +160,7 @@ class ExtractItem():
         query = {
             'data': self.data,
             'boundary': self.boundary,
-            'extract_type': self.extract_type,
-            'reliability': self.reliability
+            'extract_type': self.extract_type
         }
 
         details = {
@@ -173,7 +169,8 @@ class ExtractItem():
             'status': 0,
             'priority': 0,
             'submit_time': ctime,
-            'update_time': ctime
+            'update_time': ctime,
+            'version': '???'
         }
 
         full_insert = query.copy()

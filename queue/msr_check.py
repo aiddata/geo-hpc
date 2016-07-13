@@ -2,20 +2,19 @@
 
 import os
 import time
-import pymongo
 
 
 class MSRItem():
     """stuff
     """
-    def __init__(self, dataset_name, msr_hash, selection, base):
+    def __init__(self, client, dataset_name, msr_hash, selection, base):
         self.dataset_name = dataset_name
         self.msr_hash = msr_hash
         self.selection = selection
 
         self.base = base
 
-        self.client = pymongo.MongoClient()
+        self.client = client
         self.c_msr = self.client.asdf.msr
 
 
