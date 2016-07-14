@@ -7,7 +7,7 @@ import time
 class MSRItem():
     """stuff
     """
-    def __init__(self, client, dataset_name, msr_hash, selection, base):
+    def __init__(self, client, dataset_name, msr_hash, selection, base, version):
         self.dataset_name = dataset_name
         self.msr_hash = msr_hash
         self.selection = selection

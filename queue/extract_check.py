@@ -8,7 +8,7 @@ class ExtractItem():
     """stuff
     """
     def __init__(self, client, boundary, dataset, data,
-                 extract_type, temporal_type, base):
+                 extract_type, temporal_type, base, version):
 
         self.client = client
 

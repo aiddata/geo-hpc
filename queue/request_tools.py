@@ -314,7 +314,8 @@ class QueueToolBox():
                                data["dataset"],
                                data_hash,
                                data,
-                               msr_base)
+                               msr_base,
+                               self.msr_version)
 
             # check if extract exists in queue and is completed
             msr_exists, msr_completed = msr_item.exists()
@@ -331,7 +332,8 @@ class QueueToolBox():
                                           "sum",
                                           True,
                                           "None",
-                                          extract_base)
+                                          extract_base,
+                                          self.extract_version)
 
                 msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
 
@@ -383,7 +385,8 @@ class QueueToolBox():
                                                extract_type,
                                                i["reliability"],
                                                data["temporal_type"],
-                                               extract_base)
+                                               extract_base,
+                                               self.extract_version)
 
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = extract_item.exists()
