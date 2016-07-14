@@ -24,6 +24,7 @@ class ExtractItem():
         self.temporal_type = temporal_type
 
         self.base = base
+        self.version = version
 
         self.extract_options = {
             "categorical": "c",
@@ -170,7 +171,7 @@ class ExtractItem():
             'priority': 0,
             'submit_time': ctime,
             'update_time': ctime,
-            'version': '???'
+            'version': self.version
         }
 
         full_insert = query.copy()
