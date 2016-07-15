@@ -5,7 +5,7 @@ import time
 
 
 class ExtractItem():
-    """stuff
+    """check status of item in extract queue
     """
     def __init__(self, client, boundary, dataset, data,
                  extract_type, temporal_type, base, version):
@@ -128,7 +128,7 @@ class ExtractItem():
         (db_exists, db_status) = db_tuple
 
         file_info, file_tuple = self.__exists_in_file()
-        (file_exists, file_extract_exists, file_reliability_exists) = file_tuple
+        (file_exists, file_extract_exists, file_rel_exists) = file_tuple
 
         valid_exists = False
         valid_completed = False
@@ -153,8 +153,7 @@ class ExtractItem():
 
 
     def add_to_queue(self, classification):
-        """
-        add extract item to det->extracts mongodb collection
+        """add extract item to det->extracts mongodb collection
         """
         ctime = int(time.time())
 

@@ -22,8 +22,6 @@ from extract_check import ExtractItem
 from msr_check import MSRItem
 
 
-
-
 def make_dir(path):
     """creates directories
 
@@ -70,10 +68,6 @@ class QueueToolBox():
         self.msr_resolution = 0.05
 
 
-        # self.request_objects = {}
-        # self.merge_lists = {}
-
-
     # exit function used for errors
     def quit(self, rid, status, message):
         self.update_status(rid, int(status))
@@ -83,11 +77,26 @@ class QueueToolBox():
 
     def get_branch_info(self):
         branch_config = self.c_config.find_one()
+        if branch_config is None:
+            raise Exception('no branch config found')
         self.branch_info = branch_config
         self.branch = branch_config['name']
         self.msr_version = branch_config['versions']['mean-surface-rasters']
         self.extract_version = branch_config['versions']['extract-scripts']
         return branch_config
+
+
+    def check_id(self, rid):
+        """verify request with given id exists
+
+        Args
+            rid (str): request id
+        Returns
+            (dict) request object or None
+        """
+        # check document with request id exists
+        search = self.c_queue.find_one({"_id": ObjectId(rid)})
+        return search
 
 
     def get_requests(self, status, limit=0):
@@ -100,52 +109,16 @@ class QueueToolBox():
         Returns
             tuple (function status, list of request objects)
         """
-        try:
-            search = self.c_queue.find({
-                "status": status
-            }).sort([("priority", -1), ("submit_time", 1)]).limit(limit)
+        search = self.c_queue.find({
+            "status": status
+        }).sort([("priority", -1), ("submit_time", 1)]).limit(limit)
 
-            count = search.count(True)
+        count = search.count(True)
 
-            if count > 0:
-
-                # for i in range(count):
-                #     rid = str(search[i]["_id"])
-                #     self.request_objects[rid] = search[i]
-
-                # return 1, self.request_objects
-
-                return 1, list(search)
-
-            else:
-                return 1, []
-
-        except Exception as e:
-            warnings.warn(e)
-            return 0, None
-
-
-
-    def check_id(self, rid):
-        """verify request with given id exists
-
-        Args
-            rid (str): request id
-        Returns
-            tuple: (function status, request object)
-        """
-        try:
-            # check document with request id exists
-            search = self.c_queue.find_one({"_id": ObjectId(rid)})
-
-            # self.request_objects[rid] = search
-
-            return 1, search
-
-        except Exception as e:
-            warnings.warn(e)
-            return 0, None
-
+        if count > 0:
+            return list(search)
+        else:
+            return []
 
 
     def get_status(self, rid):
@@ -160,12 +133,11 @@ class QueueToolBox():
             # check document with request id exists
             search = self.c_queue.find_one({"_id": ObjectId(rid)})
             status = search['status']
-
-            return 1, status
-
+            return status
         except Exception as e:
-            warnings.warn(e)
-            return 0, None
+            print "error retrieving status of request (id: {0})".format(rid)
+            raise e
+
 
 
     def update_status(self, rid, status):
@@ -185,26 +157,21 @@ class QueueToolBox():
             "status": long(status)
         }
 
-        if not str(status) in valid_stages:
-            return 0, None
-
         stage = valid_stages[str(status)]
         if stage is not None:
             updates[stage] = ctime
-            # self.request_objects[rid][stage] = ctime
-
 
         try:
             # update request document
             self.c_queue.update({"_id": ObjectId(rid)},
                                 {"$set": updates})
+            return ctime
 
         except Exception as e:
-            warnings.warn(e)
-            return 0, None
+            print ('error updating status of request '
+                   '(id: {0}, status: {1}').format(rid, status)
+            raise e
 
-
-        return 1, ctime
 
 
     # sends an email
@@ -220,11 +187,11 @@ class QueueToolBox():
             if pw_search.count() > 0:
                 passwd = str(pw_search[0]["password"])
             else:
-                return 0, "Specified email does not exist"
+                msg = "Error - specified email does not exist"
+                return 0, msg, Exception(msg)
 
         except Exception as e:
-            warnings.warn(e)
-            return 0, "Error looking up email"
+            return 0, "Error looking up email", e
 
 
         try:
@@ -252,35 +219,83 @@ class QueueToolBox():
             mailserver.sendmail(sender, receiver, msg.as_string())
             mailserver.quit()
 
-            return 1, None
+            return 1, None, None
 
         except Exception as e:
-            warnings.warn(e)
-            return 0, "Error generating or sending email"
+            return 0, "Error sending email", e
 
+
+    def notify_received(self, rid, email):
+        """send email that request was received
+        """
+        mail_to = email
+
+        mail_subject = ("AidData Data Extract Tool - "
+                        "Request {0}.. Received").format(request_id[:7])
+
+        mail_message = ("Your request has been received. \n"
+                        "You will receive an additional email when the"
+                        " request has been completed. \n\n"
+                        "The status of your request can be viewed using"
+                        " the following link: \n"
+                        "http://{0}/DET/status/#{1}\n\n"
+                        "You can also view all your current and previous "
+                        "requests using: \n"
+                        "http://{0}/DET/status/#{2}\n\n").format(
+                            self.branch_info['server'], request_id, mail_to)
+
+        mail_status = self.send_email(mail_to, mail_subject, mail_message)
+
+        if not mail_status[0]:
+            print mail_status[1]
+            update_status = self.update_status(request_id, -2)
+            raise mail_status[2]
+
+
+    def notify_completed(self, rid, email):
+        """send email that request was completed
+        """
+
+        mail_to = email
+
+        mail_subject = ("AidData Data Extract Tool - "
+                        "Request {0}.. Completed").format(request_id[:7])
+
+        mail_message = ("Your request has been completed. \n"
+                        "The results can be accessed using the following "
+                        "link: \n"
+                        "http://{0}/DET/status/#{1}\n\n"
+                        "You can also view all your current and previous "
+                        "requests using: \n"
+                        "http://{0}/DET/status/#{2}\n\n").format(
+                            self.branch_info['server'], request_id, mail_to)
+
+        mail_status = self.send_email(mail_to, mail_subject, mail_message)
+
+        if not mail_status[0]:
+            print mail_status[1]
+            update_status = self.update_status(request_id, -2)
+            raise mail_status[2]
 
 
 # =============================================================================
 # =============================================================================
 # =============================================================================
-
 
 
     def check_request(self, request, dry_run=False):
         """check entire request object for cache
         """
-        extract_base = os.path.join("/sciclone/aiddata10/REU/outputs/",
-                                    self.branch, 'extracts',
+        outputs_base = "/sciclone/aiddata10/REU/outputs"
+        extract_base = os.path.join(outputs_base, self.branch, 'extracts',
                                     self.extract_version.replace('.', '_'))
-        msr_base = os.path.join("/sciclone/aiddata10/REU/outputs/",
-                                self.branch, 'msr', 'done')
+        msr_base = os.path.join(outputs_base, self.branch, 'msr', 'done')
 
         merge_list = []
         extract_count = 0
         msr_count = 0
 
         # id used for field names in results
-        # eg: "msr_1s", "msr_1r", etc.
         msr_id = 1
 
         print "\nchecking aid data..."
@@ -314,8 +329,7 @@ class QueueToolBox():
                                data["dataset"],
                                data_hash,
                                data,
-                               msr_base,
-                               self.msr_version)
+                               msr_base)
 
             # check if extract exists in queue and is completed
             msr_exists, msr_completed = msr_item.exists()
@@ -326,7 +340,7 @@ class QueueToolBox():
             if msr_completed == True:
 
                 msr_ex_item = ExtractItem(self.client,
-                                           request["boundary"]["name"],
+                                          request["boundary"]["name"],
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
                                           "sum",
@@ -423,8 +437,7 @@ class QueueToolBox():
 
         missing_items = extract_count + msr_count
 
-        return 1, missing_items, merge_list
-
+        return missing_items, merge_list
 
 
 # =============================================================================
@@ -432,54 +445,43 @@ class QueueToolBox():
 # =============================================================================
 
 
-    def build_output(self, request_id, request, merge_list):
+    def build_output(self, request, merge_list):
         """build output
 
         merge extracts, generate documentation, update status,
             cleanup working directory, send final email
         """
+        request_id = str(request['_id'])
+
         results_dir = ("/sciclone/aiddata10/REU/outputs/" +
                        self.branch + "/det/results")
 
         request_dir = os.path.join(results_dir, request_id)
 
-
         merge_output = os.path.join(request_dir, "results.csv")
+
         # merge cached results if all are available
         merge_status = self.merge(merge_list, merge_output)
 
-        # handle merge error
-        if not merge_status[0]:
-            self.quit(request_id, -2, merge_status[1])
-
-
-
-        doc_output =  os.path.join(request_dir, "documentation.pdf")
 
         # generate documentation
-        doc = DocBuilder(request_id, request, doc_output)
+        doc_output =  os.path.join(request_dir, "documentation.pdf")
+        doc = DocBuilder(request, doc_output)
         bd_status = doc.build_doc()
         print bd_status
 
 
         # zip files and delete originals
-
         shutil.make_archive(request_dir, "zip", results_dir, request_id)
-
         shutil.rmtree(request_dir)
 
         return True
-
-
 
 
     def merge(self, merge_list, output):
         """
         merge extracts when all are completed
         """
-        print "merge"
-
-
         merged_df = 0
 
         # used to track dynamically generated field names
@@ -552,10 +554,9 @@ class QueueToolBox():
         # write merged df to csv
         merged_df.to_csv(output, index=False)
 
-        return True, None
+        return True
 
     # except Exception as e:
         # warnings.warn(e)
     #     return False, "error writing merged dataframe"
-
 

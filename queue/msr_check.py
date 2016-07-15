@@ -5,9 +5,9 @@ import time
 
 
 class MSRItem():
-    """stuff
+    """check status of item in msr queue
     """
-    def __init__(self, client, dataset_name, msr_hash, selection, base, version):
+    def __init__(self, client, dataset_name, msr_hash, selection, base):
         self.dataset_name = dataset_name
         self.msr_hash = msr_hash
         self.selection = selection

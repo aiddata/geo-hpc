@@ -22,7 +22,7 @@ class DocBuilder():
         self.client = pymongo.MongoClient()
         self.c_asdf = self.client.asdf.data
 
-        self.request_id = request_id
+        self.request_id = str(request['_id'])
         self.request = request
         self.output = output
         self.dir_base = os.path.dirname(os.path.abspath(__file__))
