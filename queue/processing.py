@@ -93,43 +93,43 @@ for request_obj in request_objects:
     update_status = queue.update_status(request_id, 2)
 
 
-    # try:
-    #     missing_items, merge_list = queue.check_request(request_obj,
-    #                                                     dry_run=False)
-    # except Exception as e:
-    #     print "unable to run check_request"
-    #     update_status = queue.update_status(request_id, -2)
-    #     raise e
+    try:
+        missing_items, merge_list = queue.check_request(request_obj,
+                                                        dry_run=True)#False)
+    except Exception as e:
+        print "unable to run check_request"
+        update_status = queue.update_status(request_id, -2)
+        raise e
 
 
-    # if original_status == -1:
-    #     # send email that request was received
-    #     queue.notify_received(request_id, request_obj['email'])
+    if original_status == -1:
+        # send email that request was received
+        queue.notify_received(request_id, request_obj['email'])
 
 
-    # if missing_items == 0:
+    if missing_items == 0:
 
-    #     try:
-    #         # build request
-    #         result = queue.build_output(request_obj, merge_list)
-    #     except Exception as e:
-    #         print "error building request output"
-    #         update_status = queue.update_status(request_id, -2)
-    #         raise e
+        try:
+            # build request
+            result = queue.build_output(request_obj, merge_list)
+        except Exception as e:
+            print "error building request output"
+            update_status = queue.update_status(request_id, -2)
+            raise e
 
-    #     # send email that request was completed
-    #     queue.notify_completed(request_id, request_obj['email'])
+        # send email that request was completed
+        queue.notify_completed(request_id, request_obj['email'])
 
-    #     # set status 1 (email request is ready)
-    #     update_status = queue.update_status(request_id, 1)
+        # set status 1 (email request is ready)
+        update_status = queue.update_status(request_id, 1)
 
-    #     print "request completed"
+        print "request completed"
 
-    # else:
-    #     # set status 0 (no email)
-    #     update_status = queue.update_status(request_id, 0)
+    else:
+        # set status 0 (no email)
+        update_status = queue.update_status(request_id, 0)
 
-    #     print "request not ready"
+        print "request not ready"
 
 
     print '---------------------------------------'

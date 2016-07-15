@@ -177,7 +177,7 @@ class QueueToolBox():
     # sends an email
     def send_email(self, receiver, subject, message):
 
-        reply_to = 'AidData <data@aiddata.org>'
+        reply_to = 'AidData W&M <data@aiddata.org>'
         sender = 'noreply@aiddata.wm.edu'
 
         try:
@@ -225,7 +225,7 @@ class QueueToolBox():
             return 0, "Error sending email", e
 
 
-    def notify_received(self, rid, email):
+    def notify_received(self, request_id, email):
         """send email that request was received
         """
         mail_to = email
@@ -252,7 +252,7 @@ class QueueToolBox():
             raise mail_status[2]
 
 
-    def notify_completed(self, rid, email):
+    def notify_completed(self, request_id, email):
         """send email that request was completed
         """
 
@@ -344,7 +344,6 @@ class QueueToolBox():
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
                                           "sum",
-                                          True,
                                           "None",
                                           extract_base,
                                           self.extract_version)
@@ -397,7 +396,6 @@ class QueueToolBox():
                                                data["name"],
                                                i["name"],
                                                extract_type,
-                                               i["reliability"],
                                                data["temporal_type"],
                                                extract_base,
                                                self.extract_version)
