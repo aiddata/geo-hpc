@@ -7,23 +7,21 @@ import time
 class ExtractItem():
     """check status of item in extract queue
     """
-    def __init__(self, client, boundary, dataset, data,
-                 extract_type, temporal_type, base, version):
+    def __init__(self, client, base, boundary, dataset, data,
+                 extract_type, temporal_type, version):
 
         self.client = client
 
         self.c_extracts = self.client.asdf.extracts
         self.c_msr = self.client.asdf.msr
 
+        self.base = base
 
         self.boundary = boundary
         self.dataset = dataset
         self.data = data
         self.extract_type = extract_type
-
         self.temporal_type = temporal_type
-
-        self.base = base
         self.version = version
 
         self.extract_options = {

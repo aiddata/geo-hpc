@@ -139,7 +139,6 @@ class QueueToolBox():
             raise e
 
 
-
     def update_status(self, rid, status):
         """ update status of request
         """
@@ -165,13 +164,11 @@ class QueueToolBox():
             # update request document
             self.c_queue.update({"_id": ObjectId(rid)},
                                 {"$set": updates})
-            return ctime
 
         except Exception as e:
             print ('error updating status of request '
                    '(id: {0}, status: {1}').format(rid, status)
             raise e
-
 
 
     # sends an email
@@ -326,10 +323,9 @@ class QueueToolBox():
             print '\t----------'
 
             msr_item = MSRItem(self.client,
-                               data["dataset"],
+                               msr_base,
                                data_hash,
-                               data,
-                               msr_base)
+                               data)
 
             # check if extract exists in queue and is completed
             msr_exists, msr_completed = msr_item.exists()
@@ -340,12 +336,12 @@ class QueueToolBox():
             if msr_completed == True:
 
                 msr_ex_item = ExtractItem(self.client,
+                                          extract_base,
                                           request["boundary"]["name"],
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
-                                          "sum",
+                                          "reliability",
                                           "None",
-                                          extract_base,
                                           self.extract_version)
 
                 msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
@@ -363,11 +359,8 @@ class QueueToolBox():
                     # add to merge list
                     merge_list.append(
                         ('release_data', msr_ex_item.extract_path, msr_id))
-                    merge_list.append(
-                        ('release_data', msr_ex_item.reliability_path, msr_id))
 
             else:
-
                 msr_count += 1
                 extract_count += 1
                 if not dry_run:
@@ -392,12 +385,12 @@ class QueueToolBox():
                     print '\t----------'
 
                     extract_item = ExtractItem(self.client,
+                                               extract_base,
                                                request["boundary"]["name"],
                                                data["name"],
                                                i["name"],
                                                extract_type,
                                                data["temporal_type"],
-                                               extract_base,
                                                self.extract_version)
 
                     # check if extract exists in queue and is completed
@@ -417,15 +410,10 @@ class QueueToolBox():
                             extract_item.add_to_queue("raster")
 
                     else:
-
                         # add to merge list
                         merge_list.append(
                             ('raster_data', extract_item.extract_path, None))
 
-                        if i["reliability"]:
-                            merge_list.append(
-                                ('raster_data', extract_item.reliability_path,
-                                 None))
 
 
         print ''

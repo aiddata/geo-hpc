@@ -7,22 +7,23 @@ import time
 class MSRItem():
     """check status of item in msr queue
     """
-    def __init__(self, client, dataset_name, msr_hash, selection, base):
-        self.dataset_name = dataset_name
-        self.msr_hash = msr_hash
-        self.selection = selection
+    def __init__(self, client, base, data_hash, selection):
+        self.client = client
+        self.c_msr = self.client.asdf.msr
 
         self.base = base
 
-        self.client = client
-        self.c_msr = self.client.asdf.msr
+        self.data_hash = data_hash
+        
+        self.selection = selection
+        self.dataset_name = selection['dataset']
 
 
     def __exists_in_db(self):
 
         check_data = {
             "dataset": self.dataset_name,
-            "hash": self.msr_hash
+            "hash": self.data_hash
         }
 
         # check db
@@ -37,7 +38,7 @@ class MSRItem():
     def __exists_in_file(self):
 
         msr_base = os.path.join(
-            self.base, self.dataset_name, self.msr_hash)
+            self.base, self.dataset_name, self.data_hash)
 
         raster_path = msr_base + '/raster.tif'
         geojson_path = msr_base + '/unique.geojson'
@@ -99,7 +100,7 @@ class MSRItem():
         ctime = int(time.time())
 
         query = {
-            'hash': self.msr_hash,
+            'hash': self.data_hash,
             'dataset': self.dataset_name,
             'options': self.selection
         }

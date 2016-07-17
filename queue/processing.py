@@ -38,21 +38,24 @@ branch_info = queue.get_branch_info()
 print "`{0}` branch on {1}".format(branch_info['name'], branch_info['server'])
 
 request_id = 0
+request_objects = []
 
 # run if given a request_id via input arg
 if len(sys.argv) == 2:
     request_id = str(sys.argv[1])
 
     # check for request with given id
-    # return status of check and request data object if request exists
+    # return request data object if request exists else None
     try:
-        request_objects = queue.check_id(request_id)
+        request_check = queue.check_id(request_id)
     except Exception as e:
         print "Error while checking request id (" + request_id + ")"
         raise e
 
-    if request_objects is None:
+    if request_check is None:
         sys.exit("Request with id does not exist (" + request_id + ")")
+
+    request_objects += [request_check]
 
 else:
     # get list of requests in queue based on status, priority and
@@ -63,7 +66,6 @@ else:
     # (new requests may have items that need to be added to queue,
     # or might already be done)
     try:
-        request_objects = []
         request_objects += queue.get_requests(-1, 0)
         request_objects += queue.get_requests(0, 0)
     except Exception as e:
@@ -75,7 +77,6 @@ else:
        sys.exit("Request queue is empty")
 
 
-print '\n---------------------------------------'
 
 # go through found requests, checking status of items in
 # in extract/msr queue, building final output when ready
@@ -84,13 +85,14 @@ for request_obj in request_objects:
 
     request_id = str(request_obj['_id'])
 
+    print '\n---------------------------------------'
     print 'Request (id: {0})\n{1}\n'.format(request_id, request_obj)
     print 'Boundary: {0}'.format(request_obj['boundary']['name'])
 
     original_status = queue.get_status(request_id)
 
     # set status 2 (no email)
-    update_status = queue.update_status(request_id, 2)
+    queue.update_status(request_id, 2)
 
 
     try:
@@ -98,7 +100,7 @@ for request_obj in request_objects:
                                                         dry_run=True)#False)
     except Exception as e:
         print "unable to run check_request"
-        update_status = queue.update_status(request_id, -2)
+        queue.update_status(request_id, -2)
         raise e
 
 
@@ -111,34 +113,34 @@ for request_obj in request_objects:
 
         try:
             # build request
-            result = queue.build_output(request_obj, merge_list)
+            queue.build_output(request_obj, merge_list)
         except Exception as e:
             print "error building request output"
-            update_status = queue.update_status(request_id, -2)
+            queue.update_status(request_id, -2)
             raise e
 
         # send email that request was completed
         queue.notify_completed(request_id, request_obj['email'])
 
         # set status 1 (email request is ready)
-        update_status = queue.update_status(request_id, 1)
+        queue.update_status(request_id, 1)
 
         print "request completed"
 
     else:
         # set status 0 (no email)
-        update_status = queue.update_status(request_id, 0)
+        queue.update_status(request_id, 0)
 
         print "request not ready"
 
-
-    print '---------------------------------------'
 
     ###
     # for testing
     queue.update_status(request_id, -1)
     ###
 
+
+print '\n---------------------------------------'
 print "\nFinished checking requests"
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 print '\n======================================='
