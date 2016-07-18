@@ -73,8 +73,6 @@ def get_version():
         raise RuntimeError("Unable to find version string in {}.".format(vfile))
 
 
-import pymongo
-
 # -------------------------------------
 
 import sys
@@ -105,7 +103,6 @@ if config.connection_status != 0:
 # -------------------------------------------------------------------------
 # find request
 
-# import pymongo
 client = config.client
 c_asdf = client.asdf.data
 c_msr = client.asdf.msr
