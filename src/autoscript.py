@@ -77,8 +77,8 @@ import pymongo
 
 # -------------------------------------
 
-# import sys
-# import os
+import sys
+import os
 
 branch = sys.argv[1]
 
@@ -96,9 +96,6 @@ from config_utility import BranchConfig
 config = BranchConfig(branch=branch)
 
 
-# -------------------------------------
-
-
 # check mongodb connection
 if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
@@ -109,7 +106,7 @@ if config.connection_status != 0:
 # find request
 
 # import pymongo
-client = pymongo.MongoClient(config.server)
+client = config.client
 c_asdf = client.asdf.data
 c_msr = client.asdf.msr
 
