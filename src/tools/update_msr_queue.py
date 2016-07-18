@@ -40,7 +40,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__)))))),
+        os.path.abspath(__file__))))),
     'mean-surface-rasters', 'src'))
 
 from msr_utility import CoreMSR
