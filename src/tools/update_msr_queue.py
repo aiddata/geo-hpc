@@ -103,6 +103,30 @@ if len(sys.argv) == 3 and sys.argv[2] == "clean":
 
 # -------------------------------------
 
+# filter combination generation settings
+
+# minimum number of locations to accept when a filter
+# combination has more than a single field
+# (meaning: sum of fields in all filter categories > 1)
+multi_cat_filter_min_len = 10
+
+# max number of sector fields that can be in each filter
+max_sector_count = 2
+
+# max number of donor fields that can be in each filter
+max_donor_count = 2
+
+# minimum total aid to accept for a given filter
+min_filter_aid_total = 0
+
+
+# some other settings
+
+# resolution of msr raster
+msr_resolution = 0.05
+
+# -------------------------------------
+
 
 dataset_info = {}
 for i in latest_releases:
@@ -143,9 +167,6 @@ for i in latest_releases:
     # dataset_info[ix]['donors'] = [x.encode('UTF8')
     #                                 for x in sorted(list(set(tmp_donors)))]
 
-
-    max_sector_count = 1
-    max_donor_count = 1
 
     ratio_list = itertools.product(
         range(max_sector_count), range(max_donor_count))
@@ -270,14 +291,15 @@ for i in latest_releases:
 
 
 
-        if len(df_filtered) == 0:
-            if len(sector_split_list) + len(donor_split_list) <= 1:
-                print sector_split_list
-                print donor_split_list
+        if (len(df_filtered) == 0 and
+                len(sector_split_list) + len(donor_split_list) <= 1):
+            print sector_split_list
+            print donor_split_list
             # empty_sum += 1
             continue
 
-        if (len(df_filtered) < 10 and
+
+        if (len(df_filtered) < multi_cat_filter_min_len and
                 len(sector_split_list) + len(donor_split_list) > 1):
             # count_thresh_sum += 1
             continue
@@ -299,7 +321,8 @@ for i in latest_releases:
         # print filter_donors
         # print '-'
 
-        if sum(df_filtered['adjusted_aid']) == 0: #sum(df_filtered['split_dollars_pp']):
+
+        if sum(df_filtered['adjusted_aid']) <= min_filter_aid_total: #sum(df_filtered['split_dollars_pp']):
             # aid_thresh_sum +=1
             continue
 
@@ -331,7 +354,7 @@ for i in latest_releases:
                 "dataset" : dataset_info[ix]['name'],
                 "type" : "release",
                 "version" : version,
-                "resolution" : 0.05,
+                "resolution" : msr_resolution,
                 "filters": filters
         }
 
