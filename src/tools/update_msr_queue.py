@@ -1,4 +1,5 @@
-#
+# update asdf/det msr tracker with all possible extract
+# combinations available from the asdf given specified depth/cut-off params
 
 # -----------------------------------------------------------------------------
 
@@ -20,20 +21,16 @@ from config_utility import BranchConfig
 
 config = BranchConfig(branch=branch)
 
-# -------------------------------------
-
 
 # check mongodb connection
 if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
-
 
 # -----------------------------------------------------------------------------
 
 
 import re
 import time
-import pymongo
 import itertools
 import numpy as np
 
@@ -63,7 +60,7 @@ print latest_releases
 # -------------------------------------
 
 
-client = pymongo.MongoClient(config.server)
+client = config.client
 c_asdf = client.asdf.data
 c_msr = client.asdf.msr
 db_releases = client.releases
