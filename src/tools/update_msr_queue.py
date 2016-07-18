@@ -111,10 +111,10 @@ if len(sys.argv) == 3 and sys.argv[2] == "clean":
 multi_cat_filter_min_len = 10
 
 # max number of sector fields that can be in each filter
-max_sector_count = 2
+max_sector_count = 1
 
 # max number of donor fields that can be in each filter
-max_donor_count = 2
+max_donor_count = 1
 
 # minimum total aid to accept for a given filter
 min_filter_aid_total = 0
