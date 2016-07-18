@@ -14,7 +14,7 @@ class MSRItem():
         self.base = base
 
         self.data_hash = data_hash
-        
+
         self.selection = selection
         self.dataset_name = selection['dataset']
 
@@ -32,7 +32,7 @@ class MSRItem():
         exists = not search is None
         status = search['status'] if exists else None
 
-        return True, (exists, status)
+        return exists, status
 
 
     def __exists_in_file(self):
@@ -50,7 +50,7 @@ class MSRItem():
 
         msr_exists = raster_exists and geojson_exists and summary_exists
 
-        return True, (msr_exists, raster_exists, geojson_exists, summary_exists)
+        return msr_exists, raster_exists, geojson_exists, summary_exists
 
 
     def exists(self):
@@ -61,11 +61,10 @@ class MSRItem():
         2) check if msr is completed, waiting to be run, or encountered
            an error
         """
-        db_info, db_tuple = self.__exists_in_db()
-        (db_exists, db_status) = db_tuple
+        db_exists, db_status = self.__exists_in_db()
 
-        file_info, file_tuple = self.__exists_in_file()
-        (file_exists, file_raster_exists, file_geojson_exists, file_summary_exists) = file_tuple
+        (file_exists, file_raster_exists,
+         file_geojson_exists, file_summary_exists) = self.__exists_in_file()
 
 
         valid_exists = False

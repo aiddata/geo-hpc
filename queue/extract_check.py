@@ -56,6 +56,8 @@ class ExtractItem():
         else:
             raise Exception('invalid extract type')
 
+        self.extract_path = None
+
 
     def __exists_in_db(self):
         """check if extract exists in extract queue db collection
@@ -63,70 +65,53 @@ class ExtractItem():
         check_data = {
             "boundary": self.boundary,
             "data": self.data,
-            "extract_type": self.extract_type
+            "extract_type": self.extract_type,
+            "version": self.version
         }
 
-        # check db
         search = self.c_extracts.find_one(check_data)
 
-        exists = not search is None
+        exists = search is not None
         status = search['status'] if exists else None
-        return True, (exists, status)
+        return exists, status
 
 
     def __exists_in_file(self):
         """check if extract file exists
-
-        also check reliability file when needed
         """
-        # core basename for output file
-        # does not include file type identifier
-        #   (...e.ext for extracts and ...r.ext for reliability)
-        #   or file extension
-        partial_name = self.data
-        if self.temporal_type == "None":
-            partial_name = partial_name + "_"
+        temporal = self.temporal_type
+        if temporal in ["None", None, "na"]:
+            temporal = "na"
 
-        output_name = partial_name + self.extract_abbr + ".csv"
+        # full file name
+        output_name = '{0}.{1}.{2}.csv'.format(self.dataset,
+                                               temporal,
+                                               self.extract_type)
 
-        # output file string without file type identifier
-        # or file extension
+        # absolute output path
         extract_path = os.path.join(
-            self.base, self.boundary, "cache", self.dataset,
-            self.extract_type, output_name)
+            self.base, self.boundary, "cache", self.dataset, output_name)
 
+        # need as attribute so it can be added to merge list
+        # outside class instance
         self.extract_path = extract_path
 
 
         extract_exists = os.path.isfile(extract_path)
 
-
-        reliability_path = extract_path[:-5] + "r.csv"
-        self.reliability_path = reliability_path
-
-        reliability_exists = os.path.isfile(reliability_path)
-
-
-        valid = False
-        if (extract_exists and (not self.reliability or
-                (self.reliability and reliability_exists))):
-            valid = True
-
-        return True, (valid, extract_exists, reliability_exists)
+        return extract_exists
 
 
     def exists(self):
-        """
-        - check for extract file
-        - check for reliability file if field is specified
+        """check if extract exists and status
+
+        - check for extract db entry and file
         - check if extract is completed, waiting to be run, or
            encountered an error
         """
-        db_info, db_tuple = self.__exists_in_db()
-        (db_exists, db_status) = db_tuple
+        db_exists, db_status = self.__exists_in_db()
 
-        file_info, file_tuple = self.__exists_in_file()
-        (file_exists, file_extract_exists, file_rel_exists) = file_tuple
+        file_exists = self.__exists_in_file()
 
         valid_exists = False
         valid_completed = False
@@ -151,13 +136,13 @@ class ExtractItem():
 
 
     def add_to_queue(self, classification):
-        """add extract item to det->extracts mongodb collection
+        """add extract item to asdf->extracts mongodb collection
         """
         ctime = int(time.time())
 
         query = {
-            'data': self.data,
             'boundary': self.boundary,
+            'data': self.data,
             'extract_type': self.extract_type
         }
 

@@ -68,14 +68,17 @@ class QueueToolBox():
         self.msr_resolution = 0.05
 
 
-    # exit function used for errors
-    def quit(self, rid, status, message):
-        self.update_status(rid, int(status))
-        sys.exit(">> det processing error ("+str(status)+"): \n\t\t" +
-                  str(message))
+    # def quit(self, rid, status, message):
+    #     """exit function used for errors
+    #     """
+    #     self.update_status(rid, int(status))
+    #     sys.exit(">> det processing error ("+str(status)+"): \n\t\t" +
+    #               str(message))
 
 
     def get_branch_info(self):
+        """get branch info from config collection
+        """
         branch_config = self.c_config.find_one()
         if branch_config is None:
             raise Exception('no branch config found')
@@ -171,9 +174,19 @@ class QueueToolBox():
             raise e
 
 
-    # sends an email
     def send_email(self, receiver, subject, message):
+        """send an email
 
+        Args:
+            receiver (str): email address to send to
+            subject (str): subject of email
+            message (str): body of email
+
+        Returns:
+            (tuple): status, error message, exception
+            status is bool
+            error message and exception are None on success
+        """
         reply_to = 'AidData W&M <data@aiddata.org>'
         sender = 'noreply@aiddata.wm.edu'
 
@@ -252,7 +265,6 @@ class QueueToolBox():
     def notify_completed(self, request_id, email):
         """send email that request was completed
         """
-
         mail_to = email
 
         mail_subject = ("AidData Data Extract Tool - "
@@ -297,15 +309,15 @@ class QueueToolBox():
 
         print "\nchecking aid data..."
         for raw_data in request['release_data']:
-            print ''
 
+            # remove filters without actual fields
             tmp_filters = {
                 fk: fv
                 for fk, fv in raw_data['filters'].iteritems()
                 if not any([fvx in ['All', 'None', None] for fvx in fv])
             }
 
-
+            # msr request object format
             data = {
                 'dataset': raw_data['dataset'],
                 'type': 'release',
@@ -314,12 +326,12 @@ class QueueToolBox():
                 'filters': tmp_filters
             }
 
-
-            # get hash
+            # get hash of msr request object
             data_hash = json_sha1_hash(data)
 
-            print '\t' + data_hash
-            print '\t %s' % data
+            print ''
+            print '\t{0}'.format(data_hash)
+            print '\t{0}'.format(data)
             print '\t----------'
 
             msr_item = MSRItem(self.client,
@@ -327,11 +339,11 @@ class QueueToolBox():
                                data_hash,
                                data)
 
-            # check if extract exists in queue and is completed
+            # check if msr exists in queue and is completed
             msr_exists, msr_completed = msr_item.exists()
 
-            print '\tmsr exists: %s' % msr_exists
-            print '\tmsr completed: %s' % msr_completed
+            print '\tmsr exists: {0}'.format(msr_exists)
+            print '\tmsr completed: {0}'.format(msr_completed)
 
             if msr_completed == True:
 
@@ -346,8 +358,8 @@ class QueueToolBox():
 
                 msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
 
-                print '\tmsr extract exists: %s' % msr_ex_exists
-                print '\tmsr extract completed: %s' % msr_ex_completed
+                print '\tmsr extract exists: {0}'.format(msr_ex_exists)
+                print '\tmsr extract completed: {0}'.format(msr_ex_completed)
 
                 if not msr_ex_completed:
                     extract_count += 1
@@ -378,11 +390,12 @@ class QueueToolBox():
             for i in data["files"]:
 
                 for extract_type in data["options"]["extract_types"]:
+
                     print ''
-                    print '\tdataset: %s' % name
-                    print '\tfile: %s' % i['name']
-                    print '\textract type: %s' % extract_type
-                    print '\t----------'
+                    print '\tdataset: {0}'.format(name)
+                    print '\tfile: {0}'.format(i['name'])
+                    print '\textract type: {0}'.format(extract_type)
+                    print ''
 
                     extract_item = ExtractItem(self.client,
                                                extract_base,
@@ -396,8 +409,9 @@ class QueueToolBox():
                     # check if extract exists in queue and is completed
                     extract_exists, extract_completed = extract_item.exists()
 
-                    print '\textract exists: %s' % extract_exists
-                    print '\textract completed: %s' % extract_completed
+                    print '\textract exists: {0}'.format(extract_exists)
+                    print '\textract completed: {0}'.format(extract_completed)
+                    print '\t--------------------'
 
                     # incremenet count if extract is not completed
                     # (whether it exists in queue or not)
@@ -415,10 +429,9 @@ class QueueToolBox():
                             ('raster_data', extract_item.extract_path, None))
 
 
-
         print ''
-        print 'missing msr count: %s' % msr_count
-        print 'missing extract count: %s' % extract_count
+        print 'missing msr count: {0}'.format(msr_count)
+        print 'missing extract count: {0}'.format(extract_count)
         print ''
 
         missing_items = extract_count + msr_count
@@ -465,8 +478,7 @@ class QueueToolBox():
 
 
     def merge(self, merge_list, output):
-        """
-        merge extracts when all are completed
+        """merge extracts when all are completed
         """
         merged_df = 0
 

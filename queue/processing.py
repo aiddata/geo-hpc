@@ -27,6 +27,7 @@ from request_tools import QueueToolBox
 
 # =============================================================================
 
+print '\n======================================='
 print '\nProcessing Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
@@ -50,7 +51,7 @@ if len(sys.argv) == 2:
         request_check = queue.check_id(request_id)
     except Exception as e:
         print "Error while checking request id (" + request_id + ")"
-        raise e
+        raise
 
     if request_check is None:
         sys.exit("Request with id does not exist (" + request_id + ")")
@@ -70,7 +71,7 @@ else:
         request_objects += queue.get_requests(0, 0)
     except Exception as e:
             print "Error while searching for requests in queue"
-            raise e
+            raise
 
     # verify that we have some requests
     if len(request_objects) == 0:
@@ -97,11 +98,12 @@ for request_obj in request_objects:
 
     try:
         missing_items, merge_list = queue.check_request(request_obj,
-                                                        dry_run=True)#False)
+                                                        dry_run=False)
     except Exception as e:
         print "unable to run check_request"
         queue.update_status(request_id, -2)
-        raise e
+
+        raise
 
 
     if original_status == -1:
@@ -117,7 +119,9 @@ for request_obj in request_objects:
         except Exception as e:
             print "error building request output"
             queue.update_status(request_id, -2)
-            raise e
+
+            raise
+
 
         # send email that request was completed
         queue.notify_completed(request_id, request_obj['email'])
@@ -143,5 +147,4 @@ for request_obj in request_objects:
 print '\n---------------------------------------'
 print "\nFinished checking requests"
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
-print '\n======================================='
 
