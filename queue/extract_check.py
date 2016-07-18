@@ -144,6 +144,7 @@ class ExtractItem():
             'boundary': self.boundary,
             'data': self.data,
             'extract_type': self.extract_type
+            'version': self.version
         }
 
         details = {
@@ -153,7 +154,6 @@ class ExtractItem():
             'priority': 0,
             'submit_time': ctime,
             'update_time': ctime,
-            'version': self.version
         }
 
         full_insert = query.copy()
