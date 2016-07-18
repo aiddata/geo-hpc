@@ -31,6 +31,7 @@ print '\n======================================='
 print '\nProcessing Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
+dry_run = False
 
 queue = QueueToolBox()
 
@@ -98,7 +99,7 @@ for request_obj in request_objects:
 
     try:
         missing_items, merge_list = queue.check_request(request_obj,
-                                                        dry_run=False)
+                                                        dry_run=dry_run)
     except Exception as e:
         print "unable to run check_request"
         queue.update_status(request_id, -2)
@@ -140,7 +141,8 @@ for request_obj in request_objects:
 
     ###
     # for testing
-    queue.update_status(request_id, -1)
+    if dry_run:
+        queue.update_status(request_id, original_status)
     ###
 
 
