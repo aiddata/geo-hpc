@@ -282,7 +282,7 @@ def tmp_worker_job(self, task_id):
 
     if pg_type == "country":
         mean_surf = master_grid
-        pg_geom = 0
+        pg_geom = core.adm0
 
     elif pg_type in core.geom_types:
 
@@ -299,10 +299,11 @@ def tmp_worker_job(self, task_id):
             try:
                 pg_geom = shape(pg_geom)
             except:
+                print("Geom is invalid")
                 print str(pg_data['project_location_id'])
                 print type(pg_geom)
                 print pg_geom
-                sys.exit("Geom is invalid")
+                raise
 
             # factor used to determine subgrid size
             # relative to output grid size
@@ -452,9 +453,7 @@ def complete_unique_geoms():
     unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
 
     # unique_geo_df['index'] = range(len(unique_geo_df))
-    print geo_df["geometry"]
-    print new_geo_df["geometry"]
-    print unique_geo_df["geometry"]
+
 
     # write unique to geojson
     unique_geo_json = unique_geo_df.to_json()
