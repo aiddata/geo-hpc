@@ -143,7 +143,7 @@ class ExtractItem():
         query = {
             'boundary': self.boundary,
             'data': self.data,
-            'extract_type': self.extract_type
+            'extract_type': self.extract_type,
             'version': self.version
         }
 
@@ -153,7 +153,7 @@ class ExtractItem():
             'status': 0,
             'priority': 0,
             'submit_time': ctime,
-            'update_time': ctime,
+            'update_time': ctime
         }
 
         full_insert = query.copy()
