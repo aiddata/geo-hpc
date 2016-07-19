@@ -343,7 +343,7 @@ def complete_final_raster():
     # calc results
     sum_mean_surf = mstack.get_stack_sum()
 
-    out_dtype = 'int64'
+    out_dtype = 'float64'
     # affine takes upper left
     # (writing to asc directly used lower left)
     meta = {
