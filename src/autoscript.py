@@ -343,12 +343,13 @@ def complete_final_raster():
     # calc results
     sum_mean_surf = mstack.get_stack_sum()
 
+    out_dtype = 'int32'
     # affine takes upper left
     # (writing to asc directly used lower left)
     meta = {
         'count': 1,
         'crs': {'init': 'epsg:4326'},
-        'dtype': 'float64',
+        'dtype': out_dtype,
         'affine': core.affine,
         'driver': 'GTiff',
         'height': core.shape[0],
@@ -359,7 +360,7 @@ def complete_final_raster():
 
     sum_mean_surf.shape = core.shape
 
-    out_mean_surf = np.array([sum_mean_surf.astype('int32')])
+    out_mean_surf = np.array([sum_mean_surf.astype(out_dtype)])
 
     # write geotif file
     with rasterio.open(dir_working + "/raster.tif", "w", **meta) as dst:
