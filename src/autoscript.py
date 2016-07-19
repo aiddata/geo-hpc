@@ -321,7 +321,6 @@ def tmp_worker_job(self, task_id):
     else:
         mean_surf = mean_surf.astype('float64')
         mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
-        mean_surf = mean_surf.astype('int64')
         return (task, pg_geom, mean_surf.flatten())
 
 
@@ -360,7 +359,7 @@ def complete_final_raster():
 
     sum_mean_surf.shape = core.shape
 
-    out_mean_surf = np.array([sum_mean_surf.astype('float64')])
+    out_mean_surf = np.array([sum_mean_surf.astype('int32')])
 
     # write geotif file
     with rasterio.open(dir_working + "/raster.tif", "w", **meta) as dst:
