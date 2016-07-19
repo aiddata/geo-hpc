@@ -376,22 +376,22 @@ def complete_unique_geoms():
     # output unique geometries and sum of all
     # project locations associated with that geometry
 
-    active_data = active_data.loc[
+    unique_active_data = active_data.loc[
         active_data.geom_val != "None"].copy(deep=True)
 
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
     # location id
-    geo_df["project_location_id"] = active_data["project_location_id"]
-    geo_df["project_location_id"].fillna(active_data["project_id"],
+    geo_df["project_location_id"] = unique_active_data["project_location_id"]
+    geo_df["project_location_id"].fillna(unique_active_data["project_id"],
                                          inplace=True)
     geo_df["project_location_id"] = geo_df["project_location_id"].astype(str)
 
     # assuming even split of total project dollars is "max" dollars
     # that project location could receive
-    geo_df["dollars"] = active_data["adjusted_aid"]
+    geo_df["dollars"] = unique_active_data["adjusted_aid"]
     # geometry for each project location
-    geo_df["geometry"] = gpd.GeoSeries(active_data["geom_val"])
+    geo_df["geometry"] = gpd.GeoSeries(unique_active_data["geom_val"])
 
     # # write full to geojson
     # full_geo_json = geo_df.to_json()
@@ -692,7 +692,7 @@ core.set_pixel_size(request['options']['resolution'])
 
 if iso3 == 'global':
     raise Exception('not ready for global yet')
-    world_box = box(-190, -100, 180, 90)
+    # world_box = box(-180, -90, 180, 90)
 
 else:
 
@@ -767,12 +767,14 @@ job.set_master_process(tmp_master_process)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
-# try:
-job.run()
-# except Exception as err:
-#     print err
-#     # add error status to request in msr queue
-#     update_msr = c_msr.update_one({'hash': request['hash']},
-#                                 {'$set': {"status": -1,}},
-#                                 upsert=False)
+
+try:
+    job.run()
+except Exception as err:
+    print "error running msr job (hash: {0}".format(request['hash'])
+    # add error status to request in msr queue
+    update_msr = c_msr.update_one({'hash': request['hash']},
+                                {'$set': {"status": -1,}},
+                                upsert=False)
+    raise
 
