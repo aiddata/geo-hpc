@@ -414,7 +414,7 @@ def complete_unique_geoms():
     sum_unique = geo_df.groupby(by='str_geo_hash')['dollars'].sum()
 
     # get count of locations for each unique geom
-    geo_df['ones'] = (pd.Series(np.ones(len(geo_df)))).values
+    geo_df['ones'] = 1 #(pd.Series(np.ones(len(geo_df)))).values
     sum_count = geo_df.groupby(by='str_geo_hash')['ones'].sum()
 
     # create list of project location ids for unique geoms
@@ -448,7 +448,7 @@ def complete_unique_geoms():
     unique_geo_df["location_count"] = new_geo_df["location_count"]
     unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
 
-    unique_geo_df['index'] = range(len(unique_geo_df))
+    # unique_geo_df['index'] = range(len(unique_geo_df))
 
     # write unique to geojson
     unique_geo_json = unique_geo_df.to_json()
