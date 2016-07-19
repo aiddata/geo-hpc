@@ -17,7 +17,7 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 class DocBuilder():
 
 
-    def __init__(self, request_id, request, output):
+    def __init__(self, request, output):
 
         self.client = pymongo.MongoClient()
         self.c_asdf = self.client.asdf.data
@@ -76,11 +76,11 @@ class DocBuilder():
     # documentation header
     def add_header(self):
         # aiddata logo
-        logo = self.dir_base + '/templates/logo.png'
+        # logo = self.dir_base + '/templates/logo.png'
 
-        im = Image(logo, 2.188*inch, 0.5*inch)
-        im.hAlign = 'LEFT'
-        self.Story.append(im)
+        # im = Image(logo, 2.188*inch, 0.5*inch)
+        # im.hAlign = 'LEFT'
+        # self.Story.append(im)
 
         self.Story.append(Spacer(1, 0.25*inch))
 

@@ -353,7 +353,7 @@ class QueueToolBox():
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
                                           "reliability",
-                                          "None",
+                                          data_hash,
                                           self.extract_version)
 
                 msr_ex_exists, msr_ex_completed = msr_ex_item.exists()
@@ -370,7 +370,7 @@ class QueueToolBox():
                 else:
                     # add to merge list
                     merge_list.append(
-                        ('release_data', msr_ex_item.extract_path, msr_id))
+                        (msr_ex_item.extract_path, 'release_data', msr_id))
 
             else:
                 msr_count += 1
@@ -397,13 +397,15 @@ class QueueToolBox():
                     print '\textract type: {0}'.format(extract_type)
                     print ''
 
+                    temporal = i["name"][len(data["name"])+1:]
+
                     extract_item = ExtractItem(self.client,
                                                extract_base,
                                                request["boundary"]["name"],
                                                data["name"],
                                                i["name"],
                                                extract_type,
-                                               data["temporal_type"],
+                                               temporal,
                                                self.extract_version)
 
                     # check if extract exists in queue and is completed
@@ -426,7 +428,7 @@ class QueueToolBox():
                     else:
                         # add to merge list
                         merge_list.append(
-                            ('raster_data', extract_item.extract_path, None))
+                            (extract_item.extract_path, 'raster_data', None))
 
 
         print ''
@@ -460,101 +462,108 @@ class QueueToolBox():
         merge_output = os.path.join(request_dir, "results.csv")
 
         # merge cached results if all are available
-        merge_status = self.merge(merge_list, merge_output)
+        merge_status = self.merge_file_list(merge_list, merge_output)
+
+        if not merge_status:
+            raise Exception('\tWarning: no extracts merged for '
+                            'request_id = {0}').format(request_id)
+        else:
+            print '\tMerge completed for {0}'.format(request_id)
 
 
         # generate documentation
         doc_output =  os.path.join(request_dir, "documentation.pdf")
         doc = DocBuilder(request, doc_output)
         bd_status = doc.build_doc()
-        print bd_status
+        # print bd_status
 
 
         # zip files and delete originals
         shutil.make_archive(request_dir, "zip", results_dir, request_id)
         shutil.rmtree(request_dir)
 
-        return True
 
 
-    def merge(self, merge_list, output):
-        """merge extracts when all are completed
+
+    def merge_file_list(self, file_list, merge_output):
+        """merge extracts for given file list
+
+        outputs to given csv path
+
+        Args:
+        file_list (list): contains file paths of extract csv files
+                          to merge. may be a tuple, to pass additional
+                          info, but extract file path must be first item
+
+        merge_output (str): absolute path for merged output file
         """
         merged_df = 0
+        for file_info in file_list:
 
-        # used to track dynamically generated field names
-        # so corresponding extract and reliability have consistent names
-        merge_log = {}
-
-        # created merged dataframe from results
-    # try:
-
-        # for each result file that should exist for request
-        # (extracts and reliability)
-        for merge_item in merge_list:
-            merge_class, result_csv, dynamic_merge_count = merge_item
-
-            # make sure file exists
-            if os.path.isfile(result_csv):
-
-                if merge_class == 'raster_data':
-                    # get field name from file
-                    result_field =  os.path.splitext(os.path.basename(
-                        result_csv))[0]
-
-                elif merge_class == 'release_data':
-
-                    csv_basename = os.path.splitext(os.path.basename(
-                        result_csv))[0]
-
-                    merge_log_name = csv_basename[:-2]
-
-                    if not merge_log_name in merge_log.keys():
-
-                        # dynamic merge string
-                        tmp_str = '{0:03d}'.format(dynamic_merge_count)
-
-                        merge_log[merge_log_name] = 'ad_msr' + tmp_str
+            if isinstance(file_info, tuple):
+                result_csv = file_info[0]
+            else:
+                result_csv = file_info
 
 
-                    result_field = merge_log[merge_log_name] + csv_basename[-1:]
+            if not os.path.isfile(result_csv):
+                raise Exception("missing file ({0})".format(result_csv))
 
 
-                # load csv into dataframe
-                result_df = pd.read_csv(result_csv, quotechar='\"',
-                                        na_values='', keep_default_na=False)
+            result_df = pd.read_csv(result_csv, quotechar='\"',
+                                    na_values='', keep_default_na=False)
 
-                # check if merged df exists
-                if not isinstance(merged_df, pd.DataFrame):
-                    # if merged df does not exists initialize it
-                    # init merged df using full csv
-                    merged_df = result_df.copy(deep=True)
-                    # change extract column name to file name
-                    merged_df.rename(columns={"ad_extract": result_field},
-                                     inplace=True)
+
+            exfields = [
+                cname for cname in list(result_df.columns)
+                if cname.startswith("exfield_")
+            ]
+
+            if not isinstance(merged_df, pd.DataFrame):
+                merged_df = result_df.copy(deep=True)
+                merged_df.drop(exfields, axis=1, inplace=True)
+
+
+            result_field = result_csv[result_csv.rindex('/')+1:-4]
+
+            # could add something here that attempt to cap field name at 10 chars
+            #
+            # rasters... lookup mini name, extract method abbrv,
+            #            attempt to include temporal infl
+            # msr... use dynamic_merge_count and something else?
+
+
+            for c in exfields:
+
+                if result_field.endswith('categorical'):
+                    tmp_field = "{0}_{1}".format(
+                        result_field,
+                        c[len("exfield_"):])
+
+                elif result_field.endswith('reliability'):
+                    tmp_field = "{0}{1}".format(
+                        result_field[:-len('reliability')],
+                        c[len("exfield_"):])
 
                 else:
-                    # if merge df exists add data to it
-                    # add only extract column to merged df
-                    # with column name = new extract file name
-                    merged_df[result_field] = result_df["ad_extract"]
-
-    # except Exception as e:
-        # warnings.warn(e)
-        # return False, "error building merged dataframe"
+                    tmp_field = result_field
 
 
-        # output merged dataframe to csv
-    # try:
-        # generate output folder for merged df using request id
-        make_dir(os.path.dirname(output))
+                merged_df[tmp_field] = result_df[c]
 
-        # write merged df to csv
-        merged_df.to_csv(output, index=False)
 
-        return True
+        if isinstance(merged_df, pd.DataFrame):
+            # output merged dataframe to csv
+            # generate output folder for merged df using request id
+            make_dir(os.path.dirname(merge_output))
 
-    # except Exception as e:
-        # warnings.warn(e)
-    #     return False, "error writing merged dataframe"
+            # write merged df to csv
+            merged_df.to_csv(merge_output, index=False)
+            print '\tResults output to {0}'.format(merge_output)
+            return True
+
+        else:
+            print '\tWarning: no extracts merged'
+            return False
+
 

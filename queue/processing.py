@@ -103,7 +103,6 @@ for request_obj in request_objects:
     except Exception as e:
         print "unable to run check_request"
         queue.update_status(request_id, -2)
-
         raise
 
 
@@ -120,7 +119,6 @@ for request_obj in request_objects:
         except Exception as e:
             print "error building request output"
             queue.update_status(request_id, -2)
-
             raise
 
 

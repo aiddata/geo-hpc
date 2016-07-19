@@ -73,6 +73,11 @@ class ExtractItem():
 
         exists = search is not None
         status = search['status'] if exists else None
+
+        # print 'extract db info'
+        # print exists
+        # print status
+
         return exists, status
 
 
@@ -80,7 +85,7 @@ class ExtractItem():
         """check if extract file exists
         """
         temporal = self.temporal_type
-        if temporal in ["None", None, "na"]:
+        if temporal in ["None", None, "na", '']:
             temporal = "na"
 
         # full file name
@@ -96,8 +101,11 @@ class ExtractItem():
         # outside class instance
         self.extract_path = extract_path
 
-
         extract_exists = os.path.isfile(extract_path)
+
+        # print 'extract file info'
+        # print extract_path
+        # print extract_exists
 
         return extract_exists
 
