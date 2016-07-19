@@ -449,6 +449,9 @@ def complete_unique_geoms():
     unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
 
     # unique_geo_df['index'] = range(len(unique_geo_df))
+    print geo_df["geometry"]
+    print new_geo_df["geometry"]
+    print unique_geo_df["geometry"]
 
     # write unique to geojson
     unique_geo_json = unique_geo_df.to_json()

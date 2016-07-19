@@ -238,8 +238,8 @@ class CoreMSR():
         try:
             value = float(value)
         except:
-            raise Exception("pixel size given could not be converted to " +
-                            "float: " + str(value))
+            raise Exception("pixel size given could not be converted to "
+                            "float ({0})".format(value))
 
         # check for valid pixel size
         # examples of valid pixel sizes:
@@ -339,7 +339,7 @@ class CoreMSR():
 
         # make sure merge id field exists in both files
         if not merge_id in amp or not merge_id in loc:
-            raise Exception("merge_data - merge field not found in amp or " +
+            raise Exception("merge_data - merge field not found in amp or "
                             "loc files")
 
         # convert merge id field to string to prevent potential type issues
@@ -355,7 +355,7 @@ class CoreMSR():
         # make sure merge dataframe has longitude and latitude fields
         # so it can be converted to geodataframe later
         if not "longitude" in tmp_merged or not "latitude" in tmp_merged:
-            raise Exception("merge_data - latitude and longitude fields " +
+            raise Exception("merge_data - latitude and longitude fields "
                             "not found")
 
         # make sure option fields are present
@@ -561,7 +561,9 @@ class CoreMSR():
             if shp.within(tmp_poly):
                 return tmp_poly
 
-        return 0
+        print "CoreMSR [get_shape_within] : shp not within any given poly"
+
+        return "None"
 
 
     def is_in_country(self, shp):
@@ -578,7 +580,7 @@ class CoreMSR():
             raise Exception("CoreMSR [is_in_country] : invalid shp given")
 
         if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
-            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 " +
+            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 "
                             "found")
 
         return self.prep_adm0.contains(shp)
@@ -603,7 +605,7 @@ class CoreMSR():
 
         if not self.is_in_country(tmp_pnt):
             print "point not in country " + str(tmp_pnt)
-            return 0
+            return "None"
 
         else:
             if code_2 not in self.lookup[code_1]:
@@ -622,7 +624,7 @@ class CoreMSR():
                     tmp_int = float(tmp_lookup["data"])
                 except:
                     print "buffer value could not be converted to float"
-                    return 0
+                    raise
 
                 try:
                     tmp_utm_info = utm.from_latlon(lat, lon)
@@ -634,9 +636,9 @@ class CoreMSR():
                         + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
                     proj_wgs = pyproj.Proj(init="epsg:4326")
                 except:
-                    print "error initializing projs"
-                    print str(tmp_utm_zone)
-                    return 0
+                    print ("error initializing projs "
+                           "(utm: {0})").format(tmp_utm_zone)
+                    raise
 
                 try:
                     utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
@@ -662,7 +664,7 @@ class CoreMSR():
 
                 except:
                     print "error applying projs"
-                    return 0
+                    raise
 
             elif tmp_lookup["type"] == "adm":
                 try:
@@ -672,11 +674,11 @@ class CoreMSR():
 
                 except:
                     print "adm value could not be converted to int"
-                    return 0
+                    raise
 
             else:
                 print "geom object type not recognized"
-                return 0
+                return "None"
 
 
     def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
@@ -711,9 +713,6 @@ class CoreMSR():
             code_3 = str(int(code_3))
 
             tmp_geom = self.get_geom(code_1, code_2, code_3, lon, lat)
-
-            if tmp_geom == 0:
-                return "None"
 
             return tmp_geom
 
@@ -795,8 +794,8 @@ class CoreMSR():
 
         top_left_lon = minx
         top_left_lat = maxy
-        affine = Affine(pixel_size, 0, top_left_lon, 
-                             0, -pixel_size, top_left_lat)
+        affine = Affine(pixel_size, 0, top_left_lon,
+                        0, -pixel_size, top_left_lat)
 
         nrows = int(psi * (maxy - miny))
         ncols = int(psi * (maxx - minx))
@@ -828,13 +827,16 @@ class CoreMSR():
             if fscale < 1:
                 raise Exception("CoreMSR [rasterize_geom] : scale must be >=1")
 
+
             iscale = int(scale)
 
             if float(iscale) != fscale:
-                warnings.warn("CoreMSR [rasterize_geom] : scale float ("+str(fscale)+") converted to int ("+str(iscale)+")")
-            
+                warnings.warn("CoreMSR [rasterize_geom] : scale float ({0}) "
+                              "converted to int ({1})").format(fscale, iscale)
+
         except:
-            raise Exception("CoreMSR [rasterize_geom] : invalid scale type")
+            print "CoreMSR [rasterize_geom] : invalid scale type"
+            raise
 
 
         scale = iscale
@@ -847,7 +849,7 @@ class CoreMSR():
             pixel_size = self.pixel_size / scale
 
 
-        affine = Affine(pixel_size, 0, self.topleft[0], 
+        affine = Affine(pixel_size, 0, self.topleft[0],
                         0, -pixel_size, self.topleft[1])
 
         nrows = self.shape[0] * scale
@@ -856,10 +858,10 @@ class CoreMSR():
         shape = (nrows, ncols)
 
         rasterized = features.rasterize(
-            [(geom, 1)], 
-            out_shape=shape, 
+            [(geom, 1)],
+            out_shape=shape,
             transform=affine,
-            fill=0, 
+            fill=0,
             all_touched=False)
 
         if scale != 1:
