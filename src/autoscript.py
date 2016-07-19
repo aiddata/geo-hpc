@@ -379,6 +379,9 @@ def complete_unique_geoms():
     unique_active_data = active_data.loc[
         active_data.geom_val != "None"].copy(deep=True)
 
+    print unique_active_data.geom_val
+
+
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
     # location id

@@ -548,7 +548,7 @@ class CoreMSR():
             polys (List[shape]): list of shapes
         Returns:
             If shape is found in polys which shp is within, return shape.
-            If not shape is found, return 0.
+            If not shape is found, return None.
         """
         if not hasattr(shp, 'geom_type'):
             raise Exception("CoreMSR [get_shape_within] : invalid shp given")
