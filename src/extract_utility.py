@@ -1023,7 +1023,7 @@ class MergeObject():
                         tmp_field = base_field
                         if base_field.endswith('categorical'):
                             tmp_field = base_field + '_' + c[len("exfield_"):]
-                        
+
                         merge.rename(columns={c: tmp_field},
                                      inplace=True)
 
@@ -1118,7 +1118,10 @@ class FeatureExtractTool():
 
             temporal = 'na'
             dataset = self.data_name
-            if '_' in self.data_name:
+            if self.classification == "msr":
+                dataset = self.data_name[:self.data_name.rindex('_')]
+
+            elif '_' in self.data_name:
                 tmp_temp = self.data_name[self.data_name.rindex('_')+1:]
                 if tmp_temp.isdigit():
                     temporal = tmp_temp
