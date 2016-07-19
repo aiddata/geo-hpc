@@ -343,7 +343,7 @@ def complete_final_raster():
     # calc results
     sum_mean_surf = mstack.get_stack_sum()
 
-    out_dtype = 'int32'
+    out_dtype = 'int64'
     # affine takes upper left
     # (writing to asc directly used lower left)
     meta = {
@@ -380,8 +380,6 @@ def complete_unique_geoms():
 
     unique_active_data = active_data.loc[
         active_data.geom_val != "None"].copy(deep=True)
-
-    print unique_active_data.geom_val
 
 
     # creating geodataframe
