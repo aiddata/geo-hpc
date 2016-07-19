@@ -656,7 +656,10 @@ class ExtractObject():
                                 feat['properties']['exfield_reliability'] = rval
 
                             except ZeroDivisionError:
-                                feat['properties']['exfield_reliability'] = 1
+                                if feat['properties']['exfield_sum'] > 0:
+                                    feat['properties']['exfield_reliability'] = 1
+                                else:
+                                    feat['properties']['exfield_reliability'] = 0
 
 
                     except:
@@ -1017,6 +1020,13 @@ class MergeObject():
         """merge extracts for given file list
 
         outputs to given csv path
+
+        Args:
+        file_list (list): contains file paths of extract csv files
+                          to merge. may be a tuple, to pass additional
+                          info, but extract file path must be first item
+
+        merge_output (str): absolute path for merged output file
         """
         merged_df = 0
         for file_info in file_list:
