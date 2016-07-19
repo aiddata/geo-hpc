@@ -656,7 +656,7 @@ class ExtractObject():
                                 feat['properties']['exfield_reliability'] = rval
 
                             except ZeroDivisionError:
-                                if feat['properties']['exfield_sum'] > 0:
+                                if feat['properties']['exfield_sum'] == 0:
                                     feat['properties']['exfield_reliability'] = 1
                                 else:
                                     feat['properties']['exfield_reliability'] = 0
