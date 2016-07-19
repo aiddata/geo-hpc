@@ -321,6 +321,7 @@ def tmp_worker_job(self, task_id):
     else:
         mean_surf = mean_surf.astype('float64')
         mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
+        mean_surf = mean_surf.astype('int64')
         return (task, pg_geom, mean_surf.flatten())
 
 
