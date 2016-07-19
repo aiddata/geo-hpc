@@ -514,7 +514,7 @@ class ExtractObject():
 
     #     elif self._extract_type == "reliability":
     #         feat['properties']['exfield_sum'] = 'MemoryError'
-    #         feat['properties']['exfield_maxaid'] = 'MemoryError'
+    #         feat['properties']['exfield_potential'] = 'MemoryError'
     #         feat['properties']['exfield_reliability'] = 'MemoryError'
 
     #     else:
@@ -631,7 +631,7 @@ class ExtractObject():
                                  isnan(tmp_sum))
                         if is_na:
                             feat['properties']['exfield_sum'] = 'NA'
-                            feat['properties']['exfield_maxaid'] = 'NA'
+                            feat['properties']['exfield_potential'] = 'NA'
                             feat['properties']['exfield_reliability'] = 'NA'
 
                         else:
@@ -649,10 +649,10 @@ class ExtractObject():
 
 
                             # calculate reliability statistic
-                            feat['properties']['exfield_maxaid'] = max_dollars
+                            feat['properties']['exfield_potential'] = max_dollars
                             try:
                                 rval = (feat['properties']['exfield_sum'] /
-                                        feat['properties']['exfield_maxaid'])
+                                        feat['properties']['exfield_potential'])
                                 feat['properties']['exfield_reliability'] = rval
 
                             except ZeroDivisionError:
@@ -668,7 +668,7 @@ class ExtractObject():
                     warnings.warn('Reliability field (sum) missing from ' +
                                   'feature properties')
                     feat['properties']['exfield_sum'] = 'NA'
-                    feat['properties']['exfield_maxaid'] = 'NA'
+                    feat['properties']['exfield_potential'] = 'NA'
                     feat['properties']['exfield_reliability'] = 'NA'
 
                 yield feat
@@ -977,7 +977,7 @@ class MergeObject():
 
 
             if not self.interface:
-                merge_output_csv =  (self.merge_output_dir + "/merge_" +
+                merge_output =  (self.merge_output_dir + "/merge_" +
                                      bnd_name + ".csv")
 
             else:
@@ -992,7 +992,7 @@ class MergeObject():
 
                         # make sure file name ends with .csv
                         if answer.endswith(".csv"):
-                            merge_output_csv = answer
+                            merge_output = answer
                             break
                         else:
                             sys.stdout.write("Invalid file extension (must " +
@@ -1003,55 +1003,89 @@ class MergeObject():
                                          "exist.\n")
 
 
-            merge = 0
-            for result_csv in file_list:
+            merge_status = self.merge_file_list(file_list, merge_output)
 
-                result_df = pd.read_csv(result_csv, quotechar='\"',
-                                        na_values='', keep_default_na=False)
+            if not merge_status:
+                print ('\tWarning: no extracts merged for '
+                       'bnd_name = {0}').format(bnd_name)
+            else:
+                print '\tMerge completed for {0}'.format(bnd_name)
 
-                base_field = result_csv[result_csv.rindex('/')+1:-4]
 
-                if not isinstance(merge, pd.DataFrame):
-                    merge = result_df.copy(deep=True)
 
-                    # if tmp_field.endswith("c"):
-                    cat_fields = [
-                        cname for cname in list(merge.columns)
-                        if cname.startswith("exfield_")
-                    ]
-                    for c in cat_fields:
-                        tmp_field = base_field
-                        if base_field.endswith('categorical'):
-                            tmp_field = base_field + '_' + c[len("exfield_"):]
+    def merge_file_list(self, file_list, merge_output):
+        """merge extracts for given file list
 
-                        merge.rename(columns={c: tmp_field},
-                                     inplace=True)
+        outputs to given csv path
+        """
+        merged_df = 0
+        for file_info in file_list:
+
+            if isinstance(file_info, tuple):
+                result_csv = file_info[0]
+            else:
+                result_csv = file_info
+
+
+            if not os.path.isfile(result_csv):
+                raise Exception("missing file ({0})".format(result_csv))
+
+
+            result_df = pd.read_csv(result_csv, quotechar='\"',
+                                    na_values='', keep_default_na=False)
+
+
+            exfields = [
+                cname for cname in list(result_df.columns)
+                if cname.startswith("exfield_")
+            ]
+
+            if not isinstance(merged_df, pd.DataFrame):
+                merged_df = result_df.copy(deep=True)
+                merged_df.drop(exfields, axis=1, inplace=True)
+
+
+            result_field = result_csv[result_csv.rindex('/')+1:-4]
+
+            # could add something here that attempt to cap field name at 10 chars
+            #
+            # rasters... lookup mini name, extract method abbrv,
+            #            attempt to include temporal infl
+            # msr... use dynamic_merge_count and something else?
+
+
+            for c in exfields:
+
+                if result_field.endswith('categorical'):
+                    tmp_field = "{0}_{1}".format(
+                        result_field,
+                        c[len("exfield_"):])
+
+                elif result_field.endswith('reliability'):
+                    tmp_field = "{0}{1}".format(
+                        result_field[:-len('reliability')],
+                        c[len("exfield_"):])
 
                 else:
-                    # if tmp_field.endswith("c"):
-                    cat_fields = [
-                        cname for cname in list(result_df.columns)
-                        if cname.startswith("exfield_")
-                    ]
-                    for c in cat_fields:
-                        tmp_field = base_field
-                        if base_field.endswith('categorical'):
-                            tmp_field = base_field + '_' + c[len("exfield_"):]
-
-                        merge[tmp_field] = result_df[c]
+                    tmp_field = result_field
 
 
-            if isinstance(merge, pd.DataFrame):
+                merged_df[tmp_field] = result_df[c]
 
-                merge.to_csv(merge_output_csv, index=False)
 
-                print '\tMerge completed for ' + bnd_name
-                print '\tResults output to ' + merge_output_csv
+        if isinstance(merged_df, pd.DataFrame):
+            # output merged dataframe to csv
+            # generate output folder for merged df using request id
+            make_dir(os.path.dirname(merge_output))
 
-            else:
-                print ('\tWarning: no extracts merged for bnd_name = ' +
-                       bnd_name)
+            # write merged df to csv
+            merged_df.to_csv(merge_output, index=False)
+            print '\tResults output to {0}'.format(merge_output)
+            return True
 
+        else:
+            print '\tWarning: no extracts merged'
+            return False
 
 
 # -----------------------------------------------------------------------------
@@ -1110,7 +1144,7 @@ class FeatureExtractTool():
                 ex_value = {
                     'sum': feat['properties']['exfield_sum'],
                     'reliability': feat['properties']['exfield_reliability'],
-                    'maxaid': feat['properties']['exfield_maxaid']
+                    'potential': feat['properties']['exfield_potential']
                 }
             else:
                 ex_value = feat['properties']['exfield_' + self.ex_method]
@@ -1416,7 +1450,7 @@ class FeatureExtractTool():
 
 
 #             if not self.interface:
-#                 merge_output_csv =  (self.merge_output_dir + "/merge_" +
+#                 merge_output =  (self.merge_output_dir + "/merge_" +
 #                                      bnd_name + ".csv")
 
 #             else:
@@ -1431,7 +1465,7 @@ class FeatureExtractTool():
 
 #                         # make sure file name ends with .csv
 #                         if answer.endswith(".csv"):
-#                             merge_output_csv = answer
+#                             merge_output = answer
 #                             break
 #                         else:
 #                             sys.stdout.write("Invalid file extension (must " +
@@ -1448,36 +1482,36 @@ class FeatureExtractTool():
 #                 result_df = pd.read_csv(result_csv, quotechar='\"',
 #                                         na_values='', keep_default_na=False)
 
-#                 base_field = result_csv[result_csv.rindex('/')+1:-4]
+#                 result_field = result_csv[result_csv.rindex('/')+1:-4]
 
 #                 if not isinstance(merge, pd.DataFrame):
 #                     merge = result_df.copy(deep=True)
 
 #                     # if tmp_field.endswith("c"):
-#                     cat_fields = [
+#                     exfields = [
 #                         cname for cname in list(merge.columns)
 #                         if cname.startswith("exfield_")
 #                     ]
-#                     for c in cat_fields:
+#                     for c in exfields:
 #                         merge.rename(columns={c: tmp_field},
 #                                      inplace=True)
 
 #                 else:
 #                     # if tmp_field.endswith("c"):
-#                     cat_fields = [
+#                     exfields = [
 #                         cname for cname in list(result_df.columns)
 #                         if cname.startswith("exfield_")
 #                     ]
-#                     for c in cat_fields:
+#                     for c in exfields:
 #                         merge[tmp_field] = result_df[c]
 
 
 #             if isinstance(merge, pd.DataFrame):
 
-#                 merge.to_csv(merge_output_csv, index=False)
+#                 merge.to_csv(merge_output, index=False)
 
 #                 print '\tMerge completed for ' + bnd_name
-#                 print '\tResults output to ' + merge_output_csv
+#                 print '\tResults output to ' + merge_output
 
 #             else:
 #                 print ('\tWarning: no extracts merged for bnd_name = ' +
