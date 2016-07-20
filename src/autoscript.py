@@ -23,7 +23,6 @@ import time
 import datetime
 import math
 import itertools
-# import json
 import ujson as json
 import shutil
 import re
@@ -31,7 +30,6 @@ import hashlib
 
 from copy import deepcopy
 from collections import OrderedDict
-
 
 import numpy as np
 import pandas as pd
@@ -70,7 +68,8 @@ def get_version():
     if match:
         return match.group(1)
     else:
-        raise RuntimeError("Unable to find version string in {}.".format(vfile))
+        raise RuntimeError(
+            "Unable to find version string in {}.".format(vfile))
 
 
 # -------------------------------------
