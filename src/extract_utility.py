@@ -29,6 +29,20 @@ from shapely.geometry import shape
 
 # -----------------------------------------------------------------------------
 
+def make_dir(path):
+    """Make directory.
+
+    Args:
+        path (str): absolute path for directory
+
+    Raise error if error other than directory exists occurs.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
 
 def str_to_range(value):
     """Generate year range based on year string range segment input.
