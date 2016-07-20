@@ -206,7 +206,7 @@ class ExtractObject():
         "sum": "s",
         "min": "m",
         "max": "x",
-        "std": "d",
+        # "std": "d",
 
         "reliability": "r"
 
