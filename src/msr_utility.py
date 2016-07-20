@@ -20,7 +20,7 @@ from rasterio import features
 from affine import Affine
 from warnings import warn
 
-                                                                               
+
 class MasterStack:
     """Manage stack of grid arrays produced by workers
 
@@ -298,7 +298,7 @@ class CoreMSR():
 
         # make sure merge id field exists in both files
         if not merge_id in amp or not merge_id in loc:
-            raise Exception("merge_data - merge field not found in amp or " +
+            raise Exception("merge_data - merge field not found in amp or "
                             "loc files")
 
         # convert merge id field to string to prevent potential type issues
@@ -314,7 +314,7 @@ class CoreMSR():
         # make sure merge dataframe has longitude and latitude fields
         # so it can be converted to geodataframe later
         if not "longitude" in tmp_merged or not "latitude" in tmp_merged:
-            raise Exception("merge_data - latitude and longitude fields " +
+            raise Exception("merge_data - latitude and longitude fields "
                             "not found")
 
         # make sure option fields are present
@@ -561,7 +561,7 @@ class CoreMSR():
             polys (List[shape]): list of shapes
         Returns:
             If shape is found in polys which shp is within, return shape.
-            If not shape is found, return 0.
+            If not shape is found, return None.
         """
         if not hasattr(shp, 'geom_type'):
             raise Exception("CoreMSR [get_shape_within] : invalid shp given")
@@ -574,7 +574,9 @@ class CoreMSR():
             if shp.within(tmp_poly):
                 return tmp_poly
 
-        return 0
+        print "CoreMSR [get_shape_within] : shp not within any given poly"
+
+        return "None"
 
 
     def is_in_country(self, shp):
@@ -591,7 +593,7 @@ class CoreMSR():
             raise Exception("CoreMSR [is_in_country] : invalid shp given")
 
         if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
-            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 " +
+            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 "
                             "found")
 
         return self.prep_adm0.contains(shp)
@@ -634,9 +636,9 @@ class CoreMSR():
                     # get buffer size (meters)
                     tmp_int = float(tmp_lookup["data"])
                 except:
-                    warn("buffer value could not be converted "
-                         "to float ({0})".format(tmp_lookup["data"]))
-                    return "None"
+                    print ("buffer value could not be converted "
+                           "to float ({0})".format(tmp_lookup["data"]))
+                    raise
 
                 try:
                     tmp_utm_info = utm.from_latlon(lat, lon)
@@ -648,8 +650,9 @@ class CoreMSR():
                         + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
                     proj_wgs = pyproj.Proj(init="epsg:4326")
                 except:
-                    warn("error initializing projs ({0})".format(tmp_utm_zone))
-                    return "None"
+                    print ("error initializing projs "
+                           "(utm: {0})").format(tmp_utm_zone)
+                    raise
 
                 try:
                     utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
@@ -674,8 +677,9 @@ class CoreMSR():
                         # return 0
 
                 except:
-                    warn("error applying projs")
-                    return "None"
+
+                    print "error applying projs"
+                    raise
 
             elif tmp_lookup["type"] == "adm":
                 try:
@@ -684,13 +688,13 @@ class CoreMSR():
                                                  self.adm_shps[tmp_int])
 
                 except:
-                    warn("adm value could not be converted " 
-                         "to int ({0})".format(tmp_lookup["data"]))
-                    return "None"
+                    print ("adm value could not be converted "
+                           "to int ({0})".format(tmp_lookup["data"]))
+                    raise
 
             else:
-                warn("geom object type not recognized")
-                return "None"
+                raise Exception("geom object type not recognized")
+
 
 
     def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
@@ -788,7 +792,8 @@ class CoreMSR():
         top_left_lon = minx
         top_left_lat = maxy
         affine = Affine(pixel_size, 0, top_left_lon,
-                             0, -pixel_size, top_left_lat)
+                        0, -pixel_size, top_left_lat)
+
 
         nrows = int(psi * (maxy - miny))
         ncols = int(psi * (maxx - minx))
@@ -820,14 +825,17 @@ class CoreMSR():
             if fscale < 1:
                 raise Exception("CoreMSR [rasterize_geom] : scale must be >=1")
 
+
             iscale = int(scale)
 
             if float(iscale) != fscale:
                 warn("CoreMSR [rasterize_geom] : scale float ({0}) "
                      "converted to int ({1})".format(fscale, iscale))
 
+
         except:
-            raise Exception("CoreMSR [rasterize_geom] : invalid scale type")
+            print "CoreMSR [rasterize_geom] : invalid scale type"
+            raise
 
 
         scale = iscale

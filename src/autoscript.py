@@ -23,7 +23,6 @@ import time
 import datetime
 import math
 import itertools
-# import json
 import ujson as json
 import shutil
 import re
@@ -31,7 +30,6 @@ import hashlib
 
 from copy import deepcopy
 from collections import OrderedDict
-
 
 import numpy as np
 import pandas as pd
@@ -73,14 +71,16 @@ def get_version():
     else:
         raise RuntimeError(
             "Unable to find version string in {}.".format(vfile))
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 
-import pymongo
 
 # -------------------------------------
 
-# import sys
-# import os
+import sys
+import os
 
 branch = sys.argv[1]
 
@@ -98,9 +98,6 @@ from config_utility import BranchConfig
 config = BranchConfig(branch=branch)
 
 
-# -------------------------------------
-
-
 # check mongodb connection
 if config.connection_status != 0:
     sys.exit("connection status error: " + str(config.connection_error))
@@ -110,8 +107,7 @@ if config.connection_status != 0:
 # -------------------------------------------------------------------------
 # find request
 
-# import pymongo
-client = pymongo.MongoClient(config.server)
+client = config.client
 c_asdf = client.asdf.data
 c_msr = client.asdf.msr
 
@@ -287,9 +283,11 @@ def tmp_worker_job(self, task_id):
         raise Exception(str(self.rank) + 'invalid pg_type: ' + pg_type +
                         '('+ str(pg_data['project_location_id']) +')')
 
+    mean_surf = None
 
     print (str(self.rank) + 'running pg_type: ' + pg_type +
            '('+ str(pg_data['project_location_id']) +')')
+
 
 
     # for each row generate grid based on bounding box of geometry
@@ -300,16 +298,18 @@ def tmp_worker_job(self, task_id):
         pg_data[core.code_field_2], pg_data[core.code_field_3],
         pg_data.longitude, pg_data.latitude)
 
-    if pg_geom is None:
+
+    if pg_geom in [None, "None"]:
         sys.exit("Geom is none" + str(pg_data['project_location_id']))
 
     try:
         pg_geom = shape(pg_geom)
     except:
+        print("Geom is invalid")
         print str(pg_data['project_location_id'])
         print type(pg_geom)
         print pg_geom
-        raise Exception("Geom is invalid")
+        raise
 
     # factor used to determine subgrid size
     # relative to output grid size
@@ -320,17 +320,27 @@ def tmp_worker_job(self, task_id):
     mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
 
-    mean_surf = mean_surf.astype('float64')
-    mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
-    return mean_surf.flatten()
+    if mean_surf is None:
+        warnings.warn("Geom is none" + str(pg_data['project_location_id']))
+        return (task, "None", None)
+
+    else:
+        mean_surf = mean_surf.astype('float64')
+        mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
+        return (task, pg_geom, mean_surf.flatten())
 
 
 def tmp_master_process(self, worker_data):
-    mstack.append_stack(worker_data)
+    task, geom, surf = worker_data
 
-    if mstack.get_stack_size() > 1:
-	print "reducing stack"
-        mstack.reduce_stack()
+    active_data.loc[task, 'geom_val'] = geom
+
+    if geom != "None":
+        mstack.append_stack(surf)
+
+        if mstack.get_stack_size() > 1:
+    	   print "reducing stack"
+           mstack.reduce_stack()
 
 
 def complete_final_raster():
@@ -339,12 +349,13 @@ def complete_final_raster():
     # calc results
     sum_mean_surf = mstack.get_stack_sum()
 
+    out_dtype = 'float64'
     # affine takes upper left
     # (writing to asc directly used lower left)
     meta = {
         'count': 1,
         'crs': {'init': 'epsg:4326'},
-        'dtype': 'float64',
+        'dtype': out_dtype,
         'affine': core.affine,
         'driver': 'GTiff',
         'height': core.shape[0],
@@ -355,7 +366,7 @@ def complete_final_raster():
 
     sum_mean_surf.shape = core.shape
 
-    out_mean_surf = np.array([sum_mean_surf.astype('float64')])
+    out_mean_surf = np.array([sum_mean_surf.astype(out_dtype)])
 
     # write geotif file
     with rasterio.open(dir_working + "/raster.tif", "w", **meta) as dst:
@@ -373,19 +384,23 @@ def complete_unique_geoms():
     # output unique geometries and sum of all
     # project locations associated with that geometry
 
+    unique_active_data = active_data.loc[
+        active_data.geom_val != "None"].copy(deep=True)
+
+
     # creating geodataframe
     geo_df = gpd.GeoDataFrame()
     # location id
-    geo_df["project_location_id"] = active_data["project_location_id"]
-    geo_df["project_location_id"].fillna(active_data["project_id"],
+    geo_df["project_location_id"] = unique_active_data["project_location_id"]
+    geo_df["project_location_id"].fillna(unique_active_data["project_id"],
                                          inplace=True)
     geo_df["project_location_id"] = geo_df["project_location_id"].astype(str)
 
     # assuming even split of total project dollars is "max" dollars
     # that project location could receive
-    geo_df["dollars"] = active_data["adjusted_aid"]
+    geo_df["dollars"] = unique_active_data["adjusted_aid"]
     # geometry for each project location
-    geo_df["geometry"] = gpd.GeoSeries(active_data["geom_val"])
+    geo_df["geometry"] = gpd.GeoSeries(unique_active_data["geom_val"])
 
     # # write full to geojson
     # full_geo_json = geo_df.to_json()
@@ -408,7 +423,7 @@ def complete_unique_geoms():
     sum_unique = geo_df.groupby(by='str_geo_hash')['dollars'].sum()
 
     # get count of locations for each unique geom
-    geo_df['ones'] = (pd.Series(np.ones(len(geo_df)))).values
+    geo_df['ones'] = 1 #(pd.Series(np.ones(len(geo_df)))).values
     sum_count = geo_df.groupby(by='str_geo_hash')['ones'].sum()
 
     # create list of project location ids for unique geoms
@@ -442,7 +457,8 @@ def complete_unique_geoms():
     unique_geo_df["location_count"] = new_geo_df["location_count"]
     unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
 
-    unique_geo_df['index'] = range(len(unique_geo_df))
+    # unique_geo_df['index'] = range(len(unique_geo_df))
+
 
     # write unique to geojson
     unique_geo_json = unique_geo_df.to_json()
@@ -505,20 +521,6 @@ def complete_options_json():
         100 * float(core.durations['total']) * job.size / 3600) / 100
 
     add_to_json("cpu_hours", cpu_hours)
-
-    # # times
-    # add_to_json("time_start", core.times['start'])
-    # add_to_json("time_init", core.times['init'])
-    # add_to_json("time_surf", core.times['surf'])
-    # add_to_json("time_output", core.times['output'])
-    # add_to_json("time_total", core.times['total'])
-    # add_to_json("time_end", core.times['end'])
-
-    # # timings
-    # add_to_json("dur_init", core.durations['init'])
-    # add_to_json("dur_surf", core.durations['surf'])
-    # add_to_json("dur_output", core.durations['output'])
-    # add_to_json("dur_total", core.durations['total'])
 
 
     tmp_request = deepcopy(request)
@@ -650,11 +652,12 @@ dir_working = (general_output_base + '/active/' +
 release_data = c_asdf.find({'name': request['dataset']})
 
 release_path = release_data[0]['base']
-release_preamble = release_data[0]['data_set_preamble']
+release_preamble = release_data[0]['extras']['data_set_preamble']
 
 if job.rank == 0:
     print release_path
     print release_preamble
+
 
 # make sure release path exists
 if not os.path.isdir(release_path):
@@ -705,7 +708,7 @@ core.set_pixel_size(request['options']['resolution'])
 if iso3 == 'global':
     raise Exception('not ready for global yet')
 
-    master_geom = box(-190, -100, 180, 90)
+    master_geom = box(-180, -90, 180, 90)
 
     # -------------------------------------
     # create grid for country
@@ -722,7 +725,7 @@ else:
     # load shapefiles
 
     # must start at and inlcude ADM0
-    # all additional ADM shps must be included so that adm_path index 
+    # all additional ADM shps must be included so that adm_path index
     # corresponds to adm level
     adm_paths = []
     shp_base = "/sciclone/aiddata10/REU/msr/shps/"
@@ -731,7 +734,7 @@ else:
     adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm2.shp")
 
     # build list of adm shape lists
-    core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')] 
+    core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')]
                      for adm_path in adm_paths]
 
     # define country shape
@@ -759,27 +762,11 @@ else:
 dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
+active_data["geom_val"] = pd.Series(["None"] * len(active_data))
 
-task_id_list = None
+task_id_list = list(active_data['task_ids'])
 
-if job.rank == 0:
-
-    active_data["geom_val"] = pd.Series(["None"] * len(active_data))
-
-    active_data.geom_val = active_data.apply(lambda x: core.get_geom_val(
-        x.geom_type, x[core.code_field_1], x[core.code_field_2],
-        x[core.code_field_3], x.longitude, x.latitude), axis=1)
-
-    active_data = active_data.loc[
-        active_data.geom_val != "None"].copy(deep=True)
-
-    task_id_list = list(active_data['task_ids'])
-
-
-task_id_list = job.comm.bcast(task_id_list, root=0)
-
-
-if task_id_list is None:
+if len(task_id_list) == 0:
     quit("task id list is missing")
 
 if job.rank == 0:
@@ -806,12 +793,14 @@ job.set_master_process(tmp_master_process)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
-# try:
-job.run()
-# except Exception as err:
-#     print err
-#     # add error status to request in msr queue
-#     update_msr = c_msr.update_one({'hash': request['hash']},
-#                                 {'$set': {"status": -1,}},
-#                                 upsert=False)
+
+try:
+    job.run()
+except Exception as err:
+    print "error running msr job (hash: {0}".format(request['hash'])
+    # add error status to request in msr queue
+    update_msr = c_msr.update_one({'hash': request['hash']},
+                                {'$set': {"status": -1,}},
+                                upsert=False)
+    raise
 
