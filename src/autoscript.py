@@ -71,10 +71,6 @@ def get_version():
     else:
         raise RuntimeError(
             "Unable to find version string in {}.".format(vfile))
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 
 
 # -------------------------------------
