@@ -10,7 +10,7 @@ Inputs:
 
 Data:
 - research release
-- shapefiles
+- country adm zone feature data
 """
 
 # =============================================================================
@@ -23,27 +23,22 @@ import time
 import datetime
 import math
 import itertools
-import ujson as json
-import shutil
 import re
+import shutil
 import hashlib
+import ujson as json
 
-from copy import deepcopy
+from warnings import warn
 from collections import OrderedDict
+from copy import deepcopy
 
+import fiona
+import rasterio
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from shapely.geometry import Point, shape, box #, MultiPolygon, Polygon, box
-from shapely.prepared import prep
-
-import shapefile
-import fiona
-
-import warnings
-import rasterio
-from affine import Affine
+from shapely.geometry import shape, box
 
 from msr_utility import CoreMSR, MasterStack
 
@@ -317,7 +312,7 @@ def tmp_worker_job(self, task_id):
 
 
     if mean_surf is None:
-        warnings.warn("Geom is none" + str(pg_data['project_location_id']))
+        warn("Geom is none" + str(pg_data['project_location_id']))
         return (task, "None", None)
 
     else:
@@ -718,7 +713,7 @@ if iso3 == 'global':
 else:
 
     # -------------------------------------
-    # load shapefiles
+    # load adm zone feature data
 
     # must start at and inlcude ADM0
     # all additional ADM shps must be included so that adm_path index
