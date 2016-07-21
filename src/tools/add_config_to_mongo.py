@@ -22,9 +22,6 @@ from config_utility import BranchConfig
 config = BranchConfig(branch=branch)
 
 
-# ----------------------------------------------------------------------------
-
-
 # check mongodb connection
 if config.connection_status != 0:
     print "error"
@@ -35,9 +32,8 @@ if config.connection_status != 0:
 
 import json
 
-import pymongo
 
-client = pymongo.MongoClient(config.server)
+client = config.client
 
 
 branch_info = config.branch_settings
