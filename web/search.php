@@ -326,26 +326,6 @@ function get_relevant_datasets() {
 
         if ($doc['type'] == "release") {
 
-
-            // $doc['years'] = array();
-            // $doc['ad_sector_names'] = array();
-            // $doc['donors'] = array();
-
-
-            // get years from datapackage
-            $tmp_format = $doc['temporal']['format'];
-            $tmp_start = 1900 + strptime($doc['temporal']['start'], $tmp_format)['tm_year'];
-            $tmp_end = 1900 + strptime($doc['temporal']['end'], $tmp_format)['tm_year'];
-            $doc['years'] = range($tmp_start, $tmp_end);
-
-            // placeholder for no year selection (only 'All')
-            // $doc['years'] = [];
-
-            // get years based on min transaction_first and max
-            // transaction_last
-            //
-
-
             $db_releases = $m->selectDB('releases');
             $col_releases = $db_releases->$doc['name'];
 
@@ -356,6 +336,21 @@ function get_relevant_datasets() {
                 'is_geocoded' => 1
             ];
 
+
+
+            // // get years from datapackage
+            // $tmp_format = $doc['temporal']['format'];
+            // $tmp_start = 1900 + strptime($doc['temporal']['start'], $tmp_format)['tm_year'];
+            // $tmp_end = 1900 + strptime($doc['temporal']['end'], $tmp_format)['tm_year'];
+            // $doc['years'] = range($tmp_start, $tmp_end);
+
+            // get years from transactions
+            $years = $col_releases->distinct('transactions.transaction_year', $release_query);
+            $doc['years'] = array_unique($years);
+            sort($doc['years']);
+
+
+            // get sectors
             $sectors = $col_releases->distinct('ad_sector_names', $release_query);
             // $doc['ad_sector_names'] = json_encode($sectors);
             for ($i=0; $i<count($sectors);$i++) {
@@ -371,6 +366,8 @@ function get_relevant_datasets() {
             $doc['ad_sector_names'] = array_unique($sectors);
             sort($doc['ad_sector_names']);
 
+
+            // get donors
             $donors = $col_releases->distinct('donors', $release_query);
             // $doc['donors'] = $donors;
             for ($i=0; $i<count($donors);$i++) {
@@ -385,6 +382,7 @@ function get_relevant_datasets() {
             // $doc['donors'] = sort(array_unique($donors));
             $doc['donors'] = array_unique($donors);
             sort($doc['donors']);
+
 
             $result[] = $doc;
 
@@ -528,7 +526,8 @@ function get_filter_count() {
 
                 if ($kx == "years") {
                     // placeholder query
-                    $tmp_distinct = $col->distinct($kx, $tmp_project_query);
+                    $tmp_distinct = $col->distinct('transactions.transaction_year', $tmp_project_query);
+
                 } else {
                     $tmp_distinct = $col->distinct($kx, $tmp_project_query);
                 }
