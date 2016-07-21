@@ -227,19 +227,19 @@ $(document).ready(function(){
 		$('#d1_info_description').html(d1_dataset_data['description']);
 
 		var d1_sector_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['ad_sector_names'], function(item) {
+		_.each(d1_dataset_data['fields']['ad_sector_names']['distinct'], function(item) {
 			d1_sector_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
 		})
 		$('#d1_sectors').html(d1_sector_html);
 
 		var d1_donor_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['donors'], function(item) {
+		_.each(d1_dataset_data['fields']['donors']['distinct'], function(item) {
 			d1_donor_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
 		})
 		$('#d1_donors').html(d1_donor_html);
 
 		var d1_year_html = '<option value="All" title="All" selected>All</option>'
-		_.each(d1_dataset_data['years'], function(item) {
+		_.each(d1_dataset_data['fields']['transaction_year']['distinct'], function(item) {
 			d1_year_html += '<option value="'+item+'" title="'+item+'">'+item+'</option>';
 		})
 		$('#d1_years').html(d1_year_html);
@@ -542,7 +542,7 @@ $(document).ready(function(){
             "filters": {
     			"ad_sector_names": ad_sector_names,
     			"donors": donors,
-    			"years": years
+    			"transaction_year": years
             }
 		};
 
@@ -593,7 +593,7 @@ $(document).ready(function(){
 			    	data_html += '<div class="dataset_h4">';
 			    	data_html += '<div class="dataset_meta_info">Sectors:<div>'+filter_selection['filters']['ad_sector_names']+'</div></div>';
 			    	data_html += '<div class="dataset_meta_info">Donors:<div>'+filter_selection['filters']['donors']+'</div></div>';
-			    	data_html += '<div class="dataset_meta_info">Years:<div>'+filter_selection['filters']['years']+'</div></div>';
+			    	data_html += '<div class="dataset_meta_info">Years:<div>'+filter_selection['filters']['transaction_year']+'</div></div>';
 
 			    	data_html += '</div>';
 		    	data_html += '</div>';
@@ -832,7 +832,7 @@ $(document).ready(function(){
 
 		    	dset_html += '<tr><td><b>Sectors: </b>' + dset['filters']['ad_sector_names'].join(', ');
 		    	dset_html += '<tr><td><b>Donors: </b>' + dset['filters']['donors'].join(', ');
-		    	dset_html += '<tr><td><b>Years: </b>' + dset['filters']['years'].join(', ');
+		    	dset_html += '<tr><td><b>Years: </b>' + dset['filters']['transaction_year'].join(', ');
 
 		    	dset_html += '</td></tr>';
 		    	dset_html += '</tbody></table>';
