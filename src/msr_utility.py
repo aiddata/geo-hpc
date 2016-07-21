@@ -458,6 +458,9 @@ class CoreMSR():
                             '|'.join([re.escape(i) for i in tmp_filter]))
                     ].copy(deep=True)
 
+
+        print len(df_filtered)
+        print df_filtered
         return df_filtered
 
 
