@@ -507,7 +507,10 @@ function get_filter_count() {
         if (!in_array("All", $v)) {
             if ($k == 'years') {
                 $tmp_search = array(
-                    '$in' => array_map('intval', $filter['filters']['years'])
+                    '$in' => array_merge(
+                        array_map('intval', $filter['filters']['years']),
+                        array_map('strval', $filter['filters']['years'])
+                    )
                 );
                 $project_query['transactions.transaction_year'] = $tmp_search;
                 $tmp_project_query['transactions.transaction_year'] = $tmp_search;
