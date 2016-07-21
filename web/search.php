@@ -337,7 +337,6 @@ function get_relevant_datasets() {
             ];
 
 
-
             // // get years from datapackage
             // $tmp_format = $doc['temporal']['format'];
             // $tmp_start = 1900 + strptime($doc['temporal']['start'], $tmp_format)['tm_year'];
@@ -352,7 +351,6 @@ function get_relevant_datasets() {
 
             // get sectors
             $sectors = $col_releases->distinct('ad_sector_names', $release_query);
-            // $doc['ad_sector_names'] = json_encode($sectors);
             for ($i=0; $i<count($sectors);$i++) {
                 if (strpos($sectors[$i], "|") !== false) {
                     $new = explode("|", $sectors[$i]);
@@ -362,24 +360,12 @@ function get_relevant_datasets() {
                     }
                 }
             }
-            // $doc['ad_sector_names'] = sort(array_unique($sectors));
             $doc['ad_sector_names'] = array_unique($sectors);
             sort($doc['ad_sector_names']);
 
 
             // get donors
             $donors = $col_releases->distinct('donors', $release_query);
-            // $doc['donors'] = $donors;
-            for ($i=0; $i<count($donors);$i++) {
-                if (strpos($donors[$i], "|") !== false) {
-                    $new = explode("|", $donors[$i]);
-                    $donors[$i] = array_shift($new);
-                    foreach ($new as $item) {
-                        $donors[] = $item;
-                    }
-                }
-            }
-            // $doc['donors'] = sort(array_unique($donors));
             $doc['donors'] = array_unique($donors);
             sort($doc['donors']);
 
