@@ -442,9 +442,6 @@ class CoreMSR():
                     # need to add year filter to check if year is
                     # between transaction_start_year and
                     # transaction_end_year
-                    print year_list
-                    print len(df_filtered)
-                    print df_filtered
                     df_filtered = df_filtered.loc[
                         df_filtered.apply(
                             lambda z: any(
@@ -453,10 +450,8 @@ class CoreMSR():
                                 for y in year_list),
                             axis=1)
                     ].copy(deep=True)
-                    print len(df_filtered)
-                    print df_filtered
-                else:
 
+                else:
                     df_filtered = df_filtered.loc[
                         df_filtered[filter_field].str.contains(
                             '|'.join([re.escape(i) for i in tmp_filter]))
