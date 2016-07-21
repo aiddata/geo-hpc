@@ -31,13 +31,6 @@
         "active": 1,
         "name": "develop",
         "server": "devlabs.aiddata.org",
-        "release_db": "releases",
-        "tracker_db": "trackers",
-        "asdf_db": "asdf",
-        "features_db": "asdf",
-        "extracts_db": "asdf",
-        "msr_db": "asdf",
-        "det_db": "det",
         "release_gadm": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",
@@ -54,12 +47,34 @@
             "LBR"
         ],
         "versions": {
-            "asdf": "0.4.0",
-            "asdf-gadm": "0.4.0",
-            "asdf-releases": "0.4",
-            "asdf-generic": "0.3.0",
-            "extract-scripts": "0.1.0",
+            "asdf": "0.4.1",
+            "asdf-gadm": "0.4.1",
+            "asdf-releases": "0.4.1",
+            "asdf-rasters": "0.4.1",
+            "extract-scripts": "0.2.2",
             "mean-surface-rasters": "0.11.0"
-        }
+        },
+        "det_fields": [
+            {
+                "field": "ad_sector_names",
+                "display": "sectors names",
+                "description": "Project sector names."
+            },
+            {
+                "field": "donors",
+                "display": "donor names",
+                "description": "Project donor names."
+            },
+            {
+                "field": "years",
+                "display": "years",
+                "description": "Years of projects, determined by years of transactions associated with project."
+            },
+            {
+                "field": "precision_code",
+                "display": "precision codes",
+                "description": "Precision codes for project locations (link to precision code info)."
+            }
+        ]
     }
 }
