@@ -22,8 +22,9 @@ if (!function_exists($call)) {
     exit;
 }
 
+
 // run specified function
-call_user_func($call);
+call_user_func($call, $_POST);
 
 //  valid $call options:
 //      "add_request"
@@ -118,96 +119,46 @@ function is_clean_array($input) {
 }
 
 
+/**
+Explode array using given delimiter, drop orignial delimited
+value from array and add new exploded values back into array
+
+array = array to explode (required)
+delim = delimiter (default to pipe "|")
+unique = only keep unique values from exploded array (default true)
+sort = sort exploded array (default ascending sort) (default true)
+reverse = sort reverse (sort must be true) (default false)
+*/
+function explode_array($arr, $delim = "|", $unique = true,
+                       $sort = true, $reverse = false) {
+
+    $arr = array_values($arr);
+    for ($i=0; $i<count($arr); $i++) {
+        if (strpos($arr[$i], $delim) !== false) {
+            $new = explode($delim, $arr[$i]);
+            $arr[$i] = array_shift($new);
+            $arr = array_merge($arr, $new);
+        }
+    }
+
+    if ($unique) {
+        $arr = array_unique($arr);
+    }
+
+    if ($sort) {
+        if ($reverse) {
+            rsort($arr);
+        } else {
+            sort($arr);
+        }
+    }
+
+    return $arr;
+}
+
+
 // ===========================================================================
 // functions for post requests
-
-/**
-generate request information for det status page
-
-db:col = det:queue
-
-post fields
-    search_type : "id" or "email"
-    search_val : id or email  value
-
-returns
-    det queue collection docs matching search_type and search_val
-*/
-function get_requests() {
-    global $output, $m;
-
-    $search_type = $_POST['search_type'];
-    $search_val = $_POST['search_val'];
-
-
-    if (!is_clean_val($search_type) || !is_clean_val($search_val)) {
-        $output->error('invalid inputs')->send([]);
-        return 0;
-    }
-
-    $db = $m->selectDB('det');
-    $col = $db->selectCollection('queue');
-
-    if ($search_type == "email") {
-        $query = array('email' => $search_val);
-        $cursor = $col->find($query);
-
-    } else if ($search_type == "id") {
-        try {
-            $query = array('_id' => new MongoId($search_val));
-            $cursor = $col->find($query);
-        } catch (Exception $e) {
-            $output->error('invalid id')->send([]);
-            return 0;
-        }
-
-    } else {
-        $output->error('invalid search type')->send([]);
-        return 0;
-    }
-
-    $result = iterator_to_array($cursor, false);
-    $output->send($result);
-    return 0;
-}
-
-
-/**
-inserts request object as document in det->queue mongo db/collection
-
-db:col = det:queue
-
-post fields
-    request : json string for request fields
-
-returns
-    unique mongoid assigned to request
-*/
-function add_request() {
-    global $output, $m;
-
-    $request = json_decode($_POST['request']);
-
-    // validate $request
-    //
-
-    $db = $m->selectDB('det');
-    $col = $db->selectCollection('queue');
-
-    // write request json to request db
-    $col->insert($request);
-
-    // get unique mongoid which will serve as request id
-    $request_id = (string) $request->_id;
-
-    $result =  [
-        'request_id' => $request_id,
-        'request' => $request
-    ];
-
-    $output->send($result);
-    return 0;
-}
 
 
 /**
@@ -224,11 +175,10 @@ returns
     boundary in group
 
 */
-function get_boundaries() {
+function get_boundaries($data) {
     global $output, $m;
 
-    $db = $m->selectDB('asdf');
-    $col = $db->selectCollection('data');
+    $c_asdf = $m->selectDB('asdf')->selectCollection('data');
 
     $query = array('type' => 'boundary', 'active' => 1);
 
@@ -244,16 +194,59 @@ function get_boundaries() {
     //     'resources.path' => true,
     //     'extras' => true
     // );
-    // $cursor = $col->find($query, $fields);
+    // $cursor = $c_asdf->find($query, $fields);
 
 
-    $cursor = $col->find($query);
+    $cursor = $c_asdf->find($query);
     //// $cursor->snapshot();
 
     $result = array();
     foreach ($cursor as $doc) {
         $result[$doc['options']['group']][] = $doc;
     }
+
+    $output->send($result);
+    return 0;
+}
+
+
+/**
+find and returns contents of simplified boundary geojson
+for web map
+
+db:col = asdf:data
+
+post fields
+    name : boundary
+
+returns
+    simplified geojson as json
+*/
+function get_boundary_geojson($data) {
+    global $output, $m;
+
+    $name = $data['name'];
+
+    if (!is_clean_val($name)) {
+        $output->error('invalid inputs')->send();
+        return 0;
+    }
+
+    $c_asdf = $m->selectDB('asdf')->selectCollection('data');
+
+    $query = array('type' => 'boundary', 'name' => $name);
+
+    $fields = array(
+        'base' => true
+    );
+
+    $result = $c_asdf->findOne($query, $fields);
+
+    $base = $result['base'];
+
+    $file = $base . "/simplified.geojson";
+
+    $result = file_get_contents($file);
 
     $output->send($result);
     return 0;
@@ -275,21 +268,20 @@ returns
     d1 and d2 objects contain key value pairs where key is
     dataset name and value is dataset doc
 */
-function get_relevant_datasets() {
+function get_relevant_datasets($data) {
     global $output, $m;
 
-    $group = $_POST['group'];
+    $group = $data['group'];
 
     if (!is_clean_val($group)) {
         $output->error('invalid inputs')->send();
         return 0;
     }
 
-    $db_asdf = $m->selectDB('asdf');
-    $db_tracker = $m->selectDB('trackers');
+    $c_asdf = $m->selectDB('asdf')->selectCollection('data');
 
     // get valid datasets from tracker
-    $tracker_col = $db_tracker->selectCollection($group);
+    $c_tracker = $m->selectDB('trackers')->selectCollection($group);
 
     $tracker_query = array('status' => 1);
 
@@ -297,17 +289,13 @@ function get_relevant_datasets() {
         'name' => true,
     );
 
-    $tracker_cursor = $tracker_col->find($tracker_query, $tracker_fields);
-    //$tracker_cursor->snapshot();
+    $tracker_cursor = $c_tracker->find($tracker_query, $tracker_fields);
 
     // put tracker results into array
     $list = array();
     foreach ($tracker_cursor as $doc) {
         $list[] = $doc['name'];
     }
-
-    // get data for datasets found in tracker
-    $col = $db_asdf->selectCollection('data');
 
     $query = array(
         'name' => array('$in' => $list),
@@ -316,59 +304,47 @@ function get_relevant_datasets() {
         'active' => 1
     );
 
-    $cursor = $col->find($query);
-    //$cursor->snapshot();
+    $cursor = $c_asdf->find($query);
 
 
     $result = array();
+
+
+    $c_config = $m->selectDB('info')->selectCollection('config');
+    $config_options = $c_config->findOne();
+    $active_release_fields = $config_options['det_fields'];
+
 
     foreach ($cursor as $doc) {
 
         if ($doc['type'] == "release") {
 
-            $db_releases = $m->selectDB('releases');
-            $col_releases = $db_releases->$doc['name'];
-
-            // $testhandle = fopen("/var/www/html/DET/test.csv", "w");
-            // fwrite( $testhandle, json_encode($col_releases->find()) );
+            $c_releases = $m->selectDB('releases')->$doc['name'];
 
             $release_query = [
                 'is_geocoded' => 1
             ];
 
+            $doc['fields'] = [];
 
-            // // get years from datapackage
-            // $tmp_format = $doc['temporal']['format'];
-            // $tmp_start = 1900 + strptime($doc['temporal']['start'], $tmp_format)['tm_year'];
-            // $tmp_end = 1900 + strptime($doc['temporal']['end'], $tmp_format)['tm_year'];
-            // $doc['years'] = range($tmp_start, $tmp_end);
+            foreach ($active_release_fields as $info) {
 
-            // get years from transactions
-            $years = $col_releases->distinct('transactions.transaction_year', $release_query);
-            $doc['years'] = array_unique($years);
-            sort($doc['years']);
+                $f = $info['field'];
 
+                $doc['fields'][$f] = $info;
 
-            // get sectors
-            $sectors = $col_releases->distinct('ad_sector_names', $release_query);
-            for ($i=0; $i<count($sectors);$i++) {
-                if (strpos($sectors[$i], "|") !== false) {
-                    $new = explode("|", $sectors[$i]);
-                    $sectors[$i] = array_shift($new);
-                    foreach ($new as $item) {
-                        $sectors[] = $item;
-                    }
+                $query_name = $f;
+                if (in_array($info['parent'], ['locations', 'transactions'])) {
+                    $query_name = $info['parent'] . '.' . $f;
                 }
+
+                // get initial set of distinct fields
+                $tmp_distinct = $c_releases->distinct($query_name, $release_query);
+                $tmp_distinct = explode_array($tmp_distinct, "|");
+
+                $doc['fields'][$f]['distinct'] = $tmp_distinct;
+
             }
-            $doc['ad_sector_names'] = array_unique($sectors);
-            sort($doc['ad_sector_names']);
-
-
-            // get donors
-            $donors = $col_releases->distinct('donors', $release_query);
-            $doc['donors'] = array_unique($donors);
-            sort($doc['donors']);
-
 
             $result[] = $doc;
 
@@ -378,51 +354,6 @@ function get_relevant_datasets() {
         }
 
     }
-
-    $output->send($result);
-    return 0;
-}
-
-
-/**
-find and returns contents of simplified boundary geojson
-for web map
-
-db:col = asdf:data
-
-post fields
-    name : boundary
-
-returns
-    simplified geojson as json
-*/
-function get_boundary_geojson() {
-    global $output, $m;
-
-    $name = $_POST['name'];
-
-    if (!is_clean_val($name)) {
-        $output->error('invalid inputs')->send();
-        return 0;
-    }
-
-    $db = $m->selectDB('asdf');
-    $col = $db->selectCollection('data');
-
-
-    $query = array('type' => 'boundary', 'name' => $name);
-
-    $fields = array(
-        'base' => true
-    );
-
-    $result = $col->findOne($query, $fields);
-
-    $base = $result['base'];
-
-    $file = $base . "/simplified.geojson";
-
-    $result = file_get_contents($file);
 
     $output->send($result);
     return 0;
@@ -442,10 +373,10 @@ returns
     distinct values for each search field based on current search params
     loc1?, loc2?
 */
-function get_filter_count() {
+function get_filter_count($data) {
     global $output, $m;
 
-    $filter = $_POST['filter'];
+    $filter = $data['filter'];
 
     // validate $filter
     foreach ($filter as $k => $v) {
@@ -465,8 +396,7 @@ function get_filter_count() {
     }
 
 
-    $db = $m->selectDB('releases');
-    $col = $db->selectCollection($filter['dataset']);
+    $c_release = $m->selectDB('releases')->selectCollection($filter['dataset']);
 
 
     $regex_map = function($value) {
@@ -476,65 +406,54 @@ function get_filter_count() {
     };
 
 
-    // get number of projects (filter)
-    $project_query = [
+    $distinct_fields = [];
+
+    $count_query = [
         'is_geocoded' => 1
     ];
 
-    $distinct_fields = [];
-
     foreach ($filter['filters'] as $k => $v) {
-        $tmp_project_query = [
+        $distinct_query = [
             'is_geocoded' => 1
         ];
 
+        // prepare query
         if (!in_array("All", $v)) {
-            if ($k == 'years') {
+            if ($k == 'transaction_year') {
                 $tmp_search = array(
                     '$in' => array_merge(
-                        array_map('intval', $filter['filters']['years']),
-                        array_map('strval', $filter['filters']['years'])
+                        array_map('intval', $filter['filters']['transaction_year']),
+                        array_map('strval', $filter['filters']['transaction_year'])
                     )
                 );
-                $project_query['transactions.transaction_year'] = $tmp_search;
-                $tmp_project_query['transactions.transaction_year'] = $tmp_search;
+                $count_query['transactions.transaction_year'] = $tmp_search;
+                $distinct_query['transactions.transaction_year'] = $tmp_search;
             } else {
                 $tmp_search = array(
                     '$in' => array_map($regex_map, $v)
                 );
-                $project_query[$k] = $tmp_search;
-                $tmp_project_query[$k] = $tmp_search;
+                $count_query[$k] = $tmp_search;
+                $distinct_query[$k] = $tmp_search;
             }
         }
 
+        // get distinct fields for given query
         foreach ($filter['filters'] as $kx => $vx) {
             if ($kx != $k) {
 
-                if ($kx == "years") {
-                    // placeholder query
-                    $tmp_distinct = $col->distinct('transactions.transaction_year', $tmp_project_query);
+                if ($kx == "transaction_year") {
+                    $tmp_distinct = $c_release->distinct('transactions.transaction_year', $distinct_query);
+                    sort($tmp_distinct);
 
                 } else {
-                    $tmp_distinct = $col->distinct($kx, $tmp_project_query);
+                    $tmp_distinct = $c_release->distinct($kx, $distinct_query);
+                    $tmp_distinct = explode_array($tmp_distinct, "|");
                 }
-
-                // split on pipe and remove duplicaties
-                for ($i=0; $i<count($tmp_distinct);$i++) {
-                    if (strpos($tmp_distinct[$i], "|") !== false) {
-                        $new = explode("|", $tmp_distinct[$i]);
-                        $tmp_distinct[$i] = array_shift($new);
-                        foreach ($new as $item) {
-                            $tmp_distinct[] = $item;
-                        }
-                    }
-                }
-                $tmp_distinct = array_unique($tmp_distinct);
-                sort($tmp_distinct);
 
                 if (!array_key_exists($kx, $distinct_fields)){
                     $distinct_fields[$kx] = $tmp_distinct;
                 } else {
-                    $distinct_fields[$kx] = array_intersect($distinct_fields[$kx], $tmp_distinct);
+                    $distinct_fields[$kx] = array_values(array_intersect($distinct_fields[$kx], $tmp_distinct));
                 }
             }
         }
@@ -542,22 +461,18 @@ function get_filter_count() {
     }
 
 
-    $project_cursor = $col->find($project_query);
-    //// $project_cursor->snapshot();
-
+    // get project and location counts
+    $project_cursor = $c_release->find($count_query);
     $projects = $project_cursor->count();
 
-    // get number of locations (filter non geocoded + filter geocoded
-    // with locations unwind)
-
-    // $location_query_1 = $project_query;
+    // // get number of locations (non geocoded)
+    // $location_query_1 = $count_query;
     // $location_query_1['is_geocoded'] = 0;
-
-    // $location_cursor_1 = $col->find($location_query_1);
+    // $location_cursor_1 = $c_release->find($location_query_1);
     // $location_count_1 = $location_cursor_1->count();
 
-
-    $location_query_2 = $project_query;
+    // get number of locations (geocoded with locations unwind)
+    $location_query_2 = $count_query;
     $location_query_2['is_geocoded'] = 1;
 
     $location_aggregate = array();
@@ -567,11 +482,14 @@ function get_filter_count() {
     );
     $location_aggregate[] = array('$unwind' => '$locations');
 
-    $location_cursor_2 = $col->aggregate($location_aggregate);
+    $location_cursor_2 = $c_release->aggregate($location_aggregate);
     $location_count_2 = count($location_cursor_2["result"]);
+
 
     $locations = $location_count_2;
     // $locations = $location_count_1 + $location_count_2;
+
+
     $result = array(
         "projects" => $projects,
         "locations" => $locations,
@@ -580,6 +498,93 @@ function get_filter_count() {
         // "location_count_2" => $location_count_2
     );
 
+    $output->send($result);
+    return 0;
+}
+
+
+/**
+inserts request object as document in det->queue mongo db/collection
+
+db:col = det:queue
+
+post fields
+    request : json string for request fields
+
+returns
+    unique mongoid assigned to request
+*/
+function add_request($data) {
+    global $output, $m;
+
+    $request = json_decode($data['request']);
+
+    // validate $request
+    //
+
+    $c_queue = $m->selectDB('det')->selectCollection('queue');
+
+    // write request json to request db
+    $c_queue->insert($request);
+
+    // get unique mongoid which will serve as request id
+    $request_id = (string) $request->_id;
+
+    $result =  [
+        'request_id' => $request_id,
+        'request' => $request
+    ];
+
+    $output->send($result);
+    return 0;
+}
+
+
+/**
+generate request information for det status page
+
+db:col = det:queue
+
+post fields
+    search_type : "id" or "email"
+    search_val : id or email  value
+
+returns
+    det queue collection docs matching search_type and search_val
+*/
+function get_requests($data) {
+    global $output, $m;
+
+    $search_type = $data['search_type'];
+    $search_val = $data['search_val'];
+
+
+    if (!is_clean_val($search_type) || !is_clean_val($search_val)) {
+        $output->error('invalid inputs')->send([]);
+        return 0;
+    }
+
+    $c_queue = $m->selectDB('det')->selectCollection('queue');
+
+    if ($search_type == "email") {
+        $query = array('email' => $search_val);
+        $cursor = $c_queue->find($query);
+
+    } else if ($search_type == "id") {
+        try {
+            $query = array('_id' => new MongoId($search_val));
+            $cursor = $c_queue->find($query);
+        } catch (Exception $e) {
+            $output->error('invalid id')->send([]);
+            return 0;
+        }
+
+    } else {
+        $output->error('invalid search type')->send([]);
+        return 0;
+    }
+
+    $result = iterator_to_array($cursor, false);
     $output->send($result);
     return 0;
 }
