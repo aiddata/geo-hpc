@@ -327,10 +327,10 @@ def tmp_master_process(self, worker_data):
     task, geom, surf = worker_data
 
     if geom == "None":
-        active_data.loc[task, 'geom_val'] ="None"
+        active_data.loc[task, 'geom_val'] = "None"
 
     else:
-        tmp = active_data.loc[task, 'geom_val']
+        tmp = active_data.loc[task]
         print tmp
         try:
             active_data.loc[task, 'geom_val'] = shape(geom)
