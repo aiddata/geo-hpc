@@ -328,14 +328,7 @@ def tmp_master_process(self, worker_data):
 
     if geom != "None":
 
-        # tmp = active_data.loc[task]
-        # print tmp
-        try:
-            active_data.set_value(task, 'geom_val', geom)
-        except:
-            print "!!!"
-            # print geom
-            raise
+        active_data.set_value(task, 'geom_val', geom)
 
         mstack.append_stack(surf)
 
