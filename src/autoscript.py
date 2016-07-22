@@ -326,14 +326,17 @@ def tmp_worker_job(self, task_id):
 def tmp_master_process(self, worker_data):
     task, geom, surf = worker_data
 
-    try:
-        active_data.loc[task, 'geom_val'] = geom
-    except:
-        print "!!!"
-        print geom
-        raise
+    if geom == "None":
+        active_data.loc[task, 'geom_val'] ="None"
 
-    if geom != "None":
+    else
+        try:
+            active_data.loc[task, 'geom_val'] = geom
+        except:
+            print "!!!"
+            print geom
+            raise
+
         mstack.append_stack(surf)
 
         if mstack.get_stack_size() > 1:
