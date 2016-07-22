@@ -749,7 +749,7 @@ else:
 dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
-active_data["geom_val"] = pd.Series(["None"] * len(active_data))
+active_data["geom_val"] = "None"
 
 task_id_list = list(active_data['task_ids'])
 
