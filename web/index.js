@@ -502,7 +502,7 @@ $(document).ready(function(){
 
 		project_count = -1
 		location_count = -1;
-		process({call:"get_filter_count", filter:filter_selection}, function (response, status, error){
+		process({call:"get_filter_count", filter:filter_selection, group:request["boundary"]["group"]}, function (response, status, error){
 
 			if (error) {
 				console.log(error);

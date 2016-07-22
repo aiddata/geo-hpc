@@ -271,6 +271,11 @@ returns
 function get_relevant_datasets($data) {
     global $output, $m;
 
+    if (empty($data['group'])) {
+        $output->error('missing group')->send();
+        return 0;
+    }
+
     $group = $data['group'];
 
     if (!is_clean_val($group)) {
@@ -279,6 +284,27 @@ function get_relevant_datasets($data) {
     }
 
     $c_asdf = $m->selectDB('asdf')->selectCollection('data');
+
+
+    // prep spatial query based on boundary bounds
+    $bnd_info = $c_asdf->findOne([
+        'type': 'boundary',
+        'options.group': $group,
+        'options.group_class': 'actual'
+    ]);
+
+    $bnd_coords = $bnd_info['spatial']['coordinates'];
+
+    $bnd_minx = $bnd_coords[0][0][0];
+    $bnd_miny = $bnd_coords[0][1][1];
+    $bnd_maxx = $bnd_coords[0][2][0];
+    $bnd_maxy = $bnd_coords[0][0][1];
+
+    $spatial_query = [
+        'locations.longitude' => ['$gte' => $bnd_minx, '$lte' => $bnd_maxx],
+        'locations.latitude' => ['$gte' => $bnd_miny, '$lte' => $bnd_maxy]
+    ];
+
 
     // get valid datasets from tracker
     $c_tracker = $m->selectDB('trackers')->selectCollection($group);
@@ -321,9 +347,8 @@ function get_relevant_datasets($data) {
 
             $c_releases = $m->selectDB('releases')->$doc['name'];
 
-            $release_query = [
-                'is_geocoded' => 1
-            ];
+            $release_query = ['is_geocoded' => 1];
+            // $release_query = array_merge($release_query, $spatial_query);
 
             $doc['fields'] = [];
 
@@ -376,7 +401,40 @@ returns
 function get_filter_count($data) {
     global $output, $m;
 
+    if (empty($_POST['filter'])) {
+        $output->error('missing filter')->send();
+        return 0;
+    }
+
     $filter = $data['filter'];
+
+    $has_group = false;
+    // prep spatial query based on boundary bounds
+    if (!empty($_POST['group'])) {
+        $has_group = true;
+
+        $group = $data['group'];
+
+        $c_asdf = $m->selectDB('asdf')->selectCollection('data');
+        $bnd_info = $c_asdf->findOne([
+            'type': 'boundary',
+            'options.group': $group,
+            'options.group_class': 'actual'
+        ]);
+
+        $bnd_coords = $bnd_info['spatial']['coordinates'];
+
+        $bnd_minx = $bnd_coords[0][0][0];
+        $bnd_miny = $bnd_coords[0][1][1];
+        $bnd_maxx = $bnd_coords[0][2][0];
+        $bnd_maxy = $bnd_coords[0][0][1];
+
+        $spatial_query = [
+            'locations.longitude' => ['$gte' => $bnd_minx, '$lte' => $bnd_maxx],
+            'locations.latitude' => ['$gte' => $bnd_miny, '$lte' => $bnd_maxy]
+        ];
+
+    }
 
     // validate $filter
     foreach ($filter as $k => $v) {
@@ -408,14 +466,17 @@ function get_filter_count($data) {
 
     $distinct_fields = [];
 
-    $count_query = [
-        'is_geocoded' => 1
-    ];
+    $count_query = ['is_geocoded' => 1];
+    // if ($has_group) {
+    //     $count_query = array_merge($count_query, $spatial_query);
+    // }
 
     foreach ($filter['filters'] as $k => $v) {
-        $distinct_query = [
-            'is_geocoded' => 1
-        ];
+
+        $distinct_query = ['is_geocoded' => 1];
+        // if ($has_group) {
+        //     $distinct_query = array_merge($distinct_query, $spatial_query);
+        // }
 
         // prepare query
         if (!in_array("All", $v)) {
@@ -442,7 +503,8 @@ function get_filter_count($data) {
             if ($kx != $k) {
 
                 if ($kx == "transaction_year") {
-                    $tmp_distinct = $c_release->distinct('transactions.transaction_year', $distinct_query);
+                    $tmp_distinct = $c_release->distinct(
+                        'transactions.transaction_year', $distinct_query);
                     sort($tmp_distinct);
 
                 } else {
@@ -453,7 +515,8 @@ function get_filter_count($data) {
                 if (!array_key_exists($kx, $distinct_fields)){
                     $distinct_fields[$kx] = $tmp_distinct;
                 } else {
-                    $distinct_fields[$kx] = array_values(array_intersect($distinct_fields[$kx], $tmp_distinct));
+                    $distinct_fields[$kx] = array_values(array_intersect(
+                        $distinct_fields[$kx], $tmp_distinct));
                 }
             }
         }
