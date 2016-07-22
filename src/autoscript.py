@@ -331,7 +331,7 @@ def tmp_master_process(self, worker_data):
 
     else:
         try:
-            active_data.loc[task, 'geom_val'] = geom
+            active_data.loc[task, 'geom_val'] = shape(geom)
         except:
             print "!!!"
             print geom
