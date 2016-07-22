@@ -288,9 +288,9 @@ function get_relevant_datasets($data) {
 
     // prep spatial query based on boundary bounds
     $bnd_info = $c_asdf->findOne([
-        'type': 'boundary',
-        'options.group': $group,
-        'options.group_class': 'actual'
+        'type'=> 'boundary',
+        'options.group'=> $group,
+        'options.group_class'=> 'actual'
     ]);
 
     $bnd_coords = $bnd_info['spatial']['coordinates'];
@@ -348,7 +348,7 @@ function get_relevant_datasets($data) {
             $c_releases = $m->selectDB('releases')->$doc['name'];
 
             $release_query = ['is_geocoded' => 1];
-            // $release_query = array_merge($release_query, $spatial_query);
+            $release_query = array_merge($release_query, $spatial_query);
 
             $doc['fields'] = [];
 
@@ -417,9 +417,9 @@ function get_filter_count($data) {
 
         $c_asdf = $m->selectDB('asdf')->selectCollection('data');
         $bnd_info = $c_asdf->findOne([
-            'type': 'boundary',
-            'options.group': $group,
-            'options.group_class': 'actual'
+            'type'=> 'boundary',
+            'options.group'=> $group,
+            'options.group_class'=> 'actual'
         ]);
 
         $bnd_coords = $bnd_info['spatial']['coordinates'];
@@ -467,16 +467,16 @@ function get_filter_count($data) {
     $distinct_fields = [];
 
     $count_query = ['is_geocoded' => 1];
-    // if ($has_group) {
-    //     $count_query = array_merge($count_query, $spatial_query);
-    // }
+    if ($has_group) {
+        $count_query = array_merge($count_query, $spatial_query);
+    }
 
     foreach ($filter['filters'] as $k => $v) {
 
         $distinct_query = ['is_geocoded' => 1];
-        // if ($has_group) {
-        //     $distinct_query = array_merge($distinct_query, $spatial_query);
-        // }
+        if ($has_group) {
+            $distinct_query = array_merge($distinct_query, $spatial_query);
+        }
 
         // prepare query
         if (!in_array("All", $v)) {
