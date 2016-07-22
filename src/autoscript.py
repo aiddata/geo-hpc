@@ -324,9 +324,10 @@ def tmp_worker_job(self, task_id):
 def tmp_master_process(self, worker_data):
     task, geom, surf = worker_data
 
-    active_data.loc[task, 'geom_val'] = geom
-
     if geom != "None":
+
+        active_data.set_value(task, 'geom_val', geom)
+
         mstack.append_stack(surf)
 
         if mstack.get_stack_size() > 1:
@@ -753,7 +754,7 @@ else:
 dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
-active_data["geom_val"] = pd.Series(["None"] * len(active_data))
+active_data["geom_val"] = "None"
 
 task_id_list = list(active_data['task_ids'])
 
