@@ -329,7 +329,7 @@ def tmp_master_process(self, worker_data):
     if geom == "None":
         active_data.loc[task, 'geom_val'] ="None"
 
-    else
+    else:
         try:
             active_data.loc[task, 'geom_val'] = geom
         except:
