@@ -396,7 +396,7 @@ class CoreMSR():
 
             if tmp_filter and 'All' not in tmp_filter:
 
-                if filter_field == "years":
+                if filter_field == "transaction_year":
 
                     year_list = tmp_filter
                     # need to add year filter to check if year is
