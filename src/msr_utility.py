@@ -687,8 +687,12 @@ class CoreMSR():
             elif tmp_lookup["type"] == "adm":
                 try:
                     tmp_int = int(tmp_lookup["data"])
-                    return self.get_shape_within(tmp_pnt,
-                                                 self.adm_shps[tmp_int])
+
+                    # tmp_adm_geom = self.get_adm_geom()
+                    tmp_adm_geom = self.get_shape_within(
+                        tmp_pnt, self.adm_shps[tmp_int])
+
+                    return tmp_adm_geom
 
                 except:
                     print ("adm value could not be converted "
@@ -699,6 +703,8 @@ class CoreMSR():
                 raise Exception("geom object type not recognized")
 
 
+    def get_adm_geom(self):
+        pass
 
     def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
         """Manage finding geometry for point based on geometry type.

@@ -545,7 +545,6 @@ def complete_outputs():
 
 def tmp_master_final(self):
 
-
     # record surf runtime
     core.times['surf'] = int(time.time())
     core.durations['surf'] = core.times['surf'] - core.times['init']
