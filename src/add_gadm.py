@@ -184,7 +184,7 @@ def run(path=None, client=None, version=None, config=None,
     doc["extras"]["gadm_iso3"] = gadm_iso3
     doc["extras"]["gadm_adm"] = int(gadm_adm[-1:])
     doc["extras"]["gadm_unit"] = "PLACEHOLDER"
-    doc["extras"]["tags"] = ["gadm"]
+    doc["extras"]["tags"] = ["gadm", gadm_adm, gadm_country]
 
     doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
                                                           gadm_version)
@@ -224,11 +224,12 @@ def run(path=None, client=None, version=None, config=None,
     tmp_feature = fiona.open(f, 'r').next()
 
     if gadm_adm.lower() == "adm0":
-        doc["extras"]["gadm_unit"] = "Country"
+        gadm_unit = "Country"
     else:
-        doc["extras"]["gadm_unit"] = (
-            tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]])
+        gadm_unit = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 
+    doc["extras"]["gadm_unit"] = gadm_unit
+    doc["extras"]["tags"].append(gadm_unit)
     doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
         gadm_adm.upper(), doc["extras"]["gadm_unit"], gadm_country)
 

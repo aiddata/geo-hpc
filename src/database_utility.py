@@ -196,3 +196,210 @@ class MongoUpdate():
 
         return 0
 
+
+    def features_to_mongo(self):
+        # open boundary via fiona and get iterator/list
+        # initialize feature class
+        # run feature class
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
+import json
+import hashlib
+
+# from shapely.geometry import shape
+
+
+def json_sha1_hash(hash_obj):
+    hash_json = json.dumps(hash_obj,
+                           sort_keys = True,
+                           ensure_ascii=True,
+                           separators=(', ',': '))
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_json)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
+
+
+class FeatureExtractTool():
+    """
+    """
+
+    def __init__(self, c_features, bnd_name, data_name=None,
+                 ex_method=None, classification=None, ex_version=None):
+
+        self.c_features = c_features
+        self.bnd_name = bnd_name
+
+        self.data_name = data_name
+        self.ex_method = ex_method
+        self.classification = classification
+        self.ex_version = ex_version
+
+
+    def set_extract_fields(self, data_name, ex_method,
+                           classification, ex_version):
+        """set extract fields
+
+        used to set extract fields if not set during class instance init
+        """
+        self.data_name = data_name
+        self.ex_method = ex_method
+        self.classification = classification
+        self.ex_version = ex_version
+
+
+    def has_extract_fields(self):
+        """check if extract fields are set
+
+        returns true if none of the extract fields are set to None
+        """
+        extract_fields = [
+            self.data_name,
+            self.ex_method,
+            self.classification,
+            self.ex_version
+        ]
+
+        valid = None not in extract_fields
+        return valid
+
+
+    def build_extract_object(self):
+        """
+        """
+        if self.ex_method == 'reliability' :
+            ex_value = {
+                'sum': feat['properties']['exfield_sum'],
+                'reliability': feat['properties']['exfield_reliability'],
+                'potential': feat['properties']['exfield_potential']
+            }
+        else:
+            ex_value = feat['properties']['exfield_' + self.ex_method]
+
+
+        temporal = 'na'
+        dataset = self.data_name
+        if self.classification == "msr":
+            dataset = self.data_name[:self.data_name.rindex('_')]
+
+        elif '_' in self.data_name:
+            tmp_temp = self.data_name[self.data_name.rindex('_')+1:]
+            if tmp_temp.isdigit():
+                temporal = tmp_temp
+                dataset = self.data_name[:self.data_name.rindex('_')]
+
+
+        feature_extracts = [{
+            'data': self.data_name,
+            'dataset': dataset,
+            'temporal': temporal,
+            'method': self.ex_method,
+            'classification': self.classification,
+            'version': self.ex_version,
+            'value': ex_value
+        }]
+
+        return feature_extracts
+
+
+    def run(self, run_data, add_extract=False):
+        """
+        """
+        if add_extract and not self.has_extract_fields:
+            raise Exception('extract fields not set')
+
+
+        # update extract result database
+        for idx, feat in enumerate(run_data):
+            geom = feat['geometry']
+            geom_hash = json_sha1_hash(geom)
+
+            # feature_id = idx
+
+            feature_properties = {
+                key: feat['properties'][key]
+                for key in feat['properties']
+                if not key.startswith('exfield_')
+            }
+
+
+            feature_extracts = []
+            if add_extract:
+                feature_extracts = self.build_extract_object()
+
+
+            # check if geom / geom hash exists
+            search = self.c_features.find_one({'hash': geom_hash})
+
+
+            exists = search is not None
+            if exists and add_extract:
+
+                extract_search_params = {
+                    'hash': geom_hash,
+                    'extracts.data': self.data_name,
+                    'extracts.method': self.ex_method,
+                    'extracts.version': self.ex_version
+                }
+
+                extract_search = self.c_features.find_one(extract_search_params)
+                extract_exists = extract_search is not None
+
+                if extract_exists:
+                    search_params = extract_search_params
+                    update_params = {
+                        '$set': {'extracts.$': feature_extracts[0]}
+                    }
+
+                else:
+                    search_params = {'hash': geom_hash}
+                    update_params = {
+                        '$push': {'extracts': {'$each': feature_extracts}}
+                    }
+
+
+                if not self.bnd_name in search['datasets']:
+                    # add dataset to datasets
+                    if not '$push' in update_params:
+                        update_params['$push'] = {}
+                    if not '$set' in update_params:
+                        update_params['$set'] = {}
+
+                    update_params['$push']['datasets'] = self.bnd_name
+
+                    prop_sub_doc = 'properties.' + self.bnd_name
+                    update_params['$set'][prop_sub_doc] = feature_properties
+
+
+                update = self.c_features.update_one(search_params, update_params)
+
+
+            else:
+                # simplified_geom = shape(geom).simplify(0.01)
+
+                feature_insert = {
+                    'geometry': geom,
+                    # 'simplified': simplified_geom,
+                    'hash': geom_hash,
+                    # 'id': feature_id,
+                    'properties': {self.bnd_name: feature_properties},
+                    'datasets': [self.bnd_name],
+                    'extracts': feature_extracts
+                }
+                # insert
+                insert = self.c_features.insert(feature_insert)
+
+
+            if add_extract:
+                yield feat
