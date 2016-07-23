@@ -511,7 +511,7 @@ function get_filter_count($data) {
 
         // prepare query
         if (!in_array("All", $v)) {
-            if (in_array($k, ['transaction_year', 'precision_code']) {
+            if (in_array($k, ['transaction_year', 'precision_code'])) {
                 $tmp_search = array(
                     '$in' => array_merge(
                         array_map('intval', $v), array_map('strval', $v)
