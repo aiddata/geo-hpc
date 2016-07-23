@@ -454,6 +454,23 @@ function get_filter_count($data) {
     }
 
 
+    $c_config = $m->selectDB('info')->selectCollection('config');
+    $config_options = $c_config->findOne();
+    $active_release_fields = $config_options['det_fields'];
+
+    $parent_lookup = [];
+    foreach ($active_release_fields as $info) {
+        $f = $info['field'];
+        
+        $query_name = $f;
+        if (in_array($info['parent'], ['locations', 'transactions'])) {
+            $query_name = $info['parent'] . '.' . $f;
+        }
+
+        $parent_lookup[$f] = $query_name;
+    } 
+
+
     $c_release = $m->selectDB('releases')->selectCollection($filter['dataset']);
 
 
@@ -473,6 +490,8 @@ function get_filter_count($data) {
 
     foreach ($filter['filters'] as $k => $v) {
 
+        $ka = $parent_lookup[$k];
+
         $distinct_query = ['is_geocoded' => 1];
         if ($has_group) {
             $distinct_query = array_merge($distinct_query, $spatial_query);
@@ -487,14 +506,14 @@ function get_filter_count($data) {
                         array_map('strval', $filter['filters']['transaction_year'])
                     )
                 );
-                $count_query['transactions.transaction_year'] = $tmp_search;
-                $distinct_query['transactions.transaction_year'] = $tmp_search;
+                $count_query[$ka] = $tmp_search;
+                $distinct_query[$ka] = $tmp_search;
             } else {
                 $tmp_search = array(
                     '$in' => array_map($regex_map, $v)
                 );
-                $count_query[$k] = $tmp_search;
-                $distinct_query[$k] = $tmp_search;
+                $count_query[$ka] = $tmp_search;
+                $distinct_query[$ka] = $tmp_search;
             }
         }
 
@@ -502,17 +521,18 @@ function get_filter_count($data) {
         foreach ($filter['filters'] as $kx => $vx) {
             if ($kx != $k) {
 
+                $kxa = $parent_lookup[$kx];
+
                 if ($kx == "transaction_year") {
-                    $tmp_distinct = $c_release->distinct(
-                        'transactions.transaction_year', $distinct_query);
+                    $tmp_distinct = $c_release->distinct($kxa, $distinct_query);
                     sort($tmp_distinct);
 
                 } else {
-                    $tmp_distinct = $c_release->distinct($kx, $distinct_query);
+                    $tmp_distinct = $c_release->distinct($kxa, $distinct_query);
                     $tmp_distinct = explode_array($tmp_distinct, "|");
                 }
 
-                if (!array_key_exists($kx, $distinct_fields)){
+                if (!array_key_exists($kxa, $distinct_fields)){
                     $distinct_fields[$kx] = $tmp_distinct;
                 } else {
                     $distinct_fields[$kx] = array_values(array_intersect(
