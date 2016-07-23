@@ -511,19 +511,21 @@ function get_filter_count($data) {
 
         // prepare query
         if (!in_array("All", $v)) {
-            if (all($v, 'is_int')) {
+            if ($k == 'transaction_year') {
                 $tmp_search = array(
                     '$in' => array_merge(
                         array_map('intval', $v), array_map('strval', $v)
                     )
                 );
+                $count_query[$ka] = $tmp_search;
+                $distinct_query[$ka] = $tmp_search;
             } else {
                 $tmp_search = array(
                     '$in' => array_map($regex_map, $v)
                 );
+                $count_query[$ka] = $tmp_search;
+                $distinct_query[$ka] = $tmp_search;
             }
-            $count_query[$ka] = $tmp_search;
-            $distinct_query[$ka] = $tmp_search;
         }
 
         // get distinct fields for given query
