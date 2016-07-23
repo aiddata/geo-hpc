@@ -156,6 +156,18 @@ function explode_array($arr, $delim = "|", $unique = true,
     return $arr;
 }
 
+/**
+generic function to verify array matches certain type 
+eg, all([1,2,3], 'is_int') would return true
+(could also use any valid filter function, not just for type val)
+
+http://stackoverflow.com/questions/3559542/
+more-concise-way-to-check-to-see-if-an-array-contains-only-numbers-integers
+*/
+function all($array, $predicate) {
+    return array_filter($array, $predicate) === $array;
+}
+
 
 // ===========================================================================
 // functions for post requests
@@ -499,21 +511,13 @@ function get_filter_count($data) {
 
         // prepare query
         if (!in_array("All", $v)) {
-            if ($k == 'transaction_year') {
-                $tmp_search = array(
-                    '$in' => array_merge(
-                        array_map('intval', $v), array_map('strval', $v)
-                    )
-                );
-                $count_query[$ka] = $tmp_search;
-                $distinct_query[$ka] = $tmp_search;
-            } else {
-                $tmp_search = array(
-                    '$in' => array_map($regex_map, $v)
-                );
-                $count_query[$ka] = $tmp_search;
-                $distinct_query[$ka] = $tmp_search;
-            }
+    
+            $tmp_search = array(
+                '$in' => array_map($regex_map, $v)
+            );
+            
+            $count_query[$ka] = $tmp_search;
+            $distinct_query[$ka] = $tmp_search;
         }
 
         // get distinct fields for given query
