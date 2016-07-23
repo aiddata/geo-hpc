@@ -502,8 +502,7 @@ function get_filter_count($data) {
             if ($k == 'transaction_year') {
                 $tmp_search = array(
                     '$in' => array_merge(
-                        array_map('intval', $filter['filters']['transaction_year']),
-                        array_map('strval', $filter['filters']['transaction_year'])
+                        array_map('intval', $v), array_map('strval', $v)
                     )
                 );
                 $count_query[$ka] = $tmp_search;
@@ -523,14 +522,14 @@ function get_filter_count($data) {
 
                 $kxa = $parent_lookup[$kx];
 
-                if ($kx == "transaction_year") {
-                    $tmp_distinct = $c_release->distinct($kxa, $distinct_query);
-                    sort($tmp_distinct);
+                // if ($kx == "transaction_year") {
+                //     $tmp_distinct = $c_release->distinct($kxa, $distinct_query);
+                //     sort($tmp_distinct);
 
-                } else {
+                // } else {
                     $tmp_distinct = $c_release->distinct($kxa, $distinct_query);
                     $tmp_distinct = explode_array($tmp_distinct, "|");
-                }
+                // }
 
                 if (!array_key_exists($kxa, $distinct_fields)){
                     $distinct_fields[$kx] = $tmp_distinct;
@@ -556,7 +555,7 @@ function get_filter_count($data) {
 
     // get number of locations (geocoded with locations unwind)
     $location_query_2 = $count_query;
-    $location_query_2['is_geocoded'] = 1;
+    // $location_query_2['is_geocoded'] = 1;
 
     $location_aggregate = array();
     $location_aggregate[] = array('$match' => $location_query_2);
