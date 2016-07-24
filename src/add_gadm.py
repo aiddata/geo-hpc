@@ -242,7 +242,7 @@ def run(path=None, client=None, version=None, config=None,
         print "\nProcessed document:"
         pprint(doc)
 
-        print "\nUpdating database..."
+        print "\nUpdating database (dry run = {0})...".format(dry_run)
         if not dry_run:
             dbu.update(doc, update, existing_original)
 
@@ -308,11 +308,11 @@ def run(path=None, client=None, version=None, config=None,
     print "\nProcessed document:"
     pprint(doc)
 
-    print "\nUpdating database..."
+    print "\nUpdating database (dry run = {0})...".format(dry_run)
     if not dry_run:
         dbu.update(doc, update, existing_original)
         # dbu.features_to_mongo()
-        
+
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
     else:
