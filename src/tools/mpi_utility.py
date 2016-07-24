@@ -23,6 +23,22 @@ def enum(*sequential, **named):
     return type('Enum', (), enums)
 
 
+# capture function stdout for printing output during
+# parallel jobs in uninterupted blocks
+# source: http://stackoverflow.com/a/16571630
+from cStringIO import StringIO
+import sys
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        sys.stdout = self._stdout
+
+
 class NewParallel():
     """Contains basic structure for managing parallel processing tasks.
 
