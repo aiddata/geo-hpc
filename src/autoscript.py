@@ -66,9 +66,10 @@ else:
     raise Exception("Config and src versions do not match")
 
 
-client = pymongo.MongoClient(config.server)
-c_asdf = client[config.asdf_db].data
-c_extracts = client[config.extracts_db].extracts
+client = config.client
+c_asdf = client.asdf.data
+c_extracts = client.asdf.extracts
+c_features = client.asdf.features
 
 general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
                        '/extracts/' + version.replace('.', '_'))
