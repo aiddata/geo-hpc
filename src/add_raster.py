@@ -32,7 +32,8 @@ def run(path=None, client=None, version=None, config=None,
         - output error logs somewhere
         - if auto, move job file to error location
         """
-        raise Exception("{0}: terminating script - {1}\n".format(script, reason))
+        raise Exception("{0}: terminating script - {1}\n".format(
+            script, reason))
 
 
     if config is not None:
@@ -533,7 +534,8 @@ if __name__ == '__main__':
 
     # check mongodb connection
     if config.connection_status != 0:
-        raise Exception("connection status error: {0}".format(config.connection_error))
+        raise Exception("connection status error: {0}".format(
+            config.connection_error))
 
     # -------------------------------------
 

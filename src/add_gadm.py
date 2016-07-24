@@ -19,7 +19,7 @@ from database_utility import MongoUpdate
 
 
 def run(path=None, client=None, version=None, config=None,
-        generator="auto", update=False):
+        generator="auto", update=False, dry_run=False):
 
     parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
@@ -32,7 +32,8 @@ def run(path=None, client=None, version=None, config=None,
         - output error logs somewhere
         - if auto, move job file to error location
         """
-        raise Exception("{0}: terminating script - {1}\n".format(script, reason))
+        raise Exception("{0}: terminating script - {1}\n".format(
+            script, reason))
 
 
     if config is not None:
@@ -73,6 +74,8 @@ def run(path=None, client=None, version=None, config=None,
         update = "partial"
     else:
         update = False
+
+    dry_run = bool(dry_run)
 
     existing_original = None
     if update:
@@ -240,7 +243,8 @@ def run(path=None, client=None, version=None, config=None,
         pprint(doc)
 
         print "\nUpdating database..."
-        dbu.update(doc, update, existing_original)
+        if not dry_run:
+            dbu.update(doc, update, existing_original)
 
         print "\n{0}: Done ({1} update).\n".format(script, update)
         return 0
@@ -259,9 +263,10 @@ def run(path=None, client=None, version=None, config=None,
     # -------------------------------------
     print "\nProcessing spatial..."
 
-    convert_status = ru.add_asdf_id(f)
-    if convert_status == 1:
-         quit("Error adding ad_id to boundary file & outputting geojson.")
+    if not dry_run:
+        convert_status = ru.add_asdf_id(f)
+        if convert_status == 1:
+             quit("Error adding ad_id to boundary file & outputting geojson.")
 
 
     env = ru.vector_envelope(f)
@@ -304,8 +309,10 @@ def run(path=None, client=None, version=None, config=None,
     pprint(doc)
 
     print "\nUpdating database..."
-    dbu.update(doc, update, existing_original)
-
+    if not dry_run:
+        dbu.update(doc, update, existing_original)
+        # dbu.features_to_mongo()
+        
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
     else:
@@ -345,7 +352,8 @@ if __name__ == '__main__':
 
     # check mongodb connection
     if config.connection_status != 0:
-        raise Exception("connection status error: {0}".format(config.connection_error))
+        raise Exception("connection status error: {0}".format(
+            config.connection_error))
 
     # -------------------------------------
 
@@ -359,6 +367,11 @@ if __name__ == '__main__':
     else:
         update = False
 
+    if len(sys.argv) == 6:
+        dry_run = sys.argv[5]
+    else:
+        dry_run = False
 
-    run(path=path, config=config, generator=generator, update=update)
+    run(path=path, config=config, generator=generator, 
+        update=update, dry_run=dry_run)
 
