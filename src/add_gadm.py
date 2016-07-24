@@ -75,7 +75,7 @@ def run(path=None, client=None, version=None, config=None,
     else:
         update = False
 
-    print "running update status `{0}` (input: `{1}`".format(
+    print "running update status `{0}` (input: `{1}`)".format(
         update, raw_update)
 
     dry_run = bool(dry_run)
