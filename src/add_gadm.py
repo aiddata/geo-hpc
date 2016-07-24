@@ -68,14 +68,18 @@ def run(path=None, client=None, version=None, config=None,
         quit("No config object provided")
 
 
-    if update in ["update", True, 1, "True", "full", "all"]:
-        update = "full"
-    elif update in ["partial", "meta"]:
+    if update in ["partial", "meta"]:
+        print "running partial update"
         update = "partial"
+    elif update in ["update", True, 1, "True", "full", "all"]:
+        print "running full update"
+        update = "full"
     else:
         update = False
 
     dry_run = bool(dry_run)
+    if dry_run:
+        print "running dry run"
 
     existing_original = None
     if update:
