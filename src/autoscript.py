@@ -10,15 +10,12 @@ import time
 import pymongo
 
 import extract_utility
-import mpi_utility
-
-job = mpi_utility.NewParallel()
 
 
 # -----------------------------------------------------------------------------
 
-# import sys
-# import os
+import sys
+import os
 
 branch = sys.argv[1]
 
@@ -35,8 +32,6 @@ import config_utility
 
 config = config_utility.BranchConfig(branch=branch)
 
-# -------------------------------------
-
 
 # check mongodb connection
 if config.connection_status != 0:
@@ -44,6 +39,9 @@ if config.connection_status != 0:
 
 
 # -----------------------------------------------------------------------------
+
+import mpi_utility
+job = mpi_utility.NewParallel()
 
 
 def get_version():
@@ -68,6 +66,10 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+client = pymongo.MongoClient(config.server)
+c_asdf = client[config.asdf_db].data
+c_extracts = client[config.extracts_db].extracts
+
 general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
                        '/extracts/' + version.replace('.', '_'))
 
@@ -76,9 +78,6 @@ default_extract_limit = 4
 # default_time_limit = 5
 # default_extract_minimum = 1
 
-
-# =============================================================================
-# =============================================================================
 
 # if something:
 #   check config/input/request for extract_limit parameter
@@ -92,10 +91,6 @@ extract_limit = default_extract_limit
 if extract_limit == -1:
     extract_limit = job.size -1
 
-client = pymongo.MongoClient(config.server)
-c_asdf = client.asdf.data
-c_extracts = client.asdf.extracts
-c_features = client.asdf.features
 
 # -----------------------------------------------------------------------------
 
