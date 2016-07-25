@@ -11,23 +11,10 @@ import json
 import extract_utility
 
 
-
-# -----------------------------------------------------------------------------
-
-import sys
-import os
-
-branch = sys.argv[1]
-
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
+branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))))
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
 sys.path.insert(0, config_dir)
-
 
 import mpi_utility
 job = mpi_utility.NewParallel()
