@@ -30,7 +30,7 @@
         "file_mask": "None"
     },
     "gpw_v3_density": {
-        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v3",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v3/density",
         "data_name": "gpw_v3_density",
         "file_mask": "gldsxxag_YYYY.asc"
     },
@@ -117,7 +117,24 @@
     "lossyear": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossyear/lossyear.tif",
         "data_name": "lossyear",
-        "file_mask": "None"
+        "file_mask": "None",
+        "categories": {
+            "noloss": 0,
+            "2001": 1,
+            "2002": 2,
+            "2003": 3,
+            "2004": 4,
+            "2005": 5,
+            "2006": 6,
+            "2007": 7,
+            "2008": 8,
+            "2009": 9,
+            "2010": 10,
+            "2011": 11,
+            "2012": 12,
+            "2013": 13,
+            "2014": 14
+        }
     },
     "datamask": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/datamask/datamask.tif",
