@@ -43,32 +43,7 @@ from shapely.geometry import shape, box
 from msr_utility import CoreMSR, MasterStack
 
 
-# =============================================================================
-# =============================================================================
-# basic init and find request
-
-# from mpi4py import MPI
-import mpi_utility
-
-job = mpi_utility.NewParallel()
-
-request = 0
-
-
-def get_version():
-    vfile = os.path.join(os.path.dirname(__file__), "_version.py")
-    with open(vfile, "r") as vfh:
-        vline = vfh.read()
-    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    match = re.search(vregex, vline, re.M)
-    if match:
-        return match.group(1)
-    else:
-        raise RuntimeError(
-            "Unable to find version string in {}.".format(vfile))
-
-
-# -------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 import os
@@ -95,12 +70,23 @@ if config.connection_status != 0:
 
 
 # -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
-# find request
 
-client = config.client
-c_asdf = client.asdf.data
-c_msr = client.asdf.msr
+import mpi_utility
+job = mpi_utility.NewParallel()
+
+
+def get_version():
+    vfile = os.path.join(os.path.dirname(__file__), "_version.py")
+    with open(vfile, "r") as vfh:
+        vline = vfh.read()
+    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
+    match = re.search(vregex, vline, re.M)
+    if match:
+        return match.group(1)
+    else:
+        raise RuntimeError(
+            "Unable to find version string in {}.".format(vfile))
+
 
 tmp_v1 = config.versions["mean-surface-rasters"]
 tmp_v2 = get_version()
@@ -111,8 +97,16 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+client = config.client
+c_asdf = client.asdf.data
+c_msr = client.asdf.msr
+
 general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
 
+
+# -----------------------------------------------------------------------------
+
+request = 0
 
 if job.rank == 0:
 
