@@ -169,6 +169,10 @@ function all($array, $predicate) {
 }
 
 
+function is_not_nan($val) {
+    return !is_nan($val);
+}
+
 // ===========================================================================
 // functions for post requests
 
@@ -377,6 +381,7 @@ function get_relevant_datasets($data) {
 
                 // get initial set of distinct fields
                 $tmp_distinct = $c_releases->distinct($query_name, $release_query);
+                $tmp_distinct = array_filter($tmp_distinct, 'is_not_nan');
                 $tmp_distinct = explode_array($tmp_distinct, "|");
 
                 $doc['fields'][$f]['distinct'] = $tmp_distinct;
@@ -547,6 +552,7 @@ function get_filter_count($data) {
 
                 // } else {
                     $tmp_distinct = $c_release->distinct($kxa, $distinct_query);
+                    $tmp_distinct = array_filter($tmp_distinct, 'is_not_nan');
                     $tmp_distinct = explode_array($tmp_distinct, "|");
                 // }
 
