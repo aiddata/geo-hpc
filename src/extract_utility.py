@@ -756,11 +756,11 @@ class ExtractObject():
         if any([i not in kwargs for i in expected]):
             raise Exception('missing args for export_to_db')
 
-        fet = FeatureExtractTool(
-            kwargs['bnd_name'], kwargs['data_name'], kwargs['ex_method'],
-            kwargs['classification'], kwargs['ex_version'], kwargs['c_features'])
+        ftool = FeatureTool(
+            kwargs['c_features'], kwargs['bnd_name'], kwargs['data_name'], 
+            kwargs['ex_method'], kwargs['classification'], kwargs['ex_version'], )
 
-        run_data = fet.run(stats)
+        run_data = ftool.run(stats, add_extract=True)
         return run_data
 
 
@@ -1133,24 +1133,96 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
-class FeatureExtractTool():
+
+class FeatureTool():
     """
     """
 
-    def __init__(self, bnd_name, data_name, ex_method, classification,
-                 ex_version, c_features):
+    def __init__(self, c_features, bnd_name, data_name=None,
+                 ex_method=None, classification=None, ex_version=None):
 
+        self.c_features = c_features
         self.bnd_name = bnd_name
+
         self.data_name = data_name
         self.ex_method = ex_method
         self.classification = classification
         self.ex_version = ex_version
-        self.c_features = c_features
 
 
-    def run(self, run_data):
+    def set_extract_fields(self, data_name, ex_method,
+                           classification, ex_version):
+        """set extract fields
+
+        used to set extract fields if not set during class instance init
+        """
+        self.data_name = data_name
+        self.ex_method = ex_method
+        self.classification = classification
+        self.ex_version = ex_version
+
+
+    def has_extract_fields(self):
+        """check if extract fields are set
+
+        returns true if none of the extract fields are set to None
+        """
+        extract_fields = [
+            self.data_name,
+            self.ex_method,
+            self.classification,
+            self.ex_version
+        ]
+
+        valid = None not in extract_fields
+        return valid
+
+
+    def build_extract_object(self, feat):
         """
         """
+        if self.ex_method == 'reliability' :
+            ex_value = {
+                'sum': feat['properties']['exfield_sum'],
+                'reliability': feat['properties']['exfield_reliability'],
+                'potential': feat['properties']['exfield_potential']
+            }
+        else:
+            ex_value = feat['properties']['exfield_' + self.ex_method]
+
+
+        temporal = 'na'
+        dataset = self.data_name
+        if self.classification == "msr":
+            dataset = self.data_name[:self.data_name.rindex('_')]
+
+        elif '_' in self.data_name:
+            tmp_temp = self.data_name[self.data_name.rindex('_')+1:]
+            if tmp_temp.isdigit():
+                temporal = tmp_temp
+                dataset = self.data_name[:self.data_name.rindex('_')]
+
+
+        feature_extracts = [{
+            'data': self.data_name,
+            'dataset': dataset,
+            'temporal': temporal,
+            'method': self.ex_method,
+            'classification': self.classification,
+            'version': self.ex_version,
+            'value': ex_value
+        }]
+
+        return feature_extracts
+
+
+    def run(self, run_data, add_extract=False):
+        """
+        """
+        if add_extract and not self.has_extract_fields:
+            raise Exception('extract fields not set')
+
+
         # update extract result database
         for idx, feat in enumerate(run_data):
             geom = feat['geometry']
@@ -1163,39 +1235,11 @@ class FeatureExtractTool():
                 for key in feat['properties']
                 if not key.startswith('exfield_')
             }
-            # feature_properties = {}
-
-            if self.ex_method == 'reliability' :
-                ex_value = {
-                    'sum': feat['properties']['exfield_sum'],
-                    'reliability': feat['properties']['exfield_reliability'],
-                    'potential': feat['properties']['exfield_potential']
-                }
-            else:
-                ex_value = feat['properties']['exfield_' + self.ex_method]
 
 
-            temporal = 'na'
-            dataset = self.data_name
-            if self.classification == "msr":
-                dataset = self.data_name[:self.data_name.rindex('_')]
-
-            elif '_' in self.data_name:
-                tmp_temp = self.data_name[self.data_name.rindex('_')+1:]
-                if tmp_temp.isdigit():
-                    temporal = tmp_temp
-                    dataset = self.data_name[:self.data_name.rindex('_')]
-
-
-            feature_extracts = [{
-                'data': self.data_name,
-                'dataset': dataset,
-                'temporal': temporal,
-                'method': self.ex_method,
-                'classification': self.classification,
-                'version': self.ex_version,
-                'value': ex_value
-            }]
+            feature_extracts = []
+            if add_extract:
+                feature_extracts = self.build_extract_object(feat)
 
 
             # check if geom / geom hash exists
@@ -1203,7 +1247,7 @@ class FeatureExtractTool():
 
 
             exists = search is not None
-            if exists:
+            if exists and add_extract:
 
                 extract_search_params = {
                     'hash': geom_hash,
@@ -1260,9 +1304,8 @@ class FeatureExtractTool():
                 insert = self.c_features.insert(feature_insert)
 
 
-            yield feat
-
-
+            if add_extract:
+                yield feat
 
 # -----------------------------------------------------------------------------
 
