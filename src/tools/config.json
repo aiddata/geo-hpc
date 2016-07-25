@@ -77,7 +77,7 @@
             },
             {
                 "field": "place_name",
-                "display": "precision codes",
+                "display": "place name",
                 "description": "Place name of location (link to geonames).",
                 "is_default": false,
                 "filter_type": "list",
@@ -195,7 +195,7 @@
             },
             {
                 "field": "place_name",
-                "display": "precision codes",
+                "display": "place name",
                 "description": "Place name of location (link to geonames).",
                 "is_default": false,
                 "filter_type": "list",
