@@ -186,6 +186,14 @@
                 "parent": false
             },
             {
+                "field": "total_commitments",
+                "display": "total commitments",
+                "description": "total commitments.",
+                "is_default": false,
+                "filter_type": "slider",
+                "parent": false
+            },
+            {
                 "field": "transaction_year",
                 "display": "years",
                 "description": "Years of projects, determined by years of transactions associated with projects.",
