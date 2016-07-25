@@ -99,6 +99,26 @@
         "data_name": "udel_precip_v4_01_yearly_mean",
         "file_mask": "precip_YYYY_mean.tif"
     },
+    "udel_air_temp_v4_01_yearly_min": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/yearly/min",
+        "data_name": "udel_air_temp_v4_01_yearly_min",
+        "file_mask": "air_temp_YYYY_min.tif"
+    },
+    "udel_precip_v4_01_yearly_min": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/yearly/min",
+        "data_name": "udel_precip_v4_01_yearly_min",
+        "file_mask": "precip_YYYY_min.tif"
+    },
+    "udel_air_temp_v4_01_yearly_max": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/yearly/max",
+        "data_name": "udel_air_temp_v4_01_yearly_max",
+        "file_mask": "air_temp_YYYY_max.tif"
+    },
+    "udel_precip_v4_01_yearly_max": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/yearly/max",
+        "data_name": "udel_precip_v4_01_yearly_max",
+        "file_mask": "precip_YYYY_max.tif"
+    },
     "treecover2000": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/treecover2000/treecover2000.tif",
         "data_name": "treecover2000",
