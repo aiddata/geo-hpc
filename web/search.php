@@ -157,7 +157,7 @@ function explode_array($arr, $delim = "|", $unique = true,
 }
 
 /**
-generic function to verify array matches certain type 
+generic function to verify array matches certain type
 eg, all([1,2,3], 'is_int') would return true
 (could also use any valid filter function, not just for type val)
 
@@ -473,14 +473,14 @@ function get_filter_count($data) {
     $parent_lookup = [];
     foreach ($active_release_fields as $info) {
         $f = $info['field'];
-        
+
         $query_name = $f;
         if (in_array($info['parent'], ['locations', 'transactions'])) {
             $query_name = $info['parent'] . '.' . $f;
         }
 
         $parent_lookup[$f] = $query_name;
-    } 
+    }
 
 
     $c_release = $m->selectDB('releases')->selectCollection($filter['dataset']);
@@ -511,21 +511,28 @@ function get_filter_count($data) {
 
         // prepare query
         if (!in_array("All", $v)) {
-            if (all($v, 'is_numeric')) {
-                $tmp_search = array(
+
+            if (in_array($k, ['total_commitments', 'total_disbursements'])) {
+
+                $vals = array_map('intval', $v)
+                $tmp_search = [
+                    '$gte' => min($vals),
+                    '$lte' => max($vals)
+                ];
+
+            } else if (all($v, 'is_numeric')) {
+                $tmp_search = [
                     '$in' => array_merge(
                         array_map('intval', $v), array_map('strval', $v)
                     )
-                );
-                $count_query[$ka] = $tmp_search;
-                $distinct_query[$ka] = $tmp_search;
+                ];
             } else {
-                $tmp_search = array(
+                $tmp_search = [
                     '$in' => array_map($regex_map, $v)
-                );
-                $count_query[$ka] = $tmp_search;
-                $distinct_query[$ka] = $tmp_search;
+                ];
             }
+            $count_query[$ka] = $tmp_search;
+            $distinct_query[$ka] = $tmp_search;
         }
 
         // get distinct fields for given query
