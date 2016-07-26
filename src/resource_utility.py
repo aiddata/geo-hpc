@@ -94,7 +94,7 @@ def check_envelope(new, old):
 def raster_envelope(path):
     """Get geojson style envelope of raster file
     """
-    with rasterio.open(path, 'r') as raster
+    with rasterio.open(path, 'r') as raster:
 
         # bounds = (xmin, ymin, xmax, ymax)
         b = raster.bounds
