@@ -131,7 +131,7 @@ def run(path=None, client=None, version=None, config=None,
 
     gadm_name = os.path.basename(doc["base"])
 
-    gadm_version = os.path.basename(os.path.dirname(os.path.dirname(path)))[4:]
+    gadm_version = os.path.basename(os.path.dirname(path))[4:]
 
     gadm_iso3 = gadm_name[:3]
     gadm_adm = gadm_name[4:]
