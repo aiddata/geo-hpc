@@ -197,18 +197,39 @@ class MongoUpdate():
         return 0
 
 
-    def features_to_mongo(self):
+    def features_to_mongo(self, bnd_name):
+        """Add features for given boundary to feature collection
+        """
+        import fiona
+
+        c_features = self.db_asdf.features
+
+        # lookup bnd_name and get path
+        bnd_info = self.db_asdf.data.find_one({'name': bnd_name})
+        if bnd_info is None:
+            msg = "Could not find boundary matching name ({0})".format(
+                bnd_name)
+            raise Exception(msg)
+
+        bnd_path = os.path.join(bnd_info['base'], bnd_info['resources'][0]['path'])
+
         # open boundary via fiona and get iterator/list
-        # initialize feature class
-        # run feature class
-        pass
+        feats = fiona.open(bnd_path, 'r')
 
+        # import FeatureTool
+        import sys
+        sys.path.insert(0, os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__)))),
+            'extract-scripts', 'src'))
 
+        from extract_utility import FeatureTool
 
+        # initialize featuretool instance and run
+        ftool = FeatureTool(c_features=c_features, bnd_name=bnd_name)
+        run_data = ftool.run(feats, add_extract=False)
 
-
-
-
+        return 0
 
 
 

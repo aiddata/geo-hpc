@@ -317,7 +317,7 @@ def run(path=None, client=None, version=None, config=None,
     print "\nUpdating database (dry run = {0})...".format(dry_run)
     if not dry_run:
         dbu.update(doc, update, existing_original)
-        # dbu.features_to_mongo()
+        dbu.features_to_mongo(doc['name'])
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
