@@ -67,6 +67,7 @@ def run(path=None, client=None, version=None, config=None,
     if config is None:
         quit("No config object provided")
 
+
     raw_update = update
     if update in ["partial", "meta"]:
         update = "partial"
@@ -367,16 +368,16 @@ if __name__ == '__main__':
 
     generator = sys.argv[3]
 
-    if len(sys.argv) == 5:
+    if len(sys.argv) >= 5:
         update = sys.argv[4]
     else:
         update = False
 
-    if len(sys.argv) == 6:
+    if len(sys.argv) >= 6:
         dry_run = sys.argv[5]
     else:
         dry_run = False
 
-    run(path=path, config=config, generator=generator, 
+    run(path=path, config=config, generator=generator,
         update=update, dry_run=dry_run)
 

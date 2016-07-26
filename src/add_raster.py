@@ -19,7 +19,7 @@ from database_utility import MongoUpdate
 
 
 def run(path=None, client=None, version=None, config=None,
-        generator="auto", update=False):
+        generator="auto", update=False, dry_run=False):
 
     parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
@@ -68,12 +68,21 @@ def run(path=None, client=None, version=None, config=None,
         quit("No config object provided")
 
 
-    if update in ["update", True, 1, "True", "full", "all"]:
-        update = "full"
-    elif update in ["partial", "meta"]:
+    raw_update = update
+    if update in ["partial", "meta"]:
         update = "partial"
+    elif update in ["update", True, 1, "True", "full", "all"]:
+        update = "full"
     else:
         update = False
+
+    print "running update status `{0}` (input: `{1}`)".format(
+        update, raw_update)
+
+    dry_run = bool(dry_run)
+    if dry_run:
+        print "running dry run"
+
 
     existing_original = None
     if update:
@@ -291,8 +300,9 @@ def run(path=None, client=None, version=None, config=None,
         print "\nProcessed document:"
         pprint(doc)
 
-        print "\nUpdating database..."
-        dbu.update(doc, update, existing_original)
+        print "\nUpdating database (dry run = {0})...".format(dry_run)
+        if not dry_run:
+            dbu.update(doc, update, existing_original)
 
         print "\n{0}: Done ({1} update).\n".format(script, update)
         return 0
@@ -488,12 +498,12 @@ def run(path=None, client=None, version=None, config=None,
     # -------------------------------------
     # database updates
 
-    print "\nFinal document..."
+    print "\nProcessed document..."
     pprint(doc)
 
-
-    print "\nUpdating database..."
-    dbu.update(doc, update, existing_original)
+    print "\nUpdating database (dry run = {0})...".format(dry_run)
+    if not dry_run:
+        dbu.update(doc, update, existing_original)
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
@@ -544,11 +554,16 @@ if __name__ == '__main__':
 
     generator = sys.argv[3]
 
-    if len(sys.argv) == 5:
+    if len(sys.argv) >= 5:
         update = sys.argv[4]
     else:
         update = False
 
+    if len(sys.argv) >= 6:
+        dry_run = sys.argv[5]
+    else:
+        dry_run = False
 
-    run(path=path, config=config, generator=generator, update=update)
+    run(path=path, config=config, generator=generator,
+        update=update, dry_run=dry_run)
 
