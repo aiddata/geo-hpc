@@ -226,8 +226,10 @@ class MongoUpdate():
         # initialize featuretool instance and run
         from extract_utility import FeatureTool
         ftool = FeatureTool(c_features=c_features, bnd_name=bnd_name)
+        run_data = ftool.run(feats, add_extract=False)
+        print run_data
+        print "!"
         ftool.run(feats, add_extract=False)
-
         return 0
 
 
