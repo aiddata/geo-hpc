@@ -218,10 +218,9 @@ class MongoUpdate():
 
         # build path to extract_utility and add to sys.path
         import sys
-        sys.path.insert(0, os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-                os.path.abspath(__file__))))),
-            'extract-scripts', 'src'))
+        branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))))
+        sys.path.insert(0, os.path.join(branch_dir, 'extract-scripts', 'src'))
 
         # initialize featuretool instance and run
         from extract_utility import FeatureTool
