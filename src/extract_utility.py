@@ -757,8 +757,8 @@ class ExtractObject():
             raise Exception('missing args for export_to_db')
 
         ftool = FeatureTool(
-            kwargs['c_features'], kwargs['bnd_name'], kwargs['data_name'], 
-            kwargs['ex_method'], kwargs['classification'], kwargs['ex_version'], )
+            kwargs['c_features'], kwargs['bnd_name'], kwargs['data_name'],
+            kwargs['ex_method'], kwargs['classification'], kwargs['ex_version'])
 
         run_data = ftool.run(stats, add_extract=True)
         return run_data
