@@ -216,18 +216,17 @@ class MongoUpdate():
         # open boundary via fiona and get iterator/list
         feats = fiona.open(bnd_path, 'r')
 
-        # import FeatureTool
+        # build path to extract_utility and add to sys.path
         import sys
         sys.path.insert(0, os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(
-                os.path.abspath(__file__)))),
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))))),
             'extract-scripts', 'src'))
 
-        from extract_utility import FeatureTool
-
         # initialize featuretool instance and run
+        from extract_utility import FeatureTool
         ftool = FeatureTool(c_features=c_features, bnd_name=bnd_name)
-        run_data = ftool.run(feats, add_extract=False)
+        ftool.run(feats, add_extract=False)
 
         return 0
 
