@@ -1215,8 +1215,19 @@ class FeatureTool():
 
         return feature_extracts
 
-
     def run(self, run_data, add_extract=False):
+        """
+        """
+        tmp_gen = self.process_features(run_data, add_extract)
+
+        if add_extract:
+            return tmp_gen
+        else:
+            for _ in tmp_gen: pass
+            return 0
+
+
+    def process_features(self, run_data, add_extract=False):
         """
         """
         if add_extract and not self.has_extract_fields:
@@ -1304,10 +1315,7 @@ class FeatureTool():
                 insert = self.c_features.insert(feature_insert)
 
 
-            if add_extract:
-                yield feat
-            else:
-                print 'Feature added ({0})'.format(geom_hash)
+            yield feat
 
 # -----------------------------------------------------------------------------
 
