@@ -233,7 +233,7 @@ def run(path=None, client=None, version=None, config=None,
     print f
 
     # get adm unit name for country and add to gadm info and description
-    tmp_feature = fiona.open(f, 'r').next()
+    tmp_feature = fiona.open(f, 'r')[0]
 
     if gadm_adm.lower() == "adm0":
         gadm_unit = "Country"
