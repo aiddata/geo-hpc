@@ -237,7 +237,7 @@ def run(path=None, client=None, version=None, config=None,
         gadm_unit = "Country"
     else:
         with fiona.open(f, 'r') as tmp_feature_src:
-            tmp_feature = tmp_features_src = [0]
+            tmp_feature = tmp_features_src[0]
             gadm_unit = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 
     doc["extras"]["gadm_unit"] = gadm_unit
