@@ -233,12 +233,12 @@ def run(path=None, client=None, version=None, config=None,
     print f
 
     # get adm unit name for country and add to gadm info and description
-    tmp_feature = fiona.open(f, 'r')[0]
-
     if gadm_adm.lower() == "adm0":
         gadm_unit = "Country"
     else:
-        gadm_unit = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
+        with fiona.open(f, 'r') as tmp_feature_src:
+            tmp_feature = tmp_features_src = [0]
+            gadm_unit = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 
     doc["extras"]["gadm_unit"] = gadm_unit
     doc["extras"]["tags"].append(gadm_unit)

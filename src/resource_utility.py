@@ -94,25 +94,25 @@ def check_envelope(new, old):
 def raster_envelope(path):
     """Get geojson style envelope of raster file
     """
-    raster = rasterio.open(path, 'r')
+    with rasterio.open(path, 'r') as raster
 
-    # bounds = (xmin, ymin, xmax, ymax)
-    b = raster.bounds
-    env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = raster.bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-    return env
+        return env
 
 
 def vector_envelope(path):
     """Get geojson style envelope of vector file
     """
-    vector = fiona.open(path, 'r')
+    with fiona.open(path, 'r') as vector:
 
-    # bounds = (xmin, ymin, xmax, ymax)
-    b = vector.bounds
-    env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = vector.bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-    return env
+        return env
 
 
 def vector_list(vlist=[]):
