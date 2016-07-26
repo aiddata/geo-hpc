@@ -278,11 +278,7 @@ post fields
     group : boundary group
 
 returns
-    json object string with release datasets (d1)
-    and raster datasets (d2)
-
-    d1 and d2 objects contain key value pairs where key is
-    dataset name and value is dataset doc
+    json array containg datasets objects
 */
 function get_relevant_datasets($data) {
     global $output, $m;
@@ -354,7 +350,7 @@ function get_relevant_datasets($data) {
 
     $c_config = $m->selectDB('info')->selectCollection('config');
     $config_options = $c_config->findOne();
-    $active_release_fields = $config_options['det_fields'];
+    $active_release_fields = $config_options['det']['fields'];
 
 
     foreach ($cursor as $doc) {
@@ -473,7 +469,7 @@ function get_filter_count($data) {
 
     $c_config = $m->selectDB('info')->selectCollection('config');
     $config_options = $c_config->findOne();
-    $active_release_fields = $config_options['det_fields'];
+    $active_release_fields = $config_options['det']['fields'];
 
     $parent_lookup = [];
     foreach ($active_release_fields as $info) {
@@ -606,6 +602,25 @@ function get_filter_count($data) {
     );
 
     $output->send($result);
+    return 0;
+}
+
+
+/**
+get request limits
+
+returns
+    json object string with limits for each type and total
+    (value of -1 means no limit)
+*/
+function get_request_limits($data) {
+    global $output, $m;
+
+    $c_config = $m->selectDB('info')->selectCollection('config');
+    $config_options = $c_config->findOne();
+    $request_limits = $config_options['det']['limits'];
+
+    $output->send($request_limits);
     return 0;
 }
 
