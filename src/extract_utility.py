@@ -1247,6 +1247,7 @@ class FeatureTool():
 
 
             exists = search is not None
+            print exists
             if exists and add_extract:
 
                 extract_search_params = {
@@ -1288,7 +1289,7 @@ class FeatureTool():
                 update = self.c_features.update_one(search_params, update_params)
 
 
-            else:
+            elif not exists:
                 # simplified_geom = shape(geom).simplify(0.01)
 
                 feature_insert = {
