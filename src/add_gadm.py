@@ -21,6 +21,8 @@ from database_utility import MongoUpdate
 def run(path=None, client=None, version=None, config=None,
         generator="auto", update=False, dry_run=False):
 
+    print '\n---------------------------------------'
+
     parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
 
@@ -326,6 +328,8 @@ def run(path=None, client=None, version=None, config=None,
         print "\n{0}: Done ({1} update).\n".format(script, update)
     else:
         print "\n{0}: Done.\n".format(script)
+
+    print '\n---------------------------------------'
 
     return 0
 

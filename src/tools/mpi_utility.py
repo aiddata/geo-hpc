@@ -316,7 +316,7 @@ class NewParallel():
                 elif tag == self.tags.ERROR:
                     print("Master - error reported by worker %d ." % source)
                     # broadcast error to all workers
-                    for i in range(1, size):
+                    for i in range(1, self.size):
                         self.comm.send(None, dest=i, tag=self.tags.ERROR)
 
                     err_status = 1
