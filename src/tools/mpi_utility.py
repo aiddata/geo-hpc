@@ -340,7 +340,7 @@ class NewParallel():
         else:
             # Worker processes execute code below
             name = MPI.Get_processor_name()
-            print "Worker {0} - rank {0} on {1}.".foramt(self.rank, name)
+            print "Worker {0} - rank {0} on {1}.".format(self.rank, name)
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
                 task_id = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=self.status)
