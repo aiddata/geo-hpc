@@ -278,7 +278,7 @@ class NewParallel():
             closed_workers = 0
             err_status = 0
 
-            print("Master - starting with %d workers" % num_workers)
+            print "Master - starting with {0} workers".format(num_workers)
 
             # distribute work
             while closed_workers < num_workers:
@@ -290,7 +290,7 @@ class NewParallel():
                 if tag == self.tags.READY:
 
                     if task_index < len(self.task_list):
-                        print("Master - sending task %d to worker %d" % (task_index, source))
+                        print "Master - sending task {0} to worker {1}".format(task_index, source)
 
                         self.comm.send(task_index, dest=source, tag=self.tags.START)
 
@@ -300,7 +300,7 @@ class NewParallel():
                         self.comm.send(None, dest=source, tag=self.tags.EXIT)
 
                 elif tag == self.tags.DONE:
-                    print("Master - got data from worker %d" % source)
+                    print "Master - got data from worker {0}".format(source)
 
                     # ==================================================
                     # MASTER PROCESS
@@ -310,11 +310,11 @@ class NewParallel():
                     # ==================================================
 
                 elif tag == self.tags.EXIT:
-                    print("Master - worker %d exited. (%d)" % (source, active_workers - 1))
+                    print "Master - worker {0} exited. ({1})".format(source, active_workers - 1)
                     closed_workers += 1
 
                 elif tag == self.tags.ERROR:
-                    print("Master - error reported by worker %d ." % source)
+                    print "Master - error reported by worker {0}.".format(source)
                     # broadcast error to all workers
                     for i in range(1, self.size):
                         self.comm.send(None, dest=i, tag=self.tags.ERROR)
@@ -324,7 +324,7 @@ class NewParallel():
 
 
             if err_status == 0:
-                print("Master - processing results")
+                print "Master - processing results"
 
                 # ==================================================
                 # MASTER FINAL
@@ -334,13 +334,13 @@ class NewParallel():
                 # ==================================================
 
             else:
-                print("Master - terminating due to worker error.")
+                print "Master - terminating due to worker error."
 
 
         else:
             # Worker processes execute code below
             name = MPI.Get_processor_name()
-            print("Worker - rank %d on %s." % (self.rank, name))
+            print "Worker {0} - rank {0} on {1}.".foramt(self.rank, name)
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
                 task_id = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=self.status)
@@ -357,7 +357,7 @@ class NewParallel():
                         self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
 
                     except Exception as e:
-                        print "Worker - encountered error ({0})".format(e)
+                        print "Worker ({0}) - encountered error ({1})".format(self.rank, e)
                         traceback.print_exc()
                         self.comm.send(None, dest=0, tag=self.tags.ERROR)
 
@@ -368,7 +368,7 @@ class NewParallel():
                     break
 
                 elif tag == self.tags.ERROR:
-                    print("Worker - error message from Master. Shutting down." % source)
+                    print "Worker ({0}) - error message from Master. Shutting down.".format(self.rank)
                     # confirm error message received and exit
                     self.comm.send(None, dest=0, tag=self.tags.EXIT)
                     break
