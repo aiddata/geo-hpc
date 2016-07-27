@@ -13,6 +13,7 @@ except:
     run_mpi = False
 
 import types
+import traceback
 
 
 def enum(*sequential, **named):
@@ -350,12 +351,17 @@ class NewParallel():
                     # ==================================================
                     # WORKER JOB
 
-                    worker_result = self.worker_job(task_id)
+                    try:
+                        worker_result = self.worker_job(task_id)
+                        # send worker_result back to master (master_process function)
+                        self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
+
+                    except Exception as e:
+                        print "Worker - encountered error ({0})".format(e)
+                        traceback.print_exc()
+                        self.comm.send(None, dest=0, tag=self.tags.ERROR)
 
                     # ==================================================
-
-                    # send worker_result back to master (master_process function)
-                    self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
 
                 elif tag == self.tags.EXIT:
                     self.comm.send(None, dest=0, tag=self.tags.EXIT)
