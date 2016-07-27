@@ -1314,7 +1314,7 @@ class FeatureTool():
 
                 geom_size = len(str(geom))
                 if geom_size > 8000000:
-                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(, idx, self.bnd_name)
+                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(geom_size, idx, self.bnd_name)
                 else:
                     # insert
                     insert = self.c_features.insert(feature_insert)
