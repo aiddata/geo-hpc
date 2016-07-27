@@ -329,7 +329,7 @@ def run(path=None, client=None, version=None, config=None,
     else:
         print "\n{0}: Done.\n".format(script)
 
-    print '\n---------------------------------------'
+    print '\n---------------------------------------\n'
 
     return 0
 
