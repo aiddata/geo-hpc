@@ -1144,7 +1144,7 @@ def limit_geom_chars(geom, limit=8000000, step=0.01):
     while len(str(curr_geom)) > limit:
         curr_geom = geom.simplify(step * ix)
 
-    return curr_geom
+    return curr_geom.__geo_interface__
 
 
 class FeatureTool():
@@ -1315,9 +1315,9 @@ class FeatureTool():
             elif not exists:
                 mongo_geom = limit_geom_chars(geom, limit=8000000, step=0.01)
 
-                if mongo_geom != geom:
-                    geom_size = len(str(geom))
-                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(geom_size, idx, self.bnd_name)
+                if json_sha1_hash(mongo_geom) != geom_hash:
+                    original_geom_size = len(json.dumps(geom))
+                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(original_geom_size, idx, self.bnd_name)
 
                 feature_insert = {
                     'geometry': mongo_geom,
