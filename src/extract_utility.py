@@ -1118,8 +1118,7 @@ class MergeObject():
 
 import json
 import hashlib
-
-# from shapely.geometry import shape
+from shapely.geometry import shape
 
 
 def json_sha1_hash(hash_obj):
@@ -1132,6 +1131,20 @@ def json_sha1_hash(hash_obj):
     hash_sha1 = hash_builder.hexdigest()
     return hash_sha1
 
+
+def limit_geom_chars(geom, limit=8000000, step=0.01):
+    """Limit chars in geom geojson string by simplification
+
+    Default limit for character count is 8000000 (8MB - MongoDB max document size is 16MB)
+    Default step for simplication is 0.01
+    """
+    geom = shape(geom)
+    curr_geom = geom
+    ix = 1
+    while len(str(curr_geom)) > limit:
+        curr_geom = geom.simplify(step * ix)
+
+    return curr_geom
 
 
 class FeatureTool():
@@ -1253,7 +1266,7 @@ class FeatureTool():
                 feature_extracts = self.build_extract_object(feat)
 
 
-            # check if geom / geom hash exists
+            # check if geom_hash exists
             search = self.c_features.find_one({'hash': geom_hash})
 
 
@@ -1300,10 +1313,14 @@ class FeatureTool():
 
 
             elif not exists:
-                # simplified_geom = shape(geom).simplify(0.01)
+                mongo_geom = limit_geom_chars(geom, limit=8000000, step=0.01)
+
+                if mongo_geom != geom:
+                    geom_size = len(str(geom))
+                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(geom_size, idx, self.bnd_name)
 
                 feature_insert = {
-                    'geometry': geom,
+                    'geometry': mongo_geom,
                     # 'simplified': simplified_geom,
                     'hash': geom_hash,
                     # 'id': feature_id,
@@ -1312,14 +1329,12 @@ class FeatureTool():
                     'extracts': feature_extracts
                 }
 
-                geom_size = len(str(geom))
-                if geom_size > 8000000:
-                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(geom_size, idx, self.bnd_name)
-                else:
-                    # insert
-                    insert = self.c_features.insert(feature_insert)
+                # insert
+                insert = self.c_features.insert(feature_insert)
 
             yield feat
+
+
 
 # -----------------------------------------------------------------------------
 
