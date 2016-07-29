@@ -89,11 +89,20 @@ def run(path=None, client=None, version=None, config=None,
     if update:
         if not "data" in client.asdf.collection_names():
             update = False
-            warn("Update specified but no data collection exists. "
-                 "Treating as new dataset.")
+            msg = "Update specified but no data collection exists."
+            if generator == "manual":
+                raise Exception(msg)
+            else:
+                warn(msg)
         else:
             base_original = client.asdf.data.find_one({'base': path})
-
+            if base_original is None:
+                update = False
+                msg = "Update specified but no existing dataset found."
+                if generator == "manual":
+                    raise Exception(msg)
+                else:
+                    warn(msg)
 
     # init document
     doc = {}
