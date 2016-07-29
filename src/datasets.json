@@ -34,10 +34,20 @@
         "data_name": "gpw_v3_density",
         "file_mask": "gldsxxag_YYYY.asc"
     },
+    "gpw_v3_count": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v3/count",
+        "data_name": "gpw_v3_count",
+        "file_mask": "glpxxag_YYYY.asc"
+    },
     "gpw_v4_density": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v4/density",
         "data_name": "gpw_v4_density",
         "file_mask": "gpw-v4-population-density-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
+    },
+    "gpw_v4_count": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v4/count",
+        "data_name": "gpw_v4_count",
+        "file_mask": "gpw-v4-population-count-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
     },
     "ndvi_max_mask_lt6k": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_max_mask_lt6k",
