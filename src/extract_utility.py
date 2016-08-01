@@ -1160,13 +1160,13 @@ class FeatureTool():
         self.client = client
 
         if not "features" in self.client.asdf.collection_names():
-            self.c_features = self.asdf.features
+            self.c_features = self.client.asdf.features
 
             self.c_features.create_index("hash", unique=True)
             self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
 
         else:
-            self.c_features = self.asdf.features
+            self.c_features = self.client.asdf.features
 
         self.bnd_name = bnd_name
 
