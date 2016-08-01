@@ -202,8 +202,6 @@ class MongoUpdate():
         """
         import fiona
 
-        c_features = self.db_asdf.features
-
         # lookup bnd_name and get path
         bnd_info = self.db_asdf.data.find_one({'name': bnd_name})
         if bnd_info is None:
@@ -224,7 +222,7 @@ class MongoUpdate():
 
         # initialize featuretool instance and run
         from extract_utility import FeatureTool
-        ftool = FeatureTool(c_features=c_features, bnd_name=bnd_name)
+        ftool = FeatureTool(client=self.client, bnd_name=bnd_name)
         run_data = ftool.run(feats, add_extract=False)
 
         return run_data
