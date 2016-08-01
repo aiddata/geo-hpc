@@ -373,12 +373,12 @@ def tmp_worker_job(self, task_id):
 
     run_data = exo.export_to_db(
         stats = run_data,
+        client = client,
         bnd_name = bnd_name,
         data_name = data_name,
         ex_method = extract_type,
         classification = task['classification'],
-        ex_version = version,
-        c_features = c_features
+        ex_version = version
     )
 
 

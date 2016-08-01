@@ -757,7 +757,7 @@ class ExtractObject():
             raise Exception('missing args for export_to_db')
 
         ftool = FeatureTool(
-            kwargs['c_features'], kwargs['bnd_name'], kwargs['data_name'],
+            kwargs['client'], kwargs['bnd_name'], kwargs['data_name'],
             kwargs['ex_method'], kwargs['classification'], kwargs['ex_version'])
 
         run_data = ftool.run(stats, add_extract=True)
@@ -1132,29 +1132,42 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
-def limit_geom_chars(geom, limit=8000000, step=0.01):
+def limit_geom_chars(geom, limit=8000000, step=0.0001):
     """Limit chars in geom geojson string by simplification
 
     Default limit for character count is 8000000 (8MB - MongoDB max document size is 16MB)
-    Default step for simplication is 0.01
+    Default step for simplication is 0.0001
     """
     geom = shape(geom)
     curr_geom = geom
-    ix = 1
+    ix = 0
     while len(str(curr_geom)) > limit:
+        ix = ix + 1
         curr_geom = geom.simplify(step * ix)
 
-    return curr_geom.__geo_interface__
+    simplify_tolerance = step * ix
+    return curr_geom.__geo_interface__, simplify_tolerance
 
 
 class FeatureTool():
     """
     """
 
-    def __init__(self, c_features, bnd_name, data_name=None,
+    def __init__(self, client, bnd_name, data_name=None,
                  ex_method=None, classification=None, ex_version=None):
 
-        self.c_features = c_features
+
+        self.client = client
+
+        if not "features" in self.client.asdf.collection_names():
+            self.c_features = self.asdf.features
+
+            self.c_features.create_index("hash", unique=True)
+            self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
+
+        else:
+            self.c_features = self.asdf.features
+
         self.bnd_name = bnd_name
 
         self.data_name = data_name
@@ -1313,7 +1326,7 @@ class FeatureTool():
 
 
             elif not exists:
-                mongo_geom = limit_geom_chars(geom, limit=8000000, step=0.01)
+                mongo_geom, simplify_tolerance = limit_geom_chars(geom, limit=8000000, step=0.0001)
 
                 if json_sha1_hash(mongo_geom) != geom_hash:
                     original_geom_size = len(json.dumps(geom))
@@ -1321,7 +1334,10 @@ class FeatureTool():
 
                 feature_insert = {
                     'geometry': mongo_geom,
-                    # 'simplified': simplified_geom,
+                    'info': {
+                        'simplify_tolerance': simplify_tolerance,
+                        'buffer_size': 0
+                    },
                     'hash': geom_hash,
                     # 'id': feature_id,
                     'properties': {self.bnd_name: feature_properties},
@@ -1329,8 +1345,17 @@ class FeatureTool():
                     'extracts': feature_extracts
                 }
 
+
                 # insert
-                insert = self.c_features.insert(feature_insert)
+                try:
+                    insert = self.c_features.insert(feature_insert)
+                except:
+                    buffer_size = 0.0000000001
+                    buffer_mongo_geom_shape = shape(geom).buffer(buffer_size)
+                    feature_insert['geometry'] = buffer_mongo_geom_shape.__geo_interface__
+                    feature_insert['info']['buffer_size'] = buffer_size
+                    insert = self.c_features.insert(feature_insert)
+
 
             yield feat
 
