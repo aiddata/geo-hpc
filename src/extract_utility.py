@@ -27,6 +27,8 @@ import pandas as pd
 import fiona
 from shapely.geometry import shape
 
+import pymongo
+
 
 # -----------------------------------------------------------------------------
 
