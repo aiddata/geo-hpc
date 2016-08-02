@@ -1320,7 +1320,7 @@ class FeatureTool():
                 try:
                     insert = self.c_features.insert(feature_insert)
                 except pymongo.errors.DuplicateKeyError as e:
-                    exists = True
+                    exists = "new"
                 except:
                     buffer_size = 0.0000000001
                     buffer_mongo_geom_shape = shape(geom).buffer(buffer_size)
@@ -1329,10 +1329,16 @@ class FeatureTool():
                     try:
                         insert = self.c_features.insert(feature_insert)
                     except pymongo.errors.DuplicateKeyError as e:
-                        exists = True
+                        exists = "new"
 
+
+            if exists == "new"
+                search = self.c_features.find_one({'hash': geom_hash})
+      
 
             if exists:
+                if search is None:
+                    raise Exception('DuplicateKeyError but no doc with hash exists (this should not be possible).')
 
                 search_params = {
                     'hash': geom_hash
