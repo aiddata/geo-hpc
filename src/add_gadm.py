@@ -253,9 +253,10 @@ def run(path=None, client=None, version=None, config=None,
             gadm_unit = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 
     doc["extras"]["gadm_unit"] = gadm_unit
-    doc["extras"]["tags"].append(gadm_unit)
+    if gadm_unit not in [None, "Unknown"]:
+        doc["extras"]["tags"].append(gadm_unit)
     doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
-        gadm_adm.upper(), doc["extras"]["gadm_unit"], gadm_country)
+        gadm_adm.upper(), gadm_unit, gadm_country)
 
     # -------------------------------------
 
