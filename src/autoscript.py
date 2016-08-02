@@ -691,50 +691,63 @@ core.set_pixel_size(request['options']['resolution'])
 
 
 if iso3 == 'global':
-    raise Exception('not ready for global yet')
 
     master_geom = box(-180, -90, 180, 90)
 
-    # -------------------------------------
-    # create grid for country
-    core.set_grid_info(master_geom.bounds)
-    master_grid = core.rasterize_geom(master_geom)
-
-    nrows, ncols = core.shape
-    (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
-
-
 else:
 
-    # -------------------------------------
-    # load adm zone feature data
+    search_master_geom = client.asdf.data.find(
+        {'name': "{0}_adm0_gadm28".format(iso3.lower())},
+        {'spatial': 1}
+    )
+    if search_master_geom is None:
+        msg = 'could not find master geom for iso3 ({0})'.format(iso3)
+        raise Exception(msg)
 
-    # must start at and inlcude ADM0
-    # all additional ADM shps must be included so that adm_path index
-    # corresponds to adm level
-    adm_paths = []
-    shp_base = "/sciclone/aiddata10/REU/msr/shps/"
-    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm0.shp")
-    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm1.shp")
-    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm2.shp")
-
-    # build list of adm shape lists
-    core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')]
-                     for adm_path in adm_paths]
-
-    # define country shape
-    tmp_adm0 = shape(core.adm_shps[0][0])
-    core.set_adm0(tmp_adm0)
+    master_geom = shape(search_master_geom['spatial'])
 
 
-    # -------------------------------------
-    # create grid for country
-    core.set_grid_info(core.adm0.bounds)
-    master_grid = core.rasterize_geom(core.adm0)
+# -------------------------------------
+# create master grid
+core.set_grid_info(master_geom.bounds)
+master_grid = core.rasterize_geom(master_geom)
 
-    nrows, ncols = core.shape
-    (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
+nrows, ncols = core.shape
+(master_minx, master_miny, master_maxx, master_maxy) = core.bounds
 
+
+###
+
+# # -------------------------------------
+# # load adm zone feature data
+
+# # must start at and inlcude ADM0
+# # all additional ADM shps must be included so that adm_path index
+# # corresponds to adm level
+# adm_paths = []
+# shp_base = "/sciclone/aiddata10/REU/msr/shps/"
+# adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm0.shp")
+# adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm1.shp")
+# adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm2.shp")
+
+# # build list of adm shape lists
+# core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')]
+#                  for adm_path in adm_paths]
+
+# # define country shape
+# tmp_adm0 = shape(core.adm_shps[0][0])
+# core.set_adm0(tmp_adm0)
+
+
+# # -------------------------------------
+# # create grid for country
+# core.set_grid_info(core.adm0.bounds)
+# master_grid = core.rasterize_geom(core.adm0)
+
+# nrows, ncols = core.shape
+# (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
+
+###
 
 
 # =============================================================================
