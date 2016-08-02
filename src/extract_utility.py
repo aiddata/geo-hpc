@@ -1332,7 +1332,7 @@ class FeatureTool():
                         exists = "new"
 
 
-            if exists == "new"
+            if exists == "new":
                 search = self.c_features.find_one({'hash': geom_hash})
       
 
