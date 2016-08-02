@@ -338,6 +338,9 @@ class CoreMSR():
 
         df_filtered = self.filter_data(df_merged, filters)
 
+        if df_filtered.size == 0:
+            raise Exception('no data remaining after filter')
+
         df_adjusted = self.adjust_aid(df_filtered, filters)
 
         df_geom = self.assign_geom_type(df_adjusted)
