@@ -1293,51 +1293,10 @@ class FeatureTool():
 
             # check if geom_hash exists
             search = self.c_features.find_one({'hash': geom_hash})
-
-
             exists = search is not None
-            if exists and add_extract:
 
-                extract_search_params = {
-                    'hash': geom_hash,
-                    'extracts.data': self.data_name,
-                    'extracts.method': self.ex_method,
-                    'extracts.version': self.ex_version
-                }
-
-                extract_search = self.c_features.find_one(extract_search_params)
-                extract_exists = extract_search is not None
-
-                if extract_exists:
-                    search_params = extract_search_params
-                    update_params = {
-                        '$set': {'extracts.$': feature_extracts[0]}
-                    }
-
-                else:
-                    search_params = {'hash': geom_hash}
-                    update_params = {
-                        '$push': {'extracts': {'$each': feature_extracts}}
-                    }
-
-
-                if not self.bnd_name in search['datasets']:
-                    # add dataset to datasets
-                    if not '$push' in update_params:
-                        update_params['$push'] = {}
-                    if not '$set' in update_params:
-                        update_params['$set'] = {}
-
-                    update_params['$push']['datasets'] = self.bnd_name
-
-                    prop_sub_doc = 'properties.' + self.bnd_name
-                    update_params['$set'][prop_sub_doc] = feature_properties
-
-
-                update = self.c_features.update_one(search_params, update_params)
-
-
-            elif not exists:
+            
+            if not exists:
                 mongo_geom, simplify_tolerance = limit_geom_chars(geom, limit=8000000, step=0.0001)
 
                 if json_sha1_hash(mongo_geom) != geom_hash:
@@ -1357,16 +1316,69 @@ class FeatureTool():
                     'extracts': feature_extracts
                 }
 
-
                 # insert
                 try:
                     insert = self.c_features.insert(feature_insert)
+                except DuplicaetKeyError as e:
+                    exists = True
                 except:
                     buffer_size = 0.0000000001
                     buffer_mongo_geom_shape = shape(geom).buffer(buffer_size)
                     feature_insert['geometry'] = buffer_mongo_geom_shape.__geo_interface__
                     feature_insert['info']['buffer_size'] = buffer_size
-                    insert = self.c_features.insert(feature_insert)
+                    try:
+                        insert = self.c_features.insert(feature_insert)
+                    except DuplicateKeyError as e:
+                        exists = True
+
+
+            if exists:
+
+                search_params = {
+                    'hash': geom_hash
+                }            
+                update_params = {}
+
+                if not self.bnd_name in search['datasets']:
+                    # add dataset to datasets
+                    if not '$push' in update_params:
+                        update_params['$push'] = {}
+                    if not '$set' in update_params:
+                        update_params['$set'] = {}
+
+                    update_params['$push']['datasets'] = self.bnd_name
+
+                    prop_sub_doc = 'properties.' + self.bnd_name
+                    update_params['$set'][prop_sub_doc] = feature_properties
+
+
+                if add_extract:
+                    
+                    if not '$push' in update_params:
+                        update_params['$push'] = {}
+                    if not '$set' in update_params:
+                        update_params['$set'] = {}
+
+                    extract_search_params = {
+                        'hash': geom_hash,
+                        'extracts.data': self.data_name,
+                        'extracts.method': self.ex_method,
+                        'extracts.version': self.ex_version
+                    }
+
+                    extract_search = self.c_features.find_one(extract_search_params)
+                    extract_exists = extract_search is not None
+
+                    if extract_exists:
+                        search_params = extract_search_params
+                        update_params['$set']['extracts.$'] = feature_extracts[0]
+
+                    else:
+                        search_params = {'hash': geom_hash}
+                        update_params['$push']['extracts'] = {'$each': feature_extracts}
+
+
+                update = self.c_features.update_one(search_params, update_params)
 
 
             yield feat
