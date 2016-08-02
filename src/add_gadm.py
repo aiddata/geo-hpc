@@ -184,6 +184,8 @@ def run(path=None, client=None, version=None, config=None,
         elif base_original is not None:
             existing_original = base_original
 
+        # doc["active"] = existing_original["active"]
+
 
     doc["title"] = (gadm_country + " " + gadm_adm.upper() +
                   " Boundary - GADM " + str(gadm_version))
