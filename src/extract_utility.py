@@ -1319,7 +1319,7 @@ class FeatureTool():
                 # insert
                 try:
                     insert = self.c_features.insert(feature_insert)
-                except DuplicaetKeyError as e:
+                except pymongo.errors.DuplicateKeyError as e:
                     exists = True
                 except:
                     buffer_size = 0.0000000001
@@ -1328,7 +1328,7 @@ class FeatureTool():
                     feature_insert['info']['buffer_size'] = buffer_size
                     try:
                         insert = self.c_features.insert(feature_insert)
-                    except DuplicateKeyError as e:
+                    except pymongo.errors.DuplicateKeyError as e:
                         exists = True
 
 
