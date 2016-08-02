@@ -1168,6 +1168,16 @@ class FeatureTool():
         else:
             self.c_features = self.client.asdf.features
 
+            tmp_index_info = self.c_features.index_information()
+            tmp_index_names = [tmp_index_info[i]['key'][0][0] 
+                               for i in tmp_index_info.keys()]
+            
+            if 'hash' not in tmp_index_names:
+                self.c_features.create_index("hash", unique=True)
+            if 'spatial' not in tmp_index_names:
+                self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
+
+
         self.bnd_name = bnd_name
 
         self.data_name = data_name
