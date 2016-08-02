@@ -1378,7 +1378,8 @@ class FeatureTool():
                         update_params['$push']['extracts'] = {'$each': feature_extracts}
 
 
-                update = self.c_features.update_one(search_params, update_params)
+                if bool(update_params):
+                    update = self.c_features.update_one(search_params, update_params)
 
 
             yield feat
