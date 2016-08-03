@@ -639,7 +639,7 @@ returns
 function add_request($data) {
     global $output, $m;
 
-    $request = json_decode($data['request']);
+    $request = json_decode($data['request'], true);
 
     // validate $request
     //
