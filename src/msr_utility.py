@@ -116,7 +116,6 @@ class CoreMSR():
     """
     def __init__(self):
 
-
         # --------------------------------------------------
         # current input vars (and direct derivations)
 
@@ -124,6 +123,16 @@ class CoreMSR():
 
         self.psi = 1/self.pixel_size
 
+        # --------------------------------------------------
+
+        self.bounds = None
+        self.shape = None
+        self.affine = None
+        self.topleft = None
+
+        # self.adm_shps = 0
+        # self.adm0 = 0
+        # self.prep_adm0 = 0
 
         # --------------------------------------------------
         # vars to potentially be added as inputs
@@ -136,7 +145,6 @@ class CoreMSR():
         self.is_geocoded = "is_geocoded"
 
         self.only_geocoded = True
-
 
         # --------------------------------------------------
         # vars that may be added as some type of input
@@ -211,20 +219,10 @@ class CoreMSR():
             }
         }
 
-
         # --------------------------------------------------
 
         self.times = OrderedDict()
         self.durations = OrderedDict()
-
-        self.adm_shps = 0
-        self.adm0 = 0
-        self.prep_adm0 = 0
-
-        self.bounds = None
-        self.shape = None
-        self.affine = None
-        self.topleft = None
 
 
     def load_csv(self, path):
@@ -329,9 +327,9 @@ class CoreMSR():
         return tmp_merged
 
 
-
     def process_data(self, data_directory, request_object):
-
+        """
+        """
         df_merged = self.prep_data(data_directory)
 
         filters = request_object['options']['filters']
@@ -354,7 +352,8 @@ class CoreMSR():
 
 
     def prep_data(self, data_directory):
-
+        """
+        """
         df_merged = self.merge_data(
             data_directory, "project_id", (self.code_field_1,
             self.code_field_2, self.code_field_3, "project_location_id"),
@@ -390,7 +389,8 @@ class CoreMSR():
 
 
     def filter_data(self, df_merged, filters):
-
+        """
+        """
         df_filtered = df_merged.copy(deep=True)
 
         for filter_field in filters.keys():
@@ -558,7 +558,6 @@ class CoreMSR():
             return "None"
 
 
-
     def get_shape_within(self, shp, polys):
         """Find shape in set of shapes which another given shape is within.
 
@@ -585,29 +584,7 @@ class CoreMSR():
         return "None"
 
 
-    def is_in_country(self, shp):
-        """Check if arbitrary polygon is within country (adm0) polygon.
-
-        Args:
-            shp (shape):
-        Returns:
-            Bool whether shp is in adm0 shape.
-
-        Depends on prep_adm0 being defined in environment.
-        """
-        if not hasattr(shp, 'geom_type'):
-            raise Exception("CoreMSR [is_in_country] : invalid shp given")
-
-        if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
-            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 "
-                            "found")
-
-        return self.prep_adm0.contains(shp)
-
-
-    # build geometry for point based on code
-    # depends on lookup and adm0
-    def get_geom(self, code_1, code_2, code_3, lon, lat, is_global=False):
+    def get_geom(self, code_1, code_2, code_3, lon, lat):
         """Get geometry for point using lookup table.
 
         Args:
@@ -622,7 +599,7 @@ class CoreMSR():
         """
         tmp_pnt = Point(lon, lat)
 
-        if not is_global and not self.is_in_country(tmp_pnt):
+        if not self.is_in_country(tmp_pnt):
             warn("point not in country ({0})".format(tmp_pnt))
             return "None"
 
@@ -651,9 +628,10 @@ class CoreMSR():
                     tmp_utm_zone = str(tmp_utm_info[2]) + str(tmp_utm_info[3])
 
                     # reproject point
-                    proj_utm = pyproj.Proj("+proj=utm +zone="
-                        + str(tmp_utm_zone)
-                        + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs ")
+                    utm_proj_string = ("+proj=utm +zone={0} +ellps=WGS84 "
+                                       "+datum=WGS84 +units=m "
+                                       "+no_defs").format(tmp_utm_zone)
+                    proj_utm = pyproj.Proj(utm_proj_string)
                     proj_wgs = pyproj.Proj(init="epsg:4326")
                 except:
                     print ("error initializing projs "
@@ -690,11 +668,7 @@ class CoreMSR():
             elif tmp_lookup["type"] == "adm":
                 try:
                     tmp_int = int(tmp_lookup["data"])
-
-                    # tmp_adm_geom = self.get_adm_geom()
-                    tmp_adm_geom = self.get_shape_within(
-                        tmp_pnt, self.adm_shps[tmp_int])
-
+                    tmp_adm_geom = self.get_adm_geom(tmp_pnt, tmp_int)
                     return tmp_adm_geom
 
                 except:
@@ -706,8 +680,56 @@ class CoreMSR():
                 raise Exception("geom object type not recognized")
 
 
-    def get_adm_geom(self):
+
+    def is_in_country(self, shp):
+        """Check if arbitrary polygon is within country (adm0) polygon.
+
+        Args:
+            shp (shape):
+        Returns:
+            Bool whether shp is in adm0 shape.
+
+        Depends on prep_adm0 being defined in environment.
+        """
+        if not hasattr(shp, 'geom_type'):
+            raise Exception("CoreMSR [is_in_country] : invalid shp given")
+
+        if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
+            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 "
+                            "found")
+
+        return self.prep_adm0.contains(shp)
+
+
+    # def set_adm0(self, shp):
+    #     """Set value of adm0 and prep_adm0 attributes
+
+    #     Args:
+    #         shape: shapely shape
+
+    #     Will exit script if shape is not a valid Polygon or
+    #     MultiPolygon
+    #     """
+    #     if isinstance(shape(shp), (Polygon, MultiPolygon)):
+    #         self.adm0 = shape(shp)
+    #         self.prep_adm0 = prep(self.adm0)
+    #     else:
+    #         raise Exception("invalid adm0 given")
+
+
+    def get_adm0(self, tmp_pnt):
         pass
+
+
+    def get_adm_geom(self, tmp_pnt, adm_level):
+        """
+        """
+        tmp_int = int(adm_level)
+        tmp_adm_geom = self.get_shape_within(
+            tmp_pnt, self.adm_shps[tmp_int])
+
+        return tmp_adm_geom
+
 
     def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
         """Manage finding geometry for point based on geometry type.
@@ -769,22 +791,6 @@ class CoreMSR():
 
         self.pixel_size = value
         self.psi = 1/value
-
-
-    def set_adm0(self, shp):
-        """Set value of adm0 and prep_adm0 attributes
-
-        Args:
-            shape: shapely shape
-
-        Will exit script if shape is not a valid Polygon or
-        MultiPolygon
-        """
-        if isinstance(shape(shp), (Polygon, MultiPolygon)):
-            self.adm0 = shape(shp)
-            self.prep_adm0 = prep(self.adm0)
-        else:
-            raise Exception("invalid adm0 given")
 
 
     def set_grid_info(self, bounds):
