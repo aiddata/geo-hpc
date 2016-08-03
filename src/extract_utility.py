@@ -1171,9 +1171,9 @@ class FeatureTool():
             self.c_features = self.client.asdf.features
 
             tmp_index_info = self.c_features.index_information()
-            tmp_index_names = [tmp_index_info[i]['key'][0][0] 
+            tmp_index_names = [tmp_index_info[i]['key'][0][0]
                                for i in tmp_index_info.keys()]
-            
+
             if 'hash' not in tmp_index_names:
                 self.c_features.create_index("hash", unique=True)
             if 'spatial' not in tmp_index_names:
@@ -1295,13 +1295,16 @@ class FeatureTool():
             search = self.c_features.find_one({'hash': geom_hash})
             exists = search is not None
 
-            
+
             if not exists:
-                mongo_geom, simplify_tolerance = limit_geom_chars(geom, limit=8000000, step=0.0001)
+                mongo_geom, simplify_tolerance = limit_geom_chars(
+                    geom, limit=8000000, step=0.0001)
 
                 if json_sha1_hash(mongo_geom) != geom_hash:
                     original_geom_size = len(json.dumps(geom))
-                    print "Warning - Big geom ({0} chars for feature {1} in {2})".format(original_geom_size, idx, self.bnd_name)
+                    print ("Warning - Big geom ({0} chars for feature {1} in "
+                           " {2})").format(original_geom_size, idx,
+                                           self.bnd_name)
 
                 feature_insert = {
                     'geometry': mongo_geom,
@@ -1323,18 +1326,23 @@ class FeatureTool():
                     exists = "new"
                 except:
                     buffer_size = 0.0000000001
-                    buffer_mongo_geom_shape = shape(geom).buffer(buffer_size)
-                    feature_insert['geometry'] = buffer_mongo_geom_shape.__geo_interface__
+                    # buffer_mongo_geom_shape
+                    tmp_buffer = shape(geom).buffer(buffer_size)
+                    feature_insert['geometry'] = tmp_buffer.__geo_interface__
                     feature_insert['info']['buffer_size'] = buffer_size
                     try:
                         insert = self.c_features.insert(feature_insert)
+                        print ("Warning - Self intersecting geom being "
+                               "buffered (feature {0} in {1})").format(
+                                    idx, self.bnd_name)
+
                     except pymongo.errors.DuplicateKeyError as e:
                         exists = "new"
 
 
             if exists == "new":
                 search = self.c_features.find_one({'hash': geom_hash})
-      
+
 
             if exists:
                 if search is None:
@@ -1342,7 +1350,7 @@ class FeatureTool():
 
                 search_params = {
                     'hash': geom_hash
-                }            
+                }
                 update_params = {}
 
                 if not self.bnd_name in search['datasets']:
@@ -1359,7 +1367,7 @@ class FeatureTool():
 
 
                 if add_extract:
-                    
+
                     if not '$push' in update_params:
                         update_params['$push'] = {}
                     if not '$set' in update_params:
