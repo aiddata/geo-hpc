@@ -644,6 +644,15 @@ function add_request($data) {
     // validate $request
     //
 
+    $request['status'] = -1;
+    $request['priority'] = 0;
+    $request['stage'] = [
+        0 => ['name' => 'submit', 'time' => time()],
+        1 => ['name' => 'prep', 'time' => 0],
+        2 => ['name' => 'process', 'time' => 0],
+        3 => ['name' => 'complete', 'time' => 0]
+    ];
+
     $c_queue = $m->selectDB('det')->selectCollection('queue');
 
     // write request json to request db
