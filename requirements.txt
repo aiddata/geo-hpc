@@ -4,5 +4,6 @@ geopandas
 fiona
 rasterio>=0.27
 shapely
+pymongo
 #cligj>=0.4
 #rasterstats
