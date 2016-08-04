@@ -40,9 +40,12 @@ def run(path=None, client=None, version=None, config=None,
 
     if config is not None:
         client = config.client
-        version = config.versions["asdf-gadm"]
-    elif client is None or version is None:
-        quit('Neither config nor client/version provided.')
+    elif client is not None:
+        config = client.info.config.findOne()
+    else:
+        quit('Neither config nor client provided.')
+
+    version = config.versions["asdf-gadm"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)
@@ -137,7 +140,6 @@ def run(path=None, client=None, version=None, config=None,
     doc["file_extension"] = "geojson"
     doc["file_mask"] = "None"
 
-    doc["active"] = 0
 
     # -------------------------------------
 
@@ -147,6 +149,9 @@ def run(path=None, client=None, version=None, config=None,
 
     gadm_iso3 = gadm_name[:3]
     gadm_adm = gadm_name[4:]
+
+    doc["active"] = gadm_iso3.upper() in config.release_iso3.values() + config.other_iso3
+
 
     gadm_lookup_path = parent + '/gadm_iso3.json'
     gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))

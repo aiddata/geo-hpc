@@ -20,6 +20,8 @@ from database_utility import MongoUpdate
 def run(path=None, client=None, version=None, config=None,
         generator="auto", update=False, dry_run=False):
 
+    print '\n---------------------------------------'
+
     parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
 
@@ -37,9 +39,12 @@ def run(path=None, client=None, version=None, config=None,
 
     if config is not None:
         client = config.client
-        version = config.versions["asdf-releases"]
-    elif client is None or version is None:
-        quit('Neither config nor client/version provided.')
+    elif client is not None:
+        config = client.info.config.findOne()
+    else:
+        quit('Neither config nor client provided.')
+
+    version = config.versions["asdf-releases"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)
@@ -133,8 +138,6 @@ def run(path=None, client=None, version=None, config=None,
     doc["file_extension"] = ""
     doc["file_mask"] = "None"
 
-    doc["active"] = 0
-
     # -------------------------------------
 
     # get release datapackage
@@ -159,6 +162,7 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["extras"]["tags"] = ["aiddata", "geocoded", "release"]
 
+    doc["active"] = doc["extras"]["data_set_preamble"] in config.release_iso3
 
     if update:
         name_original = client.asdf.data.find_one({'name': doc["name"]})
@@ -188,7 +192,6 @@ def run(path=None, client=None, version=None, config=None,
         elif base_original is not None:
             existing_original = base_original
 
-        # doc["active"] = existing_original["active"]
 
    # -------------------------------------
 

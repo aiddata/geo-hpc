@@ -47,7 +47,7 @@ boundaries = c_asdf.find({
     "active": {'$gte': 1}
 })
 
-active_iso3_list = config.release_gadm.values() + config.other_gadm
+active_iso3_list = config.release_iso3.values() + config.other_iso3
 
 # get boundary names
 bnds = [

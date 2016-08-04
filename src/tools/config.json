@@ -145,7 +145,7 @@
         "name": "develop",
         "server": "devlabs.aiddata.org",
         "active_adm_suffix": "gadm28",
-        "release_gadm": {
+        "release_iso3": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",
             "DRC-AIMS": "COD",
@@ -158,7 +158,7 @@
             "UgandaAIMS": "UGA",
             "WorldBank": "global"
         },
-        "other_gadm": [
+        "other_iso3": [
             "LBR"
         ],
         "versions": {

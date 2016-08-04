@@ -21,6 +21,8 @@ from database_utility import MongoUpdate
 def run(path=None, client=None, version=None, config=None,
         generator="auto", update=False, dry_run=False):
 
+    print '\n---------------------------------------'
+
     parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
 
@@ -38,9 +40,12 @@ def run(path=None, client=None, version=None, config=None,
 
     if config is not None:
         client = config.client
-        version = config.versions["asdf-rasters"]
-    elif client is None or version is None:
-        quit('Neither config nor client/version provided.')
+    elif client is not None:
+        config = client.info.config.findOne()
+    else:
+        quit('Neither config nor client provided.')
+
+    version = config.versions["asdf-rasters"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)
