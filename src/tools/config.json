@@ -155,7 +155,8 @@
             "NigeriaAIMS": "NGA",
             "SenegalAIMS": "SEN",
             "TimorLesteAIMS": "TLS",
-            "UgandaAIMS": "UGA"
+            "UgandaAIMS": "UGA",
+            "WorldBank": "global"
         },
         "other_gadm": [
             "LBR"
