@@ -162,7 +162,8 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["extras"]["tags"] = ["aiddata", "geocoded", "release"]
 
-    doc["active"] = doc["extras"]["data_set_preamble"] in config.release_iso3
+    is_active = doc["extras"]["data_set_preamble"] in config.release_iso3
+    doc["active"] = int(is_active)
 
     if update:
         name_original = client.asdf.data.find_one({'name': doc["name"]})
