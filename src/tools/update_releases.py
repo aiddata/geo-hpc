@@ -1,4 +1,8 @@
+"""Checks on releases and runs ingest to update
 
+Args
+    branch
+"""
 
 # -----------------------------------------------------------------------------
 
