@@ -59,7 +59,7 @@ except OSError as exception:
 all_repo_releases = os.listdir(repo_dir)
 
 
-modern_str = ".*AIMS_GeocodedResearchRelease_Level1_v.*"
+modern_str = ".*_GeocodedResearchRelease_Level1_v.*"
 modern_expr_dir = re.compile(modern_str)
 modern_expr_zip = re.compile(modern_str+"\.zip")
 modern_repo_dirnames = [i[:-4] for i in all_repo_releases

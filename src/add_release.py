@@ -133,7 +133,7 @@ def run(path=None, client=None, version=None, config=None,
     doc["file_extension"] = ""
     doc["file_mask"] = "None"
 
-    doc["active"] = 1
+    doc["active"] = 0
 
     # -------------------------------------
 
@@ -188,6 +188,7 @@ def run(path=None, client=None, version=None, config=None,
         elif base_original is not None:
             existing_original = base_original
 
+        # doc["active"] = existing_original["active"]
 
    # -------------------------------------
 
