@@ -644,7 +644,7 @@ iso3 = config.release_gadm[release_preamble]
 # -------------------------------------
 
 # create instance of CoreMSR class
-core = CoreMSR(client)
+core = CoreMSR(config)
 
 # full script start time
 core.times['start'] = int(time.time())
@@ -676,14 +676,18 @@ if iso3 == 'global':
 
 else:
     search_master_geom = client.asdf.data.find(
-        {'name': "{0}_adm0_gadm28".format(iso3.lower())},
+        {'name': "{0}_adm0_{1}".format(iso3.lower(),
+                                       config.active_adm_suffix)},
         {'spatial': 1}
     )
-    if search_master_geom is None:
+    if search_master_geom.count() == 0:
         msg = 'could not find master geom for iso3 ({0})'.format(iso3)
         raise Exception(msg)
-
-    master_geom = shape(search_master_geom['spatial'])
+    elif search_master_geom.count() > 1:
+        msg = 'multiple master geom found for iso3 ({0})'.format(iso3)
+        raise Exception(msg)
+    else:
+        master_geom = shape(search_master_geom[0]['spatial'])
 
 
 core.set_grid_info(master_geom.bounds)

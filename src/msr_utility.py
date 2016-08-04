@@ -116,9 +116,11 @@ class CoreMSR():
         for which setter functions are not available to verify new
         values follow standards or available acceptable values.
     """
-    def __init__(self, client):
+    def __init__(self, config):
 
-        self.client = client
+        self.config = config
+        self.client = config.client
+        self.adm_suffix = config.active_adm_suffix
 
         # --------------------------------------------------
         # current input vars (and direct derivations)
@@ -698,7 +700,7 @@ class CoreMSR():
                 }
             },
             'datasets': {
-                '$regex': '_adm{0}_'.format(tmp_int)
+                '$regex': '_adm{0}_{1}'.format(tmp_int, self.adm_suffix)
             }
         })
 
