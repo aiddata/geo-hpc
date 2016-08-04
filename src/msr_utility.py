@@ -8,6 +8,7 @@ from warnings import warn
 from collections import OrderedDict
 from functools import partial
 
+import pymongo
 import utm
 import pyproj
 import rasterio
@@ -78,7 +79,8 @@ class CoreMSR():
         psi (float): pixel size inverse
 
         nodata (int): nodata value for output raster
-        aid_field (str): field name (from csv files) for aid values
+        value_field (str): field name (from csv files) for desired output
+                           values (eg, aid)
         is_geocoded (str): field name (from csv files) identifying if
                            project is geocoded (1/0)
         only_geocoded (bool): when True, only use geocoded data
@@ -114,14 +116,15 @@ class CoreMSR():
         for which setter functions are not available to verify new
         values follow standards or available acceptable values.
     """
-    def __init__(self):
+    def __init__(self, client):
+
+        self.client = client
 
         # --------------------------------------------------
         # current input vars (and direct derivations)
 
         self.pixel_size = 0.05
-
-        self.psi = 1/self.pixel_size
+        self.psi = 1 / self.pixel_size
 
         # --------------------------------------------------
 
@@ -129,10 +132,7 @@ class CoreMSR():
         self.shape = None
         self.affine = None
         self.topleft = None
-
-        # self.adm_shps = 0
-        # self.adm0 = 0
-        # self.prep_adm0 = 0
+        self.grid_box = None
 
         # --------------------------------------------------
         # vars to potentially be added as inputs
@@ -140,7 +140,7 @@ class CoreMSR():
 
         self.nodata = -9999
 
-        self.aid_field = "total_commitments"
+        self.value_field = "total_commitments"
 
         self.is_geocoded = "is_geocoded"
 
@@ -330,11 +330,16 @@ class CoreMSR():
     def process_data(self, data_directory, request_object):
         """
         """
-        df_merged = self.prep_data(data_directory)
+        df_merged = self.merge_data(
+            data_directory, "project_id", (self.code_field_1,
+            self.code_field_2, self.code_field_3, "project_location_id"),
+            self.only_geocoded)
+
+        df_prep = self.prep_data(df_merged)
 
         filters = request_object['options']['filters']
 
-        df_filtered = self.filter_data(df_merged, filters)
+        df_filtered = self.filter_data(df_prep, filters)
 
         if df_filtered.size == 0:
             raise Exception('no data remaining after filter')
@@ -351,21 +356,16 @@ class CoreMSR():
         return df_geom
 
 
-    def prep_data(self, data_directory):
+    def prep_data(self, df_merged):
+        """split project value by location count
         """
-        """
-        df_merged = self.merge_data(
-            data_directory, "project_id", (self.code_field_1,
-            self.code_field_2, self.code_field_3, "project_location_id"),
-            self.only_geocoded)
-
+        df_prep = df_merged.copy(deep=True)
 
         # get location count for each project
-        df_merged['ones'] = (pd.Series(np.ones(len(df_merged)))).values
+        df_prep['ones'] = (pd.Series(np.ones(len(df_prep)))).values
 
         # get project location count
-        grouped_location_count = df_merged.groupby('project_id')['ones'].sum()
-
+        grouped_location_count = df_prep.groupby('project_id')['ones'].sum()
 
         # create new empty dataframe
         df_location_count = pd.DataFrame()
@@ -377,21 +377,21 @@ class CoreMSR():
         df_location_count['project_id'] = df_location_count.index
 
         # merge location count back into data
-        df_merged = df_merged.merge(df_location_count, on='project_id')
+        df_prep = df_prep.merge(df_location_count, on='project_id')
 
-        # aid field value split evenly across
+        # value field split evenly across
         # all project locations based on location count
-        df_merged[self.aid_field].fillna(0, inplace=True)
-        df_merged['split_dollars_pp'] = (
-            df_merged[self.aid_field] / df_merged.location_count)
+        df_prep[self.value_field].fillna(0, inplace=True)
+        df_prep['split_dollars_pp'] = (
+            df_prep[self.value_field] / df_prep.location_count)
 
-        return df_merged
+        return df_prep
 
 
-    def filter_data(self, df_merged, filters):
+    def filter_data(self, df_prep, filters):
         """
         """
-        df_filtered = df_merged.copy(deep=True)
+        df_filtered = df_prep.copy(deep=True)
 
         for filter_field in filters.keys():
 
@@ -428,79 +428,58 @@ class CoreMSR():
 
         df_adjusted = df_filtered.copy(deep=True)
 
-        # adjust aid based on ratio of sectors/donors in
-        # filter to all sectors/donors listed for project
+        # adjust value field based on ratio of sectors in
+        # filter to all sectors listed for project
 
         if not 'ad_sector_names' in filters.keys():
             sector_split_list = []
         else:
             sector_split_list = filters['ad_sector_names']
 
-        if not 'donors' in filters.keys():
-            donor_split_list = []
-        else:
-            donor_split_list = filters['donors']
-
-        df_adjusted['adjusted_aid'] = df_adjusted.apply(
-            lambda z: self.calc_adjusted_aid(
-                z.split_dollars_pp, z.ad_sector_names, z.donors,
-                sector_split_list, donor_split_list), axis=1)
+        df_adjusted['adjusted_val'] = df_adjusted.apply(
+            lambda z: self.calc_adjusted_val(
+                z.split_dollars_pp, z.ad_sector_names, sector_split_list),
+            axis=1)
 
         return df_adjusted
 
 
-    def calc_adjusted_aid(self, raw_aid,
-            project_sectors_string, project_donors_string,
-            filter_sectors_list, filter_donors_list):
+    def calc_adjusted_val(self, raw_val, project_raw_string, filter_list):
         """Adjusts given aid value based on filter.
 
         Args:
-            raw_aid (float): given aid value
-            project_sectors_string (str): pipe (|) separated string
-                of sectors from project table
-            project_donors_string (str): pipe (|) separated string of
-                donors from project table
-            filter_sectors_list (List[str]): list of donors selected
-                via filter
-            filter_donors_list (List[str]): list of donors selected
+            raw_val (float): given aid value
+            project_raw_string (str): pipe (|) separated string
+                of raw field values from project table
+            filter_list (List[str]): list of field values selected
                 via filter
         Returns:
-            adjusted aid value (float)
+            adjusted raw value (float)
 
-        Aid value is adjusted based on the ratio of donors and
-        sectors selected via filter when compared to the total
-        number of (distinct) donors and sectors associated with
-        a project.
+        raw value is adjusted based on the ratio of fields values selected
+        via filter when compared to the total number of (distinct)
+        fields values associated with a project.
         """
-        project_sectors_list = project_sectors_string.split('|')
-        project_donors_list = project_donors_string.split('|')
+        project_split_list = project_raw_string.split('|')
 
-        if not filter_sectors_list or 'All' in filter_sectors_list:
-            sectors_match = project_sectors_list
+        if not filter_list or 'All' in filter_list:
+            filter_matches = project_split_list
         else:
-            sectors_match = [match for match in project_sectors_list
-                             if match in filter_sectors_list]
+            filter_matches = [i for i in project_split_list
+                              if i in filter_list]
 
-
-        if not filter_donors_list or 'All' in filter_donors_list:
-            donors_match = project_donors_list
-        else:
-            donors_match = [match for match in project_donors_list
-                            if match in filter_donors_list]
-
-        match = float(len(sectors_match) * len(donors_match))
-        total = float(len(project_sectors_list) * len(project_donors_list))
+        match = float(len(filter_matches))
+        total = float(len(project_split_list))
         ratio = match / total
 
         # remove duplicates? - could be duplicates from project strings
-        # match = (len(set(sectors_match)) * len(set(donors_match)))
-        # total = (len(set(project_sectors_list)) *
-        #            len(set(project_donors_list)))
+        # match = float(len(set(filter_matches)))
+        # total = float(len(set(project_split_list)))
         # ratio = match / total
 
-        adjusted_aid = ratio * float(raw_aid)
+        adjusted_val = ratio * float(raw_val)
 
-        return adjusted_aid
+        return adjusted_val
 
 
     def assign_geom_type(self, df_adjusted):
@@ -599,11 +578,14 @@ class CoreMSR():
         """
         tmp_pnt = Point(lon, lat)
 
-        if not self.is_in_country(tmp_pnt):
-            warn("point not in country ({0})".format(tmp_pnt))
+        if not self.is_in_grid(tmp_pnt):
+            warn("point not in grid ({0})".format(tmp_pnt))
             return "None"
 
         else:
+
+            tmp_adm0 = self.get_adm_geom(tmp_pnt, 0)
+
             if code_2 not in self.lookup[code_1]:
                 code_2 = "default"
 
@@ -651,17 +633,16 @@ class CoreMSR():
                                           proj_utm, proj_wgs)
                     tmp_buffer = transform(buffer_proj, utm_buffer)
 
-                    # clip buffer if it extends outside country
-                    if self.is_in_country(tmp_buffer):
+                    # clip buffer if it extends outside adm0
+                    if tmp_adm0.contains(tmp_buffer):
                         return tmp_buffer
-                    # elif tmp_buffer.intersects(self.adm0):
-                        # return tmp_buffer.intersection(self.adm0)
+                    # elif tmp_buffer.intersects(tmp_adm0):
+                        # return tmp_buffer.intersection(tmp_adm0)
                     else:
-                        return tmp_buffer.intersection(self.adm0)
-                        # return 0
+                        return tmp_buffer.intersection(tmp_adm0)
+                        # return "None"
 
                 except:
-
                     print "error applying projs"
                     raise
 
@@ -680,53 +661,53 @@ class CoreMSR():
                 raise Exception("geom object type not recognized")
 
 
-
-    def is_in_country(self, shp):
-        """Check if arbitrary polygon is within country (adm0) polygon.
+    def is_in_grid(self, shp):
+        """Check if arbitrary polygon is within grid bounding box.
 
         Args:
             shp (shape):
         Returns:
-            Bool whether shp is in adm0 shape.
+            Bool whether shp is in grid box.
 
-        Depends on prep_adm0 being defined in environment.
+        Depends on self.grid_box (shapely prep type) being defined
+        in environment.
         """
         if not hasattr(shp, 'geom_type'):
-            raise Exception("CoreMSR [is_in_country] : invalid shp given")
+            raise Exception("CoreMSR [is_in_grid] : invalid shp given")
 
-        if not isinstance(self.prep_adm0, type(prep(Point(0,0)))):
-            raise Exception("CoreMSR [is_in_country] : invalid prep_adm0 "
+        if not isinstance(self.grid_box, type(prep(Point(0,0)))):
+            raise Exception("CoreMSR [is_in_grid] : invalid prep_adm0 "
                             "found")
 
-        return self.prep_adm0.contains(shp)
-
-
-    # def set_adm0(self, shp):
-    #     """Set value of adm0 and prep_adm0 attributes
-
-    #     Args:
-    #         shape: shapely shape
-
-    #     Will exit script if shape is not a valid Polygon or
-    #     MultiPolygon
-    #     """
-    #     if isinstance(shape(shp), (Polygon, MultiPolygon)):
-    #         self.adm0 = shape(shp)
-    #         self.prep_adm0 = prep(self.adm0)
-    #     else:
-    #         raise Exception("invalid adm0 given")
-
-
-    def get_adm0(self, tmp_pnt):
-        pass
+        return self.grid_box.contains(shp)
 
 
     def get_adm_geom(self, tmp_pnt, adm_level):
         """
         """
         tmp_int = int(adm_level)
-        tmp_adm_geom = self.get_shape_within(
-            tmp_pnt, self.adm_shps[tmp_int])
+
+        tmp_pnt = Point(pnt)
+        query = self.client.features.find({
+            'geometry': {
+                '$geoIntersects': {
+                    '$geometry': {
+                        'type': "Point",
+                        'coordinates': [tmp_pnt.x, tmp_pnt.y]
+                    }
+                }
+            },
+            'datasets': {
+                '$regex': '_adm{0}_'.format(tmp_int)
+            }
+        })
+
+        if query.count() == 1:
+            tmp_adm_geom = shape(query[0]['geometry'])
+        else:
+            tmp_adm_geom = "None"
+            raise Exception('multiple adm (adm level {0}) geoms found for '
+                            'pnt ({1})'.format(tmp_int, tmp_pnt))
 
         return tmp_adm_geom
 
@@ -822,6 +803,7 @@ class CoreMSR():
         self.affine = affine
         self.shape = shape
         self.topleft = (top_left_lon, top_left_lat)
+        self.grid_box = prep(box(self.bounds))
 
 
     # https://stackoverflow.com/questions/8090229/

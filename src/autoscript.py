@@ -462,12 +462,7 @@ def complete_options_json():
         options_obj[field] = data
 
     # job / script info
-    # add_to_json("run_id", run_id)
-    # add_to_json("run_stage", run_stage)
-    # add_to_json("run_version_str", run_version_str)
-    # add_to_json("run_version", run_version)
     add_to_json("version", version)
-
     add_to_json("job_size", job.size)
 
     # dataset info
@@ -477,7 +472,7 @@ def complete_options_json():
     # core run options
     add_to_json("pixel_size", core.pixel_size)
     add_to_json("nodata", core.nodata)
-    add_to_json("aid_field", core.aid_field)
+    add_to_json("value_field", core.value_field)
     add_to_json("is_geocoded", core.is_geocoded)
     add_to_json("only_geocoded", core.only_geocoded)
     add_to_json("not_geocoded", core.not_geocoded)
@@ -494,10 +489,6 @@ def complete_options_json():
     add_to_json("rows", nrows)
     add_to_json("cols", ncols)
     add_to_json("locations", len(active_data))
-
-    # status
-    # add_to_json("dir_working", dir_working)
-    # add_to_json("status", 0)
 
     # times / durations
     add_to_json("times", core.times)
@@ -606,9 +597,8 @@ def tmp_master_final(self):
 # =============================================================================
 # INIT
 
-# validate request and dataset
-# init, inputs and variables
-
+# -------------------------------------
+# validate and prepare to process request
 
 request = job.comm.bcast(request, root=0)
 
@@ -621,9 +611,6 @@ elif request == 'Error':
 elif request == 0:
     quit("error getting request from master")
 
-
-# -------------------------------------
-# lookup release path
 
 release_path = None
 release_preamble = None
@@ -654,15 +641,10 @@ if release_preamble not in config.release_gadm:
 iso3 = config.release_gadm[release_preamble]
 
 
-# release_path = job.comm.bcast(release_path, root=0)
-# release_preamble = job.comm.bcast(release_preamble, root=0)
-# iso3 = job.comm.bcast(iso3, root=0)
-
-
 # -------------------------------------
 
 # create instance of CoreMSR class
-core = CoreMSR()
+core = CoreMSR(client)
 
 # full script start time
 core.times['start'] = int(time.time())
@@ -675,27 +657,24 @@ if job.rank == 0:
     print '\n'
 
 
-# -------------------------------------
 # set pixel size
-
 if not 'resolution' in request['options']:
     quit("missing pixel size input from request")
-
 
 core.set_pixel_size(request['options']['resolution'])
 
 
-# =============================================================================
-# =============================================================================
-# SHAPES / GRID INIT
+# -------------------------------------
+# create master grid
+
+if job.rank == 0:
+    print "Preparing main grid..."
 
 
 if iso3 == 'global':
-
     master_geom = box(-180, -90, 180, 90)
 
 else:
-
     search_master_geom = client.asdf.data.find(
         {'name': "{0}_adm0_gadm28".format(iso3.lower())},
         {'spatial': 1}
@@ -707,8 +686,6 @@ else:
     master_geom = shape(search_master_geom['spatial'])
 
 
-# -------------------------------------
-# create master grid
 core.set_grid_info(master_geom.bounds)
 master_grid = core.rasterize_geom(master_geom)
 
@@ -716,46 +693,11 @@ nrows, ncols = core.shape
 (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
 
 
-###
-
-# # -------------------------------------
-# # load adm zone feature data
-
-# # must start at and inlcude ADM0
-# # all additional ADM shps must be included so that adm_path index
-# # corresponds to adm level
-# adm_paths = []
-# shp_base = "/sciclone/aiddata10/REU/msr/shps/"
-# adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm0.shp")
-# adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm1.shp")
-# adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm2.shp")
-
-# # build list of adm shape lists
-# core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')]
-#                  for adm_path in adm_paths]
-
-# # define country shape
-# tmp_adm0 = shape(core.adm_shps[0][0])
-# core.set_adm0(tmp_adm0)
-
-
-# # -------------------------------------
-# # create grid for country
-# core.set_grid_info(core.adm0.bounds)
-# master_grid = core.rasterize_geom(core.adm0)
-
-# nrows, ncols = core.shape
-# (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
-
-###
-
-
-# =============================================================================
-# =============================================================================
-# DATAFRAME INIT
-
 # -------------------------------------
 # load / process data and get task list
+
+if job.rank == 0:
+    print "Preparing data..."
 
 dir_data = release_path + '/data'
 
@@ -768,20 +710,14 @@ if len(task_id_list) == 0:
     quit("task id list is missing")
 
 if job.rank == 0:
-    print str(len(task_id_list)) + " tasks to process."
-    print "Preparing main grid..."
+    print "Starting to process tasks ({0})...".format(len(task_id_list))
+    sum_mean_surf = 0
+    mstack = MasterStack()
 
 
 # =============================================================================
 # =============================================================================
 # RUN MPI (init / run job)
-
-if job.rank == 0:
-    print "Starting to process tasks..."
-    sum_mean_surf = 0
-
-    mstack = MasterStack()
-
 
 job.set_task_list(task_id_list)
 
