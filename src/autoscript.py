@@ -635,10 +635,10 @@ if job.rank == 0:
 if not os.path.isdir(release_path):
     quit("release path specified not found: " + release_path)
 
-if release_preamble not in config.release_gadm:
+if release_preamble not in config.release_iso3:
     quit("release premable not found in config: " + release_preamble)
 
-iso3 = config.release_gadm[release_preamble]
+iso3 = config.release_iso3[release_preamble]
 
 
 # -------------------------------------
