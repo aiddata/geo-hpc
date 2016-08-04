@@ -311,7 +311,7 @@ def tmp_worker_job(self, task_id):
 
     else:
         mean_surf = mean_surf.astype('float64')
-        mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
+        mean_surf = pg_data['adjusted_val'] * mean_surf / mean_surf.sum()
         return (task, pg_geom, mean_surf.flatten())
 
 
@@ -384,7 +384,7 @@ def complete_unique_geoms():
 
     # assuming even split of total project dollars is "max" dollars
     # that project location could receive
-    geo_df["dollars"] = unique_active_data["adjusted_aid"]
+    geo_df["dollars"] = unique_active_data["adjusted_val"]
     # geometry for each project location
     geo_df["geometry"] = gpd.GeoSeries(unique_active_data["geom_val"])
 

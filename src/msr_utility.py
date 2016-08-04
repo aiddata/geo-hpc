@@ -684,13 +684,13 @@ class CoreMSR():
         return self.grid_box.contains(shp)
 
 
-    def get_adm_geom(self, tmp_pnt, adm_level):
+    def get_adm_geom(self, pnt, adm_level):
         """
         """
         tmp_int = int(adm_level)
 
         tmp_pnt = Point(pnt)
-        query = self.client.features.find({
+        query = self.client.asdf.features.find({
             'geometry': {
                 '$geoIntersects': {
                     '$geometry': {
@@ -805,7 +805,7 @@ class CoreMSR():
         self.affine = affine
         self.shape = shape
         self.topleft = (top_left_lon, top_left_lat)
-        self.grid_box = prep(box(self.bounds))
+        self.grid_box = prep(box(*self.bounds))
 
 
     # https://stackoverflow.com/questions/8090229/
