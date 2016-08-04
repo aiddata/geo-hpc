@@ -1,7 +1,9 @@
 """Checks on releases and runs ingest to update
 
 Args
-    branch
+    branch (required)
+    update (optional): use to define update method when running add_release.
+                       defaults to "full if left blank
 """
 
 # -----------------------------------------------------------------------------
@@ -105,6 +107,12 @@ c_asdf = client.asdf.data
 version = config.versions["asdf-releases"]
 
 
+if len(sys.argv) >= 3:
+    update = sys.argv[2]
+else:
+    update = "full"
+
+
 # check if already in asdf
 # run add_release to add if needed
 for i in latest_data_dirnames:
@@ -121,7 +129,7 @@ for i in latest_data_dirnames:
         print "adding " + i + "..."
         add_release_instance = add_release
         add_release_instance.run(path=ipath, config=config,
-                                 generator="auto", update="full")
+                                 generator="auto", update=update)
 
 
 # mark as inactive in asdf
