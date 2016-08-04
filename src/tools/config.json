@@ -144,6 +144,7 @@
         "active": 1,
         "name": "develop",
         "server": "devlabs.aiddata.org",
+        "active_adm_suffix": "gadm28",
         "release_gadm": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",
