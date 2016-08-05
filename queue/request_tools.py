@@ -483,6 +483,8 @@ class QueueToolBox():
         bd_status = doc.build_doc()
         # print bd_status
 
+        shutil.make_archive(request_dir, "zip", request_dir, request_id)
+
 
         # zip files and delete originals
         # shutil.make_archive(request_dir, "zip", results_dir, request_id)
