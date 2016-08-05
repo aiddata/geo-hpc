@@ -227,7 +227,7 @@ for i in latest_releases:
 
 
     # create instance of CoreMSR class
-    core = CoreMSR()
+    core = CoreMSR(config)
 
     # --------------------------------------------------
     # load project data
