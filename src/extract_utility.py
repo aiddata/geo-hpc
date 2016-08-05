@@ -564,7 +564,8 @@ class ExtractObject():
                 stats = list(self.run_extract(raster, vector=f))
 
                 if len(stats) != 1:
-                    raise Exception('multiple extract results for single feature')
+                    raise Exception('multiple extract results for single '
+                                    'feature')
 
                 yield stats[0]
 
@@ -760,7 +761,8 @@ class ExtractObject():
 
         ftool = FeatureTool(
             kwargs['client'], kwargs['bnd_name'], kwargs['data_name'],
-            kwargs['ex_method'], kwargs['classification'], kwargs['ex_version'])
+            kwargs['ex_method'], kwargs['classification'],
+            kwargs['ex_version'])
 
         run_data = ftool.run(stats, add_extract=True)
         return run_data
@@ -1074,7 +1076,8 @@ class MergeObject():
 
             result_field = result_csv[result_csv.rindex('/')+1:-4]
 
-            # could add something here that attempt to cap field name at 10 chars
+            # could add something here that attempt to cap field name
+            # at 10 chars
             #
             # rasters... lookup mini name, extract method abbrv,
             #            attempt to include temporal infl
@@ -1137,7 +1140,8 @@ def json_sha1_hash(hash_obj):
 def limit_geom_chars(geom, limit=8000000, step=0.0001):
     """Limit chars in geom geojson string by simplification
 
-    Default limit for character count is 8000000 (8MB - MongoDB max document size is 16MB)
+    Default limit for character count is 8000000
+        (8MB - MongoDB max document size is 16MB)
     Default step for simplication is 0.0001
     """
     geom = shape(geom)
@@ -1323,7 +1327,7 @@ class FeatureTool():
                 try:
                     insert = self.c_features.insert(feature_insert)
                 except pymongo.errors.DuplicateKeyError as e:
-                    exists = "new"
+                    exists = "recent"
                 except:
                     buffer_size = 0.0000000001
                     # buffer_mongo_geom_shape
@@ -1337,16 +1341,17 @@ class FeatureTool():
                                     idx, self.bnd_name)
 
                     except pymongo.errors.DuplicateKeyError as e:
-                        exists = "new"
+                        exists = "recent"
 
 
-            if exists == "new":
+            if exists == "recent":
                 search = self.c_features.find_one({'hash': geom_hash})
 
 
             if exists:
                 if search is None:
-                    raise Exception('DuplicateKeyError but no doc with hash exists (this should not be possible).')
+                    raise Exception('DuplicateKeyError but no doc with hash '
+                                    'exists (this should not be possible).')
 
                 search_params = {
                     'hash': geom_hash
@@ -1380,7 +1385,8 @@ class FeatureTool():
                         'extracts.version': self.ex_version
                     }
 
-                    extract_search = self.c_features.find_one(extract_search_params)
+                    extract_search = self.c_features.find_one(
+                        extract_search_params)
                     extract_exists = extract_search is not None
 
                     if extract_exists:
@@ -1389,11 +1395,14 @@ class FeatureTool():
 
                     else:
                         search_params = {'hash': geom_hash}
-                        update_params['$push']['extracts'] = {'$each': feature_extracts}
+                        update_params['$push']['extracts'] = {
+                            '$each': feature_extracts
+                        }
 
 
                 if bool(update_params):
-                    update = self.c_features.update_one(search_params, update_params)
+                    update = self.c_features.update_one(search_params,
+                                                        update_params)
 
 
             yield feat
