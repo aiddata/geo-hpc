@@ -463,7 +463,8 @@ class QueueToolBox():
 
         request_dir = os.path.join(results_dir, request_id)
 
-        merge_output = os.path.join(request_dir, "results.csv")
+        merge_output = os.path.join(request_dir,
+                                    "{0}_results.csv".format(request_id))
 
         # merge cached results if all are available
         merge_status = self.merge_file_list(merge_list, merge_output)
@@ -476,15 +477,16 @@ class QueueToolBox():
 
 
         # generate documentation
-        doc_output =  os.path.join(request_dir, "documentation.pdf")
+        doc_output =  os.path.join(request_dir,
+                                   "{0}_documentation.pdf".format(request_id))
         doc = DocBuilder(request, doc_output)
         bd_status = doc.build_doc()
         # print bd_status
 
 
         # zip files and delete originals
-        shutil.make_archive(request_dir, "zip", results_dir, request_id)
-        shutil.rmtree(request_dir)
+        # shutil.make_archive(request_dir, "zip", results_dir, request_id)
+        # shutil.rmtree(request_dir)
 
 
 
