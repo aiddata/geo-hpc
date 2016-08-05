@@ -246,16 +246,23 @@ class CoreMSR():
                                    na_values='', keep_default_na=False,
                                    encoding='utf-8')
             except:
-                return 'unable to open file (' + str(path) + ')'
+                print ('merge_data - error opening files: '
+                       'unable to open file ({0})'.format(path))
+                raise
+
         elif path.endswith('.csv'):
             try:
                 return pd.read_csv(path,
                                    quotechar='\"', na_values='',
                                    keep_default_na=False, encoding='utf-8')
             except:
-                return 'unable to open file (' + str(path) + ')'
+                print ('merge_data - error opening files: '
+                       'unable to open file ({0})'.format(path))
+                raise
+
         else:
-            return 'file extension not recognized (' + str(path) + ')'
+            raise Exception('merge_data - error opening files: '
+                            'file extension not recognized ({0})'.format(path))
 
 
     # requires a field name to merge on and list of required fields
@@ -285,17 +292,6 @@ class CoreMSR():
         # read input csv files into memory
         amp = self.load_csv(amp_path)
         loc = self.load_csv(loc_path)
-
-        # make sure there were no issues opening files
-        if type(amp) == str or type(loc) == str:
-            if type(amp) == str:
-                print amp
-
-            if type(loc) == str:
-                print loc
-
-            raise Exception("merge_data - error opening files")
-
 
         # make sure merge id field exists in both files
         if not merge_id in amp or not merge_id in loc:
@@ -333,8 +329,9 @@ class CoreMSR():
         """
         """
         df_merged = self.merge_data(
-            data_directory, "project_id", (self.code_field_1,
-            self.code_field_2, self.code_field_3, "project_location_id"),
+            data_directory, "project_id",
+            (self.code_field_1, self.code_field_2, self.code_field_3,
+            "project_location_id"),
             self.only_geocoded)
 
         df_prep = self.prep_data(df_merged)
