@@ -114,7 +114,7 @@ class QueueToolBox():
         """
         search = self.c_queue.find({
             "status": status
-        }).sort([("priority", -1), ("submit_time", 1)]).limit(limit)
+        }).sort([("priority", -1), ("stage.0.time", 1)]).limit(limit)
 
         count = search.count(True)
 
@@ -142,15 +142,15 @@ class QueueToolBox():
             raise e
 
 
-    def update_status(self, rid, status):
+    def update_status(self, rid, status, is_prep=False):
         """ update status of request
         """
         valid_stages = {
             "-2": None,
             "-1": None,
-            "0": "prep_time",
-            "1": "complete_time",
-            "2": "process_time"
+            "0": None,
+            "2": "stage.2.time",
+            "1": "stage.3.time"
         }
 
         ctime = int(time.time())
@@ -162,6 +162,10 @@ class QueueToolBox():
         stage = valid_stages[str(status)]
         if stage is not None:
             updates[stage] = ctime
+
+
+        if is_prep:
+            updates['stage.1.time'] = ctime
 
         try:
             # update request document

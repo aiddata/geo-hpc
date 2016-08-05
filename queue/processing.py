@@ -93,8 +93,10 @@ for request_obj in request_objects:
 
     original_status = queue.get_status(request_id)
 
+    is_prep = original_status == -1
+
     # set status 2 (no email)
-    queue.update_status(request_id, 2)
+    queue.update_status(request_id, 2, is_prep)
 
 
     try:
@@ -106,7 +108,7 @@ for request_obj in request_objects:
         raise
 
 
-    if original_status == -1:
+    if is_prep:
         # send email that request was received
         queue.notify_received(request_id, request_obj['email'])
 

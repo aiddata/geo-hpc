@@ -169,12 +169,12 @@ class DocBuilder():
 
             data = [
                 ['Dataset ',dset['dataset']],
-                ['Type', 'release'],
-                ['Donors', ', '.join(dset['filters']['donors'])],
-                ['Sectors', ', '.join(dset['filters']['ad_sector_names'])],
-                ['Years', ', '.join(dset['filters']['years'])],
-                ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
-                ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
+                ['Type', 'release']#,
+                # ['Donors', ', '.join(dset['filters']['donors'])],
+                # ['Sectors', ', '.join(dset['filters']['ad_sector_names'])],
+                # ['Years', ', '.join(dset['filters']['transaction_year'])],
+                # ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
+                # ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
             ]
 
             t = Table(data)
@@ -195,8 +195,8 @@ class DocBuilder():
 
             data = [['Title (Name)',dset['title'] +' ('+ dset['name'] +')'],
                     ['Type', dset['type']],
-                    ['Items Requested', self.request['counts'][dset['name']]],
-                    ['Temporal Type', dset['temporal_type']],
+                    # ['Items Requested', self.request['counts'][dset['name']]],
+                    # ['Temporal Type', dset['temporal_type']],
                     ['Files', ', '.join([f['name'] for f in dset['files']])]]
 
             if dset['type'] == 'raster':
