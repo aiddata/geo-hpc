@@ -266,14 +266,14 @@ class CoreMSR():
 
 
     # requires a field name to merge on and list of required fields
-    def merge_data(self, path, merge_id, field_ids=None, only_geo=False):
+    def merge_data(self, path, merge_id):
         """Retrieves and merges data from project and location tables.
 
         Args:
             path (str): absolute path to directory where project and
                         location tables exist [required]
             merge_id (str): field to merge on [required]
-            field_ids (List[str]): list of fields to verify exist in
+            required_fields (List[str]): list of fields to verify exist in
                                    merged dataframe
                                    [optional, default None]
             only_geo (bool): whether to use inner merge (true) or
@@ -303,22 +303,25 @@ class CoreMSR():
         loc[merge_id] = loc[merge_id].astype(str)
 
         # merge amp and location files on merge_id
-        if only_geo:
+        # only_geocoded determined whether to use inner merge (true)
+        # or left merge (false)
+        if self.only_geocoded:
             tmp_merged = amp.merge(loc, on=merge_id)
         else:
             tmp_merged = amp.merge(loc, on=merge_id, how="left")
 
         # make sure merge dataframe has longitude and latitude fields
         # so it can be converted to geodataframe later
-        if not "longitude" in tmp_merged or not "latitude" in tmp_merged:
-            raise Exception("merge_data - latitude and longitude fields "
-                            "not found")
+        # also make sure other required option fields are present
 
-        # make sure option fields are present
-        if field_ids == None:
-            field_ids = []
+        required_fields = (self.code_field_1, self.code_field_2,
+                           self.code_field_3, "project_location_id",
+                           "longitude", "latitude")
 
-        for field_id in field_ids:
+        if required_fields == None:
+            required_fields = []
+
+        for field_id in required_fields:
             if not field_id in tmp_merged:
                 raise Exception("merge_data - required code field not found")
 
@@ -328,11 +331,7 @@ class CoreMSR():
     def process_data(self, data_directory, request_object):
         """
         """
-        df_merged = self.merge_data(
-            data_directory, "project_id",
-            (self.code_field_1, self.code_field_2, self.code_field_3,
-            "project_location_id"),
-            self.only_geocoded)
+        df_merged = self.merge_data(data_directory, "project_id")
 
         df_prep = self.prep_data(df_merged)
 
@@ -343,7 +342,7 @@ class CoreMSR():
         if df_filtered.size == 0:
             raise Exception('no data remaining after filter')
 
-        df_adjusted = self.adjust_aid(df_filtered, filters)
+        df_adjusted = self.adjust_val(df_filtered, filters)
 
         df_geom = self.assign_geom_type(df_adjusted)
 
@@ -423,7 +422,7 @@ class CoreMSR():
         return df_filtered
 
 
-    def adjust_aid(self, df_filtered, filters):
+    def adjust_val(self, df_filtered, filters):
 
         df_adjusted = df_filtered.copy(deep=True)
 
