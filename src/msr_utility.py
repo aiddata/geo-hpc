@@ -161,13 +161,8 @@ class CoreMSR():
         self.geom_types = ["point", "buffer", "adm"]
 
 
-        # self.code_field_1 = "location_class"
-        # self.code_field_3 = "geographic_exactness"
-
-        # fields are currently bugged and switched
-        self.code_field_1 = "geographic_exactness"
-        self.code_field_3 = "location_class"
-
+        self.code_field_1 = "location_class"
+        self.code_field_3 = "geographic_exactness"
 
         self.code_field_2 = "location_type_code"
 
