@@ -697,6 +697,12 @@ class CoreMSR():
 
         if query.count() == 1:
             tmp_adm_geom = shape(query[0]['geometry'])
+
+        elif query.count() == 0:
+            tmp_adm_geom = "None"
+            raise Exception('no adm (adm level {0}) geom found for '
+                            'pnt ({1})'.format(tmp_int, tmp_pnt))
+
         else:
             tmp_adm_geom = "None"
             raise Exception('multiple adm (adm level {0}) geoms found for '
