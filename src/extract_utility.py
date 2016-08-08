@@ -1304,6 +1304,7 @@ class FeatureTool():
             exists = search is not None
 
             tmp_tags = self.bnd_name.split('_')
+            tmp_tags.append('{0}_{1}'.format(tmp_tags[1], tmp_tags[2]))
 
             if not exists:
                 mongo_geom, simplify_tolerance = limit_geom_chars(
@@ -1317,8 +1318,7 @@ class FeatureTool():
 
                 feature_insert = {
                     'geometry': mongo_geom,
-                    'tags': tmp_tags + ['{0}_{1}'.format(tmp_tags[1],
-                                                         tmp_tags[2])],
+                    'tags': tmp_tags,
                     'info': {
                         'simplify_tolerance': simplify_tolerance,
                         'buffer_size': 0
@@ -1379,8 +1379,7 @@ class FeatureTool():
 
                     update_params['$addToSet'] = {}
                     update_params['$addToSet']['tags'] = {
-                        '$each': tmp_tags + ['{0}_{1}'.format(tmp_tags[1],
-                                                              tmp_tags[2])]
+                        '$each': tmp_tags
                     }
 
 
