@@ -654,8 +654,8 @@ class CoreMSR():
                         print '3'
                         tmp_adm_geom, tmp_adm_iso3 = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
-                        return tmp_adm_geom
                         print '4'
+                        return tmp_adm_geom
                 except:
                     print ("adm value could not be converted "
                            "to int ({0})".format(tmp_lookup["data"]))
