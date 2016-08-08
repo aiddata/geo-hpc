@@ -1180,6 +1180,8 @@ class FeatureTool():
 
             if 'hash' not in tmp_index_names:
                 self.c_features.create_index("hash", unique=True)
+            if 'datasets' not in tmp_index_names:
+                self.c_features.create_index("datasets")
             if 'spatial' not in tmp_index_names:
                 self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
 
