@@ -695,15 +695,11 @@ class CoreMSR():
         query = {}
 
         if iso3 is None:
-            query['tags'] = {
-                '$and': [
-                    {'tags': 'adm{0}'.format(tmp_int)},
-                    {'tags': self.adm_suffix}
-                ]
-            }
+            query['tags'] = 'adm{0}_{1}'.format(
+                tmp_int, self.adm_suffix)
 
         else:
-            query['datasets'] ='{0}_adm{1}_{2}'.format(
+            query['datasets'] = '{0}_adm{1}_{2}'.format(
                 iso3.lower(), tmp_int, self.adm_suffix)
 
 
