@@ -577,7 +577,10 @@ class CoreMSR():
 
         else:
 
-            tmp_adm0 = self.get_adm_geom(tmp_pnt, 0)
+            tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
+
+            if tmp_adm0 == "None"
+                return tmp_adm0
 
             if code_2 not in self.lookup[code_1]:
                 code_2 = "default"
@@ -642,8 +645,13 @@ class CoreMSR():
             elif tmp_lookup["type"] == "adm":
                 try:
                     tmp_int = int(tmp_lookup["data"])
-                    tmp_adm_geom = self.get_adm_geom(tmp_pnt, tmp_int)
-                    return tmp_adm_geom
+
+                    if tmp_int == 0:
+                        return tmp_adm0
+                    else
+                        tmp_adm_geom = self.get_adm_geom(
+                            tmp_pnt, tmp_int, iso3=tmp_iso3)
+                        return tmp_adm_geom
 
                 except:
                     print ("adm value could not be converted "
@@ -675,10 +683,20 @@ class CoreMSR():
         return self.grid_box.contains(shp)
 
 
-    def get_adm_geom(self, pnt, adm_level):
+    def get_adm_geom(self, pnt, adm_level, iso3=None):
         """
         """
         tmp_int = int(adm_level)
+
+
+        if iso3 is None:
+            tmp_datasets_field = {
+                '$regex': '_adm{0}_{1}'.format(tmp_int, self.adm_suffix)
+            }
+        else:
+            tmp_datasets_field = '{0}_adm{1}_{2}'.format(
+                iso3.lower(), tmp_int, self.adm_suffix)
+
 
         tmp_pnt = Point(pnt)
         query = self.client.asdf.features.find({
@@ -690,25 +708,28 @@ class CoreMSR():
                     }
                 }
             },
-            'datasets': {
-                '$regex': '_adm{0}_{1}'.format(tmp_int, self.adm_suffix)
-            }
+            'datasets': tmp_datasets_field
         })
 
         if query.count() == 1:
             tmp_adm_geom = shape(query[0]['geometry'])
+            tmp_iso3 = query[0]['datasets'][0][:3]
 
         elif query.count() == 0:
+            warn('no adm (adm level {0}) geom found for '
+                 'pnt ({1})'.format(tmp_int, tmp_pnt))
             tmp_adm_geom = "None"
-            raise Exception('no adm (adm level {0}) geom found for '
-                            'pnt ({1})'.format(tmp_int, tmp_pnt))
+            tmp_iso3 = None
 
         else:
-            tmp_adm_geom = "None"
-            raise Exception('multiple adm (adm level {0}) geoms found for '
-                            'pnt ({1})'.format(tmp_int, tmp_pnt))
+            warn('multiple adm (adm level {0}) geoms found for '
+                 'pnt ({1})'.format(tmp_int, tmp_pnt))
+            # tmp_adm_geom = "None"
+            tmp_adm_geom = shape(query[0]['geometry'])
+            tmp_iso3 = query[0]['datasets'][0][:3]
 
-        return tmp_adm_geom
+
+        return tmp_adm_geom, tmp_iso3
 
 
     def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
