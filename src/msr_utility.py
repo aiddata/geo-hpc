@@ -696,7 +696,10 @@ class CoreMSR():
 
         if iso3 is None:
             query['tags'] = {
-                '$in': ['adm{0}'.format(tmp_int), self.adm_suffix]
+                '$and': [
+                    {'tags': 'adm{0}'.format(tmp_int)},
+                    {'tags': self.adm_suffix}
+                ]
             }
 
         else:
