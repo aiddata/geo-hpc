@@ -690,35 +690,36 @@ class CoreMSR():
         """
         """
         tmp_int = int(adm_level)
+        tmp_pnt = Point(pnt)
 
+        query = {}
 
         if iso3 is None:
-            tmp_datasets_field = {
-                '$regex': '_adm{0}_{1}'.format(tmp_int, self.adm_suffix)
+            query['tags'] = {
+                '$in': ['adm{0}'.format(tmp_int), self.adm_suffix]
             }
+
         else:
-            tmp_datasets_field = '{0}_adm{1}_{2}'.format(
+            query['datasets'] ='{0}_adm{1}_{2}'.format(
                 iso3.lower(), tmp_int, self.adm_suffix)
 
 
-        tmp_pnt = Point(pnt)
-        query = self.client.asdf.features.find({
-            'geometry': {
-                '$geoIntersects': {
-                    '$geometry': {
-                        'type': "Point",
-                        'coordinates': [tmp_pnt.x, tmp_pnt.y]
-                    }
+        query['geometry'] = {
+            '$geoIntersects': {
+                '$geometry': {
+                    'type': "Point",
+                    'coordinates': [tmp_pnt.x, tmp_pnt.y]
                 }
-            },
-            'datasets': tmp_datasets_field
-        })
+            }
+        }
 
-        if query.count() == 1:
-            tmp_adm_geom = shape(query[0]['geometry'])
-            tmp_iso3 = query[0]['datasets'][0][:3]
+        results = self.client.asdf.features.find(query)
 
-        elif query.count() == 0:
+        if results.count() == 1:
+            tmp_adm_geom = shape(results[0]['geometry'])
+            tmp_iso3 = results[0]['datasets'][0][:3]
+
+        elif results.count() == 0:
             warn('no adm (adm level {0}) geom found for '
                  'pnt ({1})'.format(tmp_int, tmp_pnt))
             tmp_adm_geom = "None"
@@ -728,8 +729,8 @@ class CoreMSR():
             warn('multiple adm (adm level {0}) geoms found for '
                  'pnt ({1})'.format(tmp_int, tmp_pnt))
             # tmp_adm_geom = "None"
-            tmp_adm_geom = shape(query[0]['geometry'])
-            tmp_iso3 = query[0]['datasets'][0][:3]
+            tmp_adm_geom = shape(results[0]['geometry'])
+            tmp_iso3 = results[0]['datasets'][0][:3]
 
 
         return tmp_adm_geom, tmp_iso3
