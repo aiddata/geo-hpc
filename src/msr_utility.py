@@ -579,7 +579,7 @@ class CoreMSR():
 
             tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
 
-            if tmp_adm0 == "None"
+            if tmp_adm0 == "None":
                 return tmp_adm0
 
             if code_2 not in self.lookup[code_1]:
@@ -648,7 +648,7 @@ class CoreMSR():
 
                     if tmp_int == 0:
                         return tmp_adm0
-                    else
+                    else:
                         tmp_adm_geom = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
                         return tmp_adm_geom
