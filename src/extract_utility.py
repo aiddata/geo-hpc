@@ -1375,6 +1375,7 @@ class FeatureTool():
                     prop_sub_doc = 'properties.' + self.bnd_name
                     update_params['$set'][prop_sub_doc] = feature_properties
 
+                    update_params['$addToSet'] = {}
                     update_params['$addToSet']['tags'] = {
                         '$each': self.bnd_name.split('_')
                     }
