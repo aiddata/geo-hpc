@@ -577,6 +577,7 @@ class CoreMSR():
 
         else:
 
+            print '1'
             tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
 
             if tmp_adm0 == "None":
@@ -587,6 +588,7 @@ class CoreMSR():
 
             tmp_lookup = self.lookup[code_1][code_2][code_3]
 
+            print '2'
             # print tmp_lookup["type"]
 
             if tmp_lookup["type"] == "point":
@@ -649,10 +651,11 @@ class CoreMSR():
                     if tmp_int == 0:
                         return tmp_adm0
                     else:
+                        print '3'
                         tmp_adm_geom = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
                         return tmp_adm_geom
-
+                        print '4'
                 except:
                     print ("adm value could not be converted "
                            "to int ({0})".format(tmp_lookup["data"]))
