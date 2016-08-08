@@ -1182,6 +1182,8 @@ class FeatureTool():
                 self.c_features.create_index("hash", unique=True)
             if 'datasets' not in tmp_index_names:
                 self.c_features.create_index("datasets")
+            if 'tags' not in tmp_index_names:
+                self.c_features.create_index("tags")
             if 'spatial' not in tmp_index_names:
                 self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
 
@@ -1314,6 +1316,7 @@ class FeatureTool():
 
                 feature_insert = {
                     'geometry': mongo_geom,
+                    'tags': self.bnd_name.split('_'),
                     'info': {
                         'simplify_tolerance': simplify_tolerance,
                         'buffer_size': 0
@@ -1371,6 +1374,10 @@ class FeatureTool():
 
                     prop_sub_doc = 'properties.' + self.bnd_name
                     update_params['$set'][prop_sub_doc] = feature_properties
+
+                    update_params['$addToSet']['tags'] = {
+                        '$each' = self.bnd_name.split('_')
+                    }
 
 
                 if add_extract:
