@@ -652,7 +652,7 @@ class CoreMSR():
                         return tmp_adm0
                     else:
                         print '3'
-                        tmp_adm_geom = self.get_adm_geom(
+                        tmp_adm_geom, tmp_adm_iso3 = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
                         return tmp_adm_geom
                         print '4'
