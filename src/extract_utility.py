@@ -1313,8 +1313,9 @@ class FeatureTool():
                 if json_sha1_hash(mongo_geom) != geom_hash:
                     original_geom_size = len(json.dumps(geom))
                     print ("Warning - Big geom ({0} chars for feature {1} in "
-                           " {2})").format(original_geom_size, idx,
-                                           self.bnd_name)
+                           " {2}) simplified ({3})").format(
+                            original_geom_size, idx,
+                            self.bnd_name, simplify_tolerance)
 
                 feature_insert = {
                     'geometry': mongo_geom,
