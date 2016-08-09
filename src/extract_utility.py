@@ -1336,40 +1336,38 @@ class FeatureTool():
                     insert = self.c_features.insert(feature_insert)
                 except pymongo.errors.DuplicateKeyError as e:
                     exists = "recent"
-                except:
+                except pymongo.errors.PyMongoError as e:
+                    tmp_geo_str = json.dumps(mongo_geom)
+                    tmp_geo_str.replace('180.0', '179.9999999999')
+                    mongo_geom = json.loads(tmp_geo_str)
 
+                    feature_insert['geometry'] = mongo_geom
+                    insert = self.c_features.insert(feature_insert)
+
+                except:
+                    # buffer_mongo_geom_shape
+                    tmp_buffer = shape(mongo_geom).buffer(0)
+                    feature_insert['geometry'] = tmp_buffer.__geo_interface__
+                    feature_insert['info']['null_buffer'] = True
                     try:
+                        insert = self.c_features.insert(feature_insert)
+                        print ("Warning - Self intersecting geom being "
+                               "buffered (feature {0} in {1})").format(
+                                    idx, self.bnd_name)
+
+                    except pymongo.errors.DuplicateKeyError as e:
+                        exists = "recent"
+
+                    except pymongo.errors.PyMongoError as e:
                         tmp_geo_str = json.dumps(mongo_geom)
                         tmp_geo_str.replace('180.0', '179.9999999999')
                         mongo_geom = json.loads(tmp_geo_str)
 
                         feature_insert['geometry'] = mongo_geom
                         insert = self.c_features.insert(feature_insert)
-
-                    except:
-                        # buffer_mongo_geom_shape
-                        tmp_buffer = shape(mongo_geom).buffer(0)
-                        feature_insert['geometry'] = tmp_buffer.__geo_interface__
-                        feature_insert['info']['null_buffer'] = True
-                        try:
-                            insert = self.c_features.insert(feature_insert)
-                            print ("Warning - Self intersecting geom being "
-                                   "buffered (feature {0} in {1})").format(
-                                        idx, self.bnd_name)
-
-                        except pymongo.errors.DuplicateKeyError as e:
-                            exists = "recent"
-
-                        except:
-                            tmp_geo_str = json.dumps(mongo_geom)
-                            tmp_geo_str.replace('180.0', '179.9999999999')
-                            mongo_geom = json.loads(tmp_geo_str)
-
-                            feature_insert['geometry'] = mongo_geom
-                            insert = self.c_features.insert(feature_insert)
-                            print ("Warning - Self intersecting geom being "
-                                   "buffered (feature {0} in {1})").format(
-                                        idx, self.bnd_name)
+                        print ("Warning - Self intersecting geom being "
+                               "buffered (feature {0} in {1})").format(
+                                    idx, self.bnd_name)
 
 
             if exists == "recent":
