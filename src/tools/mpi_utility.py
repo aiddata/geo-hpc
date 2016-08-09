@@ -358,7 +358,7 @@ class NewParallel():
 
                     except Exception as e:
                         print "Worker ({0}) - encountered error".format(self.rank)
-                        print e.encode('utf-8')
+                        # print e.encode('utf-8')
                         traceback.print_exc()
                         self.comm.send(None, dest=0, tag=self.tags.ERROR)
 
