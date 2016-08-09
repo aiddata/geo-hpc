@@ -12,6 +12,8 @@ import sys
 branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
         os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(branch_dir, 'extract-scripts', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(branch_dir), 'extract-scripts', 'src'))
+
 from extract_utility import FeatureTool
 
 
