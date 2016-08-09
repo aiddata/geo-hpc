@@ -1121,6 +1121,7 @@ class MergeObject():
 # -----------------------------------------------------------------------------
 
 
+import re
 import json
 import hashlib
 from shapely.geometry import shape
@@ -1169,7 +1170,9 @@ class FeatureTool():
             self.c_features = self.client.asdf.features
 
             self.c_features.create_index("hash", unique=True)
-            self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
+            self.c_features.create_index("datasets")
+            self.c_features.create_index("tags")
+            self.c_features.create_index([("geometry", pymongo.GEOSPHERE)])
 
         else:
             self.c_features = self.client.asdf.features
@@ -1184,8 +1187,8 @@ class FeatureTool():
                 self.c_features.create_index("datasets")
             if 'tags' not in tmp_index_names:
                 self.c_features.create_index("tags")
-            if 'spatial' not in tmp_index_names:
-                self.c_features.create_index([("spatial", pymongo.GEOSPHERE)])
+            if 'geometry' not in tmp_index_names:
+                self.c_features.create_index([("geometry", pymongo.GEOSPHERE)])
 
 
         self.bnd_name = bnd_name
@@ -1340,11 +1343,10 @@ class FeatureTool():
 
                 except pymongo.errors.PyMongoError as e:
                     try:
-                        tmp_geo_str = json.dumps(mongo_geom)
-                        tmp_geo_str = tmp_geo_str.replace('180.0', '179.9999999999')
-                        mongo_geom = json.loads(tmp_geo_str)
+                        tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                             json.dumps(mongo_geom))
+                        feature_insert['geometry'] = json.loads(tmp_geo_str)
 
-                        feature_insert['geometry'] = mongo_geom
                         insert = self.c_features.insert(feature_insert)
 
                     except:
@@ -1362,15 +1364,35 @@ class FeatureTool():
                             exists = "recent"
 
                         except pymongo.errors.PyMongoError as e:
-                            tmp_geo_str = json.dumps(mongo_geom)
-                            tmp_geo_str = tmp_geo_str.replace('180.0', '179.9999999999')
-                            mongo_geom = json.loads(tmp_geo_str)
 
-                            feature_insert['geometry'] = mongo_geom
-                            insert = self.c_features.insert(feature_insert)
-                            print ("Warning - Self intersecting geom being "
-                                   "buffered (feature {0} in {1})").format(
-                                        idx, self.bnd_name)
+                            try:
+                                tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                                     json.dumps(mongo_geom))
+                                feature_insert['geometry'] = json.loads(tmp_geo_str)
+
+                                insert = self.c_features.insert(feature_insert)
+                                print ("Warning - Self intersecting geom being "
+                                       "buffered (feature {0} in {1})").format(
+                                            idx, self.bnd_name)
+
+                            except pymongo.errors.PyMongoError as e:
+                                tmp_mongo_geom = shape(mongo_geom).buffer(0.0000000001)
+                                tmp_mongo_geom, _ = limit_geom_chars(
+                                    geom, limit=8000000, step=0.0001)
+
+                                tmp_mongo_geom = shape(tmp_mongo_geom) \
+                                                    .buffer(0) \
+                                                    .__geo_interface__
+
+                                tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                                     json.dumps(tmp_mongo_geom))
+
+                                feature_insert['geometry'] = json.loads(tmp_geo_str)
+
+                                insert = self.c_features.insert(feature_insert)
+                                print ("Warning - Self intersecting geom being "
+                                       "buffered (feature {0} in {1})").format(
+                                            idx, self.bnd_name)
 
 
             if exists == "recent":
