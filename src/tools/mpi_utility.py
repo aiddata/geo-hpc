@@ -357,7 +357,8 @@ class NewParallel():
                         self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
 
                     except Exception as e:
-                        print "Worker ({0}) - encountered error ({1})".format(self.rank, e)
+                        print "Worker ({0}) - encountered error".format(self.rank)
+                        print e
                         traceback.print_exc()
                         self.comm.send(None, dest=0, tag=self.tags.ERROR)
 
