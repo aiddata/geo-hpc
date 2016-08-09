@@ -1341,7 +1341,7 @@ class FeatureTool():
                 except pymongo.errors.PyMongoError as e:
                     try:
                         tmp_geo_str = json.dumps(mongo_geom)
-                        tmp_geo_str.replace('180.0', '179.9999999999')
+                        tmp_geo_str = tmp_geo_str.replace('180.0', '179.9999999999')
                         mongo_geom = json.loads(tmp_geo_str)
 
                         feature_insert['geometry'] = mongo_geom
@@ -1363,7 +1363,7 @@ class FeatureTool():
 
                         except pymongo.errors.PyMongoError as e:
                             tmp_geo_str = json.dumps(mongo_geom)
-                            tmp_geo_str.replace('180.0', '179.9999999999')
+                            tmp_geo_str = tmp_geo_str.replace('180.0', '179.9999999999')
                             mongo_geom = json.loads(tmp_geo_str)
 
                             feature_insert['geometry'] = mongo_geom
