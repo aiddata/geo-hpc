@@ -1322,7 +1322,7 @@ class FeatureTool():
                     'tags': tmp_tags,
                     'info': {
                         'simplify_tolerance': simplify_tolerance,
-                        'buffer_size': 0
+                        'null_buffer': False
                     },
                     'hash': geom_hash,
                     # 'id': feature_id,
@@ -1337,11 +1337,10 @@ class FeatureTool():
                 except pymongo.errors.DuplicateKeyError as e:
                     exists = "recent"
                 except:
-                    buffer_size = 0.0000000001
                     # buffer_mongo_geom_shape
-                    tmp_buffer = shape(mongo_geom).buffer(buffer_size)
+                    tmp_buffer = shape(mongo_geom).buffer(0)
                     feature_insert['geometry'] = tmp_buffer.__geo_interface__
-                    feature_insert['info']['buffer_size'] = buffer_size
+                    feature_insert['info']['null_buffer'] = True
                     try:
                         insert = self.c_features.insert(feature_insert)
                         print ("Warning - Self intersecting geom being "
