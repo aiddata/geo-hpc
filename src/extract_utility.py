@@ -1338,7 +1338,7 @@ class FeatureTool():
                 except:
                     buffer_size = 0.0000000001
                     # buffer_mongo_geom_shape
-                    tmp_buffer = shape(geom).buffer(buffer_size)
+                    tmp_buffer = shape(mongo_geom).buffer(buffer_size)
                     feature_insert['geometry'] = tmp_buffer.__geo_interface__
                     feature_insert['info']['buffer_size'] = buffer_size
                     try:
