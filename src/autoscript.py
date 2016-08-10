@@ -285,24 +285,25 @@ def tmp_worker_job(self, task_id):
 
 
     if pg_geom in [None, "None"]:
-        sys.exit("Geom is none" + str(pg_data['project_location_id']))
+        warn("Geom is none" + str(pg_data['project_location_id']))
 
-    try:
-        pg_geom = shape(pg_geom)
-    except:
-        print("Geom is invalid")
-        print str(pg_data['project_location_id'])
-        print type(pg_geom)
-        print pg_geom
-        raise
+    else:
+        try:
+            pg_geom = shape(pg_geom)
+        except:
+            print("Geom is invalid")
+            print str(pg_data['project_location_id'])
+            print type(pg_geom)
+            print pg_geom
+            raise
 
-    # factor used to determine subgrid size
-    # relative to output grid size
-    # sub grid res = output grid res / sub_grid_factor
-    subgrid_scale = 10
+        # factor used to determine subgrid size
+        # relative to output grid size
+        # sub grid res = output grid res / sub_grid_factor
+        subgrid_scale = 10
 
-    # rasterized sub grid
-    mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
+        # rasterized sub grid
+        mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
 
     if mean_surf is None:
