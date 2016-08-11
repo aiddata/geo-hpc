@@ -278,11 +278,13 @@ def tmp_worker_job(self, task_id):
     # for each row generate grid based on bounding box of geometry
     # pg_geom = pg_data.geom_val
 
-    pg_geom = core.get_geom_val(
-        pg_data.geom_type, pg_data[core.code_field_1],
-        pg_data[core.code_field_2], pg_data[core.code_field_3],
-        pg_data.longitude, pg_data.latitude)
-
+    try:
+        pg_geom = core.get_geom_val(
+            pg_data.geom_type, pg_data[core.code_field_1],
+            pg_data[core.code_field_2], pg_data[core.code_field_3],
+            pg_data.longitude, pg_data.latitude)
+    except:
+        pg_geom = None
 
     if pg_geom in [None, "None"]:
         warn("Geom is none" + str(pg_data['project_location_id']))
