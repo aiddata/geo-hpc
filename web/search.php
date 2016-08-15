@@ -515,7 +515,7 @@ function get_filter_count($data) {
 
             if (in_array($k, ['total_commitments', 'total_disbursements'])) {
 
-                $vals = array_map('intval', $v);
+                $vals = array_map('floatval', $v);
                 $tmp_search = [
                     '$gte' => min($vals),
                     '$lte' => max($vals)
