@@ -178,6 +178,50 @@ function is_not_nan($val) {
 
 
 /**
+find and return text/field info
+
+db:col = asdf:data
+
+post fields
+    None
+
+returns
+    json string representing dictionary where keys are cccccccc
+     and values are cccccccccccccc
+
+*/
+function get_info($data) {
+    global $output, $m;
+
+    $c_config = $m->selectDB('info')->selectCollection('config');
+    $config_options = $c_config->findOne();
+    $info = $config_options['det'];
+
+    $output->send($info);
+    return 0;
+}
+
+
+/**
+get request limits
+
+returns
+    json object string with limits for each type and total
+    (value of -1 means no limit)
+*/
+function get_request_limits($data) {
+    global $output, $m;
+
+    $c_config = $m->selectDB('info')->selectCollection('config');
+    $config_options = $c_config->findOne();
+    $request_limits = $config_options['det']['limits'];
+
+    $output->send($request_limits);
+    return 0;
+}
+
+
+/**
 find and return all eligible boundaries
 
 db:col = asdf:data
@@ -602,25 +646,6 @@ function get_filter_count($data) {
     );
 
     $output->send($result);
-    return 0;
-}
-
-
-/**
-get request limits
-
-returns
-    json object string with limits for each type and total
-    (value of -1 means no limit)
-*/
-function get_request_limits($data) {
-    global $output, $m;
-
-    $c_config = $m->selectDB('info')->selectCollection('config');
-    $config_options = $c_config->findOne();
-    $request_limits = $config_options['det']['limits'];
-
-    $output->send($request_limits);
     return 0;
 }
 
