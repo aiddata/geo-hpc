@@ -27,6 +27,37 @@
             "mean-surface-rasters": "0.11.0"
         },
         "det": {
+            "help": [
+                {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "How is the groundnut better known?", "answer": "The peanut."}
+            ],
+            "welcome": {
+                "title": "Welcome to the Data Extraction Tool by AidData!",
+                "content": "Some explanatory text!!!"
+            },
+            "submitted": {
+                "title": "This is the title for the submit modal",
+                "content": "Some text to tell the user their request is submitted"
+            },
+            "status": {
+                "submit": ["Some text telling the user about the submit status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
+                "prep": ["Some text telling the user about the prep status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
+                "process": ["Some text telling the user about the process status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
+                "complete": ["Some text telling the user about the complete status on the individual request page", "I will appear in place of the below the download buttons, under the horizontal bar"]
+            },
+            "terms_and_conditions": {
+                "content": [
+                    "Basic terms and conditions.",
+                    "License and citation info",
+                    "By clicking submit you accept these terms."
+                ]
+            },
+            "data_categories": [
+                {"display": "Climate", "tag": "climate"},
+                {"display": "AidData Datasets", "tag": "release"},
+                {"display": "All Rasters", "tag": "raster"}
+            ],
             "limits": {
                 "raster": -1,
                 "release": 50,
@@ -170,6 +201,37 @@
             "mean-surface-rasters": "0.11.0"
         },
         "det": {
+            "help": [
+                {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "How is the groundnut better known?", "answer": "The peanut."}
+            ],
+            "welcome": {
+                "title": "Welcome to the Data Extraction Tool by AidData!",
+                "content": "Some explanatory text!!!"
+            },
+            "submitted": {
+                "title": "This is the title for the submit modal",
+                "content": "Some text to tell the user their request is submitted"
+            },
+            "status": {
+                "submit": ["Some text telling the user about the submit status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
+                "prep": ["Some text telling the user about the prep status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
+                "process": ["Some text telling the user about the process status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
+                "complete": ["Some text telling the user about the complete status on the individual request page", "I will appear in place of the below the download buttons, under the horizontal bar"]
+            },
+            "terms_and_conditions": {
+                "content": [
+                    "Basic terms and conditions.",
+                    "License and citation info",
+                    "By clicking submit you accept these terms."
+                ]
+            },
+            "data_categories": [
+                {"display": "Climate", "tag": "climate"},
+                {"display": "AidData Datasets", "tag": "release"},
+                {"display": "All Rasters", "tag": "raster"}
+            ],
             "limits": {
                 "raster": -1,
                 "release": 50,
