@@ -16,7 +16,6 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
 class DocBuilder():
 
-
     def __init__(self, request, output):
 
         self.client = pymongo.MongoClient()
@@ -62,8 +61,8 @@ class DocBuilder():
         self.add_general()
         self.add_readme()
         self.add_overview()
-        # self.add_meta()
-        # self.add_timeline()
+        self.add_meta()
+        self.add_timeline()
         self.add_license()
         self.output_doc()
 
@@ -72,15 +71,14 @@ class DocBuilder():
         #     return False
 
 
-
     # documentation header
     def add_header(self):
         # aiddata logo
-        # logo = self.dir_base + '/templates/logo.png'
+        logo = self.dir_base + '/templates/logo.png'
 
-        # im = Image(logo, 2.188*inch, 0.5*inch)
-        # im.hAlign = 'LEFT'
-        # self.Story.append(im)
+        im = Image(logo, 2.188*inch, 0.5*inch)
+        im.hAlign = 'LEFT'
+        self.Story.append(im)
 
         self.Story.append(Spacer(1, 0.25*inch))
 
@@ -96,14 +94,20 @@ class DocBuilder():
         self.Story.append(Paragraph(ptext, self.styles['BodyText']))
         self.Story.append(Spacer(1, 0.1*inch))
 
-        data = [['Request', str(self.request['_id'])],
-               ['Email', self.request['email']],
-               ['Generated on', self.time_str()]]
+        data = [
+            ['Request Name', self.request['custom_name']],
+            ['Request Id', str(self.request['_id'])],
+            ['Email', self.request['email']],
+            ['Generated on', self.time_str()]
+        ]
 
+        data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
         t = Table(data)
 
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                                ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+        t.setStyle(TableStyle([
+            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+        ]))
 
         self.Story.append(t)
 
@@ -140,71 +144,80 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.15*inch))
 
         # boundary
-        ptext = '<i>Boundary - '+self.request['boundary']['name']+'</i>'
+        ptext = '<i>Boundary - {0}</i>'.format(self.request['boundary']['name'])
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.05*inch))
 
-        # data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
-        #         ['Description',  self.request['boundary']['description']],
-        #         ['Source Link',  self.request['boundary']['source_link']]]
+        data = [
+            ['Title', self.request['boundary']['title']],
+            ['Name', self.request['boundary']['name']],
+            ['Group', self.request['boundary']['group']],
+            ['Description',  self.request['boundary']['description']]
+        ]
 
-        data = [['Title (Name: Group)',  self.request['boundary']['title'] +' ('+ self.request['boundary']['name'] +' : '+  self.request['boundary']['group'] +')'],
-                ['Description',  self.request['boundary']['description']]]
-
+        data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
         t = Table(data)
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                              ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+        t.setStyle(TableStyle([
+            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+        ]))
+
         self.Story.append(t)
         self.Story.append(Spacer(1, 0.1*inch))
 
+
         # datasets
 
-        msr_field_id = 1
         for dset in self.request['release_data']:
         # for dset in self.request['release_data'].values():
 
-            ptext = '<i>Dataset - '+dset['dataset']+'</i>'
+            ptext = '<i>Selection - {0}</i>'.format(dset['custom_name'])
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
             data = [
-                ['Dataset ',dset['dataset']],
-                ['Type', 'release']#,
-                # ['Donors', ', '.join(dset['filters']['donors'])],
-                # ['Sectors', ', '.join(dset['filters']['ad_sector_names'])],
-                # ['Years', ', '.join(dset['filters']['transaction_year'])],
-                # ['Extract Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'s'],
-                # ['Reliability Field Name', 'ad_msr' + '{0:03d}'.format(msr_field_id)+'r']
+                ['Dataset ', dset['dataset']],
+                ['Type', 'release'],
+                ['Filters', '']
             ]
 
+            for f in dset['filters']:
+                data.append([f, ', '.join(dset['filters'][f])])
+
+            data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
             t = Table(data)
-            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+            t.setStyle(TableStyle([
+                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+            ]))
 
             self.Story.append(t)
             self.Story.append(Spacer(1, 0.1*inch))
 
-            msr_field_id += 1
-
 
         for dset in self.request['raster_data']:
 
-            ptext = '<i>Dataset - '+dset['name']+'</i>'
+            ptext = '<i>Selection - {0}</i>'.format(dset['custom_name'])
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
-            data = [['Title (Name)',dset['title'] +' ('+ dset['name'] +')'],
-                    ['Type', dset['type']],
-                    # ['Items Requested', self.request['counts'][dset['name']]],
-                    # ['Temporal Type', dset['temporal_type']],
-                    ['Files', ', '.join([f['name'] for f in dset['files']])]]
+            data = [
+                ['Name)', dset['name']],
+                ['Title', dset['title']],
+                ['Type', dset['type']]
+            ]
 
             if dset['type'] == 'raster':
+                data.append(['Temporal Type', dset['temporal_type']])
+                data.append(['Temporal Selection', ', '.join([f['name'].split('_')[-1] for f in dset['files']])])
                 data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
 
+            data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
             t = Table(data)
-            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+            t.setStyle(TableStyle([
+                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+            ]))
 
             self.Story.append(t)
             self.Story.append(Spacer(1, 0.1*inch))
@@ -212,55 +225,55 @@ class DocBuilder():
 
         self.Story.append(Spacer(1, 0.3*inch))
 
+
     def build_meta(self, name, item_type):
 
-        # get meta from asdf
+        # get metadata for dataset from asdf->data collection
+        meta = self.c_asdf.find_one({'name': name})
 
-
-        meta = self.c_asdf.find({'name': name})[0]
-
-        # meta = 0
+        if meta is None:
+            msg = ('Could not lookup dataset ({0}, {1}) for '
+                   'build_meta').format(name, item_type)
+            raise Exception(msg)
 
         # build generic meta
         data = [
-
             ['Title', meta['title']],
             ['Name', meta['name']],
-            ['Version', meta['version']],
+            ['Version', str(meta['version'])],
             ['Description', meta['description']],
 
             ['Type', meta['type']],
             ['File Format', meta['file_format']],
             ['File Extension', meta['file_extension']],
             ['Scale', meta['scale']],
-            ['Temporal']
+            ['Temporal', '']
         ]
-
 
         data.append(['Temporal Type', meta['temporal']['name']])
 
         if meta['temporal']['format'] != 'None':
             data.append(['Temporal Name', meta['temporal']['name']])
-            data.append(['Temporal Type', meta['temporal']['type']])
             data.append(['Temporal Format', meta['temporal']['format']])
-            data.append(['Temporal Start', meta['temporal']['start']])
-            data.append(['Temporal End', meta['temporal']['end']])
+            data.append(['Temporal Start', str(meta['temporal']['start'])])
+            data.append(['Temporal End', str(meta['temporal']['end'])])
 
 
-
-        data.append(['Bounding Box', Paragraph(str(meta['spatial']['coordinates']), self.styles['Normal'])])
-
-
-        # for i in range(len(meta['sources'])):
-        #     data.append(['Source #'+str(i+1), Paragraph('<i>name:</i> '+meta['sources'][i]['name']+'<br /><i>web:</i> '+meta['sources'][i]['web'], self.styles['Normal'])])
+        data.append(['Bounding Box', str(meta['spatial']['coordinates'])])
 
 
-        # for i in range(len(meta['maintainers'])):
-        #     data.append(['Maintainer #'+str(i+1), Paragraph('<i>name:</i> '+meta['maintainers'][i]['name']+'<br /><i>web:</i> '+meta['maintainers'][i]['web']+'<br /><i>email:</i> '+meta['maintainers'][i]['email'], self.styles['Normal'])])
+        data.append(['Date Added', str(meta['asdf']['date_added'])])
+        data.append(['Date Updated', str(meta['asdf']['date_updated'])])
 
-        data.append(['Date Added', meta['asdf']['date_added']])
-        data.append(['Date Updated', meta['asdf']['date_updated']])
 
+        if 'sources_name' in meta['extras']:
+            data.append(['Source Name', meta['extras']['sources_name']])
+
+        if 'sources_web' in meta['extras']:
+            data.append(['Source Link', meta['extras']['sources_web']])
+
+        if 'citation' in meta['extras']:
+            data.append(['Citation', meta['extras']['citation']])
 
 
         if item_type == 'boundary':
@@ -271,15 +284,16 @@ class DocBuilder():
         elif item_type == 'raster':
             data.append(['Mini Name', meta['options']['mini_name']])
             data.append(['Variable Description', meta['options']['variable_description']])
-            data.append(['Resolution', meta['options']['resolution']])
+            data.append(['Resolution', str(meta['options']['resolution'])])
             data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
-            data.append(['Factor', meta['options']['factor']])
+            data.append(['Factor', str(meta['options']['factor'])])
 
         elif item_type == 'release':
             download_link = 'http://aiddata.org/geocoded-datasets'
             # download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' #+ meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
             data.append(['Download Link', download_link])
 
+        data = [[i[0], Paragraph(i[1], self.styles['BodyText'])] for i in data]
 
         return data
 
@@ -299,10 +313,11 @@ class DocBuilder():
         # build boundary meta table array
         data = self.build_meta(self.request['boundary']['name'], 'boundary')
 
-
         t = Table(data)
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                                ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+        t.setStyle(TableStyle([
+            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+        ]))
 
         self.Story.append(t)
         self.Story.append(Spacer(1, 0.1*inch))
@@ -324,15 +339,16 @@ class DocBuilder():
                 data = self.build_meta(dset['dataset'], 'release')
 
                 t = Table(data)
-                t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                                      ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+                t.setStyle(TableStyle([
+                    ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+                ]))
 
                 self.Story.append(t)
                 self.Story.append(Spacer(1, 0.1*inch))
 
 
         for dset in self.request['raster_data']:
-
 
             ptext = '<i>Dataset - '+dset['name']+'</i>'
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
@@ -342,8 +358,10 @@ class DocBuilder():
             data = self.build_meta(dset['name'], dset['type'])
 
             t = Table(data)
-            t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                                  ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+            t.setStyle(TableStyle([
+                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+            ]))
 
             self.Story.append(t)
             self.Story.append(Spacer(1, 0.1*inch))
@@ -352,25 +370,25 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.3*inch))
 
 
-
-
     # full request timeline / other processing info
     def add_timeline(self):
 
         ptext = '<b><font size=12>request timeline info</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         data = [
-                ['submit', self.time_str(self.request['submit_time'])],
-                ['prep', self.time_str(self.request['prep_time'])],
-                ['process', self.time_str(self.request['process_time'])],
-                ['complete', self.time_str(self.request['complete_time'])]
-            ]
+            ['submit', self.time_str(self.request['stage'][0]['time'])],
+            ['prep', self.time_str(self.request['stage'][1]['time'])],
+            ['process', self.time_str(self.request['stage'][2]['time'])],
+            ['complete', self.time_str(self.request['stage'][3]['time'])]
+        ]
 
 
         t = Table(data)
 
-        t.setStyle(TableStyle([('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                              ('BOX', (0,0), (-1,-1), 0.25, colors.black)]))
+        t.setStyle(TableStyle([
+            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+        ]))
 
         self.Story.append(t)
 
