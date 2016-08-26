@@ -1,6 +1,7 @@
-"""Contains configuration setting utilies.
-
-BranchConfig (class): used to access setting from config json for specific branch
+"""
+Contains BranchConfig class which is used to:
+    - check connection to mongodb server for branch
+    - access settings from config json for specific branch
 """
 
 import os

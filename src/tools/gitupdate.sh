@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# compares head commit hash of local repo with remote repo
+
 # source
 # https://github.com/chrissimpkins/scriptacular/blob/master/version-control/gitupdate.sh
 # http://sweetme.at/2013/10/08/keep-a-local-git-repository-synchronized-with-a-remote-git-repository/

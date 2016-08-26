@@ -1,5 +1,14 @@
 #!/bin/bash
 
+
+# responsible for running cron tasks
+# manages creating logs for tasks by redirecting std_out/err
+#
+# input args
+#   branch
+#   cron task keyword
+
+
 branch=$1
 cron=$2
 
@@ -10,6 +19,8 @@ timestamp=$(date +%Y%m%d)
 # make sure log directories exist
 # mkdir -p "$src"/log/{update_repos,cleanup_repos,db_updates,msr}
 
+# cron tasks do not inherit pythonpath from user,
+# so it needs to be specified here
 export PYTHONPATH="${PYTHONPATH}:/usr/local/amd64/seoul/gcc/python-2.7.8/lib/python2.7/site-packages/:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
 
 case $cron in

@@ -1,7 +1,8 @@
-# utility for running parallel jobs with mpi4py
-# mpi comms structured based on "09-task-pull" from:
-#   https://github.com/jbornschein/mpi4py-examples
-
+"""
+utility for running parallel jobs with mpi4py
+mpi comms structured based on "09-task-pull" from:
+    https://github.com/jbornschein/mpi4py-examples
+"""
 
 # from mpi4py import MPI
 

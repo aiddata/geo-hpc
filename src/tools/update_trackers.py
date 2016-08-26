@@ -1,5 +1,8 @@
-# search and index datasets based on boundary
-
+"""
+search and index datasets based on boundary
+according to whether the datasets were found to be
+relevant for that particular boundary
+"""
 
 # -----------------------------------------------------------------------------
 

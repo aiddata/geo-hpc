@@ -1,3 +1,11 @@
+"""
+check if any items that are ready for processing exist in msr queue
+
+ready for processing = status set to 0
+
+msr queue = mongodb db/collection: asdf->extracts
+"""
+
 
 # ----------------------------------------------------------------------------
 

@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # cleanup old repos stored in the "latest" directory
-# should be called periodically from cronjob (cronjob may be added automatically during setup)
+#   only remove repos over 48 hours old
+#   always keep at least the ~5 latest versions
+#
+# should be called periodically from cronjob
+#
+# input args
+#   branch
 
 
 branch=$1
@@ -21,9 +27,6 @@ src="${HOME}"/active/"$branch"
 
 cd "$src"/latest
 
-
-# only remove repos over 48 hours old
-# always keep at least the ~5 latest versions
 
 repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
 

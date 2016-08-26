@@ -1,5 +1,7 @@
-# update asdf/det msr tracker with all possible extract
-# combinations available from the asdf given specified depth/cut-off params
+"""
+update asdf/det msr tracker with all possible extract
+combinations available from the asdf given specified depth/cut-off params
+"""
 
 # -----------------------------------------------------------------------------
 

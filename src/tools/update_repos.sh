@@ -1,7 +1,14 @@
 #!/bin/bash
 
 # makes sure the latest versions of repos are pulled from github
-# should be called periodically from cronjob (cronjob may be added automatically during setup)
+# should be called periodically from cronjob
+#
+# reruns specific scripts when changes in certain files
+# are detected
+#
+# input args:
+#   branch
+
 
 # server=$1
 branch=$1

@@ -1,6 +1,15 @@
 #!/bin/bash
 
-# clone repos from github
+# clones repos from github for specified branch
+# removes existing files for repos if they exists
+#
+# gets list of repos from repo_list.txt
+#
+# also creates copy of repo in "latest" dir and
+# creates symlinks in branch's root dir
+#
+# input args
+#   branch
 
 
 # server=$1

@@ -1,5 +1,8 @@
-# update asdf/det extract tracker with all possible extract
-# combinations available from the asdf
+"""
+update asdf/det extract tracker with all possible extract
+combinations available from the asdf
+"""
+
 
 # -----------------------------------------------------------------------------
 

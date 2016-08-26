@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# automated script called by cron_wrapper.sh
+#
+# required input:
+#   branch
+#   timestamp
+#
+# builds job that runs tasks for mean-surface-raster module
+# job runs python-mpi script autoscript.py from mean-surface-rasters repo
+#
+# only allows 1 job of this type to run at a time
+# utilizes qstat grep to search for standardized job name to
+# determine if job is already running
+#
+# job name format: ax-msr-<branch>
+
 
 branch=$1
 
