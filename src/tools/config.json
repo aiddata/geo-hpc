@@ -28,23 +28,26 @@
         },
         "det": {
             "help": [
+                {"question": "White paper", "answer": "http://www.google.com"},
+                {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
                 {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "How is the groundnut better known?", "answer": "The peanut."},
                 {"question": "How is the groundnut better known?", "answer": "The peanut."}
             ],
             "welcome": {
-                "title": "Welcome to the Data Extraction Tool by AidData!",
-                "content": "Some explanatory text!!!"
+                "title": "Welcome to geo.query",
+                "content": "<p>Test intro</p>"
             },
             "submitted": {
                 "title": "This is the title for the submit modal",
                 "content": "Some text to tell the user their request is submitted"
             },
             "status": {
-                "submit": ["Some text telling the user about the submit status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
-                "prep": ["Some text telling the user about the prep status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
-                "process": ["Some text telling the user about the process status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
-                "complete": ["Some text telling the user about the complete status on the individual request page", "I will appear in place of the below the download buttons, under the horizontal bar"]
+                "submitted": "Hover text telling the user about the submit status meaning",
+                "prepared": "Hover text telling the user about the prep status meaning",
+                "processed": "Hover text telling the user about the process status meaning",
+                "completed": "Hover text telling the user about the complete status meaning"
             },
             "terms_and_conditions": {
                 "content": [
@@ -53,7 +56,9 @@
                     "By clicking submit you accept these terms."
                 ]
             },
+            "citation": "Placeholder Citation",
             "data_categories": [
+                {"display": "Features", "tag": "featured"},
                 {"display": "Climate", "tag": "climate"},
                 {"display": "AidData Datasets", "tag": "release"},
                 {"display": "All Rasters", "tag": "raster"}
