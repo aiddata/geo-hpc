@@ -29,9 +29,25 @@
         "det": {
             "help": [
                 {"question": "White paper", "answer": "http://www.google.com"},
+                {"question": "White paper", "answer": "<a href='http://www.google.com'>Link</a>"},
                 {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
                 {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada"},
                 {"question": "How is the groundnut better known?", "answer": "The peanut."},
                 {"question": "How is the groundnut better known?", "answer": "The peanut."}
             ],
@@ -58,8 +74,8 @@
             },
             "citation": "Placeholder Citation",
             "data_categories": [
-                {"display": "Features", "tag": "featured"},
-                {"display": "Climate", "tag": "climate"},
+                {"display": "Featured", "tag": "featured"},
+                {"display": "Climate", "tag": "udel"},
                 {"display": "AidData Datasets", "tag": "release"},
                 {"display": "All Rasters", "tag": "raster"}
             ],
