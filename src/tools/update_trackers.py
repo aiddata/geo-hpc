@@ -1,5 +1,8 @@
-# search and index datasets based on boundary
-
+"""
+search and index datasets based on boundary
+according to whether the datasets were found to be
+relevant for that particular boundary
+"""
 
 # -----------------------------------------------------------------------------
 
@@ -49,7 +52,7 @@ bnds = c_asdf.find({
 })
 
 
-active_iso3_list = config.release_gadm.values() + config.other_gadm
+active_iso3_list = config.release_iso3.values() + config.other_iso3
 print "Active iso3 list: {0}".format(active_iso3_list)
 
 # for each boundary dataset get boundary tracker
@@ -180,8 +183,8 @@ for bnd in bnds:
         elif dset_type == "release":
 
             # iterate over active (premable, iso3) in
-            # release_gadm field of config
-            for k, v in config.release_gadm.items():
+            # release_iso3 field of config
+            for k, v in config.release_iso3.items():
                 if (match['name'].startswith(k.lower()) and
                         (bnd["extras"]["gadm_iso3"].upper() in v or
                          "Global" in v)):

@@ -1,9 +1,30 @@
 #!/bin/bash
 
+# called by job created by build_db_updates_job.sh
+# running different databased update scripts for various
+# portions of asdf (core functions, maintenance, module specific tasks, etc.)
+#
+# input args
+#   branch
+#   timestamp
+#
+# NOTE:
+# If something with this script breaks, remove manually specifying src
+# and go back to using src from input args.
+#
+# If this does not break, remove src input arg and remove it being passed
+# to this script in build_db_updates_job.sh
+#
+# Cannot remember if there was some odd reason it needed to be passed
+# instead of just built in this script
+
 
 branch=$1
 timestamp=$2
 src=$3
+
+src="${HOME}"/active/"$branch"
+
 
 # output_path=$(mktemp -p "$src"/log/db_updates/tmp)
 

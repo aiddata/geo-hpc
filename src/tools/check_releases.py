@@ -1,4 +1,10 @@
-
+"""
+Contains ReleaseTools class which is used to find the latest
+version of releases from one of the following sources:
+    - mongodb (asdf->data, type:"release")
+    - a directory structure provided
+    - a list provided
+"""
 import sys
 import os
 import errno

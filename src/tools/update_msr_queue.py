@@ -1,5 +1,7 @@
-# update asdf/det msr tracker with all possible extract
-# combinations available from the asdf given specified depth/cut-off params
+"""
+update asdf/det msr tracker with all possible extract
+combinations available from the asdf given specified depth/cut-off params
+"""
 
 # -----------------------------------------------------------------------------
 
@@ -48,7 +50,7 @@ from msr_utility import CoreMSR
 from check_releases import ReleaseTools
 
 
-active_preambles = [i.lower() for i in config.release_gadm]
+active_preambles = [i.lower() for i in config.release_iso3]
 
 rtool_asdf = ReleaseTools()
 rtool_asdf.set_asdf_releases(branch)
@@ -227,16 +229,18 @@ for i in latest_releases:
 
 
     # create instance of CoreMSR class
-    core = CoreMSR()
+    core = CoreMSR(config)
 
     # --------------------------------------------------
     # load project data
 
     dir_data = (dataset_info[ix]['base'] +'/data')
 
-    df_merged = core.prep_data(dir_data)
+    df_merged = core.merge_data(dir_data, "project_id")
 
-    tmp_total_aid = sum(df_merged['split_dollars_pp'])
+    df_prep = core.prep_data(df_merged)
+
+    tmp_total_aid = sum(df_prep['split_dollars_pp'])
 
 
     total_count = 0
@@ -265,7 +269,7 @@ for i in latest_releases:
         raw_filters = {
             'ad_sector_names': filter_sectors,
             'donors': filter_donors,
-            'years': []
+            'transaction_year': []
         }
 
         filters = {
@@ -276,7 +280,7 @@ for i in latest_releases:
         }
 
 
-        df_filtered = core.filter_data(df_merged, filters)
+        df_filtered = core.filter_data(df_prep, filters)
 
 
         if not 'ad_sector_names' in filters.keys():
@@ -308,10 +312,10 @@ for i in latest_releases:
         # filter to all sectors/donors listed for project
 
         try:
-            df_filtered['adjusted_aid'] = df_filtered.apply(
-                lambda z: core.calc_adjusted_aid(
-                    z.split_dollars_pp, z.ad_sector_names, z.donors,
-                    sector_split_list, donor_split_list), axis=1)
+            df_filtered['adjusted_val'] = df_filtered.apply(
+                lambda z: core.calc_adjusted_val(
+                    z.split_dollars_pp, z.ad_sector_names, sector_split_list),
+                axis=1)
         except:
             print df_filtered
             raise
@@ -322,7 +326,7 @@ for i in latest_releases:
         # print '-'
 
 
-        if sum(df_filtered['adjusted_aid']) <= min_filter_aid_total: #sum(df_filtered['split_dollars_pp']):
+        if sum(df_filtered['adjusted_val']) <= min_filter_aid_total: #sum(df_filtered['split_dollars_pp']):
             # aid_thresh_sum +=1
             continue
 
@@ -336,16 +340,16 @@ for i in latest_releases:
         filter_count = len(df_filtered)
 
         # filter_percentage = np.floor(
-        #     100 * sum(df_filtered['adjusted_aid']) /
+        #     100 * sum(df_filtered['adjusted_val']) /
         #     sum(df_filtered['split_dollars_pp']))
         filter_percentage = np.floor(
-            1000 * 100 * sum(df_filtered['adjusted_aid']) / tmp_total_aid ) / 1000
+            1000 * 100 * sum(df_filtered['adjusted_val']) / tmp_total_aid ) / 1000
 
         # print '-'
         # print filter_sectors
         # print filter_donors
         # print filter_count
-        # # print sum(df_filtered['adjusted_aid'])
+        # # print sum(df_filtered['adjusted_val'])
         # print filter_percentage
 
 

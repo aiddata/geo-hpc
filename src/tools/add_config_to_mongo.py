@@ -1,4 +1,8 @@
+"""
+loads config.json options from specified branch into mongodb
 
+mongodb db/collection: info->config
+"""
 
 
 # ----------------------------------------------------------------------------

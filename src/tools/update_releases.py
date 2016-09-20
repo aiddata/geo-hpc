@@ -1,4 +1,10 @@
+"""Checks on releases and runs ingest to update
 
+Args
+    branch (required)
+    update (optional): use to define update method when running add_release.
+                       defaults to "full if left blank
+"""
 
 # -----------------------------------------------------------------------------
 
@@ -55,7 +61,7 @@ except OSError as exception:
 all_repo_releases = os.listdir(repo_dir)
 
 
-modern_str = ".*AIMS_GeocodedResearchRelease_Level1_v.*"
+modern_str = ".*_GeocodedResearchRelease_Level1_v\d\.\d\.\d\Z"
 modern_expr_dir = re.compile(modern_str)
 modern_expr_zip = re.compile(modern_str+"\.zip")
 modern_repo_dirnames = [i[:-4] for i in all_repo_releases
@@ -101,6 +107,12 @@ c_asdf = client.asdf.data
 version = config.versions["asdf-releases"]
 
 
+if len(sys.argv) >= 3:
+    update = sys.argv[2]
+else:
+    update = "full"
+
+
 # check if already in asdf
 # run add_release to add if needed
 for i in latest_data_dirnames:
@@ -117,7 +129,7 @@ for i in latest_data_dirnames:
         print "adding " + i + "..."
         add_release_instance = add_release
         add_release_instance.run(path=ipath, config=config,
-                                 generator="auto", update="full")
+                                 generator="auto", update=update)
 
 
 # mark as inactive in asdf

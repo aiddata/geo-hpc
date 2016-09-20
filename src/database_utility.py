@@ -5,6 +5,17 @@ from bson.objectid import ObjectId
 
 from resource_utility import gen_nested_release
 
+import fiona
+
+# build path to extract_utility and add to sys.path
+import sys
+branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(branch_dir, 'extract-scripts', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(branch_dir), 'extract-scripts', 'src'))
+
+from extract_utility import FeatureTool
+
 
 class MongoUpdate():
     """Update MongoDB collection(s)
@@ -195,4 +206,31 @@ class MongoUpdate():
             c_release.insert(doc)
 
         return 0
+
+
+    def features_to_mongo(self, bnd_name):
+        """Add features for given boundary to feature collection
+        """
+
+        # lookup bnd_name and get path
+        bnd_info = self.db_asdf.data.find_one({'name': bnd_name})
+        if bnd_info is None:
+            msg = "Could not find boundary matching name ({0})".format(
+                bnd_name)
+            raise Exception(msg)
+
+        bnd_path = os.path.join(bnd_info['base'], bnd_info['resources'][0]['path'])
+
+        # open boundary via fiona and get iterator/list
+        feats = fiona.open(bnd_path, 'r')
+
+
+        # initialize featuretool instance and run
+        ftool = FeatureTool(client=self.client, bnd_name=bnd_name)
+        run_data = ftool.run(feats, add_extract=False)
+
+        return run_data
+
+
+
 

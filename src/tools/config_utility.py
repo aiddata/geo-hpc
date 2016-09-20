@@ -1,6 +1,7 @@
-"""Contains configuration setting utilies.
-
-BranchConfig (class): used to access setting from config json for specific branch
+"""
+Contains BranchConfig class which is used to:
+    - check connection to mongodb server for branch
+    - access settings from config json for specific branch
 """
 
 import os
@@ -84,7 +85,7 @@ class BranchConfig():
         """Test mongodb connection
         """
         try:
-            connection_timeout_ms = 5000
+            connection_timeout_ms = 15000
 
             self.client = pymongo.MongoClient(
                 self.server, serverSelectionTimeoutMS=connection_timeout_ms)

@@ -1,5 +1,8 @@
-# update asdf/det extract tracker with all possible extract
-# combinations available from the asdf
+"""
+update asdf/det extract tracker with all possible extract
+combinations available from the asdf
+"""
+
 
 # -----------------------------------------------------------------------------
 
@@ -47,7 +50,7 @@ boundaries = c_asdf.find({
     "active": {'$gte': 1}
 })
 
-active_iso3_list = config.release_gadm.values() + config.other_gadm
+active_iso3_list = config.release_iso3.values() + config.other_iso3
 
 # get boundary names
 bnds = [

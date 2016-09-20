@@ -1,3 +1,11 @@
+"""
+check if any items that are ready for processing exist in extract queue
+
+ready for processing = status set to 0
+
+extract queue = mongodb db/collection: asdf->extracts
+"""
+
 
 # ----------------------------------------------------------------------------
 

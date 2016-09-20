@@ -1,7 +1,16 @@
 #!/bin/bash
 
 # used to initialize portions of asdf
-# manages setup of both production and development branch files
+# manages setup for specified branch
+#   clears any existing files created for branch
+#   loads repos
+#   creates cron tasks
+#   adds config options to mongo
+
+# should be called automatically by using the more generic setup.sh
+#
+# input args
+#   branch
 
 
 # server=$1

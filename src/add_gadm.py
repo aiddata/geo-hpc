@@ -19,7 +19,9 @@ from database_utility import MongoUpdate
 
 
 def run(path=None, client=None, version=None, config=None,
-        generator="auto", update=False):
+        generator="auto", update=False, dry_run=False):
+
+    print '\n---------------------------------------'
 
     parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
@@ -32,14 +34,18 @@ def run(path=None, client=None, version=None, config=None,
         - output error logs somewhere
         - if auto, move job file to error location
         """
-        raise Exception("{0}: terminating script - {1}\n".format(script, reason))
+        raise Exception("{0}: terminating script - {1}\n".format(
+            script, reason))
 
 
     if config is not None:
         client = config.client
-        version = config.versions["asdf-gadm"]
-    elif client is None or version is None:
-        quit('Neither config nor client/version provided.')
+    elif client is not None:
+        config = client.info.config.findOne()
+    else:
+        quit('Neither config nor client provided.')
+
+    version = config.versions["asdf-gadm"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)
@@ -67,21 +73,42 @@ def run(path=None, client=None, version=None, config=None,
         quit("No config object provided")
 
 
-    if update in ["update", True, 1, "True", "full", "all"]:
-        update = "full"
-    elif update in ["partial", "meta"]:
+    raw_update = update
+    if update in ["partial", "meta"]:
         update = "partial"
+    elif update in ["update", True, 1, "True", "full", "all"]:
+        update = "full"
     else:
         update = False
+
+    print "running update status `{0}` (input: `{1}`)".format(
+        update, raw_update)
+
+    if dry_run in ["false", "False", "0", "None", "none", "no"]:
+        dry_run = False
+
+    dry_run = bool(dry_run)
+    if dry_run:
+        print "running dry run"
 
     existing_original = None
     if update:
         if not "data" in client.asdf.collection_names():
             update = False
-            warn("Update specified but no data collection exists. "
-                 "Treating as new dataset.")
+            msg = "Update specified but no data collection exists."
+            if generator == "manual":
+                raise Exception(msg)
+            else:
+                warn(msg)
         else:
             base_original = client.asdf.data.find_one({'base': path})
+            if base_original is None:
+                update = False
+                msg = "Update specified but no existing dataset found."
+                if generator == "manual":
+                    raise Exception(msg)
+                else:
+                    warn(msg)
 
 
     # init document
@@ -113,16 +140,20 @@ def run(path=None, client=None, version=None, config=None,
     doc["file_extension"] = "geojson"
     doc["file_mask"] = "None"
 
-    doc["active"] = 0
 
     # -------------------------------------
 
     gadm_name = os.path.basename(doc["base"])
 
-    gadm_version = os.path.basename(os.path.dirname(os.path.dirname(path)))[4:]
+    gadm_version = os.path.basename(os.path.dirname(path))[4:]
 
     gadm_iso3 = gadm_name[:3]
     gadm_adm = gadm_name[4:]
+
+    active_iso3_list = config.release_iso3.values() + config.other_iso3
+    is_active = gadm_iso3.upper() in active_iso3_list
+    doc["active"] = int(is_active)
+
 
     gadm_lookup_path = parent + '/gadm_iso3.json'
     gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
@@ -160,6 +191,8 @@ def run(path=None, client=None, version=None, config=None,
         elif base_original is not None:
             existing_original = base_original
 
+        # doc["active"] = existing_original["active"]
+
 
     doc["title"] = (gadm_country + " " + gadm_adm.upper() +
                   " Boundary - GADM " + str(gadm_version))
@@ -184,7 +217,7 @@ def run(path=None, client=None, version=None, config=None,
     doc["extras"]["gadm_iso3"] = gadm_iso3
     doc["extras"]["gadm_adm"] = int(gadm_adm[-1:])
     doc["extras"]["gadm_unit"] = "PLACEHOLDER"
-    doc["extras"]["tags"] = ["gadm"]
+    doc["extras"]["tags"] = ["gadm", gadm_adm, gadm_country]
 
     doc["options"]["group_title"] = "{0} GADM {1}".format(gadm_country,
                                                           gadm_version)
@@ -221,16 +254,18 @@ def run(path=None, client=None, version=None, config=None,
     print f
 
     # get adm unit name for country and add to gadm info and description
-    tmp_feature = fiona.open(f, 'r').next()
-
     if gadm_adm.lower() == "adm0":
-        doc["extras"]["gadm_unit"] = "Country"
+        gadm_unit = "Country"
     else:
-        doc["extras"]["gadm_unit"] = (
-            tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]])
+        with fiona.open(f, 'r') as tmp_feature_src:
+            tmp_feature = tmp_feature_src[0]
+            gadm_unit = tmp_feature['properties']['ENGTYPE_'+ gadm_adm[-1:]]
 
+    doc["extras"]["gadm_unit"] = gadm_unit
+    if gadm_unit not in [None, "Unknown"]:
+        doc["extras"]["tags"].append(gadm_unit)
     doc["description"] = "GADM Boundary File for {0} ({1}) in {2}.".format(
-        gadm_adm.upper(), doc["extras"]["gadm_unit"], gadm_country)
+        gadm_adm.upper(), gadm_unit, gadm_country)
 
     # -------------------------------------
 
@@ -238,8 +273,9 @@ def run(path=None, client=None, version=None, config=None,
         print "\nProcessed document:"
         pprint(doc)
 
-        print "\nUpdating database..."
-        dbu.update(doc, update, existing_original)
+        print "\nUpdating database (dry run = {0})...".format(dry_run)
+        if not dry_run:
+            dbu.update(doc, update, existing_original)
 
         print "\n{0}: Done ({1} update).\n".format(script, update)
         return 0
@@ -258,9 +294,10 @@ def run(path=None, client=None, version=None, config=None,
     # -------------------------------------
     print "\nProcessing spatial..."
 
-    convert_status = ru.add_asdf_id(f)
-    if convert_status == 1:
-         quit("Error adding ad_id to boundary file & outputting geojson.")
+    if not dry_run:
+        convert_status = ru.add_asdf_id(f)
+        if convert_status == 1:
+             quit("Error adding ad_id to boundary file & outputting geojson.")
 
 
     env = ru.vector_envelope(f)
@@ -302,13 +339,17 @@ def run(path=None, client=None, version=None, config=None,
     print "\nProcessed document:"
     pprint(doc)
 
-    print "\nUpdating database..."
-    dbu.update(doc, update, existing_original)
+    print "\nUpdating database (dry run = {0})...".format(dry_run)
+    if not dry_run:
+        dbu.features_to_mongo(doc['name'])
+        dbu.update(doc, update, existing_original)
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
     else:
         print "\n{0}: Done.\n".format(script)
+
+    print '\n---------------------------------------\n'
 
     return 0
 
@@ -344,7 +385,8 @@ if __name__ == '__main__':
 
     # check mongodb connection
     if config.connection_status != 0:
-        raise Exception("connection status error: {0}".format(config.connection_error))
+        raise Exception("connection status error: {0}".format(
+            config.connection_error))
 
     # -------------------------------------
 
@@ -353,11 +395,16 @@ if __name__ == '__main__':
 
     generator = sys.argv[3]
 
-    if len(sys.argv) == 5:
+    if len(sys.argv) >= 5:
         update = sys.argv[4]
     else:
         update = False
 
+    if len(sys.argv) >= 6:
+        dry_run = sys.argv[5]
+    else:
+        dry_run = False
 
-    run(path=path, config=config, generator=generator, update=update)
+    run(path=path, config=config, generator=generator,
+        update=update, dry_run=dry_run)
 

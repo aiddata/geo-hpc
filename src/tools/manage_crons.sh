@@ -1,13 +1,17 @@
 #!/bin/bash
 
 # script to enable cron jobs for production / development branch scrips
-
-# script can also add/remove flocks on relevant scripts called by cron jobs
-
+#
 # setup script will call this to initialize cron jobs
-# admin can then run this after initial setup to disable/enable as needed
+# and will be called again by update tasks if changes to this file are
+# detected, indicating new tasks were added, or existing tasks modified
+# (eg: task schedule changed)
 
-# ability to comment/uncomment all jobs with master/develop flag
+# possible to do:
+#   - script can also add/remove flocks on relevant scripts called by cron jobs
+#   - admin can then run this after initial setup to disable/enable specific
+#     tasks as needed
+#   - ability to comment/uncomment all jobs with master/develop flag
 
 
 # for each branch:

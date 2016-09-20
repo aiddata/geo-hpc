@@ -94,25 +94,25 @@ def check_envelope(new, old):
 def raster_envelope(path):
     """Get geojson style envelope of raster file
     """
-    raster = rasterio.open(path, 'r')
+    with rasterio.open(path, 'r') as raster:
 
-    # bounds = (xmin, ymin, xmax, ymax)
-    b = raster.bounds
-    env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = raster.bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-    return env
+        return env
 
 
 def vector_envelope(path):
     """Get geojson style envelope of vector file
     """
-    vector = fiona.open(path, 'r')
+    with fiona.open(path, 'r') as vector:
 
-    # bounds = (xmin, ymin, xmax, ymax)
-    b = vector.bounds
-    env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
+        # bounds = (xmin, ymin, xmax, ymax)
+        b = vector.bounds
+        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-    return env
+        return env
 
 
 def vector_list(vlist=[]):
@@ -234,19 +234,19 @@ def add_asdf_id(path):
     geo_df["asdf_id"] = range(len(geo_df))
 
     geo_json = geo_df.to_json()
-    geo_path = os.path.splitext(path)[0] + ".geojson"
-    geo_file = open(geo_path, "w")
-    json.dump(json.loads(geo_json), geo_file, indent = 4)
-    geo_file.close()
+    geo_path = os.path.splitext(path)[0] + ".geojson.tmp"
+    with open(geo_path, "w", 0) as geo_file:
+        json.dump(json.loads(geo_json), geo_file)
     os.chmod(geo_path, 0664)
+    os.rename(geo_path, geo_path[:-4])
 
     # create simplified geojson for use with leaflet web map
     geo_df['geometry'] = geo_df['geometry'].simplify(0.01)
-    simple_geo_path = os.path.dirname(path)+"/simplified.geojson"
-    simple_geo_file = open(simple_geo_path, "w")
-    json.dump(json.loads(geo_df.to_json()), simple_geo_file, indent=4)
-    simple_geo_file.close()
+    simple_geo_path = os.path.dirname(path)+"/simplified.geojson.tmp"
+    with open(simple_geo_path, "w", 0) as simple_geo_file:
+        json.dump(json.loads(geo_df.to_json()), simple_geo_file)
     os.chmod(simple_geo_path, 0664)
+    os.rename(simple_geo_path, simple_geo_path[:-4])
 
     return 0
 
