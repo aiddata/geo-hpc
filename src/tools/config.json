@@ -30,14 +30,8 @@
             "help": [
                 {"question": "Contact us", "answer": "info@aiddata.org"},
                 {"question": "White paper", "answer": "aiddata.org"},
-                {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
-                {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "How do I cite?", "answer": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363"},
+                {"question": "Do I need to cite individual datasets?", "answer": "Yes. The documentation provided with your results will include citation and source information for individual datasets. These should be used along with a citation for geo.query"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
@@ -48,8 +42,12 @@
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada"},
-                {"question": "How is the groundnut better known?", "answer": "The peanut."},
-                {"question": "How is the groundnut better known?", "answer": "The peanut."}
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
+                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"}
             ],
             "welcome": {
                 "title": "Welcome to geo.query",
@@ -75,9 +73,9 @@
             "citation": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363",
             "data_categories": [
                 {"display": "Featured", "tag": "featured"},
-                {"display": "Climate", "tag": "udel"},
                 {"display": "AidData Datasets", "tag": "release"},
-                {"display": "All Rasters", "tag": "raster"}
+                {"display": "All Rasters", "tag": "raster"},
+                {"display": "Climate", "tag": "udel"}
             ],
             "limits": {
                 "raster": -1,
