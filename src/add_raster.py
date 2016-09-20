@@ -314,6 +314,12 @@ def run(path=None, client=None, version=None, config=None,
     else:
         doc["extras"] = data["extras"]
 
+    if not "tags" in data["extras"]:
+        data["extras"]["tags"] = []
+
+    if not "raster" in data["extras"]["tags"]:
+        data["extras"]["tags"].append("raster")
+
     # -------------------------------------
 
     if update == "partial":
