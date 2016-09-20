@@ -28,8 +28,8 @@
         },
         "det": {
             "help": [
-                {"question": "White paper", "answer": "http://www.google.com"},
-                {"question": "White paper", "answer": "<a href='http://www.google.com'>Link</a>"},
+                {"question": "Contact us", "answer": "info@aiddata.org"},
+                {"question": "White paper", "answer": "aiddata.org"},
                 {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
                 {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
                 {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
@@ -53,7 +53,7 @@
             ],
             "welcome": {
                 "title": "Welcome to geo.query",
-                "content": "<p>Test intro</p>"
+                "content": "<div><style>.Modal,.Modal *,.Modal :after,.Modal :before,.Modal:after,.Modal:before{box-sizing:border-box}.Modal{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-ms-flex-line-pack:center;align-content:center;width:100%;padding:1em 3em;background-color:#FFF;border-radius:4px}.Modal-headline{font-family:'Open Sans','sans serif';font-size:2.5em;font-weight:600;color:#161F34;width:100%;padding:0;margin:0}.Modal-biline,.Modal-caption{font-family:Helvetica,'san serif';color:#7c7c7c;font-size:.85em;font-weight:300}.Modal-biline{width:100%;margin:.5em 0;padding:.5em 0;border-top:1px solid #DDD;font-style:italic}.Modal-img{min-width:65px;min-height:65px;width:15%;height:auto;margin:0;padding:1em}.Modal-caption{width:70%;margin:0;margin-right:5%;padding:1em}<\/style><div class=\"md-dialog-container ng-scope\"style=width:32em;border-radius:4px><div class=Modal><h1 class=Modal-headline>geo(query)<\/h1><h2 class=Modal-biline>A tool to leverage terabytes of geospatial data, helping you spend less time wrangling data and more time analyzing it.<\/h2><img alt=\"world icon\"class=Modal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_1.svg><p class=Modal-caption>Access geospatial data curated from publicly available sources.<\/p><img alt=\"layer icon\"class=Modal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_2.svg><p class=Modal-caption>Easily filter and join datsets to get the information you want.<\/p><img alt=\"download icon\"class=Modal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_3.svg><p class=Modal-caption>Check your email for a permanent link to download your data.<\/div><\/div><\/div>"
             },
             "submitted": {
                 "title": "This is the title for the submit modal",
