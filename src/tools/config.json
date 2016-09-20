@@ -68,11 +68,11 @@
             "terms_and_conditions": {
                 "content": [
                     "Basic terms and conditions.",
-                    "License and citation info",
+                    "License info",
                     "By clicking submit you accept these terms."
                 ]
             },
-            "citation": "Placeholder Citation",
+            "citation": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363",
             "data_categories": [
                 {"display": "Featured", "tag": "featured"},
                 {"display": "Climate", "tag": "udel"},
