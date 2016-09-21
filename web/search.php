@@ -424,8 +424,11 @@ function get_relevant_datasets($data) {
                 $tmp_distinct = array_filter($tmp_distinct, 'is_not_nan');
                 $tmp_distinct = explode_array($tmp_distinct, "|");
 
-                $doc['fields'][$f]['distinct'] = $tmp_distinct;
-
+                if (count($tmp_distinct) > 1) {
+                    $doc['fields'][$f]['distinct'] = $tmp_distinct;
+                } else {
+                    unset($doc['fields'][$f]);
+                }
             }
 
             $result[] = $doc;
@@ -669,13 +672,14 @@ function add_request($data) {
     // validate $request
     //
 
+    $request['info'] = "";
     $request['status'] = -1;
     $request['priority'] = 0;
     $request['stage'] = [
-        0 => ['name' => 'submit', 'time' => time()],
-        1 => ['name' => 'prep', 'time' => 0],
-        2 => ['name' => 'process', 'time' => 0],
-        3 => ['name' => 'complete', 'time' => 0]
+        0 => ['name' => 'submitted', 'time' => time()],
+        1 => ['name' => 'prepared', 'time' => 0],
+        2 => ['name' => 'processed', 'time' => 0],
+        3 => ['name' => 'completed', 'time' => 0]
     ];
 
     $c_queue = $m->selectDB('det')->selectCollection('queue');
