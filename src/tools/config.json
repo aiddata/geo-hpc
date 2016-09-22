@@ -148,14 +148,6 @@
                     "parent": "transactions"
                 },
                 {
-                    "field": "place_name",
-                    "display": "place name",
-                    "description": "Place name of location (link to geonames).",
-                    "is_default": false,
-                    "filter_type": "list",
-                    "parent": "locations"
-                },
-                {
                     "field": "location_type_name",
                     "display": "location type name",
                     "description": "Place name type descriptor(link to iati/geonames).",
