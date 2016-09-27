@@ -191,6 +191,7 @@ def run(path=None, client=None, version=None, config=None,
         elif base_original is not None:
             existing_original = base_original
 
+        doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
         # doc["active"] = existing_original["active"]
 
 

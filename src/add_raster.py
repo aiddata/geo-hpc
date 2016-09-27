@@ -195,6 +195,7 @@ def run(path=None, client=None, version=None, config=None,
             existing_original = valid_base.data['search']
 
         doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
+        # doc["active"] = existing_original["active"]
 
 
     # validate type and set file_format

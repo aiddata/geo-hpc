@@ -24,7 +24,7 @@ jobtime=$(date +%H%M%S)
 
 
 # check if job needs to be run
-qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
+qstat=$(/usr/local/torque-6.0.27/bin/qstat -nu $USER)
 
 if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
 
@@ -111,7 +111,7 @@ mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/mean-su
 EOF
 
     # cd "$src"/log/msr/jobs
-    /usr/local/torque-2.3.7/bin/qsub "$job_path"
+    /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."
     echo -e "\n"

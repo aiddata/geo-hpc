@@ -24,7 +24,7 @@ jobtime=$(date +%H%M%S)
 
 
 # check if job needs to be run
-qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
+qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 
 if echo "$qstat" | grep -q 'ax-dbu-'"$branch"; then
 
@@ -73,7 +73,7 @@ bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
 EOF
 
     # cd "$src"/log/db_updates/jobs
-    /usr/local/torque-2.3.7/bin/qsub "$job_path"
+    /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."
     echo -e "\n"

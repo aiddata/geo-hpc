@@ -3,7 +3,8 @@
         "active": 1,
         "name": "master",
         "server": "labs.aiddata.org",
-        "release_gadm": {
+        "active_adm_suffix": "gadm28",
+        "release_iso3": {
             "AfghanistanAIMS": "AFG",
             "ColombiaAIMS": "COL",
             "DRC-AIMS": "COD",
@@ -15,7 +16,7 @@
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA"
         },
-        "other_gadm": [
+        "other_iso3": [
             "LBR"
         ],
         "versions": {
@@ -30,52 +31,35 @@
             "help": [
                 {"question": "Contact us", "answer": "info@aiddata.org"},
                 {"question": "White paper", "answer": "aiddata.org"},
-                {"question": "How do I cite?", "answer": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363"},
-                {"question": "Do I need to cite individual datasets?", "answer": "Yes. The documentation provided with your results will include citation and source information for individual datasets. These should be used along with a citation for geo.query"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"}
+                {"question": "How do I cite?", "answer": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363"}
             ],
             "welcome": {
                 "title": "Welcome to geo.query",
                 "content": "<style>.AModal{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-ms-flex-line-pack:center;align-content:center;width:500px;padding:1em 3em;background-color:#FFF;border-radius:4px}.AModal-biline,.AModal-caption{font-family:Helvetica,'san serif';color:#7c7c7c;font-size:.85em;font-weight:300}.AModal-biline{width:100%;margin:.5em 0;padding:.5em 0;border-top:1px solid #DDD;font-style:italic}.AModal-img{min-width:65px;min-height:65px;width:15%;height:auto;margin:0;padding:1em}.AModal-caption{width:70%;margin:0;margin-right:5%;padding:1em}<\/style><div class=AModal><h2 class=AModal-biline>A tool to leverage terabytes of geospatial data, helping you spend less time wrangling data and more time analyzing it.<\/h2><img alt=\"world icon\"class=AModal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_1.svg><p class=AModal-caption>Access geospatial data curated from publicly available sources.<\/p><img alt=\"layer icon\"class=AModal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_2.svg><p class=AModal-caption>Easily filter and join datsets to get the information you want.<\/p><img alt=\"download icon\"class=AModal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_3.svg><p class=AModal-caption>Check your email for a permanent link to download your data.<\/div>"
             },
             "submitted": {
-                "title": "This is the title for the submit modal",
-                "content": "Some text to tell the user their request is submitted"
+                "title": "Your request has been submitted",
+                "content": "You will receive an email shortly when your request items have been added into the processing queue. After your request has finished processing, you will receive another email with a download link."
             },
             "status": {
-                "submitted": "Hover text telling the user about the submit status meaning",
-                "prepared": "Hover text telling the user about the prep status meaning",
-                "processed": "Hover text telling the user about the process status meaning",
-                "completed": "Hover text telling the user about the complete status meaning"
+                "submitted": "Request has been added to the queue and is awaiting processing",
+                "prepared": "Request has been received and prepared for processing.",
+                "processing": "Request items are being processed.",
+                "completed": "Request has been completed."
             },
             "terms_and_conditions": {
                 "content": [
-                    "Basic terms and conditions.",
-                    "License info",
+                    "The geo framework and geo.query tool are available under the ##### license.",
+                    "When using data provided by geo.query, users are required to cite individual datasets used (see accompanying documentation for dataset specific citation information) in addition to the geo.query tool.",
                     "By clicking submit you accept these terms."
                 ]
             },
             "citation": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363",
             "data_categories": [
                 {"display": "Featured", "tag": "featured"},
-                {"display": "AidData Datasets", "tag": "release"},
-                {"display": "All Rasters", "tag": "raster"},
-                {"display": "Climate", "tag": "udel"}
+                {"display": "Environment & Climated", "tag": "environment"},
+                {"display": "Socioeconomic", "tag": "socioeconomic"},
+                {"display": "Other", "tag": "other"}
             ],
             "limits": {
                 "raster": -1,
@@ -203,6 +187,9 @@
         "other_iso3": [
             "LBR"
         ],
+        "exclude_iso3": [
+            "RUS"
+        ],
         "versions": {
             "asdf": "0.4.1",
             "asdf-gadm": "0.4.1",
@@ -213,35 +200,37 @@
         },
         "det": {
             "help": [
-                {"question": "What was the first toy advertised on television?", "answer": "Mr. Potato Head"},
-                {"question": "The beaver is the national emblem of which country?", "answer": "Canada"},
-                {"question": "How is the groundnut better known?", "answer": "The peanut."}
+                {"question": "Contact us", "answer": "info@aiddata.org"},
+                {"question": "White paper", "answer": "aiddata.org"},
+                {"question": "How do I cite?", "answer": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363"}
             ],
             "welcome": {
-                "title": "Welcome to the Data Extraction Tool by AidData!",
-                "content": "Some explanatory text!!!"
+                "title": "Welcome to geo.query",
+                "content": "<style>.AModal{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-ms-flex-line-pack:center;align-content:center;width:500px;padding:1em 3em;background-color:#FFF;border-radius:4px}.AModal-biline,.AModal-caption{font-family:Helvetica,'san serif';color:#7c7c7c;font-size:.85em;font-weight:300}.AModal-biline{width:100%;margin:.5em 0;padding:.5em 0;border-top:1px solid #DDD;font-style:italic}.AModal-img{min-width:65px;min-height:65px;width:15%;height:auto;margin:0;padding:1em}.AModal-caption{width:70%;margin:0;margin-right:5%;padding:1em}<\/style><div class=AModal><h2 class=AModal-biline>A tool to leverage terabytes of geospatial data, helping you spend less time wrangling data and more time analyzing it.<\/h2><img alt=\"world icon\"class=AModal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_1.svg><p class=AModal-caption>Access geospatial data curated from publicly available sources.<\/p><img alt=\"layer icon\"class=AModal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_2.svg><p class=AModal-caption>Easily filter and join datsets to get the information you want.<\/p><img alt=\"download icon\"class=AModal-img src=http:\/\/labs.aiddata.org\/assets\/img\/icons\/icon_3.svg><p class=AModal-caption>Check your email for a permanent link to download your data.<\/div>"
             },
             "submitted": {
-                "title": "This is the title for the submit modal",
-                "content": "Some text to tell the user their request is submitted"
+                "title": "Your request has been submitted",
+                "content": "You will receive an email shortly when your request items have been added into the processing queue. After your request has finished processing, you will receive another email with a download link."
             },
             "status": {
-                "submit": ["Some text telling the user about the submit status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
-                "prep": ["Some text telling the user about the prep status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
-                "process": ["Some text telling the user about the process status on the individual request page", "I will appear in place of the download buttons, under the horizontal bar"],
-                "complete": ["Some text telling the user about the complete status on the individual request page", "I will appear in place of the below the download buttons, under the horizontal bar"]
+                "submitted": "Request has been added to the queue and is awaiting processing",
+                "prepared": "Request has been received and prepared for processing.",
+                "processed": "Request items are being processed.",
+                "completed": "Request has been completed."
             },
             "terms_and_conditions": {
                 "content": [
-                    "Basic terms and conditions.",
-                    "License and citation info",
+                    "The geo framework and geo.query tool are available under the ##### license.",
+                    "When using data provided by geo.query, users are required to cite individual datasets used (see accompanying documentation for dataset specific citation information) in addition to the geo.query tool.",
                     "By clicking submit you accept these terms."
                 ]
             },
+            "citation": "Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org/docs/. DOI: 10.13140/RG.2.2.19140.63363",
             "data_categories": [
-                {"display": "Climate", "tag": "climate"},
-                {"display": "AidData Datasets", "tag": "release"},
-                {"display": "All Rasters", "tag": "raster"}
+                {"display": "Featured", "tag": "featured"},
+                {"display": "Environment & Climated", "tag": "environment"},
+                {"display": "Socioeconomic", "tag": "socioeconomic"},
+                {"display": "Other", "tag": "other"}
             ],
             "limits": {
                 "raster": -1,
@@ -312,14 +301,6 @@
                     "is_default": false,
                     "filter_type": "list",
                     "parent": "transactions"
-                },
-                {
-                    "field": "place_name",
-                    "display": "place name",
-                    "description": "Place name of location (link to geonames).",
-                    "is_default": false,
-                    "filter_type": "list",
-                    "parent": "locations"
                 },
                 {
                     "field": "location_type_name",

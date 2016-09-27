@@ -160,7 +160,7 @@ def run(path=None, client=None, version=None, config=None,
                 rkey = g['key'].replace (" ", "_").lower()
                 doc['extras'][rkey] = g['value']
 
-    doc["extras"]["tags"] = ["aiddata", "geocoded", "release"]
+    doc["extras"]["tags"] = ["aiddata", "geocoded", "release", "socioeconomic"]
 
     is_active = doc["extras"]["data_set_preamble"] in config.release_iso3
     doc["active"] = int(is_active)
@@ -192,6 +192,9 @@ def run(path=None, client=None, version=None, config=None,
 
         elif base_original is not None:
             existing_original = base_original
+
+        doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
+        # doc["active"] = existing_original["active"]
 
 
    # -------------------------------------
