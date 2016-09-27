@@ -100,7 +100,6 @@ cat <<EOF >> "$job_path"
 #PBS -N ax-ex-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=24:00:00
-#PBS -q alpha
 #PBS -j oe
 #PBS -o $src/log/extract/jobs/$timestamp.$jobtime.extract.job
 #PBS -V

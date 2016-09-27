@@ -62,7 +62,6 @@ cat <<EOF >> "$job_path"
 #PBS -N ax-dbu-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=24:00:00
-#PBS -q alpha
 #PBS -k oe
 #PBS -j oe
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
