@@ -85,15 +85,15 @@ else
 
     job_path=$(mktemp)
 
-    nodes=2
-    ppn=4
+    nodes=1
+    ppn=16
     total=$(($nodes * $ppn))
 
 
 # NOTE: just leave this heredoc unindented
 #   sublime text is set to indent with spaces
 #   heredocs can only be indented with true tabs
-#   (can use cat <<- EOF to strip leading tabs )
+#   (can use `cat <<- EOF` to strip leading tabs )
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
