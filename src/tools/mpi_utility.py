@@ -321,7 +321,7 @@ class NewParallel():
                         self.comm.send(None, dest=i, tag=self.tags.ERROR)
 
                     err_status = 1
-                    break
+                    # break
 
 
             if err_status == 0:
