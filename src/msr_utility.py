@@ -745,7 +745,7 @@ class CoreMSR():
 
         r2_time = int(time.time())
         r2_duration =  r2_time - r1_time
-        print '***** random adm0 duration : {0}'.format(r2_duration) +'s'
+        print '***** random adm0 duration 1 : {0}'.format(r2_duration) +'s'
 
         if results.count() == 1:
             tmp_adm_geom = shape(results[0]['geometry'])
@@ -764,6 +764,9 @@ class CoreMSR():
             tmp_adm_geom = shape(results[0]['geometry'])
             tmp_iso3 = results[0]['datasets'][0][:3]
 
+        r3_time = int(time.time())
+        r3_duration =  r3_time - r2_time
+        print '***** random adm0 duration 2 : {0}'.format(r3_duration) +'s'
 
         return tmp_adm_geom, tmp_iso3
 
