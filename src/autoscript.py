@@ -259,6 +259,8 @@ def tmp_master_init(self):
 
 def tmp_worker_job(self, task_id):
 
+    w1_time = int(time.time())
+
     task = task_id_list[task_id]
 
     pg_data = active_data.loc[task]
@@ -286,6 +288,10 @@ def tmp_worker_job(self, task_id):
     except:
         pg_geom = None
 
+    w2_time = int(time.time())
+    w2_duration =  w2_time - w1_time
+    print '[[{0}]] w2_duration : {1}'.format(self.rank, w2_duration) +'s'
+
     if pg_geom in [None, "None"]:
         warn("Geom is none" + str(pg_data['project_location_id']))
 
@@ -307,6 +313,9 @@ def tmp_worker_job(self, task_id):
         # rasterized sub grid
         mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
+    w3_time = int(time.time())
+    w3_duration =  w3_time - w2_time
+    print '[[{0}]] w3_duration : {1}'.format(self.rank, w3_duration) +'s'
 
     if mean_surf is None:
         warn("Geom is none" + str(pg_data['project_location_id']))
@@ -315,6 +324,11 @@ def tmp_worker_job(self, task_id):
     else:
         mean_surf = mean_surf.astype('float64')
         mean_surf = pg_data['adjusted_val'] * mean_surf / mean_surf.sum()
+
+        w4_time = int(time.time())
+        w4_duration =  w4_time - w3_time
+        print '[[{0}]] w4_duration : {1}'.format(self.rank, w4_duration) +'s'
+
         return (task, pg_geom, mean_surf.flatten())
 
 

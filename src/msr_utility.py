@@ -162,9 +162,9 @@ class CoreMSR():
 
 
         self.code_field_1 = "location_class"
+        self.code_field_2 = "location_type_code"
         self.code_field_3 = "geographic_exactness"
 
-        self.code_field_2 = "location_type_code"
 
 
         # based on IATI 2.01 codes
