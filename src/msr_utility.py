@@ -752,10 +752,15 @@ class CoreMSR():
 
             r3_time = int(time.time())
             r3_duration =  r3_time - r2_time
-            print '***** random shape duration : {0}'.format(r3_duration) +'s'
-        ###
+            print '***** random shape duration 1: {0}'.format(r3_duration) +'s'
 
             tmp_iso3 = results[0]['datasets'][0][:3]
+
+
+            r4_time = int(time.time())
+            r4_duration =  r4_time - r3_time
+            print '***** random shape duration 2: {0}'.format(r4_duration) +'s'
+        ###
 
         elif results.count() == 0:
             warn('no adm (adm level {0}) geom found for '
