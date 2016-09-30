@@ -715,10 +715,6 @@ class CoreMSR():
     def get_adm_geom(self, pnt, adm_level, iso3=None):
         """
         """
-
-        r0_time = int(time.time())
-
-
         tmp_int = int(adm_level)
         tmp_pnt = Point(pnt)
 
@@ -742,13 +738,12 @@ class CoreMSR():
             }
         }
 
-        r01_time = int(time.time())
-        print '***** random shape duration 0: {0}'.format(r01_time - r0_time)
+        r0_time = int(time.time())
 
         results = list(self.client.asdf.features.find(query))
 
         r1_time = int(time.time())
-        print '***** random shape duration 01: {0}'.format(r1_time - r01_time)
+        print '***** random shape duration 0: {0}'.format(r1_time - r0_time)
 
 
         if len(results) == 1:

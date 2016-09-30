@@ -42,37 +42,47 @@ from shapely.geometry import shape, box
 
 from msr_utility import CoreMSR, MasterStack
 
+import mpi_utility
+job = mpi_utility.NewParallel()
+
 
 # -----------------------------------------------------------------------------
 
-import sys
-import os
 
-branch = sys.argv[1]
+config = 0
 
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+if job.rank == 0:
 
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
+    import sys
+    import os
+
+    branch = sys.argv[1]
+
+    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+    if not os.path.isdir(branch_dir):
+        raise Exception('Branch directory does not exist')
 
 
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-sys.path.insert(0, config_dir)
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    sys.path.insert(0, config_dir)
 
-from config_utility import BranchConfig
+    from config_utility import BranchConfig
 
-config = BranchConfig(branch=branch)
+    config = BranchConfig(branch=branch)
 
+
+config = job.comm.bcast(config, root=0)
 
 # check mongodb connection
 if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
+    if job.rank == 0:
+        print "connection status error: {0}".format(config.connection_error)
+    sys.exit()
 
 
 # -------------------------------------------------------------------------
 
-import mpi_utility
-job = mpi_utility.NewParallel()
 
 
 def get_version():
