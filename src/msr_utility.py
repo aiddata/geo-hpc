@@ -716,7 +716,7 @@ class CoreMSR():
         """
         """
 
-        r1_time = int(time.time())
+        r0_time = int(time.time())
 
 
         tmp_int = int(adm_level)
@@ -741,6 +741,10 @@ class CoreMSR():
                 }
             }
         }
+
+        r1_time = int(time.time())
+        r1_duration =  r1_time - r0_time
+        print '***** random shape duration 0: {0}'.format(r1_duration) +'s'
 
         results = self.client.asdf.features.find(query)
 
