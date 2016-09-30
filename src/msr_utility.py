@@ -22,6 +22,9 @@ from shapely.geometry import MultiPolygon, Polygon, Point, shape, box
 from shapely.ops import transform
 from shapely.prepared import prep
 
+###
+import time
+###
 
 class MasterStack:
     """Manage stack of grid arrays produced by workers
@@ -578,16 +581,15 @@ class CoreMSR():
         else:
 
 
-            import random
-            import time
-            tmp_id = int(random.random()*100000)
-            g1_time = int(time.time())
+            # import random
+            # tmp_id = int(random.random()*100000)
+            # g1_time = int(time.time())
 
             tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
 
-            g2_time = int(time.time())
-            g2_duration =  g2_time - g1_time
-            print '[[{0}]] adm0 duration : {1}'.format(tmp_id, g2_duration) +'s'
+            # g2_time = int(time.time())
+            # g2_duration =  g2_time - g1_time
+            # print '[[{0}]] adm0 duration : {1}'.format(tmp_id, g2_duration) +'s'
 
             if tmp_adm0 == "None":
                 return tmp_adm0
@@ -628,9 +630,9 @@ class CoreMSR():
                     raise
 
 
-                g3_time = int(time.time())
-                g3_duration =  g3_time - g2_time
-                print '[[{0}]] buffer 1 duration : {1}'.format(tmp_id, g3_duration) +'s'
+                # g3_time = int(time.time())
+                # g3_duration =  g3_time - g2_time
+                # print '[[{0}]] buffer 1 duration : {1}'.format(tmp_id, g3_duration) +'s'
 
 
                 try:
@@ -660,9 +662,9 @@ class CoreMSR():
                     raise
 
 
-                g4_time = int(time.time())
-                g4_duration =  g4_time - g3_time
-                print '[[{0}]] buffer 2 duration : {1}'.format(tmp_id, g4_duration) +'s'
+                # g4_time = int(time.time())
+                # g4_duration =  g4_time - g3_time
+                # print '[[{0}]] buffer 2 duration : {1}'.format(tmp_id, g4_duration) +'s'
 
 
             elif tmp_lookup["type"] == "adm":
@@ -675,9 +677,9 @@ class CoreMSR():
                         tmp_adm_geom, tmp_adm_iso3 = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
 
-                        g3_time = int(time.time())
-                        g3_duration =  g3_time - g2_time
-                        print '[[{0}]] adm ({1}) duration : {2}'.format(tmp_id, tmp_int, g3_duration) +'s'
+                        # g3_time = int(time.time())
+                        # g3_duration =  g3_time - g2_time
+                        # print '[[{0}]] adm ({1}) duration : {2}'.format(tmp_id, tmp_int, g3_duration) +'s'
 
                         return tmp_adm_geom
                 except:
