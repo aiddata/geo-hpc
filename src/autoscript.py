@@ -43,7 +43,6 @@ from shapely.geometry import shape, box
 from msr_utility import CoreMSR, MasterStack
 
 
-
 # -----------------------------------------------------------------------------
 
 import sys
@@ -62,28 +61,18 @@ sys.path.insert(0, config_dir)
 
 from config_utility import BranchConfig
 
-import mpi_utility
-job = mpi_utility.NewParallel()
+config = BranchConfig(branch=branch)
 
-
-config = 0
-
-if job.rank == 0:
-
-    config = BranchConfig(branch=branch)
-
-
-config = job.comm.bcast(config, root=0)
 
 # check mongodb connection
 if config.connection_status != 0:
-    if job.rank == 0:
-        print "connection status error: {0}".format(config.connection_error)
-    sys.exit()
+    sys.exit("connection status error: " + str(config.connection_error))
 
 
 # -------------------------------------------------------------------------
 
+import mpi_utility
+job = mpi_utility.NewParallel()
 
 
 def get_version():
