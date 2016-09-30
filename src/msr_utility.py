@@ -742,31 +742,30 @@ class CoreMSR():
             }
         }
 
-        r1_time = int(time.time())
-        r1_duration =  r1_time - r0_time
-        print '***** random shape duration 0: {0}'.format(r1_duration) +'s'
+        r01_time = int(time.time())
+        print '***** random shape duration 0: {0}'.format(r01_time - r0_time)
 
         results = self.client.asdf.features.find(query)
+
+        r1_time = int(time.time())
+        print '***** random shape duration 01: {0}'.format(r1_time - r01_time)
 
 
         if results.count() == 1:
         ###
             r2_time = int(time.time())
-            r2_duration =  r2_time - r1_time
-            print '***** random shape duration 1: {0}'.format(r2_duration) +'s'
+            print '***** random shape duration 1: {0}'.format(r2_time - r1_time)
 
             tmp_results = results[0]
 
             r3_time = int(time.time())
-            r3_duration =  r3_time - r2_time
-            print '***** random shape duration 2: {0}'.format(r3_duration) +'s'
+            print '***** random shape duration 2: {0}'.format(r3_time - r2_time)
 
             tmp_adm_geom = shape(tmp_results['geometry'])
             tmp_iso3 = tmp_results['datasets'][0][:3]
 
             r4_time = int(time.time())
-            r4_duration =  r4_time - r3_time
-            print '***** random shape duration 3: {0}'.format(r4_duration) +'s'
+            print '***** random shape duration 3: {0}'.format(r4_time - r3_time)
         ###
 
         elif results.count() == 0:
