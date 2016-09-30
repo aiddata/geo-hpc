@@ -715,6 +715,10 @@ class CoreMSR():
     def get_adm_geom(self, pnt, adm_level, iso3=None):
         """
         """
+
+        r1_time = int(time.time())
+
+
         tmp_int = int(adm_level)
         tmp_pnt = Point(pnt)
 
@@ -738,28 +742,27 @@ class CoreMSR():
             }
         }
 
-
-
         results = self.client.asdf.features.find(query)
 
 
         if results.count() == 1:
-            tmp_results = results[0]
         ###
             r2_time = int(time.time())
+            r2_duration =  r2_time - r1_time
+            print '***** random shape duration 1: {0}'.format(r2_duration) +'s'
 
-            tmp_adm_geom = shape(tmp_results['geometry'])
+            tmp_results = results[0]
 
             r3_time = int(time.time())
             r3_duration =  r3_time - r2_time
-            print '***** random shape duration 1: {0}'.format(r3_duration) +'s'
+            print '***** random shape duration 2: {0}'.format(r3_duration) +'s'
 
+            tmp_adm_geom = shape(tmp_results['geometry'])
             tmp_iso3 = tmp_results['datasets'][0][:3]
-
 
             r4_time = int(time.time())
             r4_duration =  r4_time - r3_time
-            print '***** random shape duration 2: {0}'.format(r4_duration) +'s'
+            print '***** random shape duration 3: {0}'.format(r4_duration) +'s'
         ###
 
         elif results.count() == 0:
@@ -772,8 +775,9 @@ class CoreMSR():
             warn('multiple adm (adm level {0}) geoms found for '
                  'pnt ({1})'.format(tmp_int, tmp_pnt))
             # tmp_adm_geom = "None"
-            tmp_adm_geom = shape(results[0]['geometry'])
-            tmp_iso3 = results[0]['datasets'][0][:3]
+            tmp_results = results[0]
+            tmp_adm_geom = shape(tmp_results['geometry'])
+            tmp_iso3 = tmp_results['datasets'][0][:3]
 
 
         return tmp_adm_geom, tmp_iso3
