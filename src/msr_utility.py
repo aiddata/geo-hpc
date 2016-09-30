@@ -585,6 +585,10 @@ class CoreMSR():
 
             tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
 
+            g2_time = int(time.time())
+            g2_duration =  g2_time - g1_time
+            print '[[{0}]] adm0 duration : {1}'.format(tmp_id, g2_duration) +'s'
+
             if tmp_adm0 == "None":
                 return tmp_adm0
 
@@ -593,9 +597,6 @@ class CoreMSR():
 
             tmp_lookup = self.lookup[code_1][code_2][code_3]
 
-            g2_time = int(time.time())
-            g2_duration =  g2_time - g1_time
-            print '[[{0}]] adm0 duration : {1}'.format(tmp_id, g2_duration) +'s'
 
             # print tmp_lookup["type"]
 
@@ -735,7 +736,14 @@ class CoreMSR():
             }
         }
 
+
+        r1_time = int(time.time())
+
         results = self.client.asdf.features.find(query)
+
+        r2_time = int(time.time())
+        r2_duration =  r2_time - r1_time
+        print '***** random adm0 duration : {1}'.format(r2_duration) +'s'
 
         if results.count() == 1:
             tmp_adm_geom = shape(results[0]['geometry'])
