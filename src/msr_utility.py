@@ -743,7 +743,7 @@ class CoreMSR():
 
         r2_time = int(time.time())
         r2_duration =  r2_time - r1_time
-        print '***** random adm0 duration : {1}'.format(r2_duration) +'s'
+        print '***** random adm0 duration : {0}'.format(r2_duration) +'s'
 
         if results.count() == 1:
             tmp_adm_geom = shape(results[0]['geometry'])
