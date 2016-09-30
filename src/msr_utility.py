@@ -577,7 +577,12 @@ class CoreMSR():
 
         else:
 
-            print '1'
+
+            import random
+            import time
+            tmp_id = int(random.random()*100000)
+            g1_time = int(time.time())
+
             tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
 
             if tmp_adm0 == "None":
@@ -588,7 +593,10 @@ class CoreMSR():
 
             tmp_lookup = self.lookup[code_1][code_2][code_3]
 
-            print '2'
+            g2_time = int(time.time())
+            g2_duration =  g2_time - g1_time
+            print '[[{0}]] adm0 duration : {1}'.format(tmp_id, g2_duration) +'s'
+
             # print tmp_lookup["type"]
 
             if tmp_lookup["type"] == "point":
@@ -618,6 +626,12 @@ class CoreMSR():
                            "(utm: {0})").format(tmp_utm_zone)
                     raise
 
+
+                g3_time = int(time.time())
+                g3_duration =  g3_time - g2_time
+                print '[[{0}]] buffer 1 duration : {1}'.format(tmp_id, g3_duration) +'s'
+
+
                 try:
                     utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
                                                    tmp_pnt.x, tmp_pnt.y)
@@ -644,6 +658,12 @@ class CoreMSR():
                     print "error applying projs"
                     raise
 
+
+                g4_time = int(time.time())
+                g4_duration =  g4_time - g3_time
+                print '[[{0}]] buffer 2 duration : {1}'.format(tmp_id, g4_duration) +'s'
+
+
             elif tmp_lookup["type"] == "adm":
                 try:
                     tmp_int = int(tmp_lookup["data"])
@@ -651,10 +671,13 @@ class CoreMSR():
                     if tmp_int == 0:
                         return tmp_adm0
                     else:
-                        print '3'
                         tmp_adm_geom, tmp_adm_iso3 = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
-                        print '4'
+
+                        g3_time = int(time.time())
+                        g3_duration =  g3_time - g2_time
+                        print '[[{0}]] adm ({1}) duration : {2}'.format(tmp_id, tmp_int, g3_duration) +'s'
+
                         return tmp_adm_geom
                 except:
                     print ("adm value could not be converted "
