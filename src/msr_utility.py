@@ -745,13 +745,13 @@ class CoreMSR():
         r01_time = int(time.time())
         print '***** random shape duration 0: {0}'.format(r01_time - r0_time)
 
-        results = self.client.asdf.features.find(query)
+        results = list(self.client.asdf.features.find(query))
 
         r1_time = int(time.time())
         print '***** random shape duration 01: {0}'.format(r1_time - r01_time)
 
 
-        if results.count() == 1:
+        if len(results) == 1:
         ###
             r2_time = int(time.time())
             print '***** random shape duration 1: {0}'.format(r2_time - r1_time)
@@ -768,7 +768,7 @@ class CoreMSR():
             print '***** random shape duration 3: {0}'.format(r4_time - r3_time)
         ###
 
-        elif results.count() == 0:
+        elif len(results) == 0:
             warn('no adm (adm level {0}) geom found for '
                  'pnt ({1})'.format(tmp_int, tmp_pnt))
             tmp_adm_geom = "None"
