@@ -284,7 +284,7 @@ def tmp_worker_job(self, task_id):
             pg_geom = core.get_geom_val(
                 pg_data.geom_type, pg_data[core.code_field_1],
                 pg_data[core.code_field_2], pg_data[core.code_field_3],
-                pg_data.longitude, pg_data.latitude
+                pg_data.longitude, pg_data.latitude,
                 iso3=pg_data.recipients_iso3)
 
         else:
