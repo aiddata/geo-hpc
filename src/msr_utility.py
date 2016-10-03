@@ -559,7 +559,7 @@ class CoreMSR():
         return "None"
 
 
-    def get_geom(self, code_1, code_2, code_3, lon, lat):
+    def get_geom(self, code_1, code_2, code_3, lon, lat, iso3=None):
         """Get geometry for point using lookup table.
 
         Args:
@@ -585,7 +585,7 @@ class CoreMSR():
             tmp_id = int(random.random()*100000)
             g1_time = int(time.time())
 
-            tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0)
+            tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0, iso3=iso3)
 
             g2_time = int(time.time())
             g2_duration =  g2_time - g1_time
@@ -781,7 +781,7 @@ class CoreMSR():
         return tmp_adm_geom, tmp_iso3
 
 
-    def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat):
+    def get_geom_val(self, geom_type, code_1, code_2, code_3, lon, lat, iso3=None):
         """Manage finding geometry for point based on geometry type.
 
         Args:
@@ -806,7 +806,7 @@ class CoreMSR():
             code_2 = str(code_2)
             code_3 = str(int(code_3))
 
-            tmp_geom = self.get_geom(code_1, code_2, code_3, lon, lat)
+            tmp_geom = self.get_geom(code_1, code_2, code_3, lon, lat, iso3)
 
             return tmp_geom
 

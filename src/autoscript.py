@@ -279,10 +279,20 @@ def tmp_worker_job(self, task_id):
     w1_time = int(time.time())
 
     try:
-        pg_geom = core.get_geom_val(
-            pg_data.geom_type, pg_data[core.code_field_1],
-            pg_data[core.code_field_2], pg_data[core.code_field_3],
-            pg_data.longitude, pg_data.latitude)
+
+        if pg_data.recipients_iso3 and len(pg_data.recipients_iso3) == 3:
+            pg_geom = core.get_geom_val(
+                pg_data.geom_type, pg_data[core.code_field_1],
+                pg_data[core.code_field_2], pg_data[core.code_field_3],
+                pg_data.longitude, pg_data.latitude
+                iso3=pg_data.recipients_iso3)
+
+        else:
+            pg_geom = core.get_geom_val(
+                pg_data.geom_type, pg_data[core.code_field_1],
+                pg_data[core.code_field_2], pg_data[core.code_field_3],
+                pg_data.longitude, pg_data.latitude)
+
     except:
         pg_geom = None
 
