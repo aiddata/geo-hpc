@@ -580,16 +580,7 @@ class CoreMSR():
 
         else:
 
-
-            import random
-            tmp_id = int(random.random()*100000)
-            g1_time = int(time.time())
-
             tmp_adm0, tmp_iso3 = self.get_adm_geom(tmp_pnt, 0, iso3=iso3)
-
-            g2_time = int(time.time())
-            g2_duration =  g2_time - g1_time
-            print '[[{0}]] adm0 duration : {1}'.format(tmp_id, g2_duration) +'s'
 
             if tmp_adm0 == "None":
                 return tmp_adm0
@@ -738,30 +729,15 @@ class CoreMSR():
             }
         }
 
-        r0_time = int(time.time())
-
         results = list(self.client.asdf.features.find(query))
 
-        r1_time = int(time.time())
-        print '***** random shape duration 0: {0}'.format(r1_time - r0_time)
-
-
         if len(results) == 1:
-        ###
-            r2_time = int(time.time())
-            print '***** random shape duration 1: {0}'.format(r2_time - r1_time)
 
             tmp_results = results[0]
-
-            r3_time = int(time.time())
-            print '***** random shape duration 2: {0}'.format(r3_time - r2_time)
 
             tmp_adm_geom = shape(tmp_results['geometry'])
             tmp_iso3 = tmp_results['datasets'][0][:3]
 
-            r4_time = int(time.time())
-            print '***** random shape duration 3: {0}'.format(r4_time - r3_time)
-        ###
 
         elif len(results) == 0:
             warn('no adm (adm level {0}) geom found for '

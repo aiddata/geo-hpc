@@ -277,6 +277,7 @@ def tmp_worker_job(self, task_id):
 
 ###
     w1_time = int(time.time())
+###
 
     try:
 
@@ -296,9 +297,10 @@ def tmp_worker_job(self, task_id):
     except:
         pg_geom = None
 
+###
     w2_time = int(time.time())
     w2_duration =  w2_time - w1_time
-    print '[[{0}]] get_geom_val duration : {1}'.format(self.rank, w2_duration) +'s'
+    print '[[{0}]] get_geom_val ({1}) duration : {2}'.format(self.rank, pg_type, w2_duration) +'s'
 ###
 
 
