@@ -225,9 +225,9 @@ class ExtractObject():
         "max": "x",
         # "std": "d",
 
-        "reliability": "r"
+        "reliability": "r",
 
-        # "median": "?"
+        "median": "i"
         # "majority": "?"
         # "minority": "?"
         # "unique": "u"

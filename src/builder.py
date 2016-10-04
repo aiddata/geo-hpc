@@ -397,7 +397,6 @@ lines.append('#PBS -N '+user_prefix+':ex:'+job_name)
 lines.append('#PBS -l nodes='+str(int(node_count))+':'+node_spec+':'+
              'ppn='+str(int(ppn)))
 lines.append('#PBS -l walltime='+str(int(run_hours))+':00:00')
-lines.append('#PBS -q alpha')
 lines.append('#PBS -j oe')
 lines.append('')
 
