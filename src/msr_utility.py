@@ -719,15 +719,16 @@ class CoreMSR():
             query['datasets'] = '{0}_adm{1}_{2}'.format(
                 iso3.lower(), tmp_int, self.adm_suffix)
 
-
-        query['geometry'] = {
-            '$geoIntersects': {
-                '$geometry': {
-                    'type': "Point",
-                    'coordinates': [tmp_pnt.x, tmp_pnt.y]
+        if iso3 is None or tmp_int != 0:
+            query['geometry'] = {
+                '$geoIntersects': {
+                    '$geometry': {
+                        'type': "Point",
+                        'coordinates': [tmp_pnt.x, tmp_pnt.y]
+                    }
                 }
             }
-        }
+
 
         results = list(self.client.asdf.features.find(query))
 
