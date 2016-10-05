@@ -653,7 +653,8 @@ class CoreMSR():
                         #   but it was assigned geo-codes that translate to buffer geom
                         if tmp_buffer.area == 0:
                             return None
-                        else return tmp_buffer
+                        else:
+                            return tmp_buffer
 
                 except:
                     print "error applying projs"

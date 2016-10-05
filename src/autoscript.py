@@ -266,13 +266,14 @@ def tmp_worker_job(self, task_id):
     pg_type = pg_data.geom_type
 
     if pg_type not in core.geom_types:
-        raise Exception(str(self.rank) + 'invalid pg_type: ' + pg_type +
-                        '('+ str(pg_data['project_location_id']) +')')
+        msg = "{0} invalid pg_type: {1} ({2})".format(
+            self.rank, pg_type, pg_data['project_location_id'])
+        raise Exception(msg)
 
     mean_surf = None
 
-    print (str(self.rank) + 'running pg_type: ' + pg_type +
-           '('+ str(pg_data['project_location_id']) +')')
+    print "{0} running pg_type: {1} ({2})".format(
+        self.rank, pg_type, pg_data['project_location_id'])
 
 
 ###
@@ -301,7 +302,8 @@ def tmp_worker_job(self, task_id):
 ###
     w2_time = int(time.time())
     w2_duration =  w2_time - w1_time
-    print '[[{0}]] get_geom_val ({1}) duration : {2}'.format(self.rank, pg_type, w2_duration) +'s'
+    print '[[{0}]] get_geom_val ({1}) duration : {2}s'.format(
+        self.rank, pg_type, w2_duration)
 ###
 
 
@@ -312,10 +314,8 @@ def tmp_worker_job(self, task_id):
         try:
             pg_geom = shape(pg_geom)
         except:
-            print("Geom is invalid")
-            print str(pg_data['project_location_id'])
-            print type(pg_geom)
-            print pg_geom
+            print "Geom is invalid - {0} ({1}) : {2}".format(
+                pg_data['project_location_id'], type(pg_geom), pg_geom)
             raise
 
         # factor used to determine subgrid size
@@ -328,7 +328,7 @@ def tmp_worker_job(self, task_id):
 
 
     if mean_surf is None:
-        warn("Geom is none" + str(pg_data['project_location_id']))
+        warn("Geom is none ({0})".format(pg_data['project_location_id']))
         return (task, "None", None)
 
     else:
