@@ -645,8 +645,15 @@ class CoreMSR():
                     # elif tmp_buffer.intersects(tmp_adm0):
                         # return tmp_buffer.intersection(tmp_adm0)
                     else:
-                        return tmp_buffer.intersection(tmp_adm0)
-                        # return "None"
+                        tmp_buffer = tmp_buffer.intersection(tmp_adm0)
+
+                        # check if buffer did not overlap with adm0
+                        #   can happen with poorly geocoded locations
+                        #   eg, centroid of island chain used as coords (in water)
+                        #   but it was assigned geo-codes that translate to buffer geom
+                        if tmp_buffer.area == 0:
+                            return None
+                        else return tmp_buffer
 
                 except:
                     print "error applying projs"
