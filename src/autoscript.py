@@ -308,7 +308,7 @@ def tmp_worker_job(self, task_id):
 
     if pg_geom in [None, "None"]:
         warn("Geom is none ({0})".format(pg_data['project_location_id']))
-        return (task, "None", None)
+        return (task, "None", None, None)
 
     else:
         try:

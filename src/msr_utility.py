@@ -35,15 +35,15 @@ class Stack():
         self.array = np.zeros(shape)
 
     def update(self, bounds, data):
-        ileft = (bounds[0] - self.bounds[0]) / self.pixel_size
-        itop = (self.bounds[3] - bounds[3]) / self.pixel_size
+        ileft = int(round((bounds[0] - self.bounds[0]) / self.pixel_size))
+        itop = int(round((self.bounds[3] - bounds[3]) / self.pixel_size))
 
-        iright = ileft + data.shape[0]
-        ibottom = itop + data.shape[1]
-
+        iright = ileft + data.shape[1]
+        ibottom = itop + data.shape[0]
 
         # add worker surf as slice to sum_mean_surf
-        self.array[ileft:iright, itop:ibottom] += data
+        self.array = self.array[itop:ibottom, ileft:iright] += data
+
 
     def get_data(self):
         return self.array
