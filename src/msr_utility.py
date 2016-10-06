@@ -846,7 +846,7 @@ class CoreMSR():
     # https://stackoverflow.com/questions/8090229/
     #   resize-with-averaging-or-rebin-a-numpy-2d-array/8090605#8090605
     def rebin_sum(self, a, shape, dtype):
-        sh = shape[0],a.shape[0]//shape[0],shape[1],a.shape[1]//shape[1]
+        sh = shape[0], a.shape[0]//shape[0], shape[1], a.shape[1]//shape[1]
         return a.reshape(sh).sum(-1, dtype=dtype).sum(1, dtype=dtype)
 
 
@@ -885,15 +885,24 @@ class CoreMSR():
             pixel_size = self.pixel_size / scale
 
 
-
 ###
 
-        # tmp_topleft = self.topleft
-        # tmp_shape = self.shape
+        # raw_shape = self.shape
+
+        # affine = Affine(pixel_size, 0, self.topleft[0],
+        #                 0, -pixel_size, self.topleft[1])
+
+        # nrows = raw_shape[0] * scale
+        # ncols = raw_shape[1] * scale
+
+        # shape = (nrows, ncols)
 
 ###
 
         (minx, miny, maxx, maxy) =  geom.bounds
+
+        raw_shape = ((maxy - miny) / self.pixel_size,
+                     (maxx - minx) / self.pixel_size)
 
         psi = 1 / pixel_size
 
@@ -903,22 +912,12 @@ class CoreMSR():
             np.ceil(maxx * psi) / psi,
             np.ceil(maxy * psi) / psi)
 
-        tmp_topleft = (minx, maxy)
+        shape = ((maxy - miny) / pixel_size,
+                 (maxx - minx) / pixel_size)
 
-        tmp_shape = ((maxy - miny) / pixel_size,
-                     (maxx - minx) / pixel_size)
+        affine = Affine(pixel_size, 0, minx,
+                        0, -pixel_size, maxy)
 
-
-###
-
-
-        affine = Affine(pixel_size, 0, tmp_topleft[0],
-                        0, -pixel_size, tmp_topleft[1])
-
-        nrows = tmp_shape[0] * scale
-        ncols = tmp_shape[1] * scale
-
-        shape = (nrows, ncols)
 
         rasterized = features.rasterize(
             [(geom, 1)],
@@ -929,7 +928,7 @@ class CoreMSR():
 
         if scale != 1:
             min_dtype = np.min_scalar_type(scale**2)
-            rv_array = self.rebin_sum(rasterized, tmp_shape, min_dtype)
+            rv_array = self.rebin_sum(rasterized, raw_shape, min_dtype)
             return rv_array, (minx, miny, maxx, maxy)
         else:
             return rasterized, (minx, miny, maxx, maxy)
