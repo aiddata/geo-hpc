@@ -621,11 +621,6 @@ class CoreMSR():
                     raise
 
 
-                # g3_time = int(time.time())
-                # g3_duration =  g3_time - g2_time
-                # print '[[{0}]] buffer 1 duration : {1}'.format(tmp_id, g3_duration) +'s'
-
-
                 try:
                     utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
                                                    tmp_pnt.x, tmp_pnt.y)
@@ -661,11 +656,6 @@ class CoreMSR():
                     raise
 
 
-                # g4_time = int(time.time())
-                # g4_duration =  g4_time - g3_time
-                # print '[[{0}]] buffer 2 duration : {1}'.format(tmp_id, g4_duration) +'s'
-
-
             elif tmp_lookup["type"] == "adm":
                 try:
                     tmp_int = int(tmp_lookup["data"])
@@ -675,10 +665,6 @@ class CoreMSR():
                     else:
                         tmp_adm_geom, tmp_adm_iso3 = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
-
-                        # g3_time = int(time.time())
-                        # g3_duration =  g3_time - g2_time
-                        # print '[[{0}]] adm ({1}) duration : {2}'.format(tmp_id, tmp_int, g3_duration) +'s'
 
                         return tmp_adm_geom
                 except:
@@ -828,28 +814,25 @@ class CoreMSR():
         self.psi = 1/value
 
 
-    def set_grid_info(self, bounds):
+    def initialize_grid(self, bounds):
         """
         """
-        pixel_size = self.pixel_size
-        psi = 1 / pixel_size
-
         (minx, miny, maxx, maxy) = bounds
 
         (minx, miny, maxx, maxy) = (
-            np.floor(minx * psi) / psi,
-            np.floor(miny * psi) / psi,
-            np.ceil(maxx * psi) / psi,
-            np.ceil(maxy * psi) / psi)
+            np.floor(minx * self.psi) / self.psi,
+            np.floor(miny * self.psi) / self.psi,
+            np.ceil(maxx * self.psi) / self.psi,
+            np.ceil(maxy * self.psi) / self.psi)
 
         top_left_lon = minx
         top_left_lat = maxy
-        affine = Affine(pixel_size, 0, top_left_lon,
-                        0, -pixel_size, top_left_lat)
+        affine = Affine(self.pixel_size, 0, top_left_lon,
+                        0, -self.pixel_size, top_left_lat)
 
 
-        nrows = int(psi * (maxy - miny))
-        ncols = int(psi * (maxx - minx))
+        nrows = int(self.psi * (maxy - miny))
+        ncols = int(self.psi * (maxx - minx))
 
         shape = (nrows, ncols)
 
@@ -902,11 +885,38 @@ class CoreMSR():
             pixel_size = self.pixel_size / scale
 
 
-        affine = Affine(pixel_size, 0, self.topleft[0],
-                        0, -pixel_size, self.topleft[1])
 
-        nrows = self.shape[0] * scale
-        ncols = self.shape[1] * scale
+###
+
+        # tmp_topleft = self.topleft
+        # tmp_shape = self.shape
+
+###
+
+        (minx, miny, maxx, maxy) =  geom.bounds
+
+        psi = 1 / pixel_size
+
+        (minx, miny, maxx, maxy) = (
+            np.floor(minx * psi) / psi,
+            np.floor(miny * psi) / psi,
+            np.ceil(maxx * psi) / psi,
+            np.ceil(maxy * psi) / psi)
+
+        tmp_topleft = (minx, maxy)
+
+        tmp_shape = ((maxy - miny) / pixel_size,
+                     (maxx - minx) / pixel_size)
+
+
+###
+
+
+        affine = Affine(pixel_size, 0, tmp_topleft[0],
+                        0, -pixel_size, tmp_topleft[1])
+
+        nrows = tmp_shape[0] * scale
+        ncols = tmp_shape[1] * scale
 
         shape = (nrows, ncols)
 
@@ -919,9 +929,9 @@ class CoreMSR():
 
         if scale != 1:
             min_dtype = np.min_scalar_type(scale**2)
-            rv_array = self.rebin_sum(rasterized, self.shape, min_dtype)
-            return rv_array
+            rv_array = self.rebin_sum(rasterized, tmp_shape, min_dtype)
+            return rv_array, (minx, miny, maxx, maxy)
         else:
-            return rasterized
+            return rasterized, (minx, miny, maxx, maxy)
 
 

@@ -270,7 +270,6 @@ def tmp_worker_job(self, task_id):
             self.rank, pg_type, pg_data['project_location_id'])
         raise Exception(msg)
 
-    mean_surf = None
 
     print "{0} running pg_type: {1} ({2})".format(
         self.rank, pg_type, pg_data['project_location_id'])
@@ -308,7 +307,8 @@ def tmp_worker_job(self, task_id):
 
 
     if pg_geom in [None, "None"]:
-        warn("Geom is none" + str(pg_data['project_location_id']))
+        warn("Geom is none ({0})".format(pg_data['project_location_id']))
+        return (task, "None", None)
 
     else:
         try:
@@ -324,38 +324,46 @@ def tmp_worker_job(self, task_id):
         subgrid_scale = 10
 
         # rasterized sub grid
-        mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
+        mean_surf, surf_bounds = core.rasterize_geom(pg_geom, scale=subgrid_scale)
 
-
-    if mean_surf is None:
-        warn("Geom is none ({0})".format(pg_data['project_location_id']))
-        return (task, "None", None)
-
-    else:
         mean_surf = mean_surf.astype('float64')
         mean_surf = pg_data['adjusted_val'] * mean_surf / mean_surf.sum()
-        return (task, pg_geom, mean_surf.flatten())
+        # return (task, pg_geom, mean_surf.flatten())
+        return (task, pg_geom, mean_surf, surf_bounds)
 
 
 def tmp_master_process(self, worker_data):
-    task, geom, surf = worker_data
+    task, geom, surf, bounds = worker_data
 
     if geom != "None":
 
         active_data.set_value(task, 'geom_val', geom)
 
-        mstack.append_stack(surf)
 
-        if mstack.get_stack_size() > 1:
-    	   print "reducing stack"
-           mstack.reduce_stack()
+        ileft = (bounds[0] - core.bounds[0]) / core.pixel_size
+        itop = (core.bounds[3] - bounds[3]) / core.pixel_size
+
+        iright = ileft + surf.shape[0]
+        ibottom = itop + surf.shape[1]
+
+
+        # add worker surf as slice to sum_mean_surf
+        sum_mean_surf = sum_mean_surf[ileft:iright, itop:ibottom] + surf
+
+
+
+        # mstack.append_stack(surf)
+
+        # if mstack.get_stack_size() > 1:
+    	   # print "reducing stack"
+        #    mstack.reduce_stack()
 
 
 def complete_final_raster():
     # build and output final raster
 
     # calc results
-    sum_mean_surf = mstack.get_stack_sum()
+    # sum_mean_surf = mstack.get_stack_sum()
 
     out_dtype = 'float64'
     # affine takes upper left
@@ -381,10 +389,10 @@ def complete_final_raster():
         dst.write(out_mean_surf)
 
 
-    # validate sum_mean_surf
-    # exit if validation fails
-    if isinstance(sum_mean_surf, int):
-        sys.exit("! - mean surf validation failed")
+    # # validate sum_mean_surf
+    # # exit if validation fails
+    # if isinstance(sum_mean_surf, int):
+    #     sys.exit("! - mean surf validation failed")
 
 
 
@@ -712,8 +720,7 @@ else:
         master_geom = shape(search_master_geom[0]['spatial'])
 
 
-core.set_grid_info(master_geom.bounds)
-master_grid = core.rasterize_geom(master_geom)
+core.initialize_grid(master_geom.bounds)
 
 nrows, ncols = core.shape
 (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
@@ -737,8 +744,9 @@ if len(task_id_list) == 0:
 
 if job.rank == 0:
     print "Starting to process tasks ({0})...".format(len(task_id_list))
-    sum_mean_surf = 0
-    mstack = MasterStack()
+    sum_mean_surf = np.zeros(core.shape)
+    # sum_mean_surf = 0
+    # mstack = MasterStack()
 
 
 # =============================================================================
