@@ -26,6 +26,29 @@ from shapely.prepared import prep
 import time
 ###
 
+
+class Stack():
+    def __init__(self, shape, bounds, pixel_size):
+        self.shape = shape
+        self.bounds = bounds
+        self.pixel_size = pixel_size
+        self.array = np.zeros(shape)
+
+    def update(self, bounds, data):
+        ileft = (bounds[0] - self.bounds[0]) / self.pixel_size
+        itop = (self.bounds[3] - bounds[3]) / self.pixel_size
+
+        iright = ileft + data.shape[0]
+        ibottom = itop + data.shape[1]
+
+
+        # add worker surf as slice to sum_mean_surf
+        self.array[ileft:iright, itop:ibottom] += data
+
+    def get_data(self):
+        return self.array
+
+
 class MasterStack:
     """Manage stack of grid arrays produced by workers
 
