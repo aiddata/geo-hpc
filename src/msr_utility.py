@@ -913,7 +913,7 @@ class CoreMSR():
 
         tmp_raw_shape = list(raw_shape)
 
-        for i in tmp_raw_shape:
+        for i in range(len(tmp_raw_shape)):
             if raw_shape[i] < 1:
                 raw_shape[i] = 1
 
@@ -936,8 +936,6 @@ class CoreMSR():
             fill=0,
             all_touched=False)
 
-        print "raw ({0}), sub ({1}), actual ({2}), bounds({3})".format(
-            raw_shape, shape, rasterized.shape, (minx, miny, maxx, maxy))
 
         if scale != 1:
             min_dtype = np.min_scalar_type(scale**2)

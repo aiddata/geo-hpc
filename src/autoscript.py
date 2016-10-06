@@ -346,10 +346,11 @@ def tmp_master_process(self, worker_data):
         iright = ileft + surf.shape[0]
         ibottom = itop + surf.shape[1]
 
+        if not sum_mean_surf:
+            sum_mean_surf = np.zeros(core.shape)
 
         # add worker surf as slice to sum_mean_surf
-        sum_mean_surf = sum_mean_surf[ileft:iright, itop:ibottom] + surf
-
+        sum_mean_surf[ileft:iright, itop:ibottom] += surf
 
 
         # mstack.append_stack(surf)
@@ -380,7 +381,7 @@ def complete_final_raster():
         # 'compress': 'lzw'
     }
 
-    sum_mean_surf.shape = core.shape
+    # sum_mean_surf.shape = core.shape
 
     out_mean_surf = np.array([sum_mean_surf.astype(out_dtype)])
 
