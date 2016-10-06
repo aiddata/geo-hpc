@@ -901,9 +901,6 @@ class CoreMSR():
 
         (minx, miny, maxx, maxy) =  geom.bounds
 
-        raw_shape = ((maxy - miny) / self.pixel_size,
-                     (maxx - minx) / self.pixel_size)
-
         psi = 1 / pixel_size
 
         (minx, miny, maxx, maxy) = (
@@ -912,8 +909,11 @@ class CoreMSR():
             np.ceil(maxx * psi) / psi,
             np.ceil(maxy * psi) / psi)
 
-        shape = ((maxy - miny) / pixel_size,
-                 (maxx - minx) / pixel_size)
+        raw_shape = (int(round((maxy - miny) / self.pixel_size)),
+                     int(round((maxx - minx) / self.pixel_size)))
+
+        shape = (int(round((maxy - miny) / pixel_size)),
+                 int(round((maxx - minx) / pixel_size)))
 
         affine = Affine(pixel_size, 0, minx,
                         0, -pixel_size, maxy)
@@ -925,6 +925,9 @@ class CoreMSR():
             transform=affine,
             fill=0,
             all_touched=False)
+
+        print "raw ({0}), sub ({1}), actual ({2})".format(
+            raw_shape, shape, rasterized.shape)
 
         if scale != 1:
             min_dtype = np.min_scalar_type(scale**2)
