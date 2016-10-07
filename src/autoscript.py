@@ -40,7 +40,7 @@ import geopandas as gpd
 
 from shapely.geometry import shape, box
 
-from msr_utility import CoreMSR, MasterStack, Stack
+from msr_utility import CoreMSR, MasterGrid
 
 
 # -----------------------------------------------------------------------------
@@ -339,7 +339,7 @@ def tmp_master_process(self, worker_data):
 
         active_data.set_value(task, 'geom_val', geom)
 
-        stack.update(bounds, surf)
+        master_grid.update(bounds, surf)
         # ileft = (bounds[0] - core.bounds[0]) / core.pixel_size
         # itop = (core.bounds[3] - bounds[3]) / core.pixel_size
 
@@ -363,7 +363,7 @@ def complete_final_raster():
 
     # calc results
     # sum_mean_surf = mstack.get_stack_sum()
-    sum_mean_surf = stack.get_data()
+    sum_mean_surf = master_grid.get_grid()
 
     out_dtype = 'float64'
     # affine takes upper left
@@ -744,7 +744,7 @@ if len(task_id_list) == 0:
 
 if job.rank == 0:
     print "Starting to process tasks ({0})...".format(len(task_id_list))
-    stack = Stack(core.shape, core.bounds, core.pixel_size)
+    master_grid = MasterGrid(core.bounds, core.shape, core.pixel_size)
     # sum_mean_surf = np.zeros(core.shape)
     # sum_mean_surf = 0
     # mstack = MasterStack()

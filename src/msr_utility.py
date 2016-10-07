@@ -27,12 +27,20 @@ import time
 ###
 
 
-class Stack():
-    def __init__(self, shape, bounds, pixel_size):
+class MasterGrid():
+    """Manage master grid
+
+    Builds empty master grid on initialization using
+    essential geometry properties (bounds, shape, pixel_size)
+
+    Updates master grid with worker grids using
+    boundary information
+    """
+    def __init__(self, bounds, shape, pixel_size):
         self.shape = shape
         self.bounds = bounds
         self.pixel_size = pixel_size
-        self.array = np.zeros(shape)
+        self.grid = np.zeros(shape)
 
     def update(self, bounds, data):
         ileft = int(round((bounds[0] - self.bounds[0]) / self.pixel_size))
@@ -42,59 +50,11 @@ class Stack():
         ibottom = itop + data.shape[0]
 
         # add worker surf as slice to sum_mean_surf
-        self.array = self.array[itop:ibottom, ileft:iright] += data
+        self.grid = self.grid[itop:ibottom, ileft:iright] += data
 
 
-    def get_data(self):
-        return self.array
-
-
-class MasterStack:
-    """Manage stack of grid arrays produced by workers
-
-    Attributes:
-        all_mean_surf (list): array of grid arrays
-    """
-    def __init__(self):
-        self.all_mean_surf = []
-
-
-    def get_stack_size(self):
-        """Get size of all_mean_surf
-
-        Returns:
-            size (int)
-        """
-        return len(self.all_mean_surf)
-
-
-    def append_stack(self, data):
-        """Append new data to all_mean_surf
-
-        Args:
-            data: new data for all_mean_surf
-        """
-        self.all_mean_surf.append(data)
-
-
-    def get_stack_sum(self):
-        """Create stack from all_mean_surf and sums
-
-        Returns:
-            sum of all_mean_surf stack
-        """
-        stack_mean_surf = np.vstack(self.all_mean_surf)
-        sum_mean_surf = np.sum(stack_mean_surf, axis=0)
-        return sum_mean_surf
-
-
-    def reduce_stack(self):
-        """Reduce items in all_mean_surf by summing
-
-        Used to reduce memory footprint
-        """
-        self.all_mean_surf = [self.get_stack_sum()]
-
+    def get_grid(self):
+        return self.grid
 
 
 class CoreMSR():
@@ -199,45 +159,81 @@ class CoreMSR():
             "1": {
                 "default": {
                     "1": {"type": "buffer", "data": 25000},
+                    "2": {"type": "buffer", "data": 25000}
+                },
+                "PCLI": {
+                    "1": {"type": "adm", "data": "0"},
                     "2": {"type": "adm", "data": "0"}
                 },
                 "ADM1": {
                     "1": {"type": "adm", "data": "1"},
-                    "2": {"type": "adm", "data": "0"}
+                    "2": {"type": "adm", "data": "1"}
                 },
                 "ADM2": {
                     "1": {"type": "adm", "data": "2"},
-                    "2": {"type": "adm", "data": "0"}
-                }#,
-                # "ADM3": {
-                #     "1": {"type": "adm", "data": "3"},
-                #     "2": {"type": "adm", "data": "0"}
-                # },
-                # "ADM4": {
-                #     "1": {"type": "adm", "data": "4"},
-                #     "2": {"type": "adm", "data": "0"}
-                # },
-                # "ADM5": {
-                #     "1": {"type": "adm", "data": "5"},
-                #     "2": {"type": "adm", "data": "0"}
-                # }
+                    "2": {"type": "adm", "data": "2"}
+                },
+                "ADM3": {
+                    "1": {"type": "adm", "data": "3"},
+                    "2": {"type": "adm", "data": "3"}
+                },
+                "ADM4": {
+                    "1": {"type": "adm", "data": "4"},
+                    "2": {"type": "adm", "data": "4"}
+                },
+                "ADM5": {
+                    "1": {"type": "adm", "data": "5"},
+                    "2": {"type": "adm", "data": "5"}
+                }
             },
             "2": {
                 "default": {
-                    "1":  {"type": "buffer", "data": 1000},
-                    "2":  {"type": "buffer", "data": 25000}
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPL": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLA": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLC": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLX": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLL": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLF": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLA3": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
+                },
+                "PPLA4": {
+                    "1":  {"type": "buffer", "data": 5000},
+                    "2":  {"type": "buffer", "data": 5000}
                 }
             },
             "3": {
                 "default": {
                     "1":  {"type": "buffer", "data": 1000},
-                    "2":  {"type": "buffer", "data": 25000}
+                    "2":  {"type": "buffer", "data": 1000}
                 }
             },
             "4": {
                 "default": {
                     "1":  {"type": "buffer", "data": 25000},
-                    "2":  {"type": "buffer", "data": 50000}
+                    "2":  {"type": "buffer", "data": 25000}
                 }
             }
         }
@@ -614,70 +610,14 @@ class CoreMSR():
             tmp_lookup = self.lookup[code_1][code_2][code_3]
 
 
-            # print tmp_lookup["type"]
-
             if tmp_lookup["type"] == "point":
                 return tmp_pnt
 
             elif tmp_lookup["type"] == "buffer":
-                try:
-                    # get buffer size (meters)
-                    tmp_int = float(tmp_lookup["data"])
-                except:
-                    print ("buffer value could not be converted "
-                           "to float ({0})".format(tmp_lookup["data"]))
-                    raise
 
-                try:
-                    tmp_utm_info = utm.from_latlon(lat, lon)
-                    tmp_utm_zone = str(tmp_utm_info[2]) + str(tmp_utm_info[3])
-
-                    # reproject point
-                    utm_proj_string = ("+proj=utm +zone={0} +ellps=WGS84 "
-                                       "+datum=WGS84 +units=m "
-                                       "+no_defs").format(tmp_utm_zone)
-                    proj_utm = pyproj.Proj(utm_proj_string)
-                    proj_wgs = pyproj.Proj(init="epsg:4326")
-                except:
-                    print ("error initializing projs "
-                           "(utm: {0})").format(tmp_utm_zone)
-                    raise
-
-
-                try:
-                    utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
-                                                   tmp_pnt.x, tmp_pnt.y)
-                    utm_pnt_act = Point(utm_pnt_raw)
-
-                    # create buffer in meters
-                    utm_buffer = utm_pnt_act.buffer(tmp_int)
-
-                    # reproject back
-                    buffer_proj = partial(pyproj.transform,
-                                          proj_utm, proj_wgs)
-                    tmp_buffer = transform(buffer_proj, utm_buffer)
-
-                    # clip buffer if it extends outside adm0
-                    if tmp_adm0.contains(tmp_buffer):
-                        return tmp_buffer
-                    # elif tmp_buffer.intersects(tmp_adm0):
-                        # return tmp_buffer.intersection(tmp_adm0)
-                    else:
-                        tmp_buffer = tmp_buffer.intersection(tmp_adm0)
-
-                        # check if buffer did not overlap with adm0
-                        #   can happen with poorly geocoded locations
-                        #   eg, centroid of island chain used as coords (in water)
-                        #   but it was assigned geo-codes that translate to buffer geom
-                        if tmp_buffer.area == 0:
-                            return None
-                        else:
-                            return tmp_buffer
-
-                except:
-                    print "error applying projs"
-                    raise
-
+                tmp_buffer = self.build_buffer(
+                    point=tmp_pnt, radius=tmp_lookup["data"], clip=tmp_adm0)
+                return tmp_buffer
 
             elif tmp_lookup["type"] == "adm":
                 try:
@@ -688,6 +628,14 @@ class CoreMSR():
                     else:
                         tmp_adm_geom, tmp_adm_iso3 = self.get_adm_geom(
                             tmp_pnt, tmp_int, iso3=tmp_iso3)
+
+                        if tmp_adm_geom is None:
+
+                            if tmp_int == 1:
+                                return tmp_adm0
+                            else:
+                                tmp_adm_geom = self.build_buffer(
+                                    point=tmp_pnt, radius=25000, clip=tmp_adm0)
 
                         return tmp_adm_geom
                 except:
@@ -720,11 +668,93 @@ class CoreMSR():
         return self.grid_box.contains(shp)
 
 
-    def get_adm_geom(self, pnt, adm_level, iso3=None):
+    def build_buffer(self, point, radius, clip=None):
+        """build a buffer geometry
+
+        Args
+            point: either a shapely Point instance or a (lon, lat) tuple
+            radius: buffer radius in meters
+            clip: option geometry used to clip buffer
+
+        Return
+            buffer geometry or None (if clip provided does not intersected
+            the buffer generated)
+        """
+        if isinstance(point, Point):
+            lon = point.x
+            lat = point.y
+        elif isinstance(point, tuple):
+            lon = point[0]
+            lat = point[1]
+            tmp_pnt = Point(lon, lat)
+        else:
+            msg = "point must be either `Point` class or (lon, lat) tuple"
+            raise Exception(msg)
+
+
+        try:
+            # get buffer size (meters)
+            tmp_int = float(radius)
+        except:
+            print ("buffer value could not be converted "
+                   "to float ({0})".format(tmp_lookup["data"]))
+            raise
+
+        try:
+            tmp_utm_info = utm.from_latlon(lat, lon)
+            tmp_utm_zone = str(tmp_utm_info[2]) + str(tmp_utm_info[3])
+
+            # reproject point
+            utm_proj_string = ("+proj=utm +zone={0} +ellps=WGS84 "
+                               "+datum=WGS84 +units=m "
+                               "+no_defs").format(tmp_utm_zone)
+            proj_utm = pyproj.Proj(utm_proj_string)
+            proj_wgs = pyproj.Proj(init="epsg:4326")
+        except:
+            print ("error initializing projs "
+                   "(utm: {0})").format(tmp_utm_zone)
+            raise
+
+
+        try:
+            utm_pnt_raw = pyproj.transform(proj_wgs, proj_utm,
+                                           tmp_pnt.x, tmp_pnt.y)
+            utm_pnt_act = Point(utm_pnt_raw)
+
+            # create buffer in meters
+            utm_buffer = utm_pnt_act.buffer(tmp_int)
+
+            # reproject back
+            buffer_proj = partial(pyproj.transform,
+                                  proj_utm, proj_wgs)
+            tmp_buffer = transform(buffer_proj, utm_buffer)
+
+            # clip buffer if it extends outside adm0
+            if clip is None or clip.contains(tmp_buffer):
+                return tmp_buffer
+
+            else:
+                tmp_buffer = tmp_buffer.intersection(clip)
+
+                # check if buffer did not overlap with adm0
+                #   can happen with poorly geocoded locations
+                #   eg, centroid of island chain used as coords (in water)
+                #   but it was assigned geo-codes that translate to buffer geom
+                if tmp_buffer.area == 0:
+                    return None
+                else:
+                    return tmp_buffer
+
+        except:
+            print "error applying projs"
+            raise
+
+
+    def get_adm_geom(self, point, adm_level, iso3=None):
         """
         """
         tmp_int = int(adm_level)
-        tmp_pnt = Point(pnt)
+        tmp_pnt = Point(point)
 
         query = {}
 
@@ -759,13 +789,13 @@ class CoreMSR():
 
         elif len(results) == 0:
             warn('no adm (adm level {0}) geom found for '
-                 'pnt ({1})'.format(tmp_int, tmp_pnt))
+                 'point ({1})'.format(tmp_int, tmp_pnt))
             tmp_adm_geom = "None"
             tmp_iso3 = None
 
         else:
             warn('multiple adm (adm level {0}) geoms found for '
-                 'pnt ({1})'.format(tmp_int, tmp_pnt))
+                 'point ({1})'.format(tmp_int, tmp_pnt))
             # tmp_adm_geom = "None"
             tmp_results = results[0]
             tmp_adm_geom = shape(tmp_results['geometry'])
