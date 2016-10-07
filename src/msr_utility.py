@@ -50,7 +50,7 @@ class MasterGrid():
         ibottom = itop + data.shape[0]
 
         # add worker surf as slice to sum_mean_surf
-        self.grid = self.grid[itop:ibottom, ileft:iright] += data
+        self.grid[itop:ibottom, ileft:iright] += data
 
 
     def get_grid(self):
