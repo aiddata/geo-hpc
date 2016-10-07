@@ -42,6 +42,7 @@ from shapely.geometry import shape, box
 
 from msr_utility import CoreMSR, MasterGrid
 
+import traceback
 
 # -----------------------------------------------------------------------------
 
@@ -295,7 +296,9 @@ def tmp_worker_job(self, task_id):
             #     pg_data[core.code_field_2], pg_data[core.code_field_3],
             #     pg_data.longitude, pg_data.latitude)
 
-    except:
+    except Exception as e:
+        traceback.print_exc()
+        # raise
         pg_geom = None
 
 ###

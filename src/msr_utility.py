@@ -42,6 +42,7 @@ class MasterGrid():
         self.pixel_size = pixel_size
         self.grid = np.zeros(shape)
 
+
     def update(self, bounds, data):
         ileft = int(round((bounds[0] - self.bounds[0]) / self.pixel_size))
         itop = int(round((self.bounds[3] - bounds[3]) / self.pixel_size))
@@ -683,6 +684,7 @@ class CoreMSR():
         if isinstance(point, Point):
             lon = point.x
             lat = point.y
+            tmp_pnt = point
         elif isinstance(point, tuple):
             lon = point[0]
             lat = point[1]
