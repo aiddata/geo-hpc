@@ -171,7 +171,7 @@
     "develop": {
         "active": 1,
         "name": "develop",
-        "server": "devlabs.aiddata.org",
+        "server": "128.239.20.76",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
             "AfghanistanAIMS": "AFG",
