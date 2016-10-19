@@ -753,7 +753,7 @@ class ExtractObject():
 
         expected = [
             'bnd_name', 'data_name', 'ex_method',
-            'classification', 'ex_version', 'c_features'
+            'classification', 'ex_version', 'client'
         ]
 
         if any([i not in kwargs for i in expected]):
