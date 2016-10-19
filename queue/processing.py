@@ -14,6 +14,36 @@ to do (maybe)
         to reprocess them one or more times before assigning a true error status
 
 """
+
+
+# -----------------------------------------------------------------------------
+
+import sys
+import os
+
+branch = sys.argv[1]
+
+branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+if not os.path.isdir(branch_dir):
+    raise Exception('Branch directory does not exist')
+
+
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
+sys.path.insert(0, config_dir)
+
+from config_utility import *
+
+config = BranchConfig(branch=branch)
+
+
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
+
+# -----------------------------------------------------------------------------
+
+
 import os
 import sys
 import time
@@ -36,15 +66,15 @@ dry_run = False
 queue = QueueToolBox()
 
 # load config setting for branch script is running on
-branch_info = queue.get_branch_info()
-print "`{0}` branch on {1}".format(branch_info['name'], branch_info['server'])
+branch_info = queue.set_branch_info(config)
+print "`{0}` branch on {1}".format(branch_info['name'], branch_info['database'])
 
 request_id = 0
 request_objects = []
 
 # run if given a request_id via input arg
-if len(sys.argv) == 2:
-    request_id = str(sys.argv[1])
+if len(sys.argv) == 3:
+    request_id = str(sys.argv[2])
 
     # check for request with given id
     # return request data object if request exists else None

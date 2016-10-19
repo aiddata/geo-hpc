@@ -52,13 +52,10 @@ class QueueToolBox():
     Accepts request object and checks if all extracts have been processed
     """
     def __init__(self):
-        self.client = pymongo.MongoClient()
+        self.client = None
 
-        self.c_queue = self.client.det.queue
-        self.c_email = self.client.det.email
-        self.c_extracts = self.client.asdf.extracts
-        self.c_msr = self.client.asdf.msr
-        self.c_config = self.client.info.config
+        self.c_queue = None
+        self.c_email = None
 
         self.branch_info = None
         self.branch = None
@@ -76,12 +73,17 @@ class QueueToolBox():
     #               str(message))
 
 
-    def get_branch_info(self):
+    def set_branch_info(self, branch_config=None):
         """get branch info from config collection
         """
-        branch_config = self.c_config.find_one()
         if branch_config is None:
             raise Exception('no branch config found')
+
+        self.client = branch_config.client
+
+        self.c_queue = self.client.det.queue
+        self.c_email = self.client.det.email
+
         self.branch_info = branch_config
         self.branch = branch_config['name']
         self.msr_version = branch_config['versions']['mean-surface-rasters']
@@ -256,7 +258,7 @@ class QueueToolBox():
                         "You can also view all your current and previous "
                         "requests using: \n"
                         "http://{0}/DET/status/#{2}\n\n").format(
-                            self.branch_info['server'], request_id, mail_to)
+                            self.branch_info['det']['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
@@ -281,7 +283,7 @@ class QueueToolBox():
                         "You can also view all your current and previous "
                         "requests using: \n"
                         "http://{0}/DET/status/#{2}\n\n").format(
-                            self.branch_info['server'], request_id, mail_to)
+                            self.branch_info['det']['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
