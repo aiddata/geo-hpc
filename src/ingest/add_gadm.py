@@ -349,8 +349,14 @@ def run(path=None, client=None, version=None, config=None,
 
     print "\nUpdating database (dry run = {0})...".format(dry_run)
     if not dry_run:
-        dbu.features_to_mongo(doc['name'])
         dbu.update(doc, update, existing_original)
+        try:
+            dbu.features_to_mongo(doc['name'])
+        except:
+            # could remove data entry if it cannot be added
+            # to mongo. or, at least make sure the data entry is
+            # set to inactive
+            raise
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
