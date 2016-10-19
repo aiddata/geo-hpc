@@ -1429,11 +1429,6 @@ class FeatureTool():
 
                 if add_extract:
 
-                    if not '$push' in update_params:
-                        update_params['$push'] = {}
-                    if not '$set' in update_params:
-                        update_params['$set'] = {}
-
                     extract_search_params = {
                         'hash': geom_hash,
                         'extracts.data': self.data_name,
@@ -1446,10 +1441,16 @@ class FeatureTool():
                     extract_exists = extract_search is not None
 
                     if extract_exists:
+                        if not '$set' in update_params:
+                            update_params['$set'] = {}
+
                         search_params = extract_search_params
                         update_params['$set']['extracts.$'] = feature_extracts[0]
 
                     else:
+                        if not '$push' in update_params:
+                            update_params['$push'] = {}
+
                         search_params = {'hash': geom_hash}
                         update_params['$push']['extracts'] = {
                             '$each': feature_extracts
