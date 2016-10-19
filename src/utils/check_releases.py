@@ -72,7 +72,7 @@ class ReleaseTools():
 
         # -------------------------------------
 
-        self.client = pymongo.MongoClient(self.config.server)
+        self.client = pymongo.MongoClient(self.config.database)
 
         self.asdf = self.client.asdf.data
 
