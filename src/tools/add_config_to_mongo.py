@@ -43,7 +43,7 @@ client = config.client
 branch_info = config.branch_settings
 
 
-c_config = client.info.config
+c_config = client.asdf.config
 
 c_config.remove({'name': branch_info['name']})
 
