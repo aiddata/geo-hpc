@@ -193,7 +193,7 @@ returns
 function get_info($data) {
     global $output, $m;
 
-    $c_config = $m->selectDB('info')->selectCollection('config');
+    $c_config = $m->selectDB('asdf')->selectCollection('config');
     $config_options = $c_config->findOne();
     $info = $config_options['det'];
 
@@ -212,7 +212,7 @@ returns
 function get_request_limits($data) {
     global $output, $m;
 
-    $c_config = $m->selectDB('info')->selectCollection('config');
+    $c_config = $m->selectDB('asdf')->selectCollection('config');
     $config_options = $c_config->findOne();
     $request_limits = $config_options['det']['limits'];
 
@@ -392,7 +392,7 @@ function get_relevant_datasets($data) {
     $result = array();
 
 
-    $c_config = $m->selectDB('info')->selectCollection('config');
+    $c_config = $m->selectDB('asdf')->selectCollection('config');
     $config_options = $c_config->findOne();
     $active_release_fields = $config_options['det']['fields'];
 
@@ -514,7 +514,7 @@ function get_filter_count($data) {
     }
 
 
-    $c_config = $m->selectDB('info')->selectCollection('config');
+    $c_config = $m->selectDB('asdf')->selectCollection('config');
     $config_options = $c_config->findOne();
     $active_release_fields = $config_options['det']['fields'];
 
@@ -682,7 +682,7 @@ function add_request($data) {
         3 => ['name' => 'completed', 'time' => 0]
     ];
 
-    $c_queue = $m->selectDB('det')->selectCollection('queue');
+    $c_queue = $m->selectDB('asdf')->selectCollection('det');
 
     // write request json to request db
     $c_queue->insert($request);
@@ -724,7 +724,7 @@ function get_requests($data) {
         return 0;
     }
 
-    $c_queue = $m->selectDB('det')->selectCollection('queue');
+    $c_queue = $m->selectDB('asdf')->selectCollection('det');
 
     if ($search_type == "email") {
         $query = array('email' => $search_val);

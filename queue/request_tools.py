@@ -81,8 +81,8 @@ class QueueToolBox():
 
         self.client = branch_config.client
 
-        self.c_queue = self.client.det.queue
-        self.c_email = self.client.det.email
+        self.c_queue = self.client.asdf.det
+        self.c_email = self.client.asdf.email
 
         self.branch_info = branch_config
         self.branch = branch_config['name']
