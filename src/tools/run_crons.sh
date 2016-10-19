@@ -44,7 +44,7 @@ case $cron in
                             bash "$src"/asdf/src/tasks/build_extract_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/extract/"$timestamp".extract.log
                             exit 0;;
 
-    "build_det_job")        mkdir -p "$src"/log/extract
+    "build_det_job")        mkdir -p "$src"/log/det
                             bash "$src"/asdf/src/tasks/build_det_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/det/"$timestamp".det.log
                             exit 0;;
 

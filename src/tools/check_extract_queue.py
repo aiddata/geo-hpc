@@ -42,7 +42,7 @@ if config.connection_status != 0:
 
 import pymongo
 
-client = pymongo.MongoClient(config.server)
+client = pymongo.MongoClient(config.database)
 
 extracts = client.asdf.extracts
 
