@@ -67,7 +67,6 @@ else
 # concatenate with the main log file (PBS would overwrite existing
 # main log if using `-o` to specify it via qsub options)
 
-#PBS -j oe
 #PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
 
 
@@ -76,6 +75,7 @@ cat <<EOF >> "$job_path"
 #PBS -N ax-det-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=24:00:00
+#PBS -j oe
 #PBS -k oe
 #PBS -V
 
