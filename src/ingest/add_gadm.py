@@ -15,13 +15,13 @@ import pymongo
 from warnings import warn
 
 import fiona
-import resource_utility as ru
 
 util_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'utils')
 sys.path.insert(0, util_dir)
 
+import resource_utility as ru
 from database_utility import MongoUpdate
 
 
