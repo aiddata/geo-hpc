@@ -166,6 +166,44 @@ def run(path=None, client=None, version=None, config=None,
                 rkey = g['key'].replace (" ", "_").lower()
                 doc['extras'][rkey] = g['value']
 
+
+    # updating these fields because
+    # - current name is broken (not proper version)
+    # - current title and description are not well suited for
+    #   general consumption via DET
+    doc["extras"]["original_name"] = doc["name"]
+    doc["extras"]["original_title"] = doc["title"]
+    doc["extras"]["original_description"] = doc["description"]
+
+    doc["name"] = "{0}_{1}_{2}_v{3}".format(
+        doc["extras"]["data_set_preamble"].lower(),
+        doc["extras"]["data_type"].lower(),
+        doc["extras"]["processing_level"].lower(),
+        str(doc["version"]).replace(".", "_"))
+
+
+    preamble_word_list = re.findall(
+        '[A-Z]?(?:[A-Z]*(?![a-z])|[a-z]*)',
+        doc["extras"]["data_set_preamble"])
+
+    clean_premable_word_list = [i for i in preamble_word_list
+                                if i not in ["AIMS"]]
+
+    clean_preamble = ' '.join(clean_premable_word_list)
+
+    doc["title"] = "{0} Geocoded Aid Data v{1}".format(
+        clean_premable, doc["version"])
+
+    doc["description"] = (
+        "Aid data from {0} {1}, geocoded and published by AidData. "
+        "Covers projects from {1} to {2}. Version {3}.").format(
+            clean_premable,
+            doc["extras"]["source_type"],
+            doc["extras"]["temporal_start"],
+            doc["extras"]["temporal_end"],
+            doc["version"])
+
+
     doc["extras"]["tags"] = ["aiddata", "geocoded", "release", "socioeconomic"]
 
     is_active = doc["extras"]["data_set_preamble"] in config.release_iso3
