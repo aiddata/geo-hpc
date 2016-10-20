@@ -13,6 +13,7 @@ import datetime
 import json
 import pymongo
 from warnings import warn
+import re
 
 util_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -186,18 +187,18 @@ def run(path=None, client=None, version=None, config=None,
         '[A-Z]?(?:[A-Z]*(?![a-z])|[a-z]*)',
         doc["extras"]["data_set_preamble"])
 
-    clean_premable_word_list = [i for i in preamble_word_list
+    clean_preamble_word_list = [i for i in preamble_word_list
                                 if i not in ["AIMS"]]
 
-    clean_preamble = ' '.join(clean_premable_word_list)
+    clean_preamble = ' '.join(clean_preamble_word_list)
 
     doc["title"] = "{0} Geocoded Aid Data v{1}".format(
-        clean_premable, doc["version"])
+        clean_preamble, doc["version"])
 
     doc["description"] = (
         "Aid data from {0} {1}, geocoded and published by AidData. "
         "Covers projects from {1} to {2}. Version {3}.").format(
-            clean_premable,
+            clean_preamble,
             doc["extras"]["source_type"],
             doc["extras"]["temporal_start"],
             doc["extras"]["temporal_end"],
