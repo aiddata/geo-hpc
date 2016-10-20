@@ -184,7 +184,7 @@ def run(path=None, client=None, version=None, config=None,
 
 
     preamble_word_list = re.findall(
-        '[A-Z]?(?:[A-Z]*(?![a-z])|[a-z]*)',
+        '[A-Z](?:[A-Z]*(?![a-z])|[a-z]*)',
         doc["extras"]["data_set_preamble"])
 
     clean_preamble_word_list = [i for i in preamble_word_list
