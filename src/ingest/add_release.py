@@ -197,7 +197,7 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["description"] = (
         "Aid data from {0} {1}, geocoded and published by AidData. "
-        "Covers projects from {1} to {2}. Version {3}.").format(
+        "Covers projects from {2} to {3}. Version {4}.").format(
             clean_preamble,
             doc["extras"]["source_type"],
             doc["extras"]["temporal_start"],
