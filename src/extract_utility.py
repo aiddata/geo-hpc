@@ -1376,23 +1376,41 @@ class FeatureTool():
                                             idx, self.bnd_name)
 
                             except pymongo.errors.PyMongoError as e:
-                                tmp_mongo_geom = shape(mongo_geom).buffer(0.0000000001)
-                                tmp_mongo_geom, _ = limit_geom_chars(
-                                    geom, limit=8000000, step=0.0001)
 
-                                tmp_mongo_geom = shape(tmp_mongo_geom) \
-                                                    .buffer(0) \
-                                                    .__geo_interface__
+                                simpledec = re.compile(r"\d*\.\d+")
+                                def mround(match):
+                                    return "{:.6f}".format(float(match.group()))
 
-                                tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
-                                                     json.dumps(tmp_mongo_geom))
+                                tmp_mongo_geom = re.sub(simpledec, mround,
+                                                        json.dumps(mongo_geom))
 
-                                feature_insert['geometry'] = json.loads(tmp_geo_str)
+                                tmp_mongo_geom = shape(
+                                    json.loads(tmp_mongo_geom)).buffer(0)
+
+                                feature_insert['geometry'] = tmp_mongo_geom.__geo_interface__
 
                                 insert = self.c_features.insert(feature_insert)
-                                print ("Warning - Self intersecting geom being "
-                                       "buffered (feature {0} in {1})").format(
+                                print ("Warning - Geom precision reduced"
+                                       " (feature {0} in {1})").format(
                                             idx, self.bnd_name)
+
+                                # tmp_mongo_geom = shape(mongo_geom).buffer(0.0000000001)
+                                # tmp_mongo_geom, _ = limit_geom_chars(
+                                #     geom, limit=8000000, step=0.0001)
+
+                                # tmp_mongo_geom = shape(tmp_mongo_geom) \
+                                #                     .buffer(0) \
+                                #                     .__geo_interface__
+
+                                # tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                #                      json.dumps(tmp_mongo_geom))
+
+                                # feature_insert['geometry'] = json.loads(tmp_geo_str)
+
+                                # insert = self.c_features.insert(feature_insert)
+                                # print ("Warning - Self intersecting geom being "
+                                #        "buffered (feature {0} in {1})").format(
+                                #             idx, self.bnd_name)
 
 
             if exists == "recent":
