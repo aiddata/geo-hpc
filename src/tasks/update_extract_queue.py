@@ -64,7 +64,7 @@ bnds_info = {
 }
 
 bnd_groups = {}
-for name, b in bnds_info:
+for name, b in bnds_info.iteritems():
     group = b['options']['group']
     if not group in bnd_groups:
         bnd_groups[group] = []
