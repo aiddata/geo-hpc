@@ -68,7 +68,7 @@ for name, b in bnds_info.iteritems():
     group = b['options']['group']
     if not group in bnd_groups:
         bnd_groups[group] = []
-    bnd_groups[group] += name
+    bnd_groups[group] += [name]
 
 
 # -------------------------------------
@@ -82,7 +82,7 @@ for name, b in bnds_info.iteritems():
 #     old version of extracts scripts are no longer used
 delete_call = c_extracts.delete_many({
     '$or': [
-        {'boundary': {'$nin': bnds_info}},
+        {'boundary': {'$nin': bnds_info.keys()}},
         {'version': {'$ne': version}},
     ],
     'status': 0,
@@ -101,7 +101,7 @@ extract_items = []
 
 for group, group_bnds in bnd_groups.iteritems():
 
-    datasets = db_trackers[group].find({status:1})
+    datasets = db_trackers[group].find({"status":1})
 
     for data in datasets:
 
