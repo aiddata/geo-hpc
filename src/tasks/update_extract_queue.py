@@ -56,7 +56,7 @@ boundaries = c_asdf.find({
 active_iso3_list = config.release_iso3.values() + config.other_iso3
 
 # get boundary names
-bnds = {
+bnds_info = {
     b['resources'][0]['name']:b for b in boundaries
     if not 'gadm_iso3' in b['extras']
     or ('gadm_iso3' in b['extras']
@@ -64,7 +64,7 @@ bnds = {
 }
 
 bnd_groups = {}
-for name, b in bnds:
+for name, b in bnds_info:
     group = b['options']['group']
     if not group in bnd_groups:
         bnd_groups[group] = []
@@ -82,7 +82,7 @@ for name, b in bnds:
 #     old version of extracts scripts are no longer used
 delete_call = c_extracts.delete_many({
     '$or': [
-        {'boundary': {'$nin': bnds}},
+        {'boundary': {'$nin': bnds_info}},
         {'version': {'$ne': version}},
     ],
     'status': 0,
@@ -145,7 +145,7 @@ for raster in rasters:
         }
         for r in raster['resources']
         for e in extract_types
-        for b in bnds
+        for b in bnds_info
     ]
 
 
