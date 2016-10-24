@@ -114,6 +114,7 @@ for bnd in bnds:
     for full_dset in dsets:
         dset = {
             'name': full_dset["name"],
+            'type': full_dset["type"],
             'spatial': full_dset["spatial"],
             'scale': full_dset["scale"],
         }
