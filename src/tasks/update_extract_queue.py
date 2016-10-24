@@ -34,12 +34,15 @@ if config.connection_status != 0:
 
 import time
 import copy
+from warnings import warn
 
 
 # connect to mongodb
 client = config.client
 c_asdf = client.asdf.data
 c_extracts = client.asdf.extracts
+c_msr = client.asdf.msr
+db_trackers = client.trackers
 
 version = config.versions["extract-scripts"]
 
@@ -53,12 +56,20 @@ boundaries = c_asdf.find({
 active_iso3_list = config.release_iso3.values() + config.other_iso3
 
 # get boundary names
-bnds = [
-    b['resources'][0]['name'] for b in boundaries
+bnds = {
+    b['resources'][0]['name']:b for b in boundaries
     if not 'gadm_iso3' in b['extras']
     or ('gadm_iso3' in b['extras']
         and b['extras']['gadm_iso3'].upper() in active_iso3_list)
-]
+}
+
+bnd_groups = {}
+for name, b in bnds:
+    group = b['options']['group']
+    if not group in bnd_groups:
+        bnd_groups[group] = []
+    bnd_groups[group] += name
+
 
 # -------------------------------------
 
@@ -79,9 +90,32 @@ delete_call = c_extracts.delete_many({
 })
 
 deleted_count = delete_call.deleted_count
-print '\n'
-print (str(deleted_count) + ' unprocessed outdated automated extract ' +
-       'requests have been removed.')
+print "\n"
+print ("{0} unprocessed outdated automated extract "
+       "requests have been removed.").format(deleted_count)
+
+
+# -------------------------------------
+
+
+for group, group_bnds in bnd_groups.iteritems():
+
+    datasets = db_trackers[group].find({status:1})
+
+    for data in datasets:
+
+        if data["type"] == "raster":
+
+
+        elif data["type"] == "release"
+
+
+        else:
+
+            msg = ("Invalid type ({0}) for dataset ({1}) "
+                   "in tracker ({2})").format(data["type"], data["name"],
+                                              group)
+            warn(msg)
 
 
 # -------------------------------------
