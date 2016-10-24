@@ -74,7 +74,7 @@ for name, b in bnds_info:
 # -------------------------------------
 
 
-# remove items in queue with old version(s)
+# remove extract items in queue with old version(s)
 # used as versioning for both queue and processing
 #   - if queue generation changes version will change and all unprocessed
 #     datasets will be removed and replaced
@@ -97,6 +97,7 @@ print ("{0} unprocessed outdated automated extract "
 
 # -------------------------------------
 
+extract_items = []
 
 for group, group_bnds in bnd_groups.iteritems():
 
@@ -106,8 +107,51 @@ for group, group_bnds in bnd_groups.iteritems():
 
         if data["type"] == "raster":
 
+            raster = c_asdf.find_one({
+                "name": data["name"],
+                "active": {'$gte': 1}
+            })
 
-        elif data["type"] == "release"
+            if raster is None:
+                msg = "No active raster found (name: {0})".format(
+                    data["name"])
+                warn(msg)
+
+            extract_types = raster['options']['extract_types']
+
+            extract_items += [
+                {
+                    'boundary': b,
+                    'data': r['name'],
+                    'extract_type': e,
+                    'version': version,
+                    'classification': 'raster'
+                }
+                for r in raster['resources']
+                for e in extract_types
+                for b in group_bnds
+            ]
+
+
+        elif data["type"] == "release":
+
+
+            release_filters = c_msr.find({
+                "dataset": data["name"],
+                "status": 1
+            })
+
+            extract_items += [
+                {
+                    'boundary': b,
+                    'data': '{0}_{1}'.format(r["dataset"], r["hash"]),
+                    'extract_type': 'sum',
+                    'version': version,
+                    'classification': 'msr'
+                }
+                for r in release_filters
+                for b in group_bnds
+            ]
 
 
         else:
@@ -118,48 +162,18 @@ for group, group_bnds in bnd_groups.iteritems():
             warn(msg)
 
 
-# -------------------------------------
-# add raster extracts
-
-# lookup all raster datasets
-rasters = c_asdf.find({
-    "type": "raster",
-    "active": {'$gte': 1}
-})
-
-
-items = []
-
-# build list of dicts for all combinations of boundary names,
-# rasters names/reliabiity and respective raster extract types
-for raster in rasters:
-
-    extract_types = raster['options']['extract_types']
-
-    items += [
-        {
-            'boundary': b,
-            'data': r['name'],
-            'extract_type': e,
-            'version': version
-        }
-        for r in raster['resources']
-        for e in extract_types
-        for b in bnds_info
-    ]
 
 
 # check if unique extract combinations exist in tracker
 # and add if they do not
 add_count = 0
-for i in items:
+for i in extract_items:
 
     # build full doc
     ctime = int(time.time())
 
     i_full = copy.deepcopy(i)
     i_full["status"] = 0
-    i_full["classification"] = "raster"
     i_full["generator"] = "auto"
     i_full["priority"] = -1
 
@@ -174,14 +188,16 @@ for i in items:
         add_count += 1
 
 
-print ('Added ' + str(add_count) + ' items to extract queue (' +
-       str(len(items)) + ' total possible).')
+print ('Added ' + str(add_count) + ' extract items to extract queue (' +
+       str(len(extract_items)) + ' total possible).')
 
 
 # -------------------------------------
 
 
-# example extract tracker document
+# example extract queue documents
+
+# raster
 
 # {
 #     "_id" : ObjectId("566baebf6050d566eca1f25d"),
@@ -198,3 +214,23 @@ print ('Added ' + str(add_count) + ' items to extract queue (' +
 #     "submit_time" : 1449897663,
 #     "update_time" : 1450383510,
 # }
+
+
+# msr
+
+# {
+#     "_id" : ObjectId("566baebf6050d566eca1f25d"),
+
+#     "boundary" : "npl_adm3",
+
+#     "raster" : "timorlesteaims_geocodedresearchrelease_level1_v1_4_1_47c6a3c265e1e605708560e30fb2e1662238b18b",
+#     "extract_type" : "reliability",
+
+#     "status" : 0,
+#     "classification" : "automated",
+#     "priority" : -1
+
+#     "submit_time" : 1449897663,
+#     "update_time" : 1450383510,
+# }
+
