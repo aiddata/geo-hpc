@@ -40,19 +40,40 @@ import geopandas as gpd
 
 from shapely.geometry import shape, box
 
-from msr_utility import CoreMSR, MasterStack
+from msr_utility import CoreMSR, MasterGrid
+
+import traceback
+
+# -----------------------------------------------------------------------------
+
+import sys
+import os
+
+branch = sys.argv[1]
+
+branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+
+if not os.path.isdir(branch_dir):
+    raise Exception('Branch directory does not exist')
 
 
-# =============================================================================
-# =============================================================================
-# basic init and find request
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
+sys.path.insert(0, config_dir)
 
-# from mpi4py import MPI
+from config_utility import BranchConfig
+
+config = BranchConfig(branch=branch)
+
+
+# check mongodb connection
+if config.connection_status != 0:
+    sys.exit("connection status error: " + str(config.connection_error))
+
+
+# -------------------------------------------------------------------------
+
 import mpi_utility
-
 job = mpi_utility.NewParallel()
-
-request = 0
 
 
 def get_version():
@@ -68,40 +89,6 @@ def get_version():
             "Unable to find version string in {}.".format(vfile))
 
 
-# -------------------------------------
-
-import sys
-import os
-
-branch = sys.argv[1]
-
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
-sys.path.insert(0, config_dir)
-
-from config_utility import BranchConfig
-
-config = BranchConfig(branch=branch)
-
-
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
-
-
-# -------------------------------------------------------------------------
-# -------------------------------------------------------------------------
-# find request
-
-client = config.client
-c_asdf = client.asdf.data
-c_msr = client.asdf.msr
-
 tmp_v1 = config.versions["mean-surface-rasters"]
 tmp_v2 = get_version()
 
@@ -111,8 +98,16 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+client = config.client
+c_asdf = client.asdf.data
+c_msr = client.asdf.msr
+
 general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
 
+
+# -----------------------------------------------------------------------------
+
+request = 0
 
 if job.rank == 0:
 
@@ -265,81 +260,113 @@ def tmp_master_init(self):
 
 def tmp_worker_job(self, task_id):
 
+
     task = task_id_list[task_id]
 
     pg_data = active_data.loc[task]
     pg_type = pg_data.geom_type
 
     if pg_type not in core.geom_types:
-        raise Exception(str(self.rank) + 'invalid pg_type: ' + pg_type +
-                        '('+ str(pg_data['project_location_id']) +')')
-
-    mean_surf = None
-
-    print (str(self.rank) + 'running pg_type: ' + pg_type +
-           '('+ str(pg_data['project_location_id']) +')')
+        msg = "{0} invalid pg_type: {1} ({2})".format(
+            self.rank, pg_type, pg_data['project_location_id'])
+        raise Exception(msg)
 
 
+    print "{0} running pg_type: {1} ({2})".format(
+        self.rank, pg_type, pg_data['project_location_id'])
 
-    # for each row generate grid based on bounding box of geometry
-    # pg_geom = pg_data.geom_val
 
-    pg_geom = core.get_geom_val(
-        pg_data.geom_type, pg_data[core.code_field_1],
-        pg_data[core.code_field_2], pg_data[core.code_field_3],
-        pg_data.longitude, pg_data.latitude)
+###
+    w1_time = int(time.time())
+###
+
+    try:
+
+        if pg_data.recipients_iso3 and len(pg_data.recipients_iso3) == 3:
+            pg_geom = core.get_geom_val(
+                pg_data.geom_type, pg_data[core.code_field_1],
+                pg_data[core.code_field_2], pg_data[core.code_field_3],
+                pg_data.longitude, pg_data.latitude,
+                iso3=pg_data.recipients_iso3)
+
+        else:
+            pg_geom = None
+            # pg_geom = core.get_geom_val(
+            #     pg_data.geom_type, pg_data[core.code_field_1],
+            #     pg_data[core.code_field_2], pg_data[core.code_field_3],
+            #     pg_data.longitude, pg_data.latitude)
+
+    except Exception as e:
+        traceback.print_exc()
+        # raise
+        pg_geom = None
+
+###
+    w2_time = int(time.time())
+    w2_duration =  w2_time - w1_time
+    print '[[{0}]] get_geom_val ({1}) duration : {2}s'.format(
+        self.rank, pg_type, w2_duration)
+###
 
 
     if pg_geom in [None, "None"]:
-        sys.exit("Geom is none" + str(pg_data['project_location_id']))
-
-    try:
-        pg_geom = shape(pg_geom)
-    except:
-        print("Geom is invalid")
-        print str(pg_data['project_location_id'])
-        print type(pg_geom)
-        print pg_geom
-        raise
-
-    # factor used to determine subgrid size
-    # relative to output grid size
-    # sub grid res = output grid res / sub_grid_factor
-    subgrid_scale = 10
-
-    # rasterized sub grid
-    mean_surf = core.rasterize_geom(pg_geom, scale=subgrid_scale)
-
-
-    if mean_surf is None:
-        warn("Geom is none" + str(pg_data['project_location_id']))
-        return (task, "None", None)
+        warn("Geom is none ({0})".format(pg_data['project_location_id']))
+        return (task, "None", None, None)
 
     else:
+        try:
+            pg_geom = shape(pg_geom)
+        except:
+            print "Geom is invalid - {0} ({1}) : {2}".format(
+                pg_data['project_location_id'], type(pg_geom), pg_geom)
+            raise
+
+        # factor used to determine subgrid size
+        # relative to output grid size
+        # sub grid res = output grid res / sub_grid_factor
+        subgrid_scale = 10
+
+        # rasterized sub grid
+        mean_surf, surf_bounds = core.rasterize_geom(pg_geom, scale=subgrid_scale)
+
         mean_surf = mean_surf.astype('float64')
-        mean_surf = pg_data['adjusted_aid'] * mean_surf / mean_surf.sum()
-        return (task, pg_geom, mean_surf.flatten())
+        mean_surf = pg_data['adjusted_val'] * mean_surf / mean_surf.sum()
+        # return (task, pg_geom, mean_surf.flatten())
+        return (task, pg_geom, mean_surf, surf_bounds)
 
 
 def tmp_master_process(self, worker_data):
-    task, geom, surf = worker_data
+    task, geom, surf, bounds = worker_data
 
     if geom != "None":
 
         active_data.set_value(task, 'geom_val', geom)
 
-        mstack.append_stack(surf)
+        master_grid.update(bounds, surf)
+        # ileft = (bounds[0] - core.bounds[0]) / core.pixel_size
+        # itop = (core.bounds[3] - bounds[3]) / core.pixel_size
 
-        if mstack.get_stack_size() > 1:
-    	   print "reducing stack"
-           mstack.reduce_stack()
+        # iright = ileft + surf.shape[0]
+        # ibottom = itop + surf.shape[1]
+
+
+        # # add worker surf as slice to sum_mean_surf
+        # sum_mean_surf[ileft:iright, itop:ibottom] += surf
+
+
+        # mstack.append_stack(surf)
+
+        # if mstack.get_stack_size() > 1:
+    	   # print "reducing stack"
+        #    mstack.reduce_stack()
 
 
 def complete_final_raster():
     # build and output final raster
 
     # calc results
-    sum_mean_surf = mstack.get_stack_sum()
+    # sum_mean_surf = mstack.get_stack_sum()
+    sum_mean_surf = master_grid.get_grid()
 
     out_dtype = 'float64'
     # affine takes upper left
@@ -356,7 +383,7 @@ def complete_final_raster():
         # 'compress': 'lzw'
     }
 
-    sum_mean_surf.shape = core.shape
+    # sum_mean_surf.shape = core.shape
 
     out_mean_surf = np.array([sum_mean_surf.astype(out_dtype)])
 
@@ -365,10 +392,10 @@ def complete_final_raster():
         dst.write(out_mean_surf)
 
 
-    # validate sum_mean_surf
-    # exit if validation fails
-    if isinstance(sum_mean_surf, int):
-        sys.exit("! - mean surf validation failed")
+    # # validate sum_mean_surf
+    # # exit if validation fails
+    # if isinstance(sum_mean_surf, int):
+    #     sys.exit("! - mean surf validation failed")
 
 
 
@@ -390,7 +417,7 @@ def complete_unique_geoms():
 
     # assuming even split of total project dollars is "max" dollars
     # that project location could receive
-    geo_df["dollars"] = unique_active_data["adjusted_aid"]
+    geo_df["dollars"] = unique_active_data["adjusted_val"]
     # geometry for each project location
     geo_df["geometry"] = gpd.GeoSeries(unique_active_data["geom_val"])
 
@@ -468,12 +495,7 @@ def complete_options_json():
         options_obj[field] = data
 
     # job / script info
-    # add_to_json("run_id", run_id)
-    # add_to_json("run_stage", run_stage)
-    # add_to_json("run_version_str", run_version_str)
-    # add_to_json("run_version", run_version)
     add_to_json("version", version)
-
     add_to_json("job_size", job.size)
 
     # dataset info
@@ -483,7 +505,7 @@ def complete_options_json():
     # core run options
     add_to_json("pixel_size", core.pixel_size)
     add_to_json("nodata", core.nodata)
-    add_to_json("aid_field", core.aid_field)
+    add_to_json("value_field", core.value_field)
     add_to_json("is_geocoded", core.is_geocoded)
     add_to_json("only_geocoded", core.only_geocoded)
     add_to_json("not_geocoded", core.not_geocoded)
@@ -500,10 +522,6 @@ def complete_options_json():
     add_to_json("rows", nrows)
     add_to_json("cols", ncols)
     add_to_json("locations", len(active_data))
-
-    # status
-    # add_to_json("dir_working", dir_working)
-    # add_to_json("status", 0)
 
     # times / durations
     add_to_json("times", core.times)
@@ -544,7 +562,6 @@ def complete_outputs():
 
 
 def tmp_master_final(self):
-
 
     # record surf runtime
     core.times['surf'] = int(time.time())
@@ -613,9 +630,8 @@ def tmp_master_final(self):
 # =============================================================================
 # INIT
 
-# validate request and dataset
-# init, inputs and variables
-
+# -------------------------------------
+# validate and prepare to process request
 
 request = job.comm.bcast(request, root=0)
 
@@ -628,9 +644,6 @@ elif request == 'Error':
 elif request == 0:
     quit("error getting request from master")
 
-
-# -------------------------------------
-# lookup release path
 
 release_path = None
 release_preamble = None
@@ -655,21 +668,16 @@ if job.rank == 0:
 if not os.path.isdir(release_path):
     quit("release path specified not found: " + release_path)
 
-if release_preamble not in config.release_gadm:
+if release_preamble not in config.release_iso3:
     quit("release premable not found in config: " + release_preamble)
 
-iso3 = config.release_gadm[release_preamble]
-
-
-# release_path = job.comm.bcast(release_path, root=0)
-# release_preamble = job.comm.bcast(release_preamble, root=0)
-# iso3 = job.comm.bcast(iso3, root=0)
+iso3 = config.release_iso3[release_preamble]
 
 
 # -------------------------------------
 
 # create instance of CoreMSR class
-core = CoreMSR()
+core = CoreMSR(config)
 
 # full script start time
 core.times['start'] = int(time.time())
@@ -682,74 +690,50 @@ if job.rank == 0:
     print '\n'
 
 
-# -------------------------------------
 # set pixel size
-
 if not 'resolution' in request['options']:
     quit("missing pixel size input from request")
-
 
 core.set_pixel_size(request['options']['resolution'])
 
 
-# =============================================================================
-# =============================================================================
-# SHAPES / GRID INIT
+# -------------------------------------
+# create master grid
+
+if job.rank == 0:
+    print "Preparing main grid..."
 
 
 if iso3 == 'global':
-    raise Exception('not ready for global yet')
-
     master_geom = box(-180, -90, 180, 90)
 
-    # -------------------------------------
-    # create grid for country
-    core.set_grid_info(master_geom.bounds)
-    master_grid = core.rasterize_geom(master_geom)
-
-    nrows, ncols = core.shape
-    (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
-
-
 else:
-
-    # -------------------------------------
-    # load adm zone feature data
-
-    # must start at and inlcude ADM0
-    # all additional ADM shps must be included so that adm_path index
-    # corresponds to adm level
-    adm_paths = []
-    shp_base = "/sciclone/aiddata10/REU/msr/shps/"
-    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm0.shp")
-    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm1.shp")
-    adm_paths.append(shp_base + iso3 + "/" + iso3 + "_adm2.shp")
-
-    # build list of adm shape lists
-    core.adm_shps = [[shape(i['geometry']) for i in fiona.open(adm_path, 'r')]
-                     for adm_path in adm_paths]
-
-    # define country shape
-    tmp_adm0 = shape(core.adm_shps[0][0])
-    core.set_adm0(tmp_adm0)
+    search_master_geom = client.asdf.data.find(
+        {'name': "{0}_adm0_{1}".format(iso3.lower(),
+                                       config.active_adm_suffix)},
+        {'spatial': 1}
+    )
+    if search_master_geom.count() == 0:
+        msg = 'could not find master geom for iso3 ({0})'.format(iso3)
+        raise Exception(msg)
+    elif search_master_geom.count() > 1:
+        msg = 'multiple master geom found for iso3 ({0})'.format(iso3)
+        raise Exception(msg)
+    else:
+        master_geom = shape(search_master_geom[0]['spatial'])
 
 
-    # -------------------------------------
-    # create grid for country
-    core.set_grid_info(core.adm0.bounds)
-    master_grid = core.rasterize_geom(core.adm0)
+core.initialize_grid(master_geom.bounds)
 
-    nrows, ncols = core.shape
-    (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
+nrows, ncols = core.shape
+(master_minx, master_miny, master_maxx, master_maxy) = core.bounds
 
-
-
-# =============================================================================
-# =============================================================================
-# DATAFRAME INIT
 
 # -------------------------------------
 # load / process data and get task list
+
+if job.rank == 0:
+    print "Preparing data..."
 
 dir_data = release_path + '/data'
 
@@ -762,20 +746,16 @@ if len(task_id_list) == 0:
     quit("task id list is missing")
 
 if job.rank == 0:
-    print str(len(task_id_list)) + " tasks to process."
-    print "Preparing main grid..."
+    print "Starting to process tasks ({0})...".format(len(task_id_list))
+    master_grid = MasterGrid(core.bounds, core.shape, core.pixel_size)
+    # sum_mean_surf = np.zeros(core.shape)
+    # sum_mean_surf = 0
+    # mstack = MasterStack()
 
 
 # =============================================================================
 # =============================================================================
 # RUN MPI (init / run job)
-
-if job.rank == 0:
-    print "Starting to process tasks..."
-    sum_mean_surf = 0
-
-    mstack = MasterStack()
-
 
 job.set_task_list(task_id_list)
 
