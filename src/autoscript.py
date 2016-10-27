@@ -10,15 +10,12 @@ import time
 import pymongo
 
 import extract_utility
-import mpi_utility
-
-job = mpi_utility.NewParallel()
 
 
 # -----------------------------------------------------------------------------
 
-# import sys
-# import os
+import sys
+import os
 
 branch = sys.argv[1]
 
@@ -28,14 +25,12 @@ if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')
 
 
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
 import config_utility
 
 config = config_utility.BranchConfig(branch=branch)
-
-# -------------------------------------
 
 
 # check mongodb connection
@@ -44,6 +39,9 @@ if config.connection_status != 0:
 
 
 # -----------------------------------------------------------------------------
+
+import mpi_utility
+job = mpi_utility.NewParallel()
 
 
 def get_version():
@@ -68,6 +66,11 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+client = config.client
+c_asdf = client.asdf.data
+c_extracts = client.asdf.extracts
+c_features = client.asdf.features
+
 general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
                        '/extracts/' + version.replace('.', '_'))
 
@@ -76,9 +79,6 @@ default_extract_limit = 4
 # default_time_limit = 5
 # default_extract_minimum = 1
 
-
-# =============================================================================
-# =============================================================================
 
 # if something:
 #   check config/input/request for extract_limit parameter
@@ -92,10 +92,6 @@ extract_limit = default_extract_limit
 if extract_limit == -1:
     extract_limit = job.size -1
 
-client = pymongo.MongoClient(config.server)
-c_asdf = client.asdf.data
-c_extracts = client.asdf.extracts
-c_features = client.asdf.features
 
 # -----------------------------------------------------------------------------
 
@@ -377,12 +373,12 @@ def tmp_worker_job(self, task_id):
 
     run_data = exo.export_to_db(
         stats = run_data,
+        client = client,
         bnd_name = bnd_name,
         data_name = data_name,
         ex_method = extract_type,
         classification = task['classification'],
-        ex_version = version,
-        c_features = c_features
+        ex_version = version
     )
 
 

@@ -30,14 +30,24 @@
         "file_mask": "None"
     },
     "gpw_v3_density": {
-        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v3",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v3/density",
         "data_name": "gpw_v3_density",
         "file_mask": "gldsxxag_YYYY.asc"
+    },
+    "gpw_v3_count": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v3/count",
+        "data_name": "gpw_v3_count",
+        "file_mask": "glpxxag_YYYY.asc"
     },
     "gpw_v4_density": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v4/density",
         "data_name": "gpw_v4_density",
         "file_mask": "gpw-v4-population-density-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
+    },
+    "gpw_v4_count": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/gpw/gpw_v4/count",
+        "data_name": "gpw_v4_count",
+        "file_mask": "gpw-v4-population-count-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
     },
     "ndvi_max_mask_lt6k": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/ltdr_yearly/ndvi_max_mask_lt6k",
@@ -80,24 +90,44 @@
         "file_mask": "yyyy/precip_YYYY_MM.tif"
     },
     "udel_air_temp_v4_01_monthly": {
-        "data_base": " /sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/monthly",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/monthly",
         "data_name": "udel_air_temp_v4_01_monthly",
         "file_mask": "yyyy/air_temp_YYYY_MM.tif"
     },
     "udel_precip_v4_01_monthly": {
-        "data_base": " /sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/monthly",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/monthly",
         "data_name": "udel_precip_v4_01_monthly",
         "file_mask": "yyyy/precip_YYYY_MM.tif"
     },
     "udel_air_temp_v4_01_yearly_mean": {
-        "data_base": " /sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/yearly/mean",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/yearly/mean",
         "data_name": "udel_air_temp_v4_01_yearly_mean",
         "file_mask": "air_temp_YYYY_mean.tif"
     },
     "udel_precip_v4_01_yearly_mean": {
-        "data_base": " /sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/yearly/mean",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/yearly/mean",
         "data_name": "udel_precip_v4_01_yearly_mean",
         "file_mask": "precip_YYYY_mean.tif"
+    },
+    "udel_air_temp_v4_01_yearly_min": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/yearly/min",
+        "data_name": "udel_air_temp_v4_01_yearly_min",
+        "file_mask": "air_temp_YYYY_min.tif"
+    },
+    "udel_precip_v4_01_yearly_min": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/yearly/min",
+        "data_name": "udel_precip_v4_01_yearly_min",
+        "file_mask": "precip_YYYY_min.tif"
+    },
+    "udel_air_temp_v4_01_yearly_max": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/air_temp_2014_v4.01/yearly/max",
+        "data_name": "udel_air_temp_v4_01_yearly_max",
+        "file_mask": "air_temp_YYYY_max.tif"
+    },
+    "udel_precip_v4_01_yearly_max": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/precip_2014_v4.01/yearly/max",
+        "data_name": "udel_precip_v4_01_yearly_max",
+        "file_mask": "precip_YYYY_max.tif"
     },
     "treecover2000": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/treecover2000/treecover2000.tif",
@@ -117,7 +147,24 @@
     "lossyear": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/lossyear/lossyear.tif",
         "data_name": "lossyear",
-        "file_mask": "None"
+        "file_mask": "None",
+        "categories": {
+            "noloss": 0,
+            "2001": 1,
+            "2002": 2,
+            "2003": 3,
+            "2004": 4,
+            "2005": 5,
+            "2006": 6,
+            "2007": 7,
+            "2008": 8,
+            "2009": 9,
+            "2010": 10,
+            "2011": 11,
+            "2012": 12,
+            "2013": 13,
+            "2014": 14
+        }
     },
     "datamask": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/hansen/GFC2015/datamask/datamask.tif",

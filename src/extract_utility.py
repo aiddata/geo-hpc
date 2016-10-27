@@ -27,6 +27,8 @@ import pandas as pd
 import fiona
 from shapely.geometry import shape
 
+import pymongo
+
 
 # -----------------------------------------------------------------------------
 
@@ -223,9 +225,9 @@ class ExtractObject():
         "max": "x",
         # "std": "d",
 
-        "reliability": "r"
+        "reliability": "r",
 
-        # "median": "?"
+        "median": "i"
         # "majority": "?"
         # "minority": "?"
         # "unique": "u"
@@ -562,7 +564,8 @@ class ExtractObject():
                 stats = list(self.run_extract(raster, vector=f))
 
                 if len(stats) != 1:
-                    raise Exception('multiple extract results for single feature')
+                    raise Exception('multiple extract results for single '
+                                    'feature')
 
                 yield stats[0]
 
@@ -750,17 +753,18 @@ class ExtractObject():
 
         expected = [
             'bnd_name', 'data_name', 'ex_method',
-            'classification', 'ex_version', 'c_features'
+            'classification', 'ex_version', 'client'
         ]
 
         if any([i not in kwargs for i in expected]):
             raise Exception('missing args for export_to_db')
 
-        fet = FeatureExtractTool(
-            kwargs['bnd_name'], kwargs['data_name'], kwargs['ex_method'],
-            kwargs['classification'], kwargs['ex_version'], kwargs['c_features'])
+        ftool = FeatureTool(
+            kwargs['client'], kwargs['bnd_name'], kwargs['data_name'],
+            kwargs['ex_method'], kwargs['classification'],
+            kwargs['ex_version'])
 
-        run_data = fet.run(stats)
+        run_data = ftool.run(stats, add_extract=True)
         return run_data
 
 
@@ -1072,7 +1076,8 @@ class MergeObject():
 
             result_field = result_csv[result_csv.rindex('/')+1:-4]
 
-            # could add something here that attempt to cap field name at 10 chars
+            # could add something here that attempt to cap field name
+            # at 10 chars
             #
             # rasters... lookup mini name, extract method abbrv,
             #            attempt to include temporal infl
@@ -1116,10 +1121,10 @@ class MergeObject():
 # -----------------------------------------------------------------------------
 
 
+import re
 import json
 import hashlib
-
-# from shapely.geometry import shape
+from shapely.geometry import shape
 
 
 def json_sha1_hash(hash_obj):
@@ -1133,24 +1138,151 @@ def json_sha1_hash(hash_obj):
     return hash_sha1
 
 
-class FeatureExtractTool():
+def limit_geom_chars(geom, limit=8000000, step=0.0001):
+    """Limit chars in geom geojson string by simplification
+
+    Default limit for character count is 8000000
+        (8MB - MongoDB max document size is 16MB)
+    Default step for simplication is 0.0001
+    """
+    geom = shape(geom)
+    curr_geom = geom
+    ix = 0
+    while len(str(curr_geom)) > limit:
+        ix = ix + 1
+        curr_geom = geom.simplify(step * ix)
+
+    simplify_tolerance = step * ix
+    return curr_geom.__geo_interface__, simplify_tolerance
+
+
+class FeatureTool():
     """
     """
 
-    def __init__(self, bnd_name, data_name, ex_method, classification,
-                 ex_version, c_features):
+    def __init__(self, client, bnd_name, data_name=None,
+                 ex_method=None, classification=None, ex_version=None):
+
+
+        self.client = client
+
+        if not "features" in self.client.asdf.collection_names():
+            self.c_features = self.client.asdf.features
+
+            self.c_features.create_index("hash", unique=True)
+            self.c_features.create_index("datasets")
+            self.c_features.create_index("tags")
+            self.c_features.create_index([("geometry", pymongo.GEOSPHERE)])
+
+        else:
+            self.c_features = self.client.asdf.features
+
+            tmp_index_info = self.c_features.index_information()
+            tmp_index_names = [tmp_index_info[i]['key'][0][0]
+                               for i in tmp_index_info.keys()]
+
+            if 'hash' not in tmp_index_names:
+                self.c_features.create_index("hash", unique=True)
+            if 'datasets' not in tmp_index_names:
+                self.c_features.create_index("datasets")
+            if 'tags' not in tmp_index_names:
+                self.c_features.create_index("tags")
+            if 'geometry' not in tmp_index_names:
+                self.c_features.create_index([("geometry", pymongo.GEOSPHERE)])
+
 
         self.bnd_name = bnd_name
+
         self.data_name = data_name
         self.ex_method = ex_method
         self.classification = classification
         self.ex_version = ex_version
-        self.c_features = c_features
 
 
-    def run(self, run_data):
+    def set_extract_fields(self, data_name, ex_method,
+                           classification, ex_version):
+        """set extract fields
+
+        used to set extract fields if not set during class instance init
+        """
+        self.data_name = data_name
+        self.ex_method = ex_method
+        self.classification = classification
+        self.ex_version = ex_version
+
+
+    def has_extract_fields(self):
+        """check if extract fields are set
+
+        returns true if none of the extract fields are set to None
+        """
+        extract_fields = [
+            self.data_name,
+            self.ex_method,
+            self.classification,
+            self.ex_version
+        ]
+
+        valid = None not in extract_fields
+        return valid
+
+
+    def build_extract_object(self, feat):
         """
         """
+        if self.ex_method == 'reliability' :
+            ex_value = {
+                'sum': feat['properties']['exfield_sum'],
+                'reliability': feat['properties']['exfield_reliability'],
+                'potential': feat['properties']['exfield_potential']
+            }
+        else:
+            ex_value = feat['properties']['exfield_' + self.ex_method]
+
+
+        temporal = 'na'
+        dataset = self.data_name
+        if self.classification == "msr":
+            dataset = self.data_name[:self.data_name.rindex('_')]
+
+        elif '_' in self.data_name:
+            tmp_temp = self.data_name[self.data_name.rindex('_')+1:]
+            if tmp_temp.isdigit():
+                temporal = tmp_temp
+                dataset = self.data_name[:self.data_name.rindex('_')]
+
+
+        feature_extracts = [{
+            'data': self.data_name,
+            'dataset': dataset,
+            'temporal': temporal,
+            'method': self.ex_method,
+            'classification': self.classification,
+            'version': self.ex_version,
+            'value': ex_value
+        }]
+
+        return feature_extracts
+
+    def run(self, run_data, add_extract=False):
+        """
+        """
+        tmp_gen = self.process_features(run_data, add_extract)
+
+        if add_extract:
+            return tmp_gen
+        else:
+            for _ in tmp_gen: pass
+            return 0
+
+
+    def process_features(self, run_data, add_extract=False):
+        """
+        """
+        if add_extract and not self.has_extract_fields:
+            raise Exception('extract fields not set')
+
+
         # update extract result database
         for idx, feat in enumerate(run_data):
             geom = feat['geometry']
@@ -1163,70 +1295,137 @@ class FeatureExtractTool():
                 for key in feat['properties']
                 if not key.startswith('exfield_')
             }
-            # feature_properties = {}
-
-            if self.ex_method == 'reliability' :
-                ex_value = {
-                    'sum': feat['properties']['exfield_sum'],
-                    'reliability': feat['properties']['exfield_reliability'],
-                    'potential': feat['properties']['exfield_potential']
-                }
-            else:
-                ex_value = feat['properties']['exfield_' + self.ex_method]
 
 
-            temporal = 'na'
-            dataset = self.data_name
-            if self.classification == "msr":
-                dataset = self.data_name[:self.data_name.rindex('_')]
-
-            elif '_' in self.data_name:
-                tmp_temp = self.data_name[self.data_name.rindex('_')+1:]
-                if tmp_temp.isdigit():
-                    temporal = tmp_temp
-                    dataset = self.data_name[:self.data_name.rindex('_')]
+            feature_extracts = []
+            if add_extract:
+                feature_extracts = self.build_extract_object(feat)
 
 
-            feature_extracts = [{
-                'data': self.data_name,
-                'dataset': dataset,
-                'temporal': temporal,
-                'method': self.ex_method,
-                'classification': self.classification,
-                'version': self.ex_version,
-                'value': ex_value
-            }]
-
-
-            # check if geom / geom hash exists
+            # check if geom_hash exists
             search = self.c_features.find_one({'hash': geom_hash})
-
-
             exists = search is not None
-            if exists:
 
-                extract_search_params = {
+            tmp_tags = self.bnd_name.split('_')
+            tmp_tags.append('{0}_{1}'.format(tmp_tags[1], tmp_tags[2]))
+
+            if not exists:
+                mongo_geom, simplify_tolerance = limit_geom_chars(
+                    geom, limit=8000000, step=0.0001)
+
+                if json_sha1_hash(mongo_geom) != geom_hash:
+                    original_geom_size = len(json.dumps(geom))
+                    print ("Warning - Big geom ({0} chars for feature {1} in "
+                           " {2}) simplified ({3})").format(
+                            original_geom_size, idx,
+                            self.bnd_name, simplify_tolerance)
+
+                feature_insert = {
+                    'geometry': mongo_geom,
+                    'tags': tmp_tags,
+                    'info': {
+                        'simplify_tolerance': simplify_tolerance,
+                        'null_buffer': False
+                    },
                     'hash': geom_hash,
-                    'extracts.data': self.data_name,
-                    'extracts.method': self.ex_method,
-                    'extracts.version': self.ex_version
+                    # 'id': feature_id,
+                    'properties': {self.bnd_name: feature_properties},
+                    'datasets': [self.bnd_name],
+                    'extracts': feature_extracts
                 }
 
-                extract_search = self.c_features.find_one(extract_search_params)
-                extract_exists = extract_search is not None
+                # insert
+                try:
+                    insert = self.c_features.insert(feature_insert)
 
-                if extract_exists:
-                    search_params = extract_search_params
-                    update_params = {
-                        '$set': {'extracts.$': feature_extracts[0]}
-                    }
+                except pymongo.errors.DuplicateKeyError as e:
+                    exists = "recent"
 
-                else:
-                    search_params = {'hash': geom_hash}
-                    update_params = {
-                        '$push': {'extracts': {'$each': feature_extracts}}
-                    }
+                except pymongo.errors.PyMongoError as e:
+                    try:
+                        tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                             json.dumps(mongo_geom))
+                        feature_insert['geometry'] = json.loads(tmp_geo_str)
 
+                        insert = self.c_features.insert(feature_insert)
+
+                    except:
+                        # buffer_mongo_geom_shape
+                        tmp_buffer = shape(mongo_geom).buffer(0)
+                        feature_insert['geometry'] = tmp_buffer.__geo_interface__
+                        feature_insert['info']['null_buffer'] = True
+                        try:
+                            insert = self.c_features.insert(feature_insert)
+                            print ("Warning - Self intersecting geom being "
+                                   "buffered (feature {0} in {1})").format(
+                                        idx, self.bnd_name)
+
+                        except pymongo.errors.DuplicateKeyError as e:
+                            exists = "recent"
+
+                        except pymongo.errors.PyMongoError as e:
+
+                            try:
+                                tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                                     json.dumps(mongo_geom))
+                                feature_insert['geometry'] = json.loads(tmp_geo_str)
+
+                                insert = self.c_features.insert(feature_insert)
+                                print ("Warning - Self intersecting geom being "
+                                       "buffered (feature {0} in {1})").format(
+                                            idx, self.bnd_name)
+
+                            except pymongo.errors.PyMongoError as e:
+
+                                simpledec = re.compile(r"\d*\.\d+")
+                                def mround(match):
+                                    return "{:.6f}".format(float(match.group()))
+
+                                tmp_mongo_geom = re.sub(simpledec, mround,
+                                                        json.dumps(mongo_geom))
+
+                                tmp_mongo_geom = shape(
+                                    json.loads(tmp_mongo_geom)).buffer(0)
+
+                                feature_insert['geometry'] = tmp_mongo_geom.__geo_interface__
+
+                                insert = self.c_features.insert(feature_insert)
+                                print ("Warning - Geom precision reduced"
+                                       " (feature {0} in {1})").format(
+                                            idx, self.bnd_name)
+
+                                # tmp_mongo_geom = shape(mongo_geom).buffer(0.0000000001)
+                                # tmp_mongo_geom, _ = limit_geom_chars(
+                                #     geom, limit=8000000, step=0.0001)
+
+                                # tmp_mongo_geom = shape(tmp_mongo_geom) \
+                                #                     .buffer(0) \
+                                #                     .__geo_interface__
+
+                                # tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
+                                #                      json.dumps(tmp_mongo_geom))
+
+                                # feature_insert['geometry'] = json.loads(tmp_geo_str)
+
+                                # insert = self.c_features.insert(feature_insert)
+                                # print ("Warning - Self intersecting geom being "
+                                #        "buffered (feature {0} in {1})").format(
+                                #             idx, self.bnd_name)
+
+
+            if exists == "recent":
+                search = self.c_features.find_one({'hash': geom_hash})
+
+
+            if exists:
+                if search is None:
+                    raise Exception('DuplicateKeyError but no doc with hash '
+                                    'exists (this should not be possible).')
+
+                search_params = {
+                    'hash': geom_hash
+                }
+                update_params = {}
 
                 if not self.bnd_name in search['datasets']:
                     # add dataset to datasets
@@ -1240,24 +1439,45 @@ class FeatureExtractTool():
                     prop_sub_doc = 'properties.' + self.bnd_name
                     update_params['$set'][prop_sub_doc] = feature_properties
 
+                    update_params['$addToSet'] = {}
+                    update_params['$addToSet']['tags'] = {
+                        '$each': tmp_tags
+                    }
 
-                update = self.c_features.update_one(search_params, update_params)
+
+                if add_extract:
+
+                    extract_search_params = {
+                        'hash': geom_hash,
+                        'extracts.data': self.data_name,
+                        'extracts.method': self.ex_method,
+                        'extracts.version': self.ex_version
+                    }
+
+                    extract_search = self.c_features.find_one(
+                        extract_search_params)
+                    extract_exists = extract_search is not None
+
+                    if extract_exists:
+                        if not '$set' in update_params:
+                            update_params['$set'] = {}
+
+                        search_params = extract_search_params
+                        update_params['$set']['extracts.$'] = feature_extracts[0]
+
+                    else:
+                        if not '$push' in update_params:
+                            update_params['$push'] = {}
+
+                        search_params = {'hash': geom_hash}
+                        update_params['$push']['extracts'] = {
+                            '$each': feature_extracts
+                        }
 
 
-            else:
-                # simplified_geom = shape(geom).simplify(0.01)
-
-                feature_insert = {
-                    'geometry': geom,
-                    # 'simplified': simplified_geom,
-                    'hash': geom_hash,
-                    # 'id': feature_id,
-                    'properties': {self.bnd_name: feature_properties},
-                    'datasets': [self.bnd_name],
-                    'extracts': feature_extracts
-                }
-                # insert
-                insert = self.c_features.insert(feature_insert)
+                if bool(update_params):
+                    update = self.c_features.update_one(search_params,
+                                                        update_params)
 
 
             yield feat
