@@ -67,7 +67,7 @@ queue = QueueToolBox()
 
 # load config setting for branch script is running on
 branch_info = queue.set_branch_info(config)
-print "`{0}` branch on {1}".format(branch_info['name'], branch_info['database'])
+print "`{0}` branch on {1}".format(branch_info.name, branch_info.database)
 
 request_id = 0
 request_objects = []

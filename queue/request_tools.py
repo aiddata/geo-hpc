@@ -85,9 +85,9 @@ class QueueToolBox():
         self.c_email = self.client.asdf.email
 
         self.branch_info = branch_config
-        self.branch = branch_config['name']
-        self.msr_version = branch_config['versions']['mean-surface-rasters']
-        self.extract_version = branch_config['versions']['extract-scripts']
+        self.branch = branch_config.name
+        self.msr_version = branch_config.versions['mean-surface-rasters']
+        self.extract_version = branch_config.versions['extract-scripts']
         return branch_config
 
 
@@ -258,7 +258,7 @@ class QueueToolBox():
                         "You can also view all your current and previous "
                         "requests using: \n"
                         "http://{0}/DET/status/#{2}\n\n").format(
-                            self.branch_info['det']['download_server'], request_id, mail_to)
+                            self.branch_info.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
@@ -283,7 +283,7 @@ class QueueToolBox():
                         "You can also view all your current and previous "
                         "requests using: \n"
                         "http://{0}/DET/status/#{2}\n\n").format(
-                            self.branch_info['det']['download_server'], request_id, mail_to)
+                            self.branch_info.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
