@@ -6,6 +6,7 @@ add gadm dataset to asdf
     - update mongo database
 """
 
+import sys
 import os
 from pprint import pprint
 import datetime
@@ -14,6 +15,12 @@ import pymongo
 from warnings import warn
 
 import fiona
+
+util_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'utils')
+sys.path.insert(0, util_dir)
+
 import resource_utility as ru
 from database_utility import MongoUpdate
 
@@ -191,6 +198,7 @@ def run(path=None, client=None, version=None, config=None,
         elif base_original is not None:
             existing_original = base_original
 
+        doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
         # doc["active"] = existing_original["active"]
 
 
@@ -341,8 +349,14 @@ def run(path=None, client=None, version=None, config=None,
 
     print "\nUpdating database (dry run = {0})...".format(dry_run)
     if not dry_run:
-        dbu.features_to_mongo(doc['name'])
         dbu.update(doc, update, existing_original)
+        try:
+            dbu.features_to_mongo(doc['name'])
+        except:
+            # could remove data entry if it cannot be added
+            # to mongo. or, at least make sure the data entry is
+            # set to inactive
+            raise
 
     if update:
         print "\n{0}: Done ({1} update).\n".format(script, update)
@@ -375,7 +389,7 @@ if __name__ == '__main__':
         raise Exception('Branch directory does not exist')
 
 
-    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
     sys.path.insert(0, config_dir)
 
     from config_utility import BranchConfig

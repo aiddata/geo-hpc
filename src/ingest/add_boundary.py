@@ -1,3 +1,12 @@
+'''
+
+!!!
+!!! WARNING THIS SCRIPT IS OUTDATED AND NOT FUNCTIONAL
+!!!
+
+'''
+
+
 # add dataset to system
 #   - validate options
 #   - scan and validate dataset resources

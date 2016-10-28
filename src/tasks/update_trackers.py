@@ -17,7 +17,7 @@ if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')
 
 
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
 from config_utility import *
@@ -114,6 +114,7 @@ for bnd in bnds:
     for full_dset in dsets:
         dset = {
             'name': full_dset["name"],
+            'type': full_dset["type"],
             'spatial': full_dset["spatial"],
             'scale': full_dset["scale"],
         }

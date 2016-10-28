@@ -6,12 +6,18 @@ add raster dataset to asdf
     - update mongo database
 """
 
+import sys
 import os
 from pprint import pprint
 import datetime
 import json
 import pymongo
 from warnings import warn
+
+util_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'utils')
+sys.path.insert(0, util_dir)
 
 import resource_utility as ru
 from validation_utility import ValidationTools
@@ -195,6 +201,7 @@ def run(path=None, client=None, version=None, config=None,
             existing_original = valid_base.data['search']
 
         doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
+        # doc["active"] = existing_original["active"]
 
 
     # validate type and set file_format
@@ -560,7 +567,7 @@ if __name__ == '__main__':
         raise Exception('Branch directory does not exist')
 
 
-    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
     sys.path.insert(0, config_dir)
 
     from config_utility import BranchConfig

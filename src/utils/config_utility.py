@@ -15,7 +15,7 @@ class BranchConfig():
 
         branch (str): branch name
         valid_branches
-        parent
+        root
 
         config_json
         branch_settings
@@ -28,7 +28,7 @@ class BranchConfig():
     def __init__(self, branch=None):
         self.branch = None
         self.valid_branches = ['master', 'develop']
-        self.parent = os.path.dirname(os.path.abspath(__file__))
+        self.root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
         if branch != None:
             self.set_branch(branch)
@@ -56,7 +56,7 @@ class BranchConfig():
         Raise exception if config json does not exist.
         """
         # config file from branch's asdf
-        config_path = self.parent + '/config.json'
+        config_path = os.path.join(self.root, 'config.json')
         config_exists = os.path.isfile(config_path)
 
         if config_exists:
@@ -88,21 +88,21 @@ class BranchConfig():
             connection_timeout_ms = 15000
 
             self.client = pymongo.MongoClient(
-                self.server, serverSelectionTimeoutMS=connection_timeout_ms)
+                self.database, serverSelectionTimeoutMS=connection_timeout_ms)
 
             self.client.server_info()
             self.connection_status = 0
             self.connection_error = None
 
         except pymongo.errors.ServerSelectionTimeoutError as err:
-            # print "Error (ServerSelectionTimeoutError) connecting to mongodb ("+str(config.server)+")"
+            # print "Error (ServerSelectionTimeoutError) connecting to mongodb ("+str(config.database)+")"
             # print err
             self.client = None
             self.connection_status = 1
             self.connection_error = err
 
         except Exception as err:
-            # print "Other error connecting to mongodb ("+str(config.server)+")"
+            # print "Other error connecting to mongodb ("+str(config.database)+")"
             # print err
             self.client = None
             self.connection_status = 2

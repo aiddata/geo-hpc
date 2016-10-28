@@ -16,7 +16,7 @@ if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')
 
 
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
 from config_utility import BranchConfig
@@ -41,9 +41,7 @@ import hashlib
 import pandas as pd
 
 sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))),
-    'mean-surface-rasters', 'src'))
+    branch_dir, 'mean-surface-rasters', 'src'))
 
 from msr_utility import CoreMSR
 

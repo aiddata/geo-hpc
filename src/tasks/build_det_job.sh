@@ -6,14 +6,14 @@
 #   branch
 #   timestamp
 #
-# builds job that run maintenance tasks on database
-# job runs the bash script db_updates_script.sh
+# builds job that run det processing script
+# job runs the det-module queue processing.py script
 #
 # only allows 1 job of this type to run at a time
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-dbu-<branch>
+# job name format: ax-det-<branch>
 
 
 branch=$1
@@ -24,9 +24,9 @@ jobtime=$(date +%H%M%S)
 
 
 # check if job needs to be run
-qstat=$(/usr/local/torque-2.3.7/bin/qstat -nu $USER)
+qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 
-if echo "$qstat" | grep -q 'ax-dbu-'"$branch"; then
+if echo "$qstat" | grep -q 'ax-det-'"$branch"; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -42,7 +42,7 @@ else
 
     src="${HOME}"/active/"$branch"
 
-    job_dir="$src"/log/db_updates #/jobs
+    job_dir="$src"/log/det #/jobs
     mkdir -p $job_dir
 
 
@@ -55,25 +55,36 @@ else
 # NOTE: just leave this heredoc unindented
 #   sublime text is set to indent with spaces
 #   heredocs can only be indented with true tabs
-#   (can use cat <<- EOF to strip leading tabs )
+#   (can use `cat <<- EOF` to strip leading tabs )
+
+
+# this job uses `-k` instead of `-j` and `-o`
+#   this will place job oe file in user home dir and
+#   make it available on execution hosts
+# `-V` will export env from qsub to batch env (e.g., $PBS_JOBID)
+#
+# these options allow us to keep the full job output and then
+# concatenate with the main log file (PBS would overwrite existing
+# main log if using `-o` to specify it via qsub options)
+
+#PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
+
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-dbu-$branch
+#PBS -N ax-det-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=24:00:00
-#PBS -q alpha
-#PBS -k oe
 #PBS -j oe
-#PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
+#PBS -k oe
 #PBS -V
 
-bash $src/asdf/src/tools/db_updates_script.sh $branch $timestamp $src
+bash $src/det-module/queue/tasks/run_det_processing.sh $branch $timestamp $src
 
 EOF
 
-    # cd "$src"/log/db_updates/jobs
-    /usr/local/torque-2.3.7/bin/qsub "$job_path"
+    # cd "$src"/log/det/jobs
+    /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."
     echo -e "\n"

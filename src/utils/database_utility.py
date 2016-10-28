@@ -9,8 +9,8 @@ import fiona
 
 # build path to extract_utility and add to sys.path
 import sys
-branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))
+branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__)))))
 sys.path.insert(0, os.path.join(branch_dir, 'extract-scripts', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(branch_dir), 'extract-scripts', 'src'))
 

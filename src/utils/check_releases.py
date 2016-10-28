@@ -57,7 +57,7 @@ class ReleaseTools():
             raise Exception('Branch directory does not exist')
 
 
-        config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+        config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
         sys.path.insert(0, config_dir)
 
         from config_utility import BranchConfig
@@ -72,7 +72,7 @@ class ReleaseTools():
 
         # -------------------------------------
 
-        self.client = pymongo.MongoClient(self.config.server)
+        self.client = pymongo.MongoClient(self.config.database)
 
         self.asdf = self.client.asdf.data
 

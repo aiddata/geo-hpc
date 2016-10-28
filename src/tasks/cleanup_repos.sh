@@ -28,7 +28,7 @@ src="${HOME}"/active/"$branch"
 cd "$src"/latest
 
 
-repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
+repo_list=($(cat "$src"/asdf/src/repo_list.txt))
 
 today=$(date +%Y%m%d)
 yesterday=$(date -d "yesterday" +%Y%m%d)

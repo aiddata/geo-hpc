@@ -20,7 +20,7 @@ if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')
 
 
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
 from config_utility import BranchConfig
@@ -42,7 +42,7 @@ if config.connection_status != 0:
 
 import pymongo
 
-client = pymongo.MongoClient(config.server)
+client = pymongo.MongoClient(config.database)
 
 extracts = client.asdf.extracts
 

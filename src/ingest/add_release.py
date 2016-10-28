@@ -6,12 +6,19 @@ add release dataset to asdf
     - update mongo database
 """
 
+import sys
 import os
 from pprint import pprint
 import datetime
 import json
 import pymongo
 from warnings import warn
+import re
+
+util_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'utils')
+sys.path.insert(0, util_dir)
 
 import resource_utility as ru
 from database_utility import MongoUpdate
@@ -160,7 +167,45 @@ def run(path=None, client=None, version=None, config=None,
                 rkey = g['key'].replace (" ", "_").lower()
                 doc['extras'][rkey] = g['value']
 
-    doc["extras"]["tags"] = ["aiddata", "geocoded", "release"]
+
+    # updating these fields because
+    # - current name is broken (not proper version)
+    # - current title and description are not well suited for
+    #   general consumption via DET
+    doc["extras"]["original_name"] = doc["name"]
+    doc["extras"]["original_title"] = doc["title"]
+    doc["extras"]["original_description"] = doc["description"]
+
+    doc["name"] = "{0}_{1}_{2}_v{3}".format(
+        doc["extras"]["data_set_preamble"].lower(),
+        doc["extras"]["data_type"].lower(),
+        doc["extras"]["processing_level"].lower(),
+        str(doc["version"]).replace(".", "_"))
+
+
+    preamble_word_list = re.findall(
+        '[A-Z](?:[A-Z]*(?![a-z])|[a-z]*)',
+        doc["extras"]["data_set_preamble"])
+
+    clean_preamble_word_list = [i for i in preamble_word_list
+                                if i not in ["AIMS"]]
+
+    clean_preamble = ' '.join(clean_preamble_word_list)
+
+    doc["title"] = "{0} Geocoded Aid Data v{1}".format(
+        clean_preamble, doc["version"])
+
+    doc["description"] = (
+        "Aid data from {0} {1}, geocoded and published by AidData. "
+        "Covers projects from {2} to {3}. Version {4}.").format(
+            clean_preamble,
+            doc["extras"]["source_type"],
+            doc["extras"]["temporal_start"],
+            doc["extras"]["temporal_end"],
+            doc["version"])
+
+
+    doc["extras"]["tags"] = ["aiddata", "geocoded", "release", "socioeconomic"]
 
     is_active = doc["extras"]["data_set_preamble"] in config.release_iso3
     doc["active"] = int(is_active)
@@ -192,6 +237,9 @@ def run(path=None, client=None, version=None, config=None,
 
         elif base_original is not None:
             existing_original = base_original
+
+        doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
+        # doc["active"] = existing_original["active"]
 
 
    # -------------------------------------
@@ -291,7 +339,7 @@ if __name__ == '__main__':
         raise Exception('Branch directory does not exist')
 
 
-    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
     sys.path.insert(0, config_dir)
 
     from config_utility import BranchConfig

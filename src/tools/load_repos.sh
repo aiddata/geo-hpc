@@ -49,7 +49,7 @@ get_repo() {
 }
 
 
-repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
+repo_list=($(cat "$src"/asdf/src/repo_list.txt))
 
 for orgrepo in ${repo_list[*]}; do
     repo=$(basename ${orgrepo})

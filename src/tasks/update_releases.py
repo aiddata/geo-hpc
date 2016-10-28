@@ -19,7 +19,7 @@ if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')
 
 
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
 from config_utility import BranchConfig
@@ -38,9 +38,10 @@ import errno
 # import pymongo
 import zipfile
 import re
+
 from check_releases import ReleaseTools
 
-sys.path.insert(0, os.path.dirname(config_dir))
+sys.path.insert(0, os.path.join(os.path.dirname(config_dir), 'ingest'))
 import add_release
 
 
@@ -61,7 +62,7 @@ except OSError as exception:
 all_repo_releases = os.listdir(repo_dir)
 
 
-modern_str = ".*_GeocodedResearchRelease_Level1_v\d\.\d\.\d\Z"
+modern_str = ".*_GeocodedResearchRelease_Level1_v\d\.\d\.\d"
 modern_expr_dir = re.compile(modern_str)
 modern_expr_zip = re.compile(modern_str+"\.zip")
 modern_repo_dirnames = [i[:-4] for i in all_repo_releases
@@ -77,10 +78,11 @@ new_repo_dirnames = [i for i in modern_repo_dirnames
                      if i not in existing_data_dirnames]
 
 
+print "extracting new geocoded datasets..."
 for i in new_repo_dirnames:
 
     zpath = repo_dir +"/"+ i + ".zip"
-
+    print "\t extracting: {0}".format(zpath)
     zobj = zipfile.ZipFile(zpath)
     zobj.extractall(data_dir)
 

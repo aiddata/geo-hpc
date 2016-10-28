@@ -46,10 +46,10 @@ check_repo() {
 
     if [ "$repo" = 'asdf' ]; then
         old_manage_cron_hash=$(md5sum "$src"/git/asdf/src/tools/manage_crons.sh | awk '{ print $1 }')
-        old_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
+        old_repo_hash=$(md5sum "$src"/git/asdf/src/repo_list.txt | awk '{ print $1 }')
         old_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
-        old_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
-        old_config_hash=$(md5sum "$src"/git/asdf/src/tools/config.json | awk '{ print $1 }')
+        old_update_hash=$(md5sum "$src"/git/asdf/src/tasks/update_repos.sh | awk '{ print $1 }')
+        old_config_hash=$(md5sum "$src"/git/asdf/src/config.json | awk '{ print $1 }')
     fi
 
     update_status=$(bash "$src"/git/asdf/src/tools/gitupdate.sh "$src"/git/"$repo" "$branch")
@@ -81,10 +81,10 @@ check_repo() {
 
         if [ "$repo" = 'asdf' ]; then
             new_manage_cron_hash=$(md5sum "$src"/git/asdf/src/tools/manage_crons.sh | awk '{ print $1 }')
-            new_repo_hash=$(md5sum "$src"/git/asdf/src/tools/repo_list.txt | awk '{ print $1 }')
+            new_repo_hash=$(md5sum "$src"/git/asdf/src/repo_list.txt | awk '{ print $1 }')
             new_load_hash=$(md5sum "$src"/git/asdf/src/tools/load_repos.sh | awk '{ print $1 }')
-            new_update_hash=$(md5sum "$src"/git/asdf/src/tools/update_repos.sh | awk '{ print $1 }')
-            new_config_hash=$(md5sum "$src"/git/asdf/src/tools/config.json | awk '{ print $1 }')
+            new_update_hash=$(md5sum "$src"/git/asdf/src/tasks/update_repos.sh | awk '{ print $1 }')
+            new_config_hash=$(md5sum "$src"/git/asdf/src/config.json | awk '{ print $1 }')
 
             if [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
                 echo -e "\n"
@@ -108,7 +108,7 @@ check_repo() {
                 if [ "$old_update_hash" != "$new_update_hash" ]; then
                     echo -e "\n"
                     echo "Found new update_repos.sh ..."
-                    bash "$src"/git/asdf/src/tools/update_repos.sh "$branch"
+                    bash "$src"/git/asdf/src/tasks/update_repos.sh "$branch"
                     exit 0
                 fi
             fi
@@ -122,7 +122,7 @@ check_repo() {
 }
 
 
-repo_list=($(cat "$src"/asdf/src/tools/repo_list.txt))
+repo_list=($(cat "$src"/asdf/src/repo_list.txt))
 
 for orgrepo in ${repo_list[*]}; do
     repo=$(basename ${orgrepo})
