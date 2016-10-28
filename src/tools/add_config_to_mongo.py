@@ -45,7 +45,8 @@ branch_info = config.branch_settings
 
 c_config = client.asdf.config
 
-c_config.remove({'name': branch_info['name']})
+# c_config.remove({'name': branch_info['name']})
+c_config.remove({})
 
 c_config.insert(branch_info)
 
