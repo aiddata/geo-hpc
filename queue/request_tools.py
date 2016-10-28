@@ -465,6 +465,8 @@ class QueueToolBox():
 
         request_dir = os.path.join(results_dir, request_id)
 
+        shutil.rmtree(request_dir, ignore_errors=True)
+
         merge_output = os.path.join(request_dir,
                                     "{0}_results.csv".format(request_id))
 
@@ -487,6 +489,7 @@ class QueueToolBox():
 
         shutil.make_archive(request_dir, "zip", request_dir)
         shutil.move(request_dir + ".zip", request_dir)
+
 
         # zip files and delete originals
         # shutil.make_archive(request_dir, "zip", results_dir, request_id)
