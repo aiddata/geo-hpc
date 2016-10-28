@@ -279,7 +279,7 @@ class QueueToolBox():
         mail_message = ("Your request has been completed. \n"
                         "The results can be accessed using the following "
                         "link: \n"
-                        "http://{0}/query/#/status/{{1}\n\n"
+                        "http://{0}/query/#/status/{1}\n\n"
                         "You can also view all your current and previous "
                         "requests using: \n"
                         "http://{0}/query/#/requests/{2}\n\n").format(
