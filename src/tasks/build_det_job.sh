@@ -79,7 +79,7 @@ cat <<EOF >> "$job_path"
 #PBS -k oe
 #PBS -V
 
-bash $src/det-module/queue/tasks/run_det_processing.sh $branch $timestamp $src
+bash $src/asdf/src/tasks/run_det_processing.sh $branch $timestamp $src
 
 EOF
 
