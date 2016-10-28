@@ -29,7 +29,7 @@
             "mean-surface-rasters": "0.11.0"
         },
         "det": {
-            "download_server": "labs.aiddata.org",
+            "download_server": "geo.aiddata.org",
             "help": [
                 {"question": "Contact us", "answer": "info@aiddata.org"},
                 {"question": "White paper", "answer": "aiddata.org"},
