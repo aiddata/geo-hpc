@@ -184,7 +184,7 @@ class DocBuilder():
             ]
 
             for f in dset['filters']:
-                data.append([f, ', '.join(dset['filters'][f])])
+                data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
 
             data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
             t = Table(data)
