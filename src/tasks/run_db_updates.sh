@@ -21,7 +21,6 @@
 
 branch=$1
 timestamp=$2
-src=$3
 
 src="${HOME}"/active/"$branch"
 
