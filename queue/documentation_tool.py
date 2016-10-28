@@ -40,6 +40,8 @@ class DocBuilder():
         if timestamp != None:
             try:
                 timestamp = int(timestamp)
+                if timestamp == 0:
+                    return "---"
             except:
                 return "---"
 
@@ -379,7 +381,8 @@ class DocBuilder():
             ['submit', self.time_str(self.request['stage'][0]['time'])],
             ['prep', self.time_str(self.request['stage'][1]['time'])],
             ['process', self.time_str(self.request['stage'][2]['time'])],
-            ['complete', self.time_str(self.request['stage'][3]['time'])]
+            ['complete', self.time_str(int(time.time()))]
+            # ['complete', self.time_str(self.request['stage'][3]['time'])]
         ]
 
 
