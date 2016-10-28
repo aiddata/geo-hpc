@@ -2,7 +2,7 @@
     "master":{
         "active": 1,
         "name": "master",
-        "server": "128.239.20.76",
+        "database": "128.239.20.76",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
             "AfghanistanAIMS": "AFG",
@@ -29,6 +29,7 @@
             "mean-surface-rasters": "0.11.0"
         },
         "det": {
+            "download_server": "labs.aiddata.org",
             "help": [
                 {"question": "Contact us", "answer": "info@aiddata.org"},
                 {"question": "White paper", "answer": "aiddata.org"},
