@@ -16,9 +16,9 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
 class DocBuilder():
 
-    def __init__(self, request, output):
+    def __init__(self, client, request, output):
 
-        self.client = pymongo.MongoClient()
+        self.client = client
         self.c_asdf = self.client.asdf.data
 
         self.request_id = str(request['_id'])

@@ -246,7 +246,7 @@ class QueueToolBox():
         """
         mail_to = email
 
-        mail_subject = ("AidData Data Extract Tool - "
+        mail_subject = ("AidData geo(query) - "
                         "Request {0}.. Received").format(request_id[:7])
 
         mail_message = ("Your request has been received. \n"
@@ -254,10 +254,10 @@ class QueueToolBox():
                         " request has been completed. \n\n"
                         "The status of your request can be viewed using"
                         " the following link: \n"
-                        "http://{0}/DET/status/#{1}\n\n"
+                        "http://{0}/query/#/status/{1}\n\n"
                         "You can also view all your current and previous "
                         "requests using: \n"
-                        "http://{0}/DET/status/#{2}\n\n").format(
+                        "http://{0}/query/#/requests/{2}\n\n").format(
                             self.branch_info.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
@@ -273,16 +273,16 @@ class QueueToolBox():
         """
         mail_to = email
 
-        mail_subject = ("AidData Data Extract Tool - "
+        mail_subject = ("AidData geo(query) - "
                         "Request {0}.. Completed").format(request_id[:7])
 
         mail_message = ("Your request has been completed. \n"
                         "The results can be accessed using the following "
                         "link: \n"
-                        "http://{0}/DET/status/#{1}\n\n"
+                        "http://{0}/query/#/status/{{1}\n\n"
                         "You can also view all your current and previous "
                         "requests using: \n"
-                        "http://{0}/DET/status/#{2}\n\n").format(
+                        "http://{0}/query/#/requests/{2}\n\n").format(
                             self.branch_info.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
@@ -481,12 +481,12 @@ class QueueToolBox():
         # generate documentation
         doc_output =  os.path.join(request_dir,
                                    "{0}_documentation.pdf".format(request_id))
-        doc = DocBuilder(request, doc_output)
+        doc = DocBuilder(self.client, request, doc_output)
         bd_status = doc.build_doc()
         # print bd_status
 
-        shutil.make_archive(request_dir, "zip", request_dir, request_id)
-
+        shutil.make_archive(request_dir, "zip", request_dir)
+        shutil.move(request_dir + ".zip", request_dir)
 
         # zip files and delete originals
         # shutil.make_archive(request_dir, "zip", results_dir, request_id)
