@@ -909,14 +909,18 @@ class CoreMSR():
                         0, -self.pixel_size, top_left_lat)
 
 
-        nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
-        ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
+        base_rasterize = self.rasterize_geom(geom)
+        self.shape = base_rasterize.shape
 
-        shape = (nrows, ncols)
+        # nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
+        # ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
+
+        # shape = (nrows, ncols)
+        self.shape = shape
+
 
         self.bounds = (minx, miny, maxx, maxy)
         self.affine = affine
-        self.shape = shape
         self.topleft = (top_left_lon, top_left_lat)
         self.grid_box = prep(box(*self.bounds))
 
