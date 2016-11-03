@@ -56,7 +56,9 @@ class MasterGrid():
             self.grid[itop:ibottom, ileft:iright] += data
         except:
             print "master: shape ({0}) grid shape ({1}) bounds ({2})".format(self.shape, self.grid.shape, self.bounds)
+            print "subset: shape({0} left,right,top,bot".format(self.grid[itop:ibottom, ileft:iright].shape, (ileft, iright, itop, ibottom))
             print "data: shape ({0}) bounds ({1})".format(data.shape, bounds)
+            raise
 
 
     def get_grid(self):
