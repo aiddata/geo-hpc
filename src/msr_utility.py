@@ -898,10 +898,12 @@ class CoreMSR():
         (minx, miny, maxx, maxy) = bounds
 
         (minx, miny, maxx, maxy) = (
-            np.floor(minx * self.psi) / self.psi,
-            np.floor(miny * self.psi) / self.psi,
-            np.ceil(maxx * self.psi) / self.psi,
-            np.ceil(maxy * self.psi) / self.psi)
+            round(np.floor(minx * self.psi)) / self.psi,
+            round(np.floor(miny * self.psi)) / self.psi,
+            round(np.ceil(maxx * self.psi)) / self.psi,
+            round(np.ceil(maxy * self.psi)) / self.psi)
+
+        clean_bounds = (minx, miny, maxx, maxy)
 
         top_left_lon = minx
         top_left_lat = maxy
@@ -911,9 +913,7 @@ class CoreMSR():
 
         base_rasterize, base_bounds = self.rasterize_geom(geom)
         self.shape = base_rasterize.shape
-        print "###"
-        print "###"
-        print base_bounds
+        print "### {0} {1} {2}".format(bounds, clean_bounds, base_bounds)
 
         # nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
         # ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
@@ -987,10 +987,10 @@ class CoreMSR():
         (minx, miny, maxx, maxy) =  geom.bounds
 
         (minx, miny, maxx, maxy) = (
-            np.floor(minx * self.psi) / self.psi,
-            np.floor(miny * self.psi) / self.psi,
-            np.ceil(maxx * self.psi) / self.psi,
-            np.ceil(maxy * self.psi) / self.psi)
+            round(np.floor(minx * self.psi)) / self.psi,
+            round(np.floor(miny * self.psi)) / self.psi,
+            round(np.ceil(maxx * self.psi)) / self.psi,
+            round(np.ceil(maxy * self.psi)) / self.psi)
 
 
         raw_shape = (int(round((maxy - miny) / self.pixel_size)),
