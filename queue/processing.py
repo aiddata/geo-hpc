@@ -34,14 +34,35 @@ sys.path.insert(0, config_dir)
 
 from config_utility import *
 
-config = BranchConfig(branch=branch)
+config_attempts = 0
+while True:
+    config = BranchConfig(branch=branch)
+    config_attempts += 1
+    if config.connection_status == 0 or config_attempts > 5:
+        break
 
 
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
+# -------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
+
+import mpi_utility
+job = mpi_utility.NewParallel()
+
+
+connect_status = job.comm.gather((job.rank, config.connection_status, config.connection_error), root=0)
+
+if job.rank == 0:
+    connection_error = False
+    for i in connect_status:
+        if i[1] != 0:
+            print "mongodb connection error ({0} - {1}) on processor rank {2})".format(i[1], i[2], [3])
+            connection_error = True
+
+    if connection_error:
+        sys.exit()
+
+
+job.comm.Barrier()
 
 
 import os
