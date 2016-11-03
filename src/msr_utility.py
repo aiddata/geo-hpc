@@ -46,17 +46,6 @@ class MasterGrid():
     def update(self, bounds, data):
 
 
-
-        # (minx, miny, maxx, maxy) = bounds
-
-        # (minx, miny, maxx, maxy) = (
-        #     np.floor(minx * self.psi) / self.psi,
-        #     np.floor(miny * self.psi) / self.psi,
-        #     np.ceil(maxx * self.psi) / self.psi,
-        #     np.ceil(maxy * self.psi) / self.psi)
-
-
-
         ileft = int(round(np.floor((bounds[0] - self.bounds[0])) / self.pixel_size))
         itop = int(round(np.floor((self.bounds[3] - bounds[3])) / self.pixel_size))
 
@@ -911,18 +900,15 @@ class CoreMSR():
                         0, -self.pixel_size, top_left_lat)
 
 
-        base_rasterize, base_bounds = self.rasterize_geom(geom)
-        self.shape = base_rasterize.shape
-        print "### {0} {1} {2}".format(bounds, clean_bounds, base_bounds)
+        # base_rasterize, base_bounds = self.rasterize_geom(geom)
+        # self.shape = base_rasterize.shape
 
-        # nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
-        # ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
-
-        # shape = (nrows, ncols)
-        # self.shape = shape
+        nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
+        ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
+        self.shape = (nrows, ncols)
 
 
-        self.bounds = (minx, miny, maxx, maxy)
+        self.bounds = clean_bounds
         self.affine = affine
         self.topleft = (top_left_lon, top_left_lat)
         self.grid_box = prep(box(*self.bounds))
