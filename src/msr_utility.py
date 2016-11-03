@@ -913,14 +913,13 @@ class CoreMSR():
         self.shape = base_rasterize.shape
         print "###"
         print "###"
-        print "###"
         print base_bounds
 
         # nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
         # ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
 
         # shape = (nrows, ncols)
-        self.shape = shape
+        # self.shape = shape
 
 
         self.bounds = (minx, miny, maxx, maxy)
