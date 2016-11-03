@@ -57,8 +57,8 @@ class MasterGrid():
 
 
 
-        ileft = int(round(np.floor((bounds[0] - self.bounds[0]) / self.pixel_size)))
-        itop = int(round(np.ceil((self.bounds[3] - bounds[3]) / self.pixel_size)))
+        ileft = int(round(np.floor((bounds[0] - self.bounds[0])) / self.pixel_size))
+        itop = int(round(np.floor((self.bounds[3] - bounds[3])) / self.pixel_size))
 
         iright = ileft + data.shape[1]
         ibottom = itop + data.shape[0]
