@@ -44,6 +44,19 @@ class MasterGrid():
 
 
     def update(self, bounds, data):
+
+
+
+        # (minx, miny, maxx, maxy) = bounds
+
+        # (minx, miny, maxx, maxy) = (
+        #     np.floor(minx * self.psi) / self.psi,
+        #     np.floor(miny * self.psi) / self.psi,
+        #     np.ceil(maxx * self.psi) / self.psi,
+        #     np.ceil(maxy * self.psi) / self.psi)
+
+
+
         ileft = int(np.floor((bounds[0] - self.bounds[0]) / self.pixel_size))
         itop = int(np.ceil((self.bounds[3] - bounds[3]) / self.pixel_size))
 
@@ -896,8 +909,8 @@ class CoreMSR():
                         0, -self.pixel_size, top_left_lat)
 
 
-        nrows = int(round(self.psi * (maxy - miny)))
-        ncols = int(round(self.psi * (maxx - minx)))
+        nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
+        ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
 
         shape = (nrows, ncols)
 

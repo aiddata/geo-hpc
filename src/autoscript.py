@@ -728,6 +728,12 @@ core.initialize_grid(master_geom)
 nrows, ncols = core.shape
 (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
 
+if job.rank == 0:
+    master_grid = MasterGrid(core.bounds, core.shape, core.pixel_size)
+    # sum_mean_surf = np.zeros(core.shape)
+    # sum_mean_surf = 0
+    # mstack = MasterStack()
+
 
 # -------------------------------------
 # load / process data and get task list
@@ -747,10 +753,6 @@ if len(task_id_list) == 0:
 
 if job.rank == 0:
     print "Starting to process tasks ({0})...".format(len(task_id_list))
-    master_grid = MasterGrid(core.bounds, core.shape, core.pixel_size)
-    # sum_mean_surf = np.zeros(core.shape)
-    # sum_mean_surf = 0
-    # mstack = MasterStack()
 
 
 # =============================================================================
