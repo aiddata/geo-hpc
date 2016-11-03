@@ -909,8 +909,12 @@ class CoreMSR():
                         0, -self.pixel_size, top_left_lat)
 
 
-        base_rasterize = self.rasterize_geom(geom)
+        base_rasterize, base_bounds = self.rasterize_geom(geom)
         self.shape = base_rasterize.shape
+        print "###"
+        print "###"
+        print "###"
+        print base_bounds
 
         # nrows = int(np.ceil( (maxy - miny) / self.pixel_size ))
         # ncols = int(np.ceil( (maxx - minx) / self.pixel_size ))
