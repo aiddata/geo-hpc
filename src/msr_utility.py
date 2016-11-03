@@ -50,8 +50,13 @@ class MasterGrid():
         iright = ileft + data.shape[1]
         ibottom = itop + data.shape[0]
 
-        # add worker surf as slice to sum_mean_surf
-        self.grid[itop:ibottom, ileft:iright] += data
+
+        try:
+            # add worker surf as slice to sum_mean_surf
+            self.grid[itop:ibottom, ileft:iright] += data
+        except:
+            print "master: shape ({0}) grid shape ({1}) bounds ({2})".format(self.shape, self.grid.shape, self.bounds)
+            print "data: shape ({0}) bounds ({1})".format(data.shape, bounds)
 
 
     def get_grid(self):
@@ -869,9 +874,12 @@ class CoreMSR():
         self.psi = 1/value
 
 
-    def initialize_grid(self, bounds):
+    def initialize_grid(self, geom):
         """
         """
+
+        bounds = geom.bounds
+
         (minx, miny, maxx, maxy) = bounds
 
         (minx, miny, maxx, maxy) = (

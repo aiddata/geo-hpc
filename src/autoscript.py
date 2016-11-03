@@ -723,7 +723,7 @@ else:
         master_geom = shape(search_master_geom[0]['spatial'])
 
 
-core.initialize_grid(master_geom.bounds)
+core.initialize_grid(master_geom)
 
 nrows, ncols = core.shape
 (master_minx, master_miny, master_maxx, master_maxy) = core.bounds
