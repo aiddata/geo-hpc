@@ -28,7 +28,7 @@ if not os.path.isdir(branch_dir):
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
-import config_utility
+from config_utility import BranchConfig
 
 config_attempts = 0
 while True:
