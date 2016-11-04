@@ -314,7 +314,7 @@ class QueueToolBox():
         msr_id = 1
 
         print "\nchecking aid data..."
-        for raw_data in request['release_data']:
+        for ix, raw_data in enumerate(request['release_data']):
 
             # remove filters without actual fields
             tmp_filters = {
@@ -334,6 +334,14 @@ class QueueToolBox():
 
             # get hash of msr request object
             data_hash = json_sha1_hash(data)
+
+            # add hash to request
+            if not 'hash' in raw_data or raw_data['hash'] = data_hash:
+                c_queue.update(
+                    { "_id": ObjectId(request['_id']) },
+                    { "$set": { 'release_data.'+str(ix)+'.hash' : data_hash}}
+                )
+
 
             print ''
             print '\t{0}'.format(data_hash)

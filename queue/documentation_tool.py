@@ -195,8 +195,13 @@ class DocBuilder():
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
+            colnames = ', '.join([
+                '{0}.{1}.{2}'.format(dset['dataset'], dset['hash'], i)
+                for i in ['sum', 'potential', 'reliability']
+            ])
+
             data = [
-                ['Column Names ', '1234'],
+                ['Column Names ', colnames],
                 ['Dataset ', dset['dataset']],
                 ['Type', 'release'],
                 ['Filters', '']
@@ -223,8 +228,15 @@ class DocBuilder():
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
+
+            colnames =  ', '.join([
+                '{0}.{1}.{2}'.format(dset['name'], i, j)
+                for i in [f['name'].split('_')[-1] for f in dset['files']]
+                for j in dset['options']['extract_types']
+            ])
+
             data = [
-                ['Column Names ', '1234'],
+                ['Column Names ', colnames],
                 ['Name', dset['name']],
                 ['Title', dset['title']],
                 ['Type', dset['type']]
