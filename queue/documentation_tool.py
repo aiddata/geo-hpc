@@ -14,13 +14,15 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
 # =============================================================================
 
+styles = getSampleStyleSheet()
+
 def pg(text, pg_type):
     """return paragraph of specified type for given text
     """
     if pg_type == 1:
-        return Paragraph(text, self.styles['Normal'])
+        return Paragraph(text, styles['Normal'])
     elif pg_type == 2:
-        return Paragraph(text, self.styles['BodyText'])
+        return Paragraph(text, styles['BodyText'])
     else:
         raise Exception("invalid paragraph type")
 
