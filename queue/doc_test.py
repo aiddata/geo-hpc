@@ -2,7 +2,8 @@
 
 import pymongo
 from bson.objectid import ObjectId
-request = pymongo.MongoClient().det.queue.find_one({'_id': ObjectId('57a2ff1bc15e002f448b4568')})
+client = pymongo.MongoClient('128.239.20.76')
+# request = client.asdf.det.find_one({'_id': ObjectId('57a2ff1bc15e002f448b4568')})
 
 
 request = {
@@ -93,6 +94,6 @@ request = {
 
 
 from documentation_tool import DocBuilder
-doc = DocBuilder(request, 'abc.pdf')
+doc = DocBuilder(client, request, '/sciclone/aiddata10/REU/test/doc_test.pdf')
 doc.build_doc()
 
