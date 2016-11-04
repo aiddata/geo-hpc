@@ -5,7 +5,7 @@ import time
 import pymongo
 
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -62,8 +62,11 @@ class DocBuilder():
         self.add_info()
         self.add_timeline()
         self.add_general()
+        self.Story.append(PageBreak())
         self.add_overview()
+        self.Story.append(PageBreak())
         self.add_meta()
+        self.Story.append(PageBreak())
         self.add_additional()
         self.output_doc()
 
@@ -91,7 +94,7 @@ class DocBuilder():
 
     # report generation info
     def add_info(self):
-        ptext = '<font size=12>Report Info:</font>'
+        ptext = '<b><font size=12>Report Info</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['BodyText']))
         self.Story.append(Spacer(1, 0.1*inch))
 
