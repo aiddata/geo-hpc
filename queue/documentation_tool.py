@@ -60,10 +60,10 @@ class DocBuilder():
         # build doc call all functions
         self.add_header()
         self.add_info()
+        self.add_timeline()
         self.add_general()
         self.add_overview()
         self.add_meta()
-        self.add_timeline()
         self.add_additional()
         self.output_doc()
 
@@ -115,6 +115,31 @@ class DocBuilder():
         self.Story.append(Spacer(1,0.3*inch))
 
 
+    # full request timeline / other processing info
+    def add_timeline(self):
+
+        ptext = '<b><font size=12>Processing Timeline</font></b>'
+        self.Story.append(Paragraph(ptext, self.styles['Normal']))
+        data = [
+            ['submit', self.time_str(self.request['stage'][0]['time'])],
+            ['prep', self.time_str(self.request['stage'][1]['time'])],
+            ['process', self.time_str(self.request['stage'][2]['time'])],
+            ['complete', self.time_str(int(time.time()))]
+            # ['complete', self.time_str(self.request['stage'][3]['time'])]
+        ]
+
+        t = Table(data)
+
+        t.setStyle(TableStyle([
+            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+        ]))
+
+        self.Story.append(t)
+
+        self.Story.append(Spacer(1, 0.3*inch))
+
+
     # intro paragraphs
     def add_general(self):
 
@@ -159,14 +184,16 @@ class DocBuilder():
 
         # datasets
 
+        selection_count = 0
         for dset in self.request['release_data']:
         # for dset in self.request['release_data'].values():
-
-            ptext = '<i>Selection - {0}</i>'.format(dset['custom_name'])
+            selection_count += 1
+            ptext = '<i>Selection {0} - {1}</i>'.format(selection_count, dset['custom_name'])
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
             data = [
+                ['Column Names ', '1234'],
                 ['Dataset ', dset['dataset']],
                 ['Type', 'release'],
                 ['Filters', '']
@@ -187,13 +214,15 @@ class DocBuilder():
 
 
         for dset in self.request['raster_data']:
+            selection_count += 1
 
-            ptext = '<i>Selection - {0}</i>'.format(dset['custom_name'])
+            ptext = '<i>Selection {0} - {1}</i>'.format(selection_count, dset['custom_name'])
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
             data = [
-                ['Name)', dset['name']],
+                ['Column Names ', '1234'],
+                ['Name', dset['name']],
                 ['Title', dset['title']],
                 ['Type', dset['type']]
             ]
@@ -316,13 +345,13 @@ class DocBuilder():
 
         # full dataset meta
 
-        d1_meta_log = []
+        meta_log = []
         for dset in self.request['release_data']:
 
-            if dset['dataset'] not in d1_meta_log:
-                d1_meta_log.append(dset['dataset'])
+            if dset['dataset'] not in meta_log:
+                meta_log.append(dset['dataset'])
 
-                ptext = '<i>Dataset - '+dset['dataset']+'</i>'
+                ptext = '<i>Dataset {0}</i>'.format(len(meta_log))
                 self.Story.append(Paragraph(ptext, self.styles['Normal']))
                 self.Story.append(Spacer(1, 0.05*inch))
 
@@ -341,50 +370,28 @@ class DocBuilder():
 
         for dset in self.request['raster_data']:
 
-            ptext = '<i>Dataset - '+dset['name']+'</i>'
-            self.Story.append(Paragraph(ptext, self.styles['Normal']))
-            self.Story.append(Spacer(1, 0.05*inch))
+            if dset['name'] not in meta_log:
+                meta_log.append(dset['name'])
 
-            # build dataset meta table array
-            data = self.build_meta(dset['name'], dset['type'])
+                ptext = '<i>Dataset {0}</i>'.format(len(meta_log))
+                self.Story.append(Paragraph(ptext, self.styles['Normal']))
+                self.Story.append(Spacer(1, 0.05*inch))
 
-            t = Table(data)
-            t.setStyle(TableStyle([
-                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-            ]))
+                # build dataset meta table array
+                data = self.build_meta(dset['name'], dset['type'])
 
-            self.Story.append(t)
-            self.Story.append(Spacer(1, 0.1*inch))
+                t = Table(data)
+                t.setStyle(TableStyle([
+                    ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+                ]))
+
+                self.Story.append(t)
+                self.Story.append(Spacer(1, 0.1*inch))
 
 
         self.Story.append(Spacer(1, 0.3*inch))
 
-
-    # full request timeline / other processing info
-    def add_timeline(self):
-
-        ptext = '<b><font size=12>request timeline info</font></b>'
-        self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        data = [
-            ['submit', self.time_str(self.request['stage'][0]['time'])],
-            ['prep', self.time_str(self.request['stage'][1]['time'])],
-            ['process', self.time_str(self.request['stage'][2]['time'])],
-            ['complete', self.time_str(int(time.time()))]
-            # ['complete', self.time_str(self.request['stage'][3]['time'])]
-        ]
-
-
-        t = Table(data)
-
-        t.setStyle(TableStyle([
-            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-        ]))
-
-        self.Story.append(t)
-
-        self.Story.append(Spacer(1, 0.3*inch))
 
 
     # license stuff

@@ -15,10 +15,6 @@ This is not a license. It is simply a handy reference for understanding the ODC-
 
 <b><font size=12>Acknowledgements</font></b>
 
-This work was performed in part using computational
-facilities at the College of William and Mary which were
-provided with assistance from the National Science
-Foundation, the Virginia Port Authority, and Virginia's
-Commonwealth Technology Research Fund.
+This work was performed in part using computational facilities at the College of William and Mary which were provided with assistance from the National Science Foundation, the Virginia Port Authority, and Virginia's Commonwealth Technology Research Fund.
 
 
