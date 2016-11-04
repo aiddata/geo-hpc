@@ -211,7 +211,7 @@ class DocBuilder():
             self.Story.append(Spacer(1, 0.05*inch))
 
             colnames = ', '.join([
-                '{0}.{1}.{2}'.format(dset['dataset'], dset['hash'], i)
+                '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'], i)
                 for i in ['sum', 'potential', 'reliability']
             ])
 
