@@ -5,7 +5,7 @@ import time
 import pymongo
 
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -13,6 +13,17 @@ from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER
 
 
 # =============================================================================
+
+def pg(text, pg_type):
+    """return paragraph of specified type for given text
+    """
+    if pg_type == 1:
+        return Paragraph(text, self.styles['Normal'])
+    elif pg_type == 2:
+        return Paragraph(text, self.styles['BodyText'])
+    else:
+        raise Exception("invalid paragraph type")
+
 
 class DocBuilder():
 
@@ -34,6 +45,7 @@ class DocBuilder():
         self.styles = getSampleStyleSheet()
         self.styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
         self.styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER))
+
 
 
     def time_str(self, timestamp=None):
@@ -105,7 +117,7 @@ class DocBuilder():
             ['Generated on', self.time_str()]
         ]
 
-        data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
+        data = [[i[0], pg(i[1], 1)] for i in data]
         t = Table(data)
 
         t.setStyle(TableStyle([
@@ -131,6 +143,7 @@ class DocBuilder():
             # ['complete', self.time_str(self.request['stage'][3]['time'])]
         ]
 
+        data = [[i[0], pg(i[1], 1)] for i in data]
         t = Table(data)
 
         t.setStyle(TableStyle([
@@ -174,7 +187,7 @@ class DocBuilder():
             ['Description',  self.request['boundary']['description']]
         ]
 
-        data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
+        data = [[i[0], pg(i[1], 1)] for i in data]
         t = Table(data)
         t.setStyle(TableStyle([
             ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -210,7 +223,7 @@ class DocBuilder():
             for f in dset['filters']:
                 data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
 
-            data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
+            data = [[i[0], pg(i[1], 2)] for i in data]
             t = Table(data)
             t.setStyle(TableStyle([
                 ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -247,7 +260,7 @@ class DocBuilder():
                 data.append(['Temporal Selection', ', '.join([f['name'].split('_')[-1] for f in dset['files']])])
                 data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
 
-            data = [[i[0], Paragraph(i[1], self.styles['Normal'])] for i in data]
+            data = [[i[0], pg(i[1], 1)] for i in data]
             t = Table(data)
             t.setStyle(TableStyle([
                 ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -328,7 +341,6 @@ class DocBuilder():
             # download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' #+ meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
             data.append(['Download Link', download_link])
 
-        data = [[i[0], Paragraph(i[1], self.styles['BodyText'])] for i in data]
 
         return data
 
@@ -373,6 +385,7 @@ class DocBuilder():
                 # build dataset meta table array
                 data = self.build_meta(dset['dataset'], 'release')
 
+                data = [[i[0], pg(i[1], 2)] for i in data]
                 t = Table(data)
                 t.setStyle(TableStyle([
                     ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
@@ -395,6 +408,7 @@ class DocBuilder():
                 # build dataset meta table array
                 data = self.build_meta(dset['name'], dset['type'])
 
+                data = [[i[0], pg(i[1], 2)] for i in data]
                 t = Table(data)
                 t.setStyle(TableStyle([
                     ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
