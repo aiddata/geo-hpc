@@ -336,7 +336,7 @@ class QueueToolBox():
             data_hash = json_sha1_hash(data)
 
             # add hash to request
-            if not 'hash' in raw_data or raw_data['hash'] = data_hash:
+            if not 'hash' in raw_data or raw_data['hash'] == data_hash:
                 c_queue.update(
                     { "_id": ObjectId(request['_id']) },
                     { "$set": { 'release_data.'+str(ix)+'.hash' : data_hash}}
