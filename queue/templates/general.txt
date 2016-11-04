@@ -1,3 +1,13 @@
-<b><font size=12>General Info</font></b>
+<b><font size=12>Citation</font></b>
 
-Basic info about what is provided with results zipfile: output csv file and documentation. Go over what is included in documentation. Provide general contact info.
+Please cite the following in any and all applications of the extracted datasets:
+
+Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a> DOI: 10.13140/RG.2.2.28363.59686
+
+
+<b><font size=12>General Information</font></b>
+
+The extracts results contained in this zip file should include your request documentation (this pdf document) along with a comma separated value (CSV) file containing your actual extract results.
+For additional information, usage tips, guides and more please visit <a href="http://geo.aiddata.org">geo.aiddata.org</a>
+
+To get in touch, please contact us via <a href="mailto:geo@aiddata.org">geo@aiddata.org</a>

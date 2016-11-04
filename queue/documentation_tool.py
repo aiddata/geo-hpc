@@ -61,11 +61,10 @@ class DocBuilder():
         self.add_header()
         self.add_info()
         self.add_general()
-        self.add_readme()
         self.add_overview()
         self.add_meta()
         self.add_timeline()
-        self.add_license()
+        self.add_additional()
         self.output_doc()
 
         return True
@@ -85,7 +84,7 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.25*inch))
 
         # title
-        ptext = '<font size=20>Data Extraction Tool Request Documentation</font>'
+        ptext = '<font size=20>AidData geo(query) Request Documentation</font>'
         self.Story.append(Paragraph(ptext, self.styles['Center']))
         self.Story.append(Spacer(1, 0.5*inch))
 
@@ -126,16 +125,6 @@ class DocBuilder():
 
         self.Story.append(Spacer(1,0.3*inch))
 
-
-    # general readme
-    def add_readme(self):
-
-        with open(self.dir_base + '/templates/readme.txt') as readme:
-            for line in readme:
-                p = Paragraph(line, self.styles['BodyText'])
-                self.Story.append(p)
-
-        self.Story.append(Spacer(1,0.3*inch))
 
 
     # request overview
@@ -399,9 +388,9 @@ class DocBuilder():
 
 
     # license stuff
-    def add_license(self):
+    def add_additional(self):
 
-        with open(self.dir_base + '/templates/license.txt') as license:
+        with open(self.dir_base + '/templates/additional.txt') as license:
             for line in license:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
