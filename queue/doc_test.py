@@ -98,6 +98,6 @@ request = client.asdf.det.find_one({'_id': ObjectId('581cdca6c15e0062eb8b4567')}
 
 
 from documentation_tool import DocBuilder
-doc = DocBuilder(client, request, '/sciclone/aiddata10/REU/test/doc_test.pdf')
+doc = DocBuilder(client, request, '/sciclone/aiddata10/REU/test/doc_test.pdf', "geo.aiddata.org")
 doc.build_doc()
 

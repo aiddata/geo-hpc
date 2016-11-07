@@ -118,9 +118,9 @@ class DocBuilder():
             ['Request Name', self.request['custom_name']],
             ['Request Id', str(self.request['_id'])],
             ['Email', self.request['email']],
-            ['Generated on', self.time_str(),
+            ['Generated on', self.time_str()],
             ['Download Link', 'http://{0}/query/#/status/{1}'.format(
-                self.download_server, self.request['_id'])]]
+                self.download_server, self.request['_id'])]
         ]
 
         data = [[i[0], pg(i[1], 1)] for i in data]
