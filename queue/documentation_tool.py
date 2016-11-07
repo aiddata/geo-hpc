@@ -29,7 +29,7 @@ def pg(text, pg_type):
 
 class DocBuilder():
 
-    def __init__(self, client, request, output):
+    def __init__(self, client, request, output, download_server):
 
         self.client = client
         self.c_asdf = self.client.asdf.data
@@ -38,6 +38,8 @@ class DocBuilder():
         self.request = request
         self.output = output
         self.dir_base = os.path.dirname(os.path.abspath(__file__))
+
+        self.download_server = download_server
 
         self.doc = 0
 
@@ -116,7 +118,9 @@ class DocBuilder():
             ['Request Name', self.request['custom_name']],
             ['Request Id', str(self.request['_id'])],
             ['Email', self.request['email']],
-            ['Generated on', self.time_str()]
+            ['Generated on', self.time_str(),
+            ['Download Link', 'http://{0}/query/#/status/{1}'.format(
+                self.download_server, self.request['_id'])]]
         ]
 
         data = [[i[0], pg(i[1], 1)] for i in data]
@@ -173,14 +177,21 @@ class DocBuilder():
     # request overview
     def add_overview(self):
 
+
         ptext = '<b><font size=12>Request Overview</font></b>'
+        self.Story.append(Paragraph(ptext, self.styles['Normal']))
+        self.Story.append(Spacer(1, 0.05*inch))
+
+        ptext = '<i>Note: This section only contains an overview of boundary and data selections. For meta data, see the "Meta Information" section.</i>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.15*inch))
 
-        # boundary
-        ptext = '<i>Boundary - {0}</i>'.format(self.request['boundary']['name'])
+        # ----------------------------------------
+
+        # boundary selection
+        ptext = '<b><font size=12>Boundary Selection</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.05*inch))
+        self.Story.append(Spacer(1, 0.15*inch))
 
         data = [
             ['Title', self.request['boundary']['title']],
@@ -199,8 +210,12 @@ class DocBuilder():
         self.Story.append(t)
         self.Story.append(Spacer(1, 0.1*inch))
 
+        # ----------------------------------------
 
-        # datasets
+        # column information / selections
+        ptext = '<b><font size=12>Data Selections</font></b>'
+        self.Story.append(Paragraph(ptext, self.styles['Normal']))
+        self.Story.append(Spacer(1, 0.15*inch))
 
         selection_count = 0
         for dset in self.request['release_data']:
@@ -219,7 +234,7 @@ class DocBuilder():
                 ['Column Names ', colnames],
                 ['Dataset ', dset['dataset']],
                 ['Type', 'release'],
-                ['Filters', '']
+                ['<b>Filters</b>', '']
             ]
 
             for f in dset['filters']:
