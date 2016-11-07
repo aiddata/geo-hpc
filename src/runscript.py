@@ -13,7 +13,7 @@ import extract_utility
 
 branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
-config_dir = os.path.join(branch_dir, 'asdf', 'src', 'tools')
+config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
 import mpi_utility
