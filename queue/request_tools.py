@@ -491,7 +491,7 @@ class QueueToolBox():
         # generate documentation
         doc_output =  os.path.join(request_dir,
                                    "{0}_documentation.pdf".format(request_id))
-        doc = DocBuilder(self.client, request, doc_output)
+        doc = DocBuilder(self.client, request, doc_output, self.branch_info.det['download_server'])
         bd_status = doc.build_doc()
         # print bd_status
 
