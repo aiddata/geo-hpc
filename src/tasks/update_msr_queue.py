@@ -324,8 +324,11 @@ for i in latest_releases:
 
         if (len(df_filtered) == 0 and
                 len(sector_split_list) + len(donor_split_list) <= 1):
-            print sector_split_list
-            print donor_split_list
+
+            # # prints the filter combination that has no location
+            # print sector_split_list
+            # print donor_split_list
+
             # empty_sum += 1
             continue
 
@@ -438,7 +441,7 @@ for i in latest_releases:
         time_b += time_02 - time_01
         time_c += time_03 - time_02
 
-    print time_zero - time.time()
+    print time.time() - time_zero
     print time_a
     print time_b
     print time_c
