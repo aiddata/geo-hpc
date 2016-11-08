@@ -266,6 +266,7 @@ for i in latest_releases:
     accept_count = 0
     add_count = 0
 
+    time_zero = time.time()
     time_a = 0
     time_b = 0
     time_c = 0
@@ -432,11 +433,12 @@ for i in latest_releases:
 
 
         time_03 = time.time()
+
         time_a += time_01 - time_00
-        time_b +=  time_02 - time_01
-        time_c +=  time_03 - time_02
+        time_b += time_02 - time_01
+        time_c += time_03 - time_02
 
-
+    print time_zero - time.time()
     print time_a
     print time_b
     print time_c
