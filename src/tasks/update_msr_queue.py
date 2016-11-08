@@ -23,12 +23,19 @@ from config_utility import BranchConfig
 
 config = BranchConfig(branch=branch)
 
-
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
+config_attempts = 0
+while True:
+    config = BranchConfig(branch=branch)
+    config_attempts += 1
+    if config.connection_status == 0 or config_attempts > 5:
+        break
 
 # -----------------------------------------------------------------------------
+
+
+if config.connection_status != 0:
+    print "mongodb connection error ({0})".format(config.connection_error)
+    sys.exit()
 
 
 import re
@@ -163,13 +170,17 @@ for i in latest_releases:
     for j in raw_distinct_donors:
         tmp_donors += j.split('|')
 
+
+    if len(tmp_donors) == 1:
+        tmp_donors = []
+
     dataset_info[ix]['donors'] = sorted(list(set(tmp_donors)))
     # dataset_info[ix]['donors'] = [x.encode('UTF8')
     #                                 for x in sorted(list(set(tmp_donors)))]
 
 
-    ratio_list = itertools.product(
-        range(max_sector_count), range(max_donor_count))
+    # ratio_list = itertools.product(
+    #     range(max_sector_count), range(max_donor_count))
 
 
     ratio_list = []
@@ -191,14 +202,14 @@ for i in latest_releases:
     if max_sector_count > max_donor_count:
         for d in range(min_depth+1, max_sector_count+1):
             # print d
-            ratio_list += [j for j in itertools.product([d],
-                                                        range(min_depth+1))]
+            ratio_list += [
+                j for j in itertools.product([d], range(min_depth+1))]
 
     elif max_donor_count > max_sector_count:
         for d in range(min_depth+1, max_donor_count+1):
             # print d
-            ratio_list += [j for j in itertools.product(range(min_depth+1),
-                                                        [d])]
+            ratio_list += [
+                j for j in itertools.product(range(min_depth+1), [d])]
 
 
     # print '-----'
@@ -212,9 +223,9 @@ for i in latest_releases:
             itertools.combinations(dataset_info[ix]['donors'], j[1]))
         for j in ratio_list)
 
-    # print sum(1 for j in dataset_info[i]['iter'])
+    # print sum(1 for j in dataset_info[ix]['iter'])
 
-    # for j in dataset_info[i]['iter']:
+    # for j in dataset_info[ix]['iter']:
     #     print j
 
 
