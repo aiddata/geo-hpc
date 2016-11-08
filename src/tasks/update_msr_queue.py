@@ -267,6 +267,8 @@ for i in latest_releases:
     add_count = 0
 
     time_zero = time.time()
+    time_ac = 0
+    time_bc = 0
     time_a = 0
     time_b = 0
     time_c = 0
@@ -321,6 +323,7 @@ for i in latest_releases:
 
         time_01 = time.time()
         time_a += time_01 - time_00
+        time_ac +=1
 
 
         if (len(df_filtered) == 0 and
@@ -436,7 +439,7 @@ for i in latest_releases:
             add_count += 1
 
         time_02 = time.time()
-
+        time_bc +=1
         # time_03 = time.time()
 
         time_b += time_02 - time_01
@@ -447,7 +450,9 @@ for i in latest_releases:
 
     print time.time() - time_zero
     print time_a
+    print time_a / time_ac
     print time_b
+    print time_b / time_bc
     # print time_c
 
     # print tmp_sum
