@@ -138,6 +138,8 @@ msr_resolution = 0.05
 dataset_info = {}
 for i in latest_releases:
 
+    time_00 = int(time.time())
+
     ix = i[0]
 
     print '\n'
@@ -228,6 +230,7 @@ for i in latest_releases:
     # for j in dataset_info[ix]['iter']:
     #     print j
 
+    time_01 = int(time.time())
 
     # =========================================================================
 
@@ -250,6 +253,8 @@ for i in latest_releases:
     df_prep = core.prep_data(df_merged)
 
     tmp_total_aid = sum(df_prep['split_dollars_pp'])
+
+    time_02 = int(time.time())
 
 
     total_count = 0
@@ -422,6 +427,10 @@ for i in latest_releases:
             add_count += 1
 
 
+    time_03 = int(time.time())
+    print time_01 - time_00
+    print time_02 - time_01
+    print time_03 - time_02
 
     # print tmp_sum
     # print empty_sum
