@@ -305,7 +305,6 @@ for i in latest_releases:
             'All' not in raw_filters[filter_field]
         }
 
-        time_01 = time.time()
 
         df_filtered = core.filter_data(df_prep, filters)
 
@@ -320,6 +319,8 @@ for i in latest_releases:
         else:
             donor_split_list = filters['donors']
 
+        time_01 = time.time()
+        time_a += time_01 - time_00
 
 
         if (len(df_filtered) == 0 and
@@ -362,6 +363,7 @@ for i in latest_releases:
 
         # good_sum += 1
 
+
         # --------------------------------------------------
 
         # using filter, get project count and % total aid for release
@@ -382,7 +384,6 @@ for i in latest_releases:
         # # print sum(df_filtered['adjusted_val'])
         # print filter_percentage
 
-        time_02 = time.time()
 
         # build msr object
         msr_object = {
@@ -434,17 +435,20 @@ for i in latest_releases:
         if exists.upserted_id != None:
             add_count += 1
 
+        time_02 = time.time()
 
-        time_03 = time.time()
+        # time_03 = time.time()
 
-        time_a += time_01 - time_00
         time_b += time_02 - time_01
-        time_c += time_03 - time_02
+        # time_c += time_03 - time_02
+
+        # print "a:{0} b:{1} c:{2}".format(time_01 - time_00, time_02 - time_01, time_03 - time_02)
+
 
     print time.time() - time_zero
     print time_a
     print time_b
-    print time_c
+    # print time_c
 
     # print tmp_sum
     # print empty_sum
