@@ -321,10 +321,6 @@ for i in latest_releases:
         else:
             donor_split_list = filters['donors']
 
-        time_01 = time.time()
-        time_a += time_01 - time_00
-        time_ac +=1
-
 
         if (len(df_filtered) == 0 and
                 len(sector_split_list) + len(donor_split_list) <= 1):
@@ -387,6 +383,9 @@ for i in latest_releases:
         # # print sum(df_filtered['adjusted_val'])
         # print filter_percentage
 
+        time_01 = time.time()
+        time_a += time_01 - time_00
+        time_ac +=1
 
         # build msr object
         msr_object = {
