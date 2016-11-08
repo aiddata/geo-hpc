@@ -134,11 +134,19 @@ msr_resolution = 0.05
 
 # -------------------------------------
 
+def json_sha1_hash(hash_obj):
+    hash_json = json.dumps(hash_obj,
+                           sort_keys = True,
+                           ensure_ascii = True,
+                           separators=(', ', ': '))
+    hash_builder = hashlib.sha1()
+    hash_builder.update(hash_json)
+    hash_sha1 = hash_builder.hexdigest()
+    return hash_sha1
+
 
 dataset_info = {}
 for i in latest_releases:
-
-    time_00 = int(time.time())
 
     ix = i[0]
 
@@ -230,7 +238,6 @@ for i in latest_releases:
     # for j in dataset_info[ix]['iter']:
     #     print j
 
-    time_01 = int(time.time())
 
     # =========================================================================
 
@@ -254,14 +261,14 @@ for i in latest_releases:
 
     tmp_total_aid = sum(df_prep['split_dollars_pp'])
 
-    time_02 = int(time.time())
-
 
     total_count = 0
     accept_count = 0
     add_count = 0
 
     for filter_fields in dataset_info[ix]['iter']:
+
+        time_00 = int(time.time())
 
         # tmp_sum += 1
         total_count += 1
@@ -293,6 +300,7 @@ for i in latest_releases:
             'All' not in raw_filters[filter_field]
         }
 
+        time_01 = int(time.time())
 
         df_filtered = core.filter_data(df_prep, filters)
 
@@ -366,6 +374,7 @@ for i in latest_releases:
         # # print sum(df_filtered['adjusted_val'])
         # print filter_percentage
 
+        time_02 = int(time.time())
 
         # build msr object
         msr_object = {
@@ -386,15 +395,6 @@ for i in latest_releases:
         #         processing (python: det-module>queue>cache.py)
         #         hash.
 
-        def json_sha1_hash(hash_obj):
-            hash_json = json.dumps(hash_obj,
-                                   sort_keys = True,
-                                   ensure_ascii = True,
-                                   separators=(', ', ': '))
-            hash_builder = hashlib.sha1()
-            hash_builder.update(hash_json)
-            hash_sha1 = hash_builder.hexdigest()
-            return hash_sha1
 
         filter_hash = json_sha1_hash(msr_object)
 
@@ -427,10 +427,12 @@ for i in latest_releases:
             add_count += 1
 
 
-    time_03 = int(time.time())
-    print time_01 - time_00
-    print time_02 - time_01
-    print time_03 - time_02
+        time_03 = int(time.time())
+        print "--------"
+        print time_01 - time_00
+        print time_02 - time_01
+        print time_03 - time_02
+        print "--------"
 
     # print tmp_sum
     # print empty_sum
