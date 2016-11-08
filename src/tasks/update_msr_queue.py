@@ -266,16 +266,24 @@ for i in latest_releases:
     accept_count = 0
     add_count = 0
 
+
+
+    ###
     time_zero = time.time()
+
     time_ac = 0
     time_bc = 0
+    time_cc = 0
     time_a = 0
     time_b = 0
     time_c = 0
+    ###
 
     for filter_fields in dataset_info[ix]['iter']:
 
+        ###
         time_00 = time.time()
+        ###
 
         # tmp_sum += 1
         total_count += 1
@@ -310,6 +318,11 @@ for i in latest_releases:
 
         df_filtered = core.filter_data(df_prep, filters)
 
+        ###
+        time_01 = time.time()
+        time_a += time_01 - time_00
+        time_ac +=1
+        ###
 
         if not 'ad_sector_names' in filters.keys():
             sector_split_list = []
@@ -338,6 +351,7 @@ for i in latest_releases:
             # count_thresh_sum += 1
             continue
 
+
         # adjust aid based on ratio of sectors/donors in
         # filter to all sectors/donors listed for project
 
@@ -363,6 +377,12 @@ for i in latest_releases:
         # good_sum += 1
 
 
+        ###
+        time_02 = time.time()
+        time_b += time_02 - time_01
+        time_bc +=1
+        ###
+
         # --------------------------------------------------
 
         # using filter, get project count and % total aid for release
@@ -383,9 +403,6 @@ for i in latest_releases:
         # # print sum(df_filtered['adjusted_val'])
         # print filter_percentage
 
-        time_01 = time.time()
-        time_a += time_01 - time_00
-        time_ac +=1
 
         # build msr object
         msr_object = {
@@ -437,22 +454,24 @@ for i in latest_releases:
         if exists.upserted_id != None:
             add_count += 1
 
-        time_02 = time.time()
-        time_bc +=1
-        # time_03 = time.time()
-
-        time_b += time_02 - time_01
-        # time_c += time_03 - time_02
-
-        # print "a:{0} b:{1} c:{2}".format(time_01 - time_00, time_02 - time_01, time_03 - time_02)
 
 
+        ###
+        time_03 = time.time()
+        time_c += time_03 - time_02
+        time_cc +=1
+        ###
+
+
+    ###
     print time.time() - time_zero
     print time_a
     print time_a / time_ac
     print time_b
     print time_b / time_bc
-    # print time_c
+    print time_c
+    print time_c / time_cc
+    ###
 
     # print tmp_sum
     # print empty_sum
