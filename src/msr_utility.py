@@ -426,22 +426,35 @@ class CoreMSR():
 
                 if filter_field == "transaction_year":
 
-                    year_list = tmp_filter
                     # need to add year filter to check if year is
                     # between transaction_start_year and
                     # transaction_end_year
                     df_filtered = df_filtered.loc[
                         df_filtered.apply(
                             lambda z: any(
-                                int(y) >= int(z.transactions_start_year) and
-                                int(y) <= int(z.transactions_end_year)
-                                for y in year_list),
+                                int(year) >= int(z.transactions_start_year) and
+                                int(year) <= int(z.transactions_end_year)
+                                for year in tmp_filter),
+                            axis=1)
+                    ].copy(deep=True)
+
+                elif filter_field in ['total_commitments', 'total_disbursements']:
+
+                    range_min = min(tmp_filter)
+                    range_max = max(tmp_filter)
+
+                    df_filtered = df_filtered.loc[
+                        df_filtered.apply(
+                            lambda z: (
+                                range_max >= z[filter_field] and
+                                range_min <= z[filter_field]
+                            ),
                             axis=1)
                     ].copy(deep=True)
 
                 else:
                     df_filtered = df_filtered.loc[
-                        df_filtered[filter_field].str.contains(
+                        df_filtered[filter_field].astype(str).str.contains(
                             '|'.join([re.escape(i) for i in tmp_filter]))
                     ].copy(deep=True)
 
