@@ -67,13 +67,13 @@ init() {
     update_repos_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' update_repos #asdf'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*update_repos' | { cat; echo "$update_repos_cron"; } | crontab -
 
-    # db_updates
-    db_updates_cron='0 4-23/4 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' db_updates #asdf'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*db_updates' | { cat; echo "$db_updates_cron"; } | crontab -
-
     # cleanup_repos
     cleanup_repos_cron='25 0 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' cleanup_repos #asdf'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
+
+    # db_updates
+    build_db_updates_job_cron='0 4-23/4 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_db_updates_job #asdf'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_db_updates_job' | { cat; echo "$build_db_updates_job_cron"; } | crontab -
 
     # build_msr_job
     build_msr_job_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_msr_job #asdf'
