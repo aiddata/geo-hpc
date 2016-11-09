@@ -85,8 +85,8 @@ else
 
     job_path=$(mktemp)
 
-    nodes=4
-    ppn=4
+    nodes=2
+    ppn=16
     total=$(($nodes * $ppn))
 
 
