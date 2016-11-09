@@ -326,9 +326,9 @@ class QueueToolBox():
             # mongo was defaulting to 32bit vals for numbers on insert
             # making float should prevent that
             if 'total_commitments' in raw_data['filters']:
-                tmp_filters['total_commitments'] = [float(i) for i in raw_data['filters']['total_commitments']]
+                tmp_filters['total_commitments'] = [NumberLong(i) for i in raw_data['filters']['total_commitments']]
             if 'total_disbursements' in raw_data['filters']:
-                tmp_filters['total_disbursements'] = [float(i) for i in raw_data['filters']['total_disbursements']]
+                tmp_filters['total_disbursements'] = [NumberLong(i) for i in raw_data['filters']['total_disbursements']]
 
 
             # msr request object format
