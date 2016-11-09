@@ -453,10 +453,19 @@ class CoreMSR():
                     ].copy(deep=True)
 
                 else:
-                    df_filtered = df_filtered.loc[
-                        df_filtered[filter_field].str.contains(
-                            '|'.join([re.escape(i) for i in tmp_filter]))
-                    ].copy(deep=True)
+
+                    try:
+                        df_filtered = df_filtered.loc[
+                            df_filtered[filter_field].str.contains(
+                                '|'.join([re.escape(i) for i in tmp_filter]))
+                        ].copy(deep=True)
+                    except:
+                        df_filtered[filter_field] = df_filtered[filter_field].astype(str)
+
+                        df_filtered = df_filtered.loc[
+                            df_filtered[filter_field].str.contains(
+                                '|'.join([re.escape(str(i)) for i in tmp_filter]))
+                        ].copy(deep=True)
 
 
         return df_filtered
