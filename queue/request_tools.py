@@ -316,6 +316,16 @@ class QueueToolBox():
         print "\nchecking aid data..."
         for ix, raw_data in enumerate(request['release_data']):
 
+            # # mongo was defaulting to 32bit vals for numbers on insert
+            # # making float should prevent that
+            # if 'total_commitments' in raw_data['filters']:
+            #     raw_data['filters']['total_commitments'] = [
+            #         float(i) for i in raw_data['filters']['total_commitments']]
+            # if 'total_disbursements' in raw_data['filters']:
+            #     raw_data['filters']['total_disbursements'] = [
+            #         float(i) for i in raw_data['filters']['total_disbursements']]
+
+
             # remove filters without actual fields
             tmp_filters = {
                 fk: fv
@@ -323,12 +333,6 @@ class QueueToolBox():
                 if not any([fvx in ['All', 'None', None] for fvx in fv])
             }
 
-            # mongo was defaulting to 32bit vals for numbers on insert
-            # making float should prevent that
-            if 'total_commitments' in raw_data['filters']:
-                tmp_filters['total_commitments'] = [long(i) for i in raw_data['filters']['total_commitments']]
-            if 'total_disbursements' in raw_data['filters']:
-                tmp_filters['total_disbursements'] = [long(i) for i in raw_data['filters']['total_disbursements']]
 
 
             # msr request object format
