@@ -76,15 +76,15 @@ init() {
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_db_updates_job' | { cat; echo "$build_db_updates_job_cron"; } | crontab -
 
     # build_msr_job
-    build_msr_job_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_msr_job #asdf'
+    build_msr_job_cron='*/1 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_msr_job #asdf'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
 
     # build_extract_job
-    build_extract_job_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_extract_job #asdf'
+    build_extract_job_cron='*/1 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_extract_job #asdf'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_extract_job' | { cat; echo "$build_extract_job_cron"; } | crontab -
 
     # build_det_job
-    build_det_job_cron='*/10 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_det_job #asdf'
+    build_det_job_cron='*/1 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_det_job #asdf'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_det_job' | { cat; echo "$build_det_job_cron"; } | crontab -
 
 }
