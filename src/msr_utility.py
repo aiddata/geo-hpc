@@ -454,7 +454,7 @@ class CoreMSR():
 
                 else:
                     df_filtered = df_filtered.loc[
-                        df_filtered[filter_field].astype(str).str.contains(
+                        df_filtered[filter_field].str.contains(
                             '|'.join([re.escape(i) for i in tmp_filter]))
                     ].copy(deep=True)
 
