@@ -334,7 +334,6 @@ class QueueToolBox():
             }
 
 
-
             # msr request object format
             data = {
                 'dataset': raw_data['dataset'],
