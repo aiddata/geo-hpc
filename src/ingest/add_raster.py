@@ -433,7 +433,11 @@ def run(path=None, client=None, version=None, config=None,
 
         # exit if basic geo does not match
         if base_geo != env:
-            quit("Raster bounding box does not match")
+            print f
+            print base_geo
+            print env
+            warn("Raster bounding box does not match")
+            # quit("Raster bounding box does not match")
 
 
     env = ru.trim_envelope(env)

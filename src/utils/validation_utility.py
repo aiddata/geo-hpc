@@ -71,7 +71,7 @@ class ValidationTools():
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
             },
-            "extracts": ['mean', 'max', 'sum', 'min'],
+            "extracts": ['mean', 'max', 'sum', 'min', 'count'],
             "group_class": ['actual', 'sub']
         }
 
