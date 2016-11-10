@@ -77,9 +77,9 @@
             "citation": "By clicking submit below, you agree to cite the following in any and all applications of the extracted datasets: Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org. DOI: 10.13140/RG.2.2.28363.59686",
             "data_categories": [
                 {"display": "Featured", "tag": "featured"},
-                {"display": "AidData Datasets", "tag": "release"},
-                {"display": "All Rasters", "tag": "raster"},
-                {"display": "Climate", "tag": "udel"}
+                {"display": "Environment & Climated", "tag": "environment"},
+                {"display": "Socioeconomic", "tag": "socioeconomic"},
+                {"display": "Other", "tag": "other"}
             ],
             "limits": {
                 "raster": -1,
