@@ -47,7 +47,6 @@ for bnd_group in db_trackers.collection_names():
 
     c_bnd = db_trackers[bnd_group]
 
-
     find = {
         "name": "worldbank_geocodedresearchrelease_level1_v1_4_1"
     }

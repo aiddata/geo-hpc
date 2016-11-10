@@ -112,9 +112,9 @@
                     "parent": false
                 },
                 {
-                    "field": "recipients",
-                    "display": "recipients",
-                    "description": "Recipients of project, usually a country.",
+                    "field": "recipients_iso3",
+                    "display": "recipients country iso3",
+                    "description": "Recipients ISO3 of project, usually corresponding to a country.",
                     "is_default": false,
                     "filter_type": "list",
                     "parent": false
