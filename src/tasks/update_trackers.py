@@ -20,10 +20,14 @@ if not os.path.isdir(branch_dir):
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
-from config_utility import *
+from config_utility import BranchConfig
 
-config = BranchConfig(branch=branch)
-
+config_attempts = 0
+while True:
+    config = BranchConfig(branch=branch)
+    config_attempts += 1
+    if config.connection_status == 0 or config_attempts > 5:
+        break
 
 # check mongodb connection
 if config.connection_status != 0:
@@ -188,7 +192,7 @@ for bnd in bnds:
             for k, v in config.release_iso3.items():
                 if (match['name'].startswith(k.lower()) and
                         (bnd["extras"]["gadm_iso3"].upper() in v or
-                         "Global" in v)):
+                         "global" in v)):
 
                     result = True
 
