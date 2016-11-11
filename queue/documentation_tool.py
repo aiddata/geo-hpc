@@ -269,7 +269,7 @@ class DocBuilder():
                         'for all combinations of <temporal> and <method> '
                         'which can be found in the "Temporal Selection" and '
                         '"Extract Types Selected" fields below '
-                        '({1} columns total)'.format(
+                        '({1} columns total)').format(
                             dset['name'], len(colnames_list)
                         )
 
