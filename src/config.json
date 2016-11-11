@@ -78,9 +78,9 @@
             "data_categories": [
                 {"display": "International Aid", "tag": "aid"},
                 {"display": "Environment", "tag": "environment"},
-                {"display": "Economics", "tag": "economics"},
-                {"display": "Human Welfare", "tag": "welfare"},
                 {"display": "Conflict", "tag": "conflict"}
+                {"display": "Economics", "tag": "economics"},
+                {"display": "Human Welfare", "tag": "welfare"}
             ],
             "limits": {
                 "raster": -1,
