@@ -1061,7 +1061,7 @@ class MergeObject():
 
 
             result_df = pd.read_csv(result_csv, quotechar='\"',
-                                    na_values='', keep_default_na=False)
+                                    na_values='', keep_default_na=False, encoding='utf-8')
 
 
             exfields = [
