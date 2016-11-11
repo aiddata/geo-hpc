@@ -289,9 +289,9 @@ class DocBuilder():
             else:
                 temporal_int = [int(s) for s in temporal_raw]
                 temporal_sorted = sorted(temporal_int, reverse=True)
-                temporal_str = ', '.join([str(ts) for ts in temporal_sorted])
+                temporal_str = [str(ts) for ts in temporal_sorted]
 
-            data.append(['Temporal Selection', temporal_str])
+            data.append(['Temporal Selection', ', '.join(temporal_str)])
 
             data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
 
