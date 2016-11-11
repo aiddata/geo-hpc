@@ -280,11 +280,21 @@ class DocBuilder():
                 ['Type', dset['type']]
             ]
 
-            if dset['type'] == 'raster':
-                data.append(['Temporal Type', dset['temporal_type']])
-                data.append(['Temporal Selection', ', '.join([str(fx) for fx in sorted(
-                    [int(f['name'].split('_')[-1]) for f in dset['files']], reverse=True)])])
-                data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
+            data.append(['Temporal Type', dset['temporal_type']])
+
+            temporal_raw = [f['name'].split('_')[-1] for f in dset['files']]
+
+            if 'none' in temporal_raw:
+                temporal_str = temporal_raw
+            else:
+                temporal_int = [int(s) for s in temporal_raw]
+                temporal_sorted = sorted(temporal_int, reverse=True)
+                temporal_str = ', '.join([str(ts) for ts in temporal_sorted])
+
+            data.append(['Temporal Selection', temporal_str])
+
+            data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
+
 
             data = [[i[0], pg(i[1], 1)] for i in data]
             t = Table(data)
