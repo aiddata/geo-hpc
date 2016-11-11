@@ -282,7 +282,8 @@ class DocBuilder():
 
             if dset['type'] == 'raster':
                 data.append(['Temporal Type', dset['temporal_type']])
-                data.append(['Temporal Selection', ', '.join([f['name'].split('_')[-1] for f in dset['files']])])
+                data.append(['Temporal Selection', ', '.join(sorted(
+                    [int(f['name'].split('_')[-1]) for f in dset['files']], reverse=True))])
                 data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
 
             data = [[i[0], pg(i[1], 1)] for i in data]
