@@ -77,9 +77,11 @@
             "citation": "By clicking submit below, you agree to cite the following in any and all applications of the extracted datasets: Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at http://geo.aiddata.org. DOI: 10.13140/RG.2.2.28363.59686",
             "data_categories": [
                 {"display": "Featured", "tag": "featured"},
-                {"display": "Environment & Climate", "tag": "environment"},
-                {"display": "Socioeconomic", "tag": "socioeconomic"},
-                {"display": "Other", "tag": "other"}
+                {"display": "International Aid", "tag": "aid"},
+                {"display": "Environment", "tag": "environment"},
+                {"display": "Economics", "tag": "economics"},
+                {"display": "Human Welfare", "tag": "welfare"},
+                {"display": "Conflict", "tag": "conflict"}
             ],
             "limits": {
                 "raster": -1,
