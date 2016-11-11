@@ -265,8 +265,8 @@ class DocBuilder():
                 for j in dset['options']['extract_types']
             ]
 
-            colnames = ('Format: "{0}.<temporal>.<method>"\n\n '
-                        'for all combinations of <temporal> and <method> '
+            colnames = ('Format: "{0}.\<temporal\>.\<method\>"\n\n '
+                        'for all combinations of \<temporal\> and \<method\> '
                         'which can be found in the "Temporal Selection" and '
                         '"Extract Types Selected" fields below '
                         '({1} columns total)').format(
