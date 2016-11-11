@@ -171,10 +171,11 @@ class ExtractItem():
         search = self.c_extracts.find_one(query)
 
         if search is not None:
-            if search['status'] == 0 and search['priority'] < 0:
-                # update priority
-                update = self.c_extracts.update(query,
-                                                {'$set': {'priority': 0}})
+            # if search['status'] == 0 and search['priority'] < 0:
+
+            # update priority
+            update = self.c_extracts.update(query,
+                                            {'$set': details})
         else:
             # insert full
             insert = self.c_extracts.insert(full_insert)

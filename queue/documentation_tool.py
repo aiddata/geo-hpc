@@ -259,11 +259,19 @@ class DocBuilder():
             self.Story.append(Spacer(1, 0.05*inch))
 
 
-            colnames =  ', '.join([
+            colnames_list =  [
                 '{0}.{1}.{2}'.format(dset['name'], i, j)
                 for i in [f['name'].split('_')[-1] for f in dset['files']]
                 for j in dset['options']['extract_types']
-            ])
+            ]
+
+            colnames = ('Format: "{0}.<temporal>.<method>"\n\n '
+                        'for all combinations of <temporal> and <method> '
+                        'which can be found in the "Temporal Selection" and '
+                        '"Extract Types Selected" fields below '
+                        '({1} columns total)'.format(
+                            dset['name'], len(colnames_list)
+                        )
 
             data = [
                 ['Column Names ', colnames],

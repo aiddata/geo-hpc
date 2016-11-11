@@ -119,10 +119,11 @@ class MSRItem():
         search = self.c_msr.find_one(query)
 
         if search is not None:
-             if search['status'] == 0 and search['priority'] < 0:
-                # update priority
-                update = self.c_msr.update(query,
-                                           {'$set': {'priority': 0}})
+             # if search['status'] == 0 and search['priority'] < 0:
+
+            # update priority
+            update = self.c_msr.update(query,
+                                       {'$set': details})
         else:
             # insert full
             insert = self.c_msr.insert(full_insert)
