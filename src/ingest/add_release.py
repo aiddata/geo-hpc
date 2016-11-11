@@ -205,7 +205,7 @@ def run(path=None, client=None, version=None, config=None,
             doc["version"])
 
 
-    doc["extras"]["tags"] = ["aiddata", "geocoded", "release", "socioeconomic"]
+    doc["extras"]["tags"] = ["aiddata", "geocoded", "release", "aid", "economics", "welfare"]
 
     is_active = doc["extras"]["data_set_preamble"] in config.release_iso3
     doc["active"] = int(is_active)
