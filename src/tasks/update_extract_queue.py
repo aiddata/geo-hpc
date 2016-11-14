@@ -145,7 +145,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 {
                     'boundary': b,
                     'data': '{0}_{1}'.format(r["dataset"], r["hash"]),
-                    'extract_type': 'sum',
+                    'extract_type': 'reliability',
                     'version': version,
                     'classification': 'msr'
                 }
