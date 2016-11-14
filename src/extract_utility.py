@@ -26,7 +26,7 @@ import pandas as pd
 # import geopandas as gpd
 import fiona
 from shapely.geometry import shape
-
+from shapely.geos import TopologicalError
 import pymongo
 
 
@@ -658,8 +658,31 @@ class ExtractObject():
                             max_dollars = 0
                             for r in self._rgeo:
                                 # does unique geom intersect feature geom
-                                r_intersects = shape(
-                                    r['geometry']).intersects(feat_geom)
+
+                                try:
+                                    r_intersects = shape(
+                                        r['geometry']).intersects(feat_geom)
+
+                                except TopologicalError as e:
+
+                                    simpledec = re.compile(r"\d*\.\d+")
+                                    def mround(match):
+                                        return "{:.6f}".format(float(match.group()))
+
+                                    valid_int_geom = re.sub(simpledec, mround,
+                                                            json.dumps(feat_geom))
+
+                                    valid_int_geom = shape(
+                                        json.loads(valid_int_geom)).buffer(0)
+
+                                    r_intersects = shape(
+                                        r['geometry']).intersects(valid_int_geom)
+
+                                    # print ("Warning - Geom precision reduced"
+                                    #        " (feature {0} in {1})").format(
+                                    #             idx, self.bnd_name)
+
+
 
                                 if r_intersects:
                                     tmp_aid = r['properties']['unique_dollars']
@@ -1368,7 +1391,7 @@ class FeatureTool():
 
                             try:
                                 tmp_geo_str = re.sub('180\.[0-9]+', '179.99999999999999',
-                                                     json.dumps(mongo_geom))
+                                                     json.dumps(tmp_buffer))
                                 feature_insert['geometry'] = json.loads(tmp_geo_str)
 
                                 insert = self.c_features.insert(feature_insert)
