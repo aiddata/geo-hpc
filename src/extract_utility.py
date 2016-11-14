@@ -684,6 +684,7 @@ class ExtractObject():
                         print feat['properties']['exfield_sum']
                         print type(feat['properties']['exfield_sum'])
                         feat['properties']['exfield_sum'] = 'NA'
+                        raise
 
                 else:
                     warnings.warn('Reliability field (sum) missing from ' +
