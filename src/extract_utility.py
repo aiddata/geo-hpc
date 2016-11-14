@@ -670,7 +670,7 @@ class ExtractObject():
                                         return "{:.6f}".format(float(match.group()))
 
                                     valid_int_geom = re.sub(simpledec, mround,
-                                                            json.dumps(feat_geom))
+                                                            json.dumps(feat_geom.__geo_interface))
 
                                     valid_int_geom = shape(
                                         json.loads(valid_int_geom)).buffer(0)
