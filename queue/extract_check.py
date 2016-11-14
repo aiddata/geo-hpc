@@ -101,7 +101,7 @@ class ExtractItem():
         # outside class instance
         self.extract_path = extract_path
 
-        extract_exists = os.path.isfile(extract_path)
+        extract_exists = os.path.isfile(extract_path) and os.stat(extract_path).st_size > 0
 
         # print 'extract file info'
         # print extract_path

@@ -44,9 +44,9 @@ class MSRItem():
         geojson_path = msr_base + '/unique.geojson'
         summary_path = msr_base + '/summary.json'
 
-        raster_exists = os.path.isfile(raster_path)
-        geojson_exists = os.path.isfile(geojson_path)
-        summary_exists = os.path.isfile(summary_path)
+        raster_exists = os.path.isfile(raster_path) and os.stat(raster_path).st_size > 0
+        geojson_exists = os.path.isfile(geojson_path) and os.stat(geojson_path).st_size > 0
+        summary_exists = os.path.isfile(summary_path) and os.stat(summary_path).st_size > 0
 
         msr_exists = raster_exists and geojson_exists and summary_exists
 
