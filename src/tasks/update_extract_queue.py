@@ -181,7 +181,7 @@ for group, group_bnds in bnd_groups.iteritems():
 
 
 print ('Potential raster extracts: {0}').format(raster_total_count)
-print ('Potential msr extracts: {0}').format(raster_total_count)
+print ('Potential msr extracts: {0}').format(release_total_count)
 
 
 
