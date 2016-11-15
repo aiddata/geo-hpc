@@ -99,6 +99,9 @@ print ("{0} unprocessed outdated automated extract "
 
 extract_items = []
 
+raster_total_count = 0
+release_total_count = 0
+
 for group, group_bnds in bnd_groups.iteritems():
 
     datasets = db_trackers[group].find({"status":1})
@@ -116,6 +119,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 msg = "No active raster found (name: {0})".format(
                     data["name"])
                 warn(msg)
+                continue
 
             extract_types = raster['options']['extract_types']
 
@@ -131,6 +135,8 @@ for group, group_bnds in bnd_groups.iteritems():
                 for e in extract_types
                 for b in group_bnds
             ]
+
+            raster_total_count += 1
 
 
         elif data["type"] == "release":
@@ -159,6 +165,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
+            release_total_count += 1
 
         else:
 
@@ -172,7 +179,9 @@ for group, group_bnds in bnd_groups.iteritems():
 
 # check if unique extract combinations exist in tracker
 # and add if they do not
-add_count = 0
+raster_add_count = 0
+release_add_count = 0
+
 for i in extract_items:
 
     # build full doc
@@ -191,11 +200,17 @@ for i in extract_items:
     exists = c_extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
 
     if exists.upserted_id != None:
-        add_count += 1
+        if i['classification'] == 'raster':
+            raster_add_count += 1
+        elif i['classification'] == 'msr':
+            release_add_count += 1
 
 
-print ('Added ' + str(add_count) + ' extract items to extract queue (' +
-       str(len(extract_items)) + ' total possible).')
+print ('Added {0} raster extracts to queue out of {1} possible.').format(
+    raster_add_count, raster_total_count)
+print ('Added {0} msr extracts to queue out of {1} possible.').format(
+    release_add_count, release_total_count)
+
 
 
 # -------------------------------------
