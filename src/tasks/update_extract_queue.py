@@ -123,6 +123,8 @@ for group, group_bnds in bnd_groups.iteritems():
 
             extract_types = raster['options']['extract_types']
 
+            base_count = len(extract_items)
+
             extract_items += [
                 {
                     'boundary': b,
@@ -136,7 +138,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
-            raster_total_count += 1
+            raster_total_count += len(extract_items) - base_count
 
 
         elif data["type"] == "release":
@@ -153,6 +155,8 @@ for group, group_bnds in bnd_groups.iteritems():
                 tmp_extract_type = 'sum'
             ###
 
+            base_count = len(extract_items)
+
             extract_items += [
                 {
                     'boundary': b,
@@ -165,7 +169,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
-            release_total_count += 1
+            release_total_count += len(extract_items) - base_count
 
         else:
 
@@ -174,6 +178,10 @@ for group, group_bnds in bnd_groups.iteritems():
                                               group)
             warn(msg)
 
+
+
+print ('Potential raster extracts: {0}').format(raster_total_count)
+print ('Potential msr extracts: {0}').format(raster_total_count)
 
 
 
