@@ -230,11 +230,16 @@ class DocBuilder():
                 for i in ['sum', 'potential', 'reliability']
             ])
 
+            ###
+            if dset['dataset'].startswith('worldbank'):
+                colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'], 'sum')
+            ###
+
             data = [
                 ['Column Names ', colnames],
                 ['Dataset ', dset['dataset']],
                 ['Type', 'release'],
-                ['<b>Filters</b>', '']
+                [pg('<b>Filters</b>', 1), '']
             ]
 
             for f in dset['filters']:

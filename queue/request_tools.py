@@ -372,12 +372,18 @@ class QueueToolBox():
 
             if msr_completed == True:
 
+                ###
+                tmp_extract_type = 'reliability'
+                if data["dataset"].startswith('worldbank'):
+                    tmp_extract_type = 'sum'
+                ###
+
                 msr_ex_item = ExtractItem(self.client,
                                           extract_base,
                                           request["boundary"]["name"],
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
-                                          "reliability",
+                                          tmp_extract_type,
                                           data_hash,
                                           self.extract_version)
 
