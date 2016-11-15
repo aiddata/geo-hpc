@@ -669,14 +669,14 @@ class ExtractObject():
                                     def mround(match):
                                         return "{:.6f}".format(float(match.group()))
 
-                                    valid_int_geom = re.sub(simpledec, mround,
-                                                            json.dumps(feat_geom.__geo_interface__))
+                                    feat_geom = re.sub(simpledec, mround,
+                                                       json.dumps(feat_geom.__geo_interface__))
 
-                                    valid_int_geom = shape(
-                                        json.loads(valid_int_geom)).buffer(0)
+                                    feat_geom = shape(
+                                        json.loads(feat_geom)).buffer(0)
 
                                     r_intersects = shape(
-                                        r['geometry']).intersects(valid_int_geom)
+                                        r['geometry']).intersects(feat_geom)
 
                                     # print ("Warning - Geom precision reduced"
                                     #        " (feature {0} in {1})").format(
