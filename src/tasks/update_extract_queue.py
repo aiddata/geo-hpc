@@ -141,11 +141,17 @@ for group, group_bnds in bnd_groups.iteritems():
                 "status": 1
             })
 
+            ###
+            tmp_extract_type = 'reliability'
+            if data["name"].startswith('worldbank'):
+                tmp_extract_type = 'sum'
+            ###
+
             extract_items += [
                 {
                     'boundary': b,
                     'data': '{0}_{1}'.format(r["dataset"], r["hash"]),
-                    'extract_type': 'reliability',
+                    'extract_type': tmp_extract_type,
                     'version': version,
                     'classification': 'msr'
                 }
