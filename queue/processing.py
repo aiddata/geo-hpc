@@ -173,7 +173,7 @@ for request_obj in request_objects:
             print "Error while checking for updated request (id: " + request_id + ")"
             raise
 
-        if request_check is None:
+        if updated_request_obj is None:
             sys.exit("Error getting updated request: Request with id does not exist (" + request_id + ")")
 
 
