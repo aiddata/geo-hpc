@@ -166,9 +166,20 @@ for request_obj in request_objects:
 
     if missing_items == 0:
 
+        # pull request again, since check_request may have updated fields
+        try:
+            updated_request_obj = queue.check_id(request_id)
+        except Exception as e:
+            print "Error while checking for updated request (id: " + request_id + ")"
+            raise
+
+        if request_check is None:
+            sys.exit("Error getting updated request: Request with id does not exist (" + request_id + ")")
+
+
         try:
             # build request
-            queue.build_output(request_obj, merge_list)
+            queue.build_output(updated_request_obj, merge_list)
         except Exception as e:
             print "error building request output"
             queue.update_status(request_id, -2)
