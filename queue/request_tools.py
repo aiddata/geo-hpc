@@ -279,25 +279,25 @@ class QueueToolBox():
         mail_message = (
             """
             Your request has been completed.
-            \n
+
             You can review your request and download the results using the following page:
             \thttp://{0}/query/#/status/{1}
-            \n
+
             or download the results directly (this link will always be available):
             \thttp://{0}/data/geoquery_results/{1}.zip
-            \n
-            \n
+
+
             You can also view all your current and previous requests using:
             \thttp://{0}/query/#/requests/{2}
-            \n
-            \n
+
+
             If you have not done so before, or if your information has
             changed or if you would like to provide additional feedback,
             please fill out this brief survey regarding your experience
             with geo(query).
             \thttps://goo.gl/4WZ46M
-            \n
-            \n
+
+
             Thank you,
             \tThe AidData Team
             """).format(
