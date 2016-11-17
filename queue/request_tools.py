@@ -276,14 +276,32 @@ class QueueToolBox():
         mail_subject = ("AidData geo(query) - "
                         "Request {0}.. Completed").format(request_id[:7])
 
-        mail_message = ("Your request has been completed. \n"
-                        "The results can be accessed using the following "
-                        "link: \n"
-                        "http://{0}/query/#/status/{1}\n\n"
-                        "You can also view all your current and previous "
-                        "requests using: \n"
-                        "http://{0}/query/#/requests/{2}\n\n").format(
-                            self.branch_info.det['download_server'], request_id, mail_to)
+        mail_message = (
+            """
+            Your request has been completed.
+            \n
+            You can review your request and download the results using the following page:
+            \thttp://{0}/query/#/status/{1}
+            \n
+            or download the results directly (this link will always be available):
+            \thttp://{0}/data/geoquery_results/{1}.zip
+            \n
+            \n
+            You can also view all your current and previous requests using:
+            \thttp://{0}/query/#/requests/{2}
+            \n
+            \n
+            If you have not done so before, or if your information has
+            changed or if you would like to provide additional feedback,
+            please fill out this brief survey regarding your experience
+            with geo(query).
+            \thttps://goo.gl/4WZ46M
+            \n
+            \n
+            Thank you,
+            \tThe AidData Team
+            """).format(
+                self.branch_info.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
