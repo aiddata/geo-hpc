@@ -1,9 +1,10 @@
+<p>
 <b><font size=12>Citation</font></b>
-\n
-Please cite the following in any and all applications of the extracted datasets:
-\n
-Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo. Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a>. DOI: 10.13140/RG.2.2.28363.59686
-\n
+
+<p>Please cite the following in any and all applications of the extracted datasets:</p>
+
+<p>Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a>. DOI: 10.13140/RG.2.2.28363.59686</p>
+</p>
 <b><font size=12>General Information</font></b>
 
 The results zip file should include your request documentation (this pdf document) along with a comma separated value (CSV) file containing your extract data.
