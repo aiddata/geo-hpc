@@ -284,7 +284,7 @@ class QueueToolBox():
             \thttp://{0}/query/#/status/{1}
 
             or download the results directly (this link will always be available):
-            \thttp://{0}/data/geoquery_results/{1}.zip
+            \thttp://{0}/data/geoquery_results/{1}/{1}.zip
 
 
             You can also view all your current and previous requests using:
