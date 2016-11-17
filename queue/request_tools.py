@@ -291,11 +291,16 @@ class QueueToolBox():
             \thttp://{0}/query/#/requests/{2}
 
 
-            If you have not done so before, or if your information has
-            changed or if you would like to provide additional feedback,
-            please fill out this brief survey regarding your experience
-            with geo(query).
+            If you have not done so before or if you would like to provide additional feedback,
+            please fill out this brief survey regarding your experience with geo(query).
             \thttps://goo.gl/4WZ46M
+
+
+            Citations enable continued support and development of this tool.
+            As a part of your use of this tool, you have agreed to cite geo(query)
+            in any derived products (including academic publications, reports, or other works).
+                \tGoodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework.
+                \tAidData. Available online at http://geo.aiddata.org. DOI: 10.13140/RG.2.2.28363.59686
 
 
             Thank you,
