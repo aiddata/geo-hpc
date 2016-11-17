@@ -167,7 +167,7 @@ class DocBuilder():
 
         with open(self.dir_base + '/templates/general.txt') as general:
             for line in general:
-                p = Paragraph(line, self.styles['BodyText'])
+                p = Paragraph(line, self.styles['Normal'])
                 self.Story.append(p)
 
         self.Story.append(Spacer(1,0.3*inch))
