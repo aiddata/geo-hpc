@@ -21,8 +21,6 @@ sys.path.insert(0, config_dir)
 
 from config_utility import BranchConfig
 
-config = BranchConfig(branch=branch)
-
 config_attempts = 0
 while True:
     config = BranchConfig(branch=branch)

@@ -3,7 +3,6 @@ update asdf/det extract tracker with all possible extract
 combinations available from the asdf
 """
 
-
 # -----------------------------------------------------------------------------
 
 import sys
@@ -20,16 +19,21 @@ if not os.path.isdir(branch_dir):
 config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
 sys.path.insert(0, config_dir)
 
-from config_utility import *
+from config_utility import BranchConfig
 
-config = BranchConfig(branch=branch)
-
-
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
+config_attempts = 0
+while True:
+    config = BranchConfig(branch=branch)
+    config_attempts += 1
+    if config.connection_status == 0 or config_attempts > 5:
+        break
 
 # -----------------------------------------------------------------------------
+
+
+if config.connection_status != 0:
+    print "mongodb connection error ({0})".format(config.connection_error)
+    sys.exit()
 
 
 import time

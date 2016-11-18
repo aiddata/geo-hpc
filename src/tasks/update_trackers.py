@@ -29,12 +29,12 @@ while True:
     if config.connection_status == 0 or config_attempts > 5:
         break
 
-# check mongodb connection
-if config.connection_status != 0:
-    sys.exit("connection status error: " + str(config.connection_error))
-
-
 # -----------------------------------------------------------------------------
+
+
+if config.connection_status != 0:
+    print "mongodb connection error ({0})".format(config.connection_error)
+    sys.exit()
 
 
 import pymongo

@@ -23,7 +23,15 @@ sys.path.insert(0, config_dir)
 
 from config_utility import BranchConfig
 
-config = BranchConfig(branch=branch)
+config_attempts = 0
+while True:
+    config = BranchConfig(branch=branch)
+    config_attempts += 1
+    if config.connection_status == 0 or config_attempts > 5:
+        break
+
+
+# ----------------------------------------------------------------------------
 
 
 # check mongodb connection
@@ -33,6 +41,7 @@ if config.connection_status != 0:
 
 
 # ----------------------------------------------------------------------------
+
 
 import json
 
