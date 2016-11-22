@@ -26,7 +26,7 @@
             "asdf-releases": "0.4.1",
             "asdf-rasters": "0.4.1",
             "extract-scripts": "0.2.2",
-            "mean-surface-rasters": "0.11.0"
+            "mean-surface-rasters": "0.11.1"
         },
         "det": {
             "download_server": "geo.aiddata.org",
