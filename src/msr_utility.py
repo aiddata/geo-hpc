@@ -46,20 +46,24 @@ class MasterGrid():
     def update(self, bounds, data):
 
 
-        ileft = int(round(np.floor((bounds[0] - self.bounds[0])) / self.pixel_size))
-        itop = int(round(np.floor((self.bounds[3] - bounds[3])) / self.pixel_size))
+        ileft = int(round(np.floor((bounds[0] - self.bounds[0]) * 100) / (self.pixel_size * 100)))
+        itop = int(round(np.floor((self.bounds[3] - bounds[3]) * 100) / (self.pixel_size * 100)))
 
         iright = ileft + data.shape[1]
         ibottom = itop + data.shape[0]
 
-
         try:
+
             # add worker surf as slice to sum_mean_surf
             self.grid[itop:ibottom, ileft:iright] += data
+
         except:
+            print "#####"
             print "master: shape ({0}) grid shape ({1}) bounds ({2})".format(self.shape, self.grid.shape, self.bounds)
             print "subset: shape({0} left,right,top,bot ({1})".format(self.grid[itop:ibottom, ileft:iright].shape, (ileft, iright, itop, ibottom))
             print "data: shape ({0}) bounds ({1})".format(data.shape, bounds)
+            print "#####"
+
             raise
 
 
