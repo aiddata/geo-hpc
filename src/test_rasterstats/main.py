@@ -6,7 +6,7 @@ import warnings
 from affine import Affine
 from shapely.geometry import shape
 from .io import read_features, Raster
-from .utils import (rasterize_geom, rasterize_pctcover, get_percentile, check_stats,
+from .utils import (rasterize_geom, rasterize_pctcover_geom, get_percentile, check_stats,
                     remap_categories, key_assoc_val, boxify_points, get_latitude_scale)
 from copy import copy
 
