@@ -7,6 +7,7 @@ import math
 import fiona
 import rasterio
 import warnings
+from rasterio.transform import guard_transform
 from affine import Affine
 import numpy as np
 from shapely.geos import ReadingError
@@ -19,9 +20,9 @@ geom_types = ["Point", "LineString", "Polygon",
 
 PY3 = sys.version_info[0] >= 3
 if PY3:
-    string_types = str,
+    string_types = str,  # pragma: no cover
 else:
-    string_types = basestring,
+    string_types = basestring,  # pragma: no cover
 
 def wrap_geom(geom):
     """ Wraps a geometry dict in an GeoJSON Feature
@@ -180,9 +181,11 @@ def boundless_array(arr, window, nodata, masked=False):
     nc_start = olc_start - wc_start
     nc_stop = nc_start + overlap_shape[1]
     if dim3:
-        out[:, nr_start:nr_stop, nc_start:nc_stop] = arr[:, olr_start:olr_stop, olc_start:olc_stop]
+        out[:, nr_start:nr_stop, nc_start:nc_stop] = \
+            arr[:, olr_start:olr_stop, olc_start:olc_stop]
     else:
-        out[nr_start:nr_stop, nc_start:nc_stop] = arr[olr_start:olr_stop, olc_start:olc_stop]
+        out[nr_start:nr_stop, nc_start:nc_stop] = \
+            arr[olr_start:olr_stop, olc_start:olc_stop]
 
     if masked:
         out = np.ma.MaskedArray(out, mask=(out == nodata))
@@ -221,21 +224,19 @@ class Raster(object):
     """
 
     def __init__(self, raster, affine=None, nodata=None, band=1):
-        self.drivers = None
         self.array = None
         self.src = None
 
         if isinstance(raster, np.ndarray):
             if affine is None:
-                raise ValueError("Must specify affine for numpy arrays")
+                raise ValueError("Specify affine transform for numpy arrays")
             self.array = raster
             self.affine = affine
             self.shape = raster.shape
             self.nodata = nodata
         else:
-            self.drivers = rasterio.drivers()
             self.src = rasterio.open(raster, 'r')
-            self.affine = self.src.affine
+            self.affine = guard_transform(self.src.transform)
             self.shape = (self.src.height, self.src.width)
             self.band = band
 
@@ -246,12 +247,12 @@ class Raster(object):
                 self.nodata = self.src.nodata
 
     def index(self, x, y):
-        """Given x,y in crs, return the (column, row) on the raster
+        """ Given (x, y) in crs, return the (row, column) on the raster
         """
         col, row = [math.floor(a) for a in (~self.affine * (x, y))]
         return row, col
 
-    def read(self, bounds=None, window=None, masked=False, nan_as_nodata=False):
+    def read(self, bounds=None, window=None, masked=False):
         """ Performs a boundless read against the underlying array source
 
         Parameters
@@ -264,8 +265,6 @@ class Raster(object):
         masked: boolean
             return a masked numpy array, default: False
             bounds OR window are required, specifying both or neither will raise exception
-        nan_as_nodata: boolean
-            Treat NaN values as nodata, default: False
 
         Returns
         -------
@@ -293,19 +292,12 @@ class Raster(object):
 
         if self.array is not None:
             # It's an ndarray already
-            new_array = boundless_array(self.array, window=win, nodata=nodata, masked=masked)
+            new_array = boundless_array(
+                self.array, window=win, nodata=nodata, masked=masked)
         elif self.src:
             # It's an open rasterio dataset
-            new_array = self.src.read(self.band, window=win, boundless=True, masked=masked)
-
-        if nan_as_nodata:
-            nans = np.isnan(new_array)
-            if nans.any():
-                if masked:
-                    # TODO would need to set nan = nodata and remask
-                    raise NotImplementedError("specify nan_as_nodata OR masked")
-                else:
-                    new_array[nans] = nodata
+            new_array = self.src.read(
+                self.band, window=win, boundless=True, masked=masked)
 
         return Raster(new_array, new_affine, nodata)
 

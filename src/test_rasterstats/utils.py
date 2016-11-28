@@ -6,15 +6,15 @@ import os
 import warnings
 from rasterio import features
 from affine import Affine
-from shapely.geometry import box, MultiPolygon, Polygon
+from shapely.geometry import box, MultiPolygon
 from .io import window_bounds
-import numpy as np
+from numpy import min_scalar_type
+import math
 
 
 DEFAULT_STATS = ['count', 'min', 'max', 'mean']
 VALID_STATS = DEFAULT_STATS + \
-    ['sum', 'std', 'median', 'majority', 'minority', 'unique', 'range', 'nodata'] + \
-    ['weighted_sum', 'weighted_count', 'weighted_mean']
+    ['sum', 'std', 'median', 'majority', 'minority', 'unique', 'range', 'nodata']
 #  also percentile_{q} but that is handled as special case
 
 def get_percentile(stat):
@@ -29,12 +29,12 @@ def get_percentile(stat):
     return q
 
 
-def rasterize_geom(geom, like, all_touched=False):
+def rasterize_geom(geom, shape, affine, all_touched=False, scale=None):
     geoms = [(geom, 1)]
     rv_array = features.rasterize(
         geoms,
-        out_shape=like.shape,
-        transform=like.affine,
+        out_shape=shape,
+        transform=affine,
         fill=0,
         all_touched=all_touched)
     return rv_array
@@ -47,27 +47,26 @@ def rebin_sum(a, shape, dtype):
     return a.reshape(sh).sum(-1, dtype=dtype).sum(1, dtype=dtype)
 
 
-def rasterize_pctcover(geom, atrans, shape):
-    scale = 10
+def rasterize_pctcover_geom(geom, shape, affine, scale=None):
+    """
+    """
+    if scale is None:
+        scale = 10
 
-    pixel_size = atrans[0]/scale
-    topleftlon = atrans[2]
-    topleftlat = atrans[5]
+    min_dtype = min_scalar_type(scale**2)
+
+    pixel_size = affine[0]/scale
+    topleftlon = affine[2]
+    topleftlat = affine[5]
 
     new_affine = Affine(pixel_size, 0, topleftlon,
                     0, -pixel_size, topleftlat)
 
     new_shape = (shape[0]*scale, shape[1]*scale)
 
-    rasterized = features.rasterize(
-        [(geom, 1)],
-        out_shape=new_shape,
-        transform=new_affine,
-        fill=0,
-        all_touched=True)
+    rv_array = rasterize_geom(geom, new_shape, new_affine, True)
+    rv_array = rebin_sum(rv_array, shape, min_dtype)
 
-    min_dtype = np.min_scalar_type(scale**2)
-    rv_array = rebin_sum(rasterized, shape, min_dtype)
     return rv_array.astype('float32') / (scale**2)
 
 
@@ -147,9 +146,7 @@ def check_stats(stats, categorical):
         # run the counter once, only if needed
         run_count = True
 
-    valid_weights = any([s.startswith('weighted_') for s in stats])
-
-    return stats, run_count, valid_weights
+    return stats, run_count
 
 
 def remap_categories(category_map, stats):
@@ -195,3 +192,60 @@ def boxify_points(geom, rast):
         geoms.append(box(*window_bounds(win, rast.affine)).buffer(buff))
 
     return MultiPolygon(geoms)
+
+
+def get_latitude_scale(lat):
+    """get ratio of longitudal measurement at a latitiude relative to equator
+
+    at the equator, the distance between 0 and 0.008993216 degrees
+    longitude is very nearly 1km. this allows the distance returned
+    by the calc_haversine_distance function when using 0 and 0.008993216
+    degrees longitude, with constant latitude, to server as a scale
+    of the distance between lines of longitude at the given latitude
+
+    Args
+        lat (int, float): a latitude value
+    Returns
+        ratio (float): ratio of actual distance (km) between two lines of
+                       longitude at a given latitude and at the equator,
+                       when the distance between those lines at the equator
+                       is 1km
+    """
+    p1 = (0, lat)
+    p2 = (0.008993216, lat)
+    ratio = calc_haversine_distance(p1, p2)
+    return ratio
+
+
+def calc_haversine_distance(p1, p2):
+    """calculate haversine distance between two points
+
+    # formula info
+    # https://en.wikipedia.org/wiki/Haversine_formula
+    # http://www.movable-type.co.uk/scripts/latlong.html
+
+    Args
+        p1: tuple of (longitude, latitude) format containing int or float values
+        p2: tuple of (longitude, latitude) format containing int or float values
+    Returns
+        d (float): haversine distance between given points p1 and p2
+    """
+    lon1, lat1 = p1
+    lon2, lat2 = p2
+
+    # km
+    radius = 6371.0
+
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+
+    a = (math.sin(delta_lat/2)**2 + math.cos(math.radians(lat1)) *
+         math.cos(math.radians(lat2)) * math.sin(delta_lon/2)**2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    # km
+    d = radius * c
+
+    return d
+
+

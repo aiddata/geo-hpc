@@ -602,9 +602,11 @@ class ExtractObject():
 
         if self._extract_type == "categorical":
             raw_stats = rs.gen_zonal_stats(vector, raster,
-                            prefix="exfield_", stats="count",
+                            geojson_out=True,
+                            prefix="exfield_",
+                            stats="count",
                             categorical=True, category_map=self._cmap,
-                            all_touched=True, geojson_out=True)
+                            all_touched=False)
 
         else:
             if self._extract_type == 'reliability':
@@ -613,8 +615,13 @@ class ExtractObject():
                 tmp_extract_type = self._extract_type
 
             raw_stats = rs.gen_zonal_stats(vector, raster,
-                            prefix="exfield_", stats=tmp_extract_type,
-                            all_touched=True, geojson_out=True)
+                            geojson_out=True,
+                            prefix="exfield_",
+                            stats=tmp_extract_type,
+                            all_touched=True,
+                            percent_cover_scale=10,
+                            percent_cover_weighting=True,
+                            latitude_correction=True)
 
 
         stats = self.format_extract(raw_stats)
