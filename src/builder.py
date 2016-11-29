@@ -251,7 +251,7 @@ def get_ppn(value, node_type):
 
 node_spec_reference = {
     'xeon': ['xeon:compute', 'c10', 'c10a', 'c11', 'c11a'],
-    'vortex': ['vortex:compute', 'c18a', 'c18b'],
+    'vortex': ['vortex:compute', 'c18a', 'c18b', 'c18x'],
     'vortex-alpha': ['c18c']
 }
 
