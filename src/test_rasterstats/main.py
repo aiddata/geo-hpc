@@ -253,7 +253,7 @@ def gen_zonal_stats(
             if percent_cover:
 
                 try:
-                    rv_array = rasterize_pctcover(
+                    rv_array = rasterize_pctcover_geom(
                         geom, shape=fsrc_shape, affine=fsrc_affine,
                         scale=percent_cover_scale)
 
