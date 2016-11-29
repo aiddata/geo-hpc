@@ -587,7 +587,7 @@ class ExtractObject():
                     raise Exception(e)
 
 
-    def run_extract(self, raster, vector=None):
+    def run_extract(self, raster, vector=None, **kwargs):
         """Run python extract using modified rasterstats
 
         Args
@@ -597,6 +597,18 @@ class ExtractObject():
         Return
             stats: generator of formatted extract output
         """
+        percent_cover_scale = 10
+        percent_cover_weighting = True
+        latitude_correction = True
+
+        if 'percent_cover_scale' in kwargs:
+            percent_cover_scale = kwargs['percent_cover_scale']
+        if 'percent_cover_weighting' in kwargs:
+            percent_cover_weighting = kwargs['percent_cover_weighting']
+        if 'latitude_correction' in kwargs:
+            latitude_correction = kwargs['latitude_correction']
+
+
         if vector == None:
             vector = self._vector_path
 
@@ -619,9 +631,9 @@ class ExtractObject():
                             prefix="exfield_",
                             stats=tmp_extract_type,
                             all_touched=True,
-                            percent_cover_scale=10,
-                            percent_cover_weighting=True,
-                            latitude_correction=True)
+                            percent_cover_scale=percent_cover_scale,
+                            percent_cover_weighting=percent_cover_weighting,
+                            latitude_correction=latitude_correction)
 
 
         stats = self.format_extract(raw_stats)

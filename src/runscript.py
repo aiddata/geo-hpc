@@ -186,7 +186,9 @@ def tmp_worker_job(self, task_id):
            '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
            (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
-    run_data = exo.run_extract(raster)
+    run_data = exo.run_extract(raster,
+                               percent_cover_weighting=False,
+                               latitude_correction=False)
 
 
     # generate output path
