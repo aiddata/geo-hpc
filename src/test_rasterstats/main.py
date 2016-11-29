@@ -300,10 +300,10 @@ def gen_zonal_stats(
                             np.logical_not(rv_array)))
 
 
-                print masked
-                print rv_array
-                print masked*rv_array
-                print ~masked.mask * rv_array
+                # print masked
+                # print rv_array
+                # print masked*rv_array
+                # print ~masked.mask * rv_array
 
 
             except MemoryError:
