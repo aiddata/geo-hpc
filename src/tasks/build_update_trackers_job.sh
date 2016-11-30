@@ -6,14 +6,14 @@
 #   branch
 #   timestamp
 #
-# builds job that run maintenance tasks on database
-# job runs the bash script db_updates_script.sh
+# builds job that updates trackers
+# job runs the bash script update_trackers_script.sh
 #
 # only allows 1 job of this type to run at a time
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-dbu-<branch>
+# job name format: ax-upt-<branch>
 
 
 branch=$1
@@ -26,7 +26,7 @@ jobtime=$(date +%H%M%S)
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 
-if echo "$qstat" | grep -q 'ax-dbu-'"$branch"; then
+if echo "$qstat" | grep -q 'ax-upt-'"$branch"; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -42,7 +42,7 @@ else
 
     src="${HOME}"/active/"$branch"
 
-    job_dir="$src"/log/db_updates #/jobs
+    job_dir="$src"/log/update_trackers #/jobs
     mkdir -p $job_dir
 
 
@@ -67,23 +67,23 @@ else
 # concatenate with the main log file (PBS would overwrite existing
 # main log if using `-o` to specify it via qsub options)
 
-#PBS -o $src/log/db_updates/jobs/$timestamp.$jobtime.db_updates.job
+#PBS -o $src/log/update_trackers/jobs/$timestamp.$jobtime.update_trackers.job
 
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-dbu-$branch
+#PBS -N ax-upt-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -k oe
 #PBS -V
 
-bash $src/asdf/src/tasks/run_db_updates.sh $branch $timestamp
+bash $src/asdf/src/tasks/run_update_trackers.sh $branch $timestamp
 
 EOF
 
-    # cd "$src"/log/db_updates/jobs
+    # cd "$src"/log/update_trackers/jobs
     /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."

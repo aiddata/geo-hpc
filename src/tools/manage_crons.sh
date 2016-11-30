@@ -71,9 +71,21 @@ init() {
     cleanup_repos_cron='25 0 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' cleanup_repos #asdf'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
 
+
     # db_updates
-    build_db_updates_job_cron='0 4-23/4 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_db_updates_job #asdf'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_db_updates_job' | { cat; echo "$build_db_updates_job_cron"; } | crontab -
+
+    # build_update_trackers_job - index tracker update
+    build_update_trackers_job_cron='0 4-23/1 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_update_trackers_job #asdf'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_trackers_job' | { cat; echo "$build_update_trackers_job_cron"; } | crontab -
+
+    # build_update_extract_job - extract queue update
+    build_update_extract_job_cron='0 4-23/3 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_update_extract_job #asdf'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_extract_job' | { cat; echo "$build_update_extract_job_cron"; } | crontab -
+
+    # build_update_msr_job - msr queue update
+    build_update_msr_job_cron='0 1 * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_update_msr_job #asdf'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_msr_job' | { cat; echo "$build_update_msr_job_cron"; } | crontab -
+
 
     # build_msr_job
     build_msr_job_cron='*/1 * * * * bash '"$src"'/asdf/src/tools/run_crons.sh '"$branch"' build_msr_job #asdf'
