@@ -630,7 +630,6 @@ class ExtractObject():
                             geojson_out=True,
                             prefix="exfield_",
                             stats=tmp_extract_type,
-                            all_touched=True,
                             percent_cover_scale=percent_cover_scale,
                             percent_cover_weighting=percent_cover_weighting,
                             latitude_correction=latitude_correction)
