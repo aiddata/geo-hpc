@@ -33,25 +33,28 @@ echo 'Job: '"$PBS_JOBID" #>> "$output_path"
 
 
 
-case $task in
+case "$task" in
 
-    "update_trackers")  short_name=upt
-                        echo -e "\n *** Running update_trackers.py... \n" #>> "$output_path"
-                        python $src/asdf/src/tasks/update_trackers.py "$branch" #2>&1 | tee 1>> "$output_path"
-                        ;;
+    update_trackers)
+        short_name=upt
+        echo -e "\n *** Running update_trackers.py... \n" #>> "$output_path"
+        python $src/asdf/src/tasks/update_trackers.py "$branch" #2>&1 | tee 1>> "$output_path"
+        ;;
 
-    "update_extract")   short_name=upe
-                        echo -e "\n *** Running update_extract_queue.py... \n"  #>> "$output_path"
-                        python $src/asdf/src/tasks/update_extract_queue.py "$branch" #2>&1 | tee 1>> "$output_path"
-                        ;;
+    update_extract)
+        short_name=upe
+        echo -e "\n *** Running update_extract_queue.py... \n"  #>> "$output_path"
+        python $src/asdf/src/tasks/update_extract_queue.py "$branch" #2>&1 | tee 1>> "$output_path"
+        ;;
 
-    "update_msr")       short_name=upm
-                        echo -e "\n *** Running update_msr_queue.py... \n" #>> "$output_path"
-                        python $src/asdf/src/tasks/update_msr_queue.py "$branch" #2>&1 | tee 1>> "$output_path"
-                        ;;
+    update_msr)
+        short_name=upm
+        echo -e "\n *** Running update_msr_queue.py... \n" #>> "$output_path"
+        python $src/asdf/src/tasks/update_msr_queue.py "$branch" #2>&1 | tee 1>> "$output_path"
+        ;;
 
-    *)                  echo "Invalid run_db_updates task.";
-                        exit 1 ;;
+    *)  echo "Invalid run_db_updates task.";
+        exit 1 ;;
 esac
 
 
