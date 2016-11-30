@@ -1152,7 +1152,7 @@ class MergeObject():
             make_dir(os.path.dirname(merge_output))
 
             # write merged df to csv
-            merged_df.to_csv(merge_output, index=False)
+            merged_df.to_csv(merge_output, index=False, encoding='utf-8')
             print '\tResults output to {0}'.format(merge_output)
             return True
 
