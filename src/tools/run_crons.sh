@@ -32,17 +32,17 @@ case $cron in
                             bash "$src"/asdf/src/tasks/cleanup_repos.sh "$branch" 2>&1 | tee 1>>"$src"/log/cleanup_repos/"$timestamp".cleanup_repos.log
                             exit 0;;
 
-    "build_update_trackers_job") mkdir -p "$src"/log/update_trackers
-                                bash "$src"/asdf/src/tasks/build_update_trackers_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/update_trackers/"$timestamp".update_trackers.log
-                                exit 0;;
+    "build_update_trackers_job")    mkdir -p "$src"/log/update_trackers
+                                    bash "$src"/asdf/src/tasks/build_db_updates_job.sh "$branch" "$timestamp" update_trackers 2>&1 | tee 1>>"$src"/log/update_trackers/"$timestamp".update_trackers.log
+                                    exit 0;;
 
-    "build_update_extract_job") mkdir -p "$src"/log/update_extract
-                                bash "$src"/asdf/src/tasks/build_update_extract_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/update_extract/"$timestamp".update_extract.log
-                                exit 0;;
+    "build_update_extract_job")     mkdir -p "$src"/log/update_extract
+                                    bash "$src"/asdf/src/tasks/build_db_updates_job.sh "$branch" "$timestamp" update_extract 2>&1 | tee 1>>"$src"/log/update_extract/"$timestamp".update_extract.log
+                                    exit 0;;
 
-    "build_update_msr_job") mkdir -p "$src"/log/update_msr
-                            bash "$src"/asdf/src/tasks/build_update_msr_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/update_msr/"$timestamp".update_msr.log
-                            exit 0;;
+    "build_update_msr_job")         mkdir -p "$src"/log/update_msr
+                                    bash "$src"/asdf/src/tasks/build_db_updates_job.sh "$branch" "$timestamp" update_msr 2>&1 | tee 1>>"$src"/log/update_msr/"$timestamp".update_msr.log
+                                    exit 0;;
 
     "build_msr_job")        mkdir -p "$src"/log/msr
                             bash "$src"/asdf/src/tasks/build_msr_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/msr/"$timestamp".msr.log

@@ -6,27 +6,44 @@
 #   branch
 #   timestamp
 #
-# builds job that updates msr queue
-# job runs the bash script update_msr_script.sh
+# builds job that updates trackers
+# job runs the bash script update_trackers_script.sh
 #
 # only allows 1 job of this type to run at a time
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-upm-<branch>
+# job name format: ax-upt-<branch>
 
 
 branch=$1
 
 timestamp=$2
 
+task=$3
+
 jobtime=$(date +%H%M%S)
+
+
+
+case $task in
+
+    "update_trackers")  short_name=upt
+
+    "update_extract")   short_name=upe
+
+    "update_msr")       short_name=upm
+
+    *)                  echo "Invalid build_db_updates_job task.";
+                        exit 1 ;;
+esac
+
 
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 
-if echo "$qstat" | grep -q 'ax-upm-'"$branch"; then
+if echo "$qstat" | grep -q 'ax-'"$short_name"'-'"$branch"; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -42,7 +59,7 @@ else
 
     src="${HOME}"/active/"$branch"
 
-    job_dir="$src"/log/update_msr #/jobs
+    job_dir="$src"/log/"$task" #/jobs
     mkdir -p $job_dir
 
 
@@ -67,23 +84,23 @@ else
 # concatenate with the main log file (PBS would overwrite existing
 # main log if using `-o` to specify it via qsub options)
 
-#PBS -o $src/log/update_msr/jobs/$timestamp.$jobtime.update_msr.job
+#PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
 
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-upm-$branch
+#PBS -N ax-$short_name-$branch
 #PBS -l nodes=1:c18c:ppn=1
 #PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -k oe
 #PBS -V
 
-bash $src/asdf/src/tasks/run_db_updates.sh $branch $timestamp update_msr
+bash $src/asdf/src/tasks/run_db_updates.sh $branch $timestamp $task
 
 EOF
 
-    # cd "$src"/log/update_msr/jobs
+    # cd "$src"/log/"$task"/jobs
     /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."

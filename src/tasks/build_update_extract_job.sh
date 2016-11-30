@@ -79,7 +79,7 @@ cat <<EOF >> "$job_path"
 #PBS -k oe
 #PBS -V
 
-bash $src/asdf/src/tasks/run_update_extract.sh $branch $timestamp
+bash $src/asdf/src/tasks/run_db_updates.sh $branch $timestamp update_extract
 
 EOF
 
