@@ -28,11 +28,11 @@ jobtime=$(date +%H%M%S)
 
 case $task in
 
-    "update_trackers")  short_name=upt
+    "update_trackers")  short_name=upt ;;
 
-    "update_extract")   short_name=upe
+    "update_extract")   short_name=upe ;;
 
-    "update_msr")       short_name=upm
+    "update_msr")       short_name=upm ;;
 
     *)                  echo "Invalid build_db_updates_job task.";
                         exit 1 ;;
