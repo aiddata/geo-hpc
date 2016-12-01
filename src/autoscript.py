@@ -175,8 +175,11 @@ for i in range(extract_limit):
         if search_attempt == search_limit:
             request = 'Error'
             break
-
-        print 'request found'
+        elif request is None:
+            print 'no jobs found in queue'
+            break
+        else:
+            print 'request found'
 
     else:
         request = 0
@@ -185,18 +188,16 @@ for i in range(extract_limit):
     request = job.comm.bcast(request, root=0)
 
     if request is None:
-        if i == 0:
-            quit("no jobs found in queue")
-        else:
+        if i > 0:
             break
-
+        else:
+            pass
     elif request == 'Error':
         quit("error updating request status in mongodb")
-
     elif request == 0:
         quit("error getting request from master")
-
-    extract_list.append(request)
+    else:
+        extract_list.append(request)
 
 
 
@@ -455,16 +456,16 @@ def tmp_worker_job(self, task_id):
 
 
 
-
 # init / run job
+if qlist:
 
-job.set_task_list(qlist)
+    job.set_task_list(qlist)
 
-job.set_general_init(tmp_general_init)
-job.set_master_init(tmp_master_init)
-job.set_master_process(tmp_master_process)
-job.set_master_final(tmp_master_final)
-job.set_worker_job(tmp_worker_job)
+    job.set_general_init(tmp_general_init)
+    job.set_master_init(tmp_master_init)
+    job.set_master_process(tmp_master_process)
+    job.set_master_final(tmp_master_final)
+    job.set_worker_job(tmp_worker_job)
 
-job.run()
+    job.run()
 
