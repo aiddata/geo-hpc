@@ -92,7 +92,7 @@ general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
                        '/extracts/' + version.replace('.', '_'))
 
 
-default_extract_limit = 250
+default_extract_limit = 30
 # default_time_limit = 5
 # default_extract_minimum = 1
 
