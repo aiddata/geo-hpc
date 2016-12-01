@@ -25,13 +25,17 @@ jobtime=$(date +%H%M%S)
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
+job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
 
-if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
+# if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
+if [[ $job_count -gt 1 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
+    # echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
+    echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
+
     echo "$qstat"
     echo -e "\n"
 
@@ -81,11 +85,11 @@ else
     echo '... items found in queue'
     echo -e "\n"
 
-    echo "Building job..."
+    echo "Building job #"$job_count"..."
 
     job_path=$(mktemp)
 
-    nodes=5
+    nodes=2
     ppn=16
     total=$(($nodes * $ppn))
 
