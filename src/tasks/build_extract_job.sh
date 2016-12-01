@@ -54,17 +54,19 @@ else
     updated=0
     shopt -s nullglob
     for i in "$job_dir"/*.job; do
+
         updated=1
+
         cat "$i"
         rm "$i"
-    done
 
-    if [ "$updated" == 1 ]; then
         printf "%0.s-" {1..80}
         echo -e "\n"
-    fi
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
+    done
+
+
+    echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
 
     echo "Checking for items in extract queue..."
     queue_status=$(python "$src"/asdf/src/tools/check_extract_queue.py "$branch")
@@ -114,7 +116,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp $job_type
+mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/extract-scripts/src/autoscript.py $branch $job_type
 
 EOF
 
