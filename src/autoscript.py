@@ -114,6 +114,18 @@ if extract_limit == -1:
 
 # build extract list
 
+job_type = 'default'
+if len(sys.argv) == 3:
+    job_type = sys.argv[2]
+
+if job_type == 'default':
+    generator_list = ['auto', 'det']
+    classification_list = ['raster', 'msr']
+
+if job_type == 'det':
+    generator_list = ['det']
+    classification_list = ['raster', 'msr']
+
 extract_list = []
 
 for i in range(extract_limit):
@@ -128,7 +140,8 @@ for i in range(extract_limit):
             print 'finding request:'
             find_request = c_extracts.find_one({
                 'status': 0,
-                'classification': {'$in': ['raster', 'msr']}
+                'generator': {'$in': generator_list}
+                'classification': {'$in': classification_list}
             }, sort=[("priority", -1), ("submit_time", 1)])
 
             print find_request
