@@ -197,8 +197,6 @@ for i in range(extract_limit):
         extract_list.append(request)
 
 
-print '1'
-
 # -----------------------------------------------------------------------------
 
 qlist = []
@@ -263,7 +261,6 @@ for i in extract_list:
 
     qlist.append(tmp)
 
-print '2'
 
 # =============================================================================
 # =============================================================================
@@ -453,7 +450,6 @@ def tmp_worker_job(self, task_id):
 
     return extract_status
 
-print '3'
 
 # init / run job
 if qlist:
@@ -468,4 +464,4 @@ if qlist:
 
     job.run()
 
-print '4'
+sys.exit()
