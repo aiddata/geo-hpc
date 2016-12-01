@@ -179,7 +179,7 @@ for request_obj in request_objects:
 
         try:
             # build request
-            queue.build_output(updated_request_obj, merge_list)
+            queue.build_output(updated_request_obj, merge_list, branch)
         except Exception as e:
             print "error building request output"
             queue.update_status(request_id, -2)

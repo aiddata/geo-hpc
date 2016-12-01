@@ -500,7 +500,7 @@ class QueueToolBox():
 # =============================================================================
 
 
-    def build_output(self, request, merge_list):
+    def build_output(self, request, merge_list, branch):
         """build output
 
         merge extracts, generate documentation, update status,
@@ -535,8 +535,37 @@ class QueueToolBox():
         bd_status = doc.build_doc()
         # print bd_status
 
+
+        # ---
+        # make msr json folder in request_dir
+        msr_jsons_dir = os.path.join(request_dir, 'msr_jsons')
+        make_dir(msr_jsons_dir)
+
+        # copy all msr jsons into msr json folder
+        for i in request['release_data']:
+            tmp_dataset = i['dataset']
+            tmp_hash = i['hash']
+
+            src = "/sciclone/aiddata10/REU/outputs/{0}/msr/done/{1}/{2}/summary.json".format(
+                branch, tmp_dataset, tmp_hash)
+            dst = os.path.join(msr_jsons_dir, "{0}_{1}.json".format(
+                tmp_dataset, tmp_hash))
+
+            shutil.copyfile(src, dst)
+        # ---
+
+
+        # make zip of request dir
         shutil.make_archive(request_dir, "zip", request_dir)
+
+        # move zip of request dir into request dir
         shutil.move(request_dir + ".zip", request_dir)
+
+        # ---
+        # remove msr json folder from request dir
+        shutil.rmtree(msr_jsons_dir)
+        # ---
+
 
 
         # zip files and delete originals
