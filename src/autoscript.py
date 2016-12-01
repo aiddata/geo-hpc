@@ -188,14 +188,11 @@ for i in range(extract_limit):
     request = job.comm.bcast(request, root=0)
 
     if request is None:
-        if i > 0:
-            break
-        else:
-            pass
+        break
     elif request == 'Error':
-        quit("error updating request status in mongodb")
+        raise Exception("error updating request status in mongodb")
     elif request == 0:
-        quit("error getting request from master")
+        raise Exception("error getting request from master")
     else:
         extract_list.append(request)
 
