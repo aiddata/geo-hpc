@@ -140,7 +140,7 @@ for i in range(extract_limit):
             print 'finding request:'
             find_request = c_extracts.find_one({
                 'status': 0,
-                'generator': {'$in': generator_list}
+                'generator': {'$in': generator_list},
                 'classification': {'$in': classification_list}
             }, sort=[("priority", -1), ("submit_time", 1)])
 
