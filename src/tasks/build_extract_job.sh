@@ -28,7 +28,7 @@ qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
 
 # if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
-if [[ $job_count -gt 1 ]]; then
+if [[ $job_count -gt 2 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -40,6 +40,11 @@ if [[ $job_count -gt 1 ]]; then
     echo -e "\n"
 
 else
+
+    job_type=default
+    if [[ $job_count -eq 2 ]]; then
+        job_type=det
+    fi
 
     src="${HOME}"/active/"$branch"
 
@@ -109,7 +114,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
-mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp
+mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/extract-scripts/src/autoscript.py $branch $timestamp $job_type
 
 EOF
 
