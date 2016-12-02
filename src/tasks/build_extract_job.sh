@@ -92,7 +92,7 @@ else
     echo '... items found in queue'
     echo -e "\n"
 
-    echo "Building job #"$job_count"..."
+    echo "Building job #"$job_count" ("$job_type" job)..."
 
     job_path=$(mktemp)
 
