@@ -135,7 +135,7 @@ for i in range(extract_limit):
     if job.rank == 0:
 
         print 'starting request search'
-        search_limit = 5
+        search_limit = 100
         search_attempt = 0
 
         while search_attempt < search_limit:
@@ -176,7 +176,8 @@ for i in range(extract_limit):
 
 
         if search_attempt == search_limit:
-            request = 'Error'
+            print "error updating request status in mongodb (attempting to continue)"
+            request = "pass"
         elif request is None:
             print 'no jobs found in queue'
         else:
@@ -189,8 +190,10 @@ for i in range(extract_limit):
 
     if request is None:
         break
-    elif request == 'Error':
-        raise Exception("error updating request status in mongodb")
+    elif request == "pass":
+        pass
+    # elif request == 'Error':
+        # raise Exception("error updating request status in mongodb")
     elif request == 0:
         raise Exception("error getting request from master")
     else:
