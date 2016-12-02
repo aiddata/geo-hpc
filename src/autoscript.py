@@ -134,7 +134,7 @@ for i in range(extract_limit):
 
     if job.rank == 0:
 
-        print 'starting request search'
+        print 'starting request search ({0})'.format(job_type)
         search_limit = 100
         search_attempt = 0
 
