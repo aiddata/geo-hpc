@@ -129,6 +129,9 @@ if job_type == 'det':
 extract_list = []
 
 for i in range(extract_limit):
+
+    request = 0
+
     if job.rank == 0:
 
         print 'starting request search'
@@ -174,18 +177,15 @@ for i in range(extract_limit):
 
         if search_attempt == search_limit:
             request = 'Error'
-            break
         elif request is None:
             print 'no jobs found in queue'
-            break
         else:
             print 'request found'
 
-    else:
-        request = 0
 
 
     request = job.comm.bcast(request, root=0)
+
 
     if request is None:
         break
