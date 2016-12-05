@@ -145,7 +145,7 @@ for i in range(extract_limit):
                 'status': 0,
                 'generator': {'$in': generator_list},
                 'classification': {'$in': classification_list}
-            }, sort=[("priority", -1), ("submit_time", 1)])
+            }, sort=[("priority", -1), ("submit_time", 1), ("classification", -1)])
 
             print find_request
 
