@@ -141,13 +141,15 @@ for i in range(extract_limit):
         while search_attempt < search_limit:
 
             print 'finding request:'
-            find_request = c_extracts.find_one({
-                'status': 0,
-                'generator': {'$in': generator_list},
-                'classification': {'$in': classification_list}
-            }, sort=[("priority", -1), ("submit_time", 1), ("classification", -1)])
-
-            print find_request
+            for ctype in classification_list:
+                find_request = c_extracts.find_one({
+                    'status': 0,
+                    'generator': {'$in': generator_list},
+                    'classification': ctype
+                }, sort=[("priority", -1), ("submit_time", 1)])
+                if ctype is not None:
+                    print find_request
+                    break
 
             if find_request is None:
                 request = None
