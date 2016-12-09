@@ -106,9 +106,7 @@ class MSRItem():
 
         details = {
             'classification': 'det-release',
-            'status': 0,
             'priority': 0,
-            'submit_time': ctime,
             'update_time': ctime
         }
 
@@ -125,6 +123,10 @@ class MSRItem():
             update = self.c_msr.update(query,
                                        {'$set': details})
         else:
+
+            full_insert['status'] = 0
+            full_insert['submit_time'] = ctime
+
             # insert full
             insert = self.c_msr.insert(full_insert)
 
