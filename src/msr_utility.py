@@ -436,8 +436,8 @@ class CoreMSR():
                     df_filtered = df_filtered.loc[
                         df_filtered.apply(
                             lambda z: any(
-                                str(z.transactions_start_year) != "" and
-                                str(z.transactions_end_year) != "" and
+                                str(z.transactions_start_year).isdigit() and
+                                str(z.transactions_end_year).isdigit() and
                                 int(year) >= int(z.transactions_start_year) and
                                 int(year) <= int(z.transactions_end_year)
                                 for year in tmp_filter),
