@@ -88,6 +88,7 @@ class NewParallel():
             self.rank = 0
 
 
+        self.task_count = 0
         self.task_list = None
 
 
@@ -95,19 +96,32 @@ class NewParallel():
         """Set task list.
 
         Args:
-            task_list (List[str]): x
+            input_list (list): x
         """
         if isinstance(input_list, list):
             self.task_list = input_list
+            self.set_task_count(len(self.task_list))
         else:
             raise Exception("set_task_list: requires input of type list")
+
+
+    def set_task_count(self, count):
+        """Set task count.
+
+        Args:
+            count (int): x
+        """
+        if isinstance(count, int):
+            self.task_count = count
+        else:
+            raise Exception("set_task_count: requires input of type int")
 
 
     def set_general_init(self, input_function):
         """Set general_init function.
 
         Args:
-            task_list (List[str]): x
+            input_function (func): x
         """
         if hasattr(input_function, '__call__'):
             self.general_init = types.MethodType(input_function, self)
@@ -119,7 +133,7 @@ class NewParallel():
         """Set master_init function.
 
         Args:
-            task_list (List[str]): x
+            input_function (func): x
         """
         if hasattr(input_function, '__call__'):
             self.master_init = types.MethodType(input_function, self)
@@ -131,7 +145,7 @@ class NewParallel():
         """Set master_process function.
 
         Args:
-            task_list (List[str]): x
+            input_function (func): x
         """
         if hasattr(input_function, '__call__'):
             self.master_process = types.MethodType(input_function, self)
@@ -143,7 +157,7 @@ class NewParallel():
         """Set master_final function.
 
         Args:
-            task_list (List[str]): x
+            input_function (func): x
         """
         if hasattr(input_function, '__call__'):
             self.master_final = types.MethodType(input_function, self)
@@ -155,12 +169,24 @@ class NewParallel():
         """Set worker_job function.
 
         Args:
-            task_list (List[str]): x
+            input_function (func): x
         """
         if hasattr(input_function, '__call__'):
             self.worker_job = types.MethodType(input_function, self)
         else:
             raise Exception("set_worker_job: requires input to be a function")
+
+
+    def set_get_task_data(self, input_function):
+        """Set get_task_data function.
+
+        Args:
+            input_function (func): x
+        """
+        if hasattr(input_function, '__call__'):
+            self.get_task_data = types.MethodType(input_function, self)
+        else:
+            raise Exception("set_get_task_data: requires input to be a function")
 
 
     def general_init(self):
@@ -217,7 +243,7 @@ class NewParallel():
         master_data_stack = self.master_data
 
 
-    def worker_job(self, task_id):
+    def worker_job(self, task):
         """Template only.
 
         Should be replaced by user created function using
@@ -226,16 +252,37 @@ class NewParallel():
         Run by work after receiving a task from master.
 
         Args:
-            task_id (int): x
+            task_data (int): x
 
         Returns:
             results: object to be passed back from worker to master
         """
-        task = self.task_list[task_id]
+        task_index, task_data = task
 
-        results = task
+        results = task_data
 
         return results
+
+
+    def get_task_data(self, task_index):
+        """Template only.
+
+        Should be replaced by user created function using
+            set_get_task_data method
+
+        Run by master when upon receiving a "ready" request from worker.
+        Results returned will be passed to worker_job function after
+        being sent to worker
+
+        Args:
+            task_index (int): x
+
+        Returns:
+            task_data: data to be sent from master to worker
+        """
+        task_data = self.task_list[task_index]
+        return task_data
+
 
     def run(self):
         """Run job in parallel or serial.
@@ -290,10 +337,13 @@ class NewParallel():
 
                 if tag == self.tags.READY:
 
-                    if task_index < len(self.task_list):
+                    if task_index < self.task_count:
                         print "Master - sending task {0} to worker {1}".format(task_index, source)
 
-                        self.comm.send(task_index, dest=source, tag=self.tags.START)
+                        task_data = self.get_task_data(task_index)
+                        task = (task_index, task_data)
+
+                        self.comm.send(task, dest=source, tag=self.tags.START)
 
                         task_index += 1
 
@@ -344,7 +394,7 @@ class NewParallel():
             print "Worker {0} - rank {0} on {1}.".format(self.rank, name)
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
-                task_id = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=self.status)
+                task = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=self.status)
                 tag = self.status.Get_tag()
 
                 if tag == self.tags.START:
@@ -353,7 +403,7 @@ class NewParallel():
                     # WORKER JOB
 
                     try:
-                        worker_result = self.worker_job(task_id)
+                        worker_result = self.worker_job(task)
                         # send worker_result back to master (master_process function)
                         self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
 
