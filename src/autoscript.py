@@ -275,12 +275,11 @@ def tmp_master_init(self):
     print '\n'
 
 
-def tmp_worker_job(self, task_id):
+def tmp_worker_job(self, task):
 
+    task_index, task_data = task
 
-    task = task_id_list[task_id]
-
-    pg_data = active_data.loc[task]
+    pg_data = active_data.loc[task_data]
     pg_type = pg_data.geom_type
 
     if pg_type not in core.geom_types:
@@ -328,7 +327,7 @@ def tmp_worker_job(self, task_id):
 
     if pg_geom in [None, "None"]:
         warn("Geom is none ({0})".format(pg_data['project_location_id']))
-        return (task, "None", None, None)
+        return (task_data, "None", None, None)
 
     else:
         try:
@@ -348,8 +347,8 @@ def tmp_worker_job(self, task_id):
 
         mean_surf = mean_surf.astype('float64')
         mean_surf = pg_data['adjusted_val'] * mean_surf / mean_surf.sum()
-        # return (task, pg_geom, mean_surf.flatten())
-        return (task, pg_geom, mean_surf, surf_bounds)
+        # return (task_data, pg_geom, mean_surf.flatten())
+        return (task_data, pg_geom, mean_surf, surf_bounds)
 
 
 def tmp_master_process(self, worker_data):
