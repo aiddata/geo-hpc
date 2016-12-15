@@ -316,12 +316,11 @@ def tmp_master_final(self):
     # print 'Merge Runtime: ' + str(T_run2//60) +'m '+ str(int(T_run2%60)) +'s'
 
 
-def tmp_worker_job(self, task_id):
-
-    worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_id)
+def tmp_worker_job(self, task):
 
 
-    task = self.task_list[task_id]
+    task_index, task_data = task
+    worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_index)
 
 
     # =================================
@@ -331,28 +330,28 @@ def tmp_worker_job(self, task_id):
     # * = managed by ExtractObject
 
     # absolute path of boundary file *
-    bnd_absolute = task['bnd_absolute']
+    bnd_absolute = task_data['bnd_absolute']
 
     # raster file or dataset directory *
-    data_path = task['data_path']
+    data_path = task_data['data_path']
 
     # extract type *
-    extract_type = task['extract_type']
+    extract_type = task_data['extract_type']
 
     # # string containing year information *
-    # year_string = task['years']
+    # year_string = task_data['years']
 
     # # file mask for dataset files *
-    # file_mask = task['file_mask']
+    # file_mask = task_data['file_mask']
 
 
     # boundary, dataset and raster names
-    bnd_name = task['bnd_name']
-    dataset_name = task['dataset_name']
-    data_name = task['data_name']
+    bnd_name = task_data['bnd_name']
+    dataset_name = task_data['dataset_name']
+    data_name = task_data['data_name']
 
     # output directory
-    output_base = task['output_base']
+    output_base = task_data['output_base']
 
 
     # =================================
@@ -409,7 +408,7 @@ def tmp_worker_job(self, task_id):
         bnd_name = bnd_name,
         data_name = data_name,
         ex_method = extract_type,
-        classification = task['classification'],
+        classification = task_data['classification'],
         ex_version = version
     )
 
@@ -444,7 +443,7 @@ def tmp_worker_job(self, task_id):
 
     # update status of item in extract queue
     update_extract = c_extracts.update_one({
-        '_id': task['_id']
+        '_id': task_data['_id']
     }, {
         '$set': {
             'status': extract_status,
@@ -454,6 +453,11 @@ def tmp_worker_job(self, task_id):
 
 
     return extract_status
+
+
+def tmp_get_task_data(self, task_index):
+    task_data = self.task_list[task_index]
+    return task_data
 
 
 # init / run job
@@ -466,6 +470,7 @@ if qlist:
     job.set_master_process(tmp_master_process)
     job.set_master_final(tmp_master_final)
     job.set_worker_job(tmp_worker_job)
+    job.set_get_task_data(tmp_get_task_data)
 
     job.run()
 
