@@ -147,7 +147,7 @@ for i in range(extract_limit):
                     'generator': {'$in': generator_list},
                     'classification': ctype
                 }, sort=[("priority", -1), ("submit_time", 1)])
-                if ctype is not None:
+                if find_request is not None:
                     print find_request
                     break
 
