@@ -1,4 +1,4 @@
-<b><font size=12>Interpreting CSV Column Names</font></b>
+<b><font size=14>Interpreting CSV Column Names</font></b>
 
 Each CSV will contain a column labeled "asdf_id" which has values for each feature that are unique (within that boundary dataset), one or more columns for your extract data, followed by the original source attributes for the boundary file (e.g., from GADM)
 
