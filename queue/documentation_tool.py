@@ -178,7 +178,7 @@ class DocBuilder():
     def add_overview(self):
 
 
-        ptext = '<b><font size=12>Request Overview</font></b>'
+        ptext = '<b><font size=14>Request Overview</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.05*inch))
 
@@ -189,13 +189,13 @@ class DocBuilder():
         # ----------------------------------------
 
         # boundary selection
-        ptext = '<b><font size=12>Boundary Selection</font></b>'
+        ptext = '<b><font size=10>Boundary Selection</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.15*inch))
 
         data = [
             ['Title', self.request['boundary']['title']],
-            ['Name', self.request['boundary']['name']],
+            ['Dataset', self.request['boundary']['name']],
             ['Group', self.request['boundary']['group']],
             ['Description',  self.request['boundary']['description']]
         ]
@@ -213,15 +213,15 @@ class DocBuilder():
         # ----------------------------------------
 
         # column information / selections
-        ptext = '<b><font size=12>Data Selections</font></b>'
-        self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.15*inch))
+        # ptext = '<b><font size=12>Data Selections</font></b>'
+        # self.Story.append(Paragraph(ptext, self.styles['Normal']))
+        # self.Story.append(Spacer(1, 0.15*inch))
 
         selection_count = 0
         for dset in self.request['release_data']:
-        # for dset in self.request['release_data'].values():
+            # for dset in self.request['release_data'].values():
             selection_count += 1
-            ptext = '<i>Selection {0} - {1}</i>'.format(selection_count, dset['custom_name'])
+            ptext = '<font size=10><b>Data Selection {0} - {1}</b></font>'.format(selection_count, dset['custom_name'])
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
@@ -238,8 +238,7 @@ class DocBuilder():
             data = [
                 ['Column Names ', colnames],
                 ['Dataset ', dset['dataset']],
-                ['Type', 'release'],
-                [pg('<b>Filters</b>', 1), '']
+                [pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])]
             ]
 
             for f in dset['filters']:
@@ -259,7 +258,7 @@ class DocBuilder():
         for dset in self.request['raster_data']:
             selection_count += 1
 
-            ptext = '<i>Selection {0} - {1}</i>'.format(selection_count, dset['custom_name'])
+            ptext = '<font size=10><b>Data Selection {0} - {1}</b></font>'.format(selection_count, dset['custom_name'])
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
 
@@ -280,9 +279,7 @@ class DocBuilder():
 
             data = [
                 ['Column Names ', colnames],
-                ['Name', dset['name']],
-                ['Title', dset['title']],
-                ['Type', dset['type']]
+                ['Dataset', dset['name']],
             ]
 
             data.append(['Temporal Type', dset['temporal_type']])
