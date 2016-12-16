@@ -507,6 +507,7 @@ class QueueToolBox():
             cleanup working directory, send final email
         """
         request_id = str(request['_id'])
+        request['_id'] = request_id
 
         results_dir = ("/sciclone/aiddata10/REU/outputs/" +
                        self.branch + "/det/results")
@@ -537,11 +538,10 @@ class QueueToolBox():
 
 
         # output request doc as json
-        rdoc = request
-        rdoc['_id'] = request_id
-        rdoc_path =  os.path.join(request_dir, "request_details.json")
+        print "creating request json"
+        rdoc_path = os.path.join(request_dir, "request_details.json")
         rdoc_file = open(rdoc_path, "w")
-        json.dump(rdoc, rdoc_file, indent=4)
+        json.dump(request, rdoc_file, indent=4)
         rdoc_file.close()
 
 
