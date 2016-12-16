@@ -2,7 +2,7 @@
 
 Please cite the following in any and all applications of the extracted datasets:
 
-Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a>. DOI: 10.13140/RG.2.2.28363.59686
+<i>Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a>. DOI: 10.13140/RG.2.2.28363.59686</i>
 
 <b><font size=12>General Information</font></b>
 
@@ -12,6 +12,6 @@ The results zip file includes:
 - JSON file containing your request parameters
 - "msr_jsons" folder containing JSON files with the details of each aid permutation you requested (this is only present if your request included aid data)
 
-For additional information, usage tips, guides and more please visit <a href="http://geo.aiddata.org">geo.aiddata.org</a>.
+For additional information, usage tips, guides and more please visit <i><a href="http://geo.aiddata.org">geo.aiddata.org</a></i>.
 
-To get in touch, please contact us via <a href="mailto:geo@aiddata.org">geo@aiddata.org</a>.
+To get in touch, please contact us via <i><a href="mailto:geo@aiddata.org">geo@aiddata.org</a></i>.

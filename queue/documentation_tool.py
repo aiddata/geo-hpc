@@ -74,16 +74,24 @@ class DocBuilder():
         self.doc = SimpleDocTemplate(self.output, pagesize=letter)
 
         # build doc call all functions
+
         self.add_header()
+        self.Story.append(Spacer(1, 0.5*inch))
         self.add_info()
+        self.Story.append(Spacer(1, 0.3*inch))
         self.add_timeline()
+        self.Story.append(Spacer(1, 0.3*inch))
         self.add_general()
         self.Story.append(PageBreak())
+
         self.add_overview()
         self.Story.append(PageBreak())
+
         self.add_meta()
         self.Story.append(PageBreak())
+
         self.add_additional()
+
         self.output_doc()
 
         return True
@@ -105,7 +113,6 @@ class DocBuilder():
         # title
         ptext = '<font size=20>AidData geo(query) Request Documentation</font>'
         self.Story.append(Paragraph(ptext, self.styles['Center']))
-        self.Story.append(Spacer(1, 0.5*inch))
 
 
     # report generation info
@@ -133,14 +140,14 @@ class DocBuilder():
 
         self.Story.append(t)
 
-        self.Story.append(Spacer(1,0.3*inch))
-
 
     # full request timeline / other processing info
     def add_timeline(self):
 
         ptext = '<b><font size=12>Processing Timeline</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
+        self.Story.append(Spacer(1, 0.1*inch))
+
         data = [
             ['submit', self.time_str(self.request['stage'][0]['time'])],
             ['prep', self.time_str(self.request['stage'][1]['time'])],
@@ -159,7 +166,6 @@ class DocBuilder():
 
         self.Story.append(t)
 
-        self.Story.append(Spacer(1, 0.3*inch))
 
 
     # intro paragraphs
@@ -317,7 +323,6 @@ class DocBuilder():
             self.Story.append(Spacer(1, 0.25*inch))
 
 
-        self.Story.append(Spacer(1, 0.3*inch))
 
 
     def build_meta(self, name, item_type):
@@ -466,7 +471,6 @@ class DocBuilder():
                 self.Story.append(Spacer(1, 0.25*inch))
 
 
-        self.Story.append(Spacer(1, 0.3*inch))
 
 
 
@@ -478,7 +482,6 @@ class DocBuilder():
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
-        self.Story.append(Spacer(1,0.3*inch))
 
 
 
