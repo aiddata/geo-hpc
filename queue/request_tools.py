@@ -592,6 +592,9 @@ class QueueToolBox():
 
         merge_output (str): absolute path for merged output file
         """
+
+        field_list = ['asdf_id']
+
         merged_df = 0
         for file_info in file_list:
 
@@ -645,9 +648,16 @@ class QueueToolBox():
 
 
                 merged_df[tmp_field] = result_df[c]
+                field_list.append(tmp_field)
 
 
         if isinstance(merged_df, pd.DataFrame):
+
+            # reorder columns to put id and extract columns first
+            field_list += [i for i in list(result_df.columns)
+                           if i not in field_list]
+            merged_df = merged_df[field_list]
+
             # output merged dataframe to csv
             # generate output folder for merged df using request id
             make_dir(os.path.dirname(merge_output))
