@@ -654,7 +654,7 @@ class QueueToolBox():
         if isinstance(merged_df, pd.DataFrame):
 
             # reorder columns to put id and extract columns first
-            field_list += [i for i in list(result_df.columns)
+            field_list += [i for i in list(merged_df.columns)
                            if i not in field_list]
             merged_df = merged_df[field_list]
 
