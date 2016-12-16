@@ -453,7 +453,7 @@ class DocBuilder():
             if dset['name'] not in meta_log:
                 meta_log.append(dset['name'])
 
-                ptext = '<i>Dataset {0}</i>'.format(len(meta_log))
+                ptext = '<font size=10><b>Dataset {0}</b></font>'.format(len(meta_log))
                 self.Story.append(Paragraph(ptext, self.styles['Normal']))
                 self.Story.append(Spacer(1, 0.05*inch))
 
