@@ -180,18 +180,18 @@ class DocBuilder():
 
         ptext = '<b><font size=14>Request Overview</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.05*inch))
+        self.Story.append(Spacer(1, 0.25*inch))
 
         ptext = '<i>Note: This section only contains an overview of boundary and data selections. For meta data, see the "Meta Information" section.</i>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.15*inch))
+        self.Story.append(Spacer(1, 0.25*inch))
 
         # ----------------------------------------
 
         # boundary selection
         ptext = '<b><font size=10>Boundary Selection</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.15*inch))
+        self.Story.append(Spacer(1, 0.05*inch))
 
         data = [
             ['Title', self.request['boundary']['title']],
@@ -208,7 +208,7 @@ class DocBuilder():
         ]))
 
         self.Story.append(t)
-        self.Story.append(Spacer(1, 0.1*inch))
+        self.Story.append(Spacer(1, 0.25*inch))
 
         # ----------------------------------------
 
@@ -236,6 +236,7 @@ class DocBuilder():
             ###
 
             data = [
+                ['Title', dset['title']],
                 ['Column Names ', colnames],
                 ['Dataset ', dset['dataset']],
                 [pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])]
@@ -252,7 +253,7 @@ class DocBuilder():
             ]))
 
             self.Story.append(t)
-            self.Story.append(Spacer(1, 0.1*inch))
+            self.Story.append(Spacer(1, 0.25*inch))
 
 
         for dset in self.request['raster_data']:
@@ -278,6 +279,7 @@ class DocBuilder():
                         )
 
             data = [
+                ['Title', dset['title']],
                 ['Column Names ', colnames],
                 ['Dataset', dset['name']],
             ]
@@ -306,7 +308,7 @@ class DocBuilder():
             ]))
 
             self.Story.append(t)
-            self.Story.append(Spacer(1, 0.1*inch))
+            self.Story.append(Spacer(1, 0.25*inch))
 
 
         self.Story.append(Spacer(1, 0.3*inch))
