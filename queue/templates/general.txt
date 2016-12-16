@@ -4,6 +4,7 @@ Please cite the following in any and all applications of the extracted datasets:
 
 <i>Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a>. DOI: 10.13140/RG.2.2.28363.59686</i>
 
+
 <b><font size=12>General Information</font></b>
 
 The results zip file includes:

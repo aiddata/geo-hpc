@@ -149,10 +149,10 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.1*inch))
 
         data = [
-            ['submit', self.time_str(self.request['stage'][0]['time'])],
-            ['prep', self.time_str(self.request['stage'][1]['time'])],
-            ['process', self.time_str(self.request['stage'][2]['time'])],
-            ['complete', self.time_str(int(time.time()))]
+            [self.request['stage'][0]['name'], self.time_str(self.request['stage'][0]['time'])],
+            [self.request['stage'][1]['name'], self.time_str(self.request['stage'][1]['time'])],
+            [self.request['stage'][2]['name'], self.time_str(self.request['stage'][2]['time'])],
+            [self.request['stage'][3]['name'], self.time_str(int(time.time()))]
             # ['complete', self.time_str(self.request['stage'][3]['time'])]
         ]
 
