@@ -158,9 +158,7 @@ class ExtractItem():
         details = {
             'classification': classification,
             'generator': 'det',
-            'status': 0,
             'priority': 0,
-            'submit_time': ctime,
             'update_time': ctime
         }
 
@@ -177,6 +175,9 @@ class ExtractItem():
             update = self.c_extracts.update(query,
                                             {'$set': details})
         else:
+            full_insert['status'] = 0
+            full_insert['submit_time'] = ctime
+
             # insert full
             insert = self.c_extracts.insert(full_insert)
 
