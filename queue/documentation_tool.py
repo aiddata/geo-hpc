@@ -170,7 +170,13 @@ class DocBuilder():
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
-        self.Story.append(Spacer(1,0.3*inch))
+        self.Story.append(PageBreak())
+
+        with open(self.dir_base + '/templates/field_names.txt') as field_names:
+            for line in field_names:
+                p = Paragraph(line, self.styles['BodyText'])
+                self.Story.append(p)
+
 
 
 
@@ -392,7 +398,7 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.15*inch))
 
         # full boundary meta
-        ptext = '<i>Boundary </i>'
+        ptext = '<font size=10><b>Boundary</b></font>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.05*inch))
 
@@ -408,7 +414,7 @@ class DocBuilder():
         ]))
 
         self.Story.append(t)
-        self.Story.append(Spacer(1, 0.1*inch))
+        self.Story.append(Spacer(1, 0.25*inch))
 
 
         # full dataset meta
@@ -419,7 +425,7 @@ class DocBuilder():
             if dset['dataset'] not in meta_log:
                 meta_log.append(dset['dataset'])
 
-                ptext = '<i>Dataset {0}</i>'.format(len(meta_log))
+                ptext = '<font size=10><b>Dataset {0}</b></font>'.format(len(meta_log))
                 self.Story.append(Paragraph(ptext, self.styles['Normal']))
                 self.Story.append(Spacer(1, 0.05*inch))
 
@@ -434,7 +440,7 @@ class DocBuilder():
                 ]))
 
                 self.Story.append(t)
-                self.Story.append(Spacer(1, 0.1*inch))
+                self.Story.append(Spacer(1, 0.25*inch))
 
 
         for dset in self.request['raster_data']:
@@ -457,7 +463,7 @@ class DocBuilder():
                 ]))
 
                 self.Story.append(t)
-                self.Story.append(Spacer(1, 0.1*inch))
+                self.Story.append(Spacer(1, 0.25*inch))
 
 
         self.Story.append(Spacer(1, 0.3*inch))
