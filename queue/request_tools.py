@@ -536,7 +536,15 @@ class QueueToolBox():
         # print bd_status
 
 
-        # ---
+        # output request doc as json
+        rdoc = request
+        rdoc['_id'] = request_id
+        rdoc_path =  os.path.join(request_dir, "request_details.json")
+        rdoc_file = open(rdoc_path, "w")
+        json.dump(rdoc, rdoc_file, indent=4)
+        rdoc_file.close()
+
+
         # make msr json folder in request_dir
         msr_jsons_dir = os.path.join(request_dir, 'msr_jsons')
         make_dir(msr_jsons_dir)
@@ -552,7 +560,6 @@ class QueueToolBox():
                 tmp_dataset, tmp_hash))
 
             shutil.copyfile(src, dst)
-        # ---
 
 
         # make zip of request dir
@@ -561,10 +568,8 @@ class QueueToolBox():
         # move zip of request dir into request dir
         shutil.move(request_dir + ".zip", request_dir)
 
-        # ---
         # remove msr json folder from request dir
         shutil.rmtree(msr_jsons_dir)
-        # ---
 
 
 
