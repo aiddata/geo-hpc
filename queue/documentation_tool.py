@@ -236,7 +236,7 @@ class DocBuilder():
             ###
 
             data = [
-                ['Title', dset['title']],
+                # ['Title', dset['title']], # release data do not have title in request object
                 ['Column Names ', colnames],
                 ['Dataset ', dset['dataset']],
                 [pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])]
@@ -279,7 +279,7 @@ class DocBuilder():
                         )
 
             data = [
-                ['Title', dset['title']],
+                # ['Title', dset['title']],
                 ['Column Names ', colnames],
                 ['Dataset', dset['name']],
             ]
