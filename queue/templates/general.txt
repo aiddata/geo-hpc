@@ -6,18 +6,46 @@ Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework. Ai
 
 <b><font size=12>General Information</font></b>
 
-The results zip file should include your request documentation (this pdf document) along with a comma separated value (CSV) file containing your extract data.
+The results zip file includes:
+- request documentation (this pdf document)
+- a comma separated value (CSV) file containing your data
+- JSON file containing your request parameters
+- "msr_jsons" folder containing JSON files with the details of each aid permutation you requested (this is only present if your request included aid data)
+
 For additional information, usage tips, guides and more please visit <a href="http://geo.aiddata.org">geo.aiddata.org</a>.
 
 To get in touch, please contact us via <a href="mailto:geo@aiddata.org">geo@aiddata.org</a>.
 
-<b><font size=12>CSV Column Name Format Information</font></b>
+<b><font size=12>Interpreting CSV Column Names</font></b>
 
-In addition to the original source attributes of the boundary file (e.g., from GADM) the CSV for every extract will contain a column name "asdf_id" with values for each feature that are unique (within that boundary dataset) and one or more columns containing the extract results.
+Each CSV will contain a column labeled "asdf_id" which has values for each feature that are unique (within that boundary dataset), one or more columns for your extract data, followed by the original source attributes for the boundary file (e.g., from GADM)
 
-The standard format for column names used for extracts results is a three part string delimited by periods (.) such as &#60;dataset&#62;.&#60;temporal&#62;.&#60;method&#62; where &#60;dataset&#62; is the name of the dataset which was extracted, &#60;temporal&#62; is any temporal information related to that extract (e.g., YYYY format for year - "1999" - for year, or "none" for temporally invariant data) and &#60;method&#62; is the extract method used to aggregate dataset values to boundary features (e.g., "mean").
+The standard format for extract data column names is a three part string delimited by periods (.)
 
-Aid data extracts utilize a similar but unique format. The &#60;temporal&#62; section is replaced with a unique &#60;hash&#62; that corresponds to the filter combination used to generate that particular aid data extract. For each aid data extract you will see three columns in the CSV that have the same &#60;dataset&#62; and &#60;hash&#62; sections of the column name with the &#60;methods&#62; of the three being different. These three &#60;method&#62; values are "sum", "potential" and "reliability." Sum represents the total aid for each feature within the boundary based on the distribution of aid used when building the aid data. Potential is the maximum aid that could have been allocated to each feature regardless of the distribution of aid used. Reliability is a ratio of sum:potential representing a simplistic measure of how accurate the distribution and aggregation of aid was relative to the boundary features used during the extract process.
+    <b>&#60;dataset&#62;.&#60;filter&#62;.&#60;method&#62;</b>
+
+    where
+        &#60;dataset&#62; is the name of the dataset which was extracted
+        &#60;filter&#62; describes how the dataset was filtered. This is usually a temporal value (e.g., YYYY format for year such as "1999", "none" for temporally invariant data, or a unique hash describing more complex filters, such as for aid datasets)
+        &#60;method&#62; is the extract method used to aggregate dataset values to boundary features (e.g., "mean", "sum")
 
 
+<b>Notes - Aid data extracts</b>
+
+The &#60;filter&#62; component of aid data extracts is a unique hash that corresponds to the filter combination used to generate that particular aid data extract (e.g., donor, sector, year, status). For each aid data extract you request, you will see three columns in the CSV that have the same &#60;dataset&#62; and &#60;filter&#62; sections of the column name with the &#60;methods&#62; of the three being different.
+
+These three &#60;method&#62; values are:
+- "sum" is the total aid for each feature within the boundary based on the distribution of aid used when building the aid data
+- "potential" is the maximum aid that could have been allocated to each feature regardless of the distribution of aid used
+- "reliability" is a ratio of sum:potential representing a simplistic measure of how accurate the distribution and aggregation of aid was relative to the boundary features used during the extract process
+
+
+<b>Notes - Categorical extracts</b>
+
+Data extracted using the categorical method will have multiple columns with the same &#60;dataset&#62; and &#60;filter&#62; where the .&#60;method&#62; for each is "categorical_.&#60;category&#62;.
+
+For a simple landcover dataset this might look like:
+- landcover.2000.categorical_water
+- landcover.2000.categorical_forest
+- landcover.2000.categorical_desert
 
