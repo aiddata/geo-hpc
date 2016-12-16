@@ -190,7 +190,7 @@ class DocBuilder():
     def add_overview(self):
 
 
-        ptext = '<b><font size=14>Request Overview</font></b>'
+        ptext = '<b><font size=12>Request Overview</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.25*inch))
 
@@ -400,7 +400,7 @@ class DocBuilder():
 
         ptext = '<b><font size=12>Meta Information</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.15*inch))
+        self.Story.append(Spacer(1, 0.25*inch))
 
         # full boundary meta
         ptext = '<font size=10><b>Boundary</b></font>'
