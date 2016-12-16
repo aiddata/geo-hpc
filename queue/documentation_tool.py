@@ -117,7 +117,7 @@ class DocBuilder():
 
     # report generation info
     def add_info(self):
-        ptext = '<b><font size=12>Report Info</font></b>'
+        ptext = '<b><font size=14>Report Info</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['BodyText']))
         self.Story.append(Spacer(1, 0.1*inch))
 
@@ -144,7 +144,7 @@ class DocBuilder():
     # full request timeline / other processing info
     def add_timeline(self):
 
-        ptext = '<b><font size=12>Processing Timeline</font></b>'
+        ptext = '<b><font size=14>Processing Timeline</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.1*inch))
 
@@ -190,7 +190,7 @@ class DocBuilder():
     def add_overview(self):
 
 
-        ptext = '<b><font size=12>Request Overview</font></b>'
+        ptext = '<b><font size=14>Request Overview</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.25*inch))
 
@@ -398,7 +398,7 @@ class DocBuilder():
 
     def add_meta(self):
 
-        ptext = '<b><font size=12>Meta Information</font></b>'
+        ptext = '<b><font size=14>Meta Information</font></b>'
         self.Story.append(Paragraph(ptext, self.styles['Normal']))
         self.Story.append(Spacer(1, 0.25*inch))
 

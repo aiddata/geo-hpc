@@ -1,4 +1,4 @@
-<b><font size=12>Terms of Use</font></b>
+<b><font size=14>Terms of Use</font></b>
 
 The database and derived products produced by this tool are governed by the license available at http://geo.aiddata.org/license ('the geo license'). By clicking submit you agree to the terms of the geo license, which are summarized as:
 
@@ -13,7 +13,7 @@ You are free:
 This is not a license. It is simply a handy reference for understanding the ODC-BY 1.0 — it is a human-readable expression of some of its key terms. This summary has no legal value, and its contents do not appear in the actual license. Read the full ODC-BY 1.0 license text at <a href="http://geo.aiddata.org/license">geo.aiddata.org/license</a> for the exact terms that apply.
 
 
-<b><font size=12>Acknowledgements</font></b>
+<b><font size=14>Acknowledgements</font></b>
 
 This work was performed in part using computational facilities at the College of William and Mary which were provided with assistance from the National Science Foundation, the Virginia Port Authority, and Virginia's Commonwealth Technology Research Fund.
 
