@@ -91,14 +91,15 @@ def tmp_master_final(self):
     print 'Merge Runtime: ' + str(T_run2//60) +'m '+ str(int(T_run2%60)) +'s'
 
 
-def tmp_worker_job(self, task_id):
+def tmp_worker_job(self, task):
 
-    worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_id)
+    task_index, task_data = task
+    worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_index)
 
-    task = self.task_list[task_id]
+    # task = self.task_list[task_id]
 
-    dataset_index = task[0]
-    qlist_index = task[1]
+    dataset_index = task_data[0]
+    qlist_index = task_data[1]
 
     # dataset name
     data_name = input_json['job']['datasets'][dataset_index]['name']
