@@ -18,7 +18,7 @@
             "WorldBank": "global"
         },
         "other_iso3": [
-            "LBR"
+            "LBR", "GHA", "MLI", "AGO", "GMB", "NER", "RWA", "MWI"
         ],
         "versions": {
             "asdf": "0.4.1",
