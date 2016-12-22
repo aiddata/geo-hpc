@@ -109,162 +109,34 @@ extract_limit = default_extract_limit
 if extract_limit == -1:
     extract_limit = job.size -1
 
+# -------------------------------------
+# job type definitions for request queries
 
-# -----------------------------------------------------------------------------
-
-# build extract list
-
-job_type = 'default'
+job.job_type = 'default'
 if len(sys.argv) == 3:
-    job_type = sys.argv[2]
+    job.job_type = sys.argv[2]
 
-if job_type == 'default':
-    generator_list = ['auto', 'det']
-    classification_list = ['raster', 'msr']
+if job.job_type == 'default':
+    job.generator_list = ['auto', 'det']
+    job.classification_list = ['raster', 'msr']
 
-if job_type == 'det':
-    generator_list = ['det']
-    classification_list = ['raster', 'msr']
-
-extract_list = []
-
-for i in range(extract_limit):
-
-    request = 0
-
-    if job.rank == 0:
-
-        print 'starting request search ({0})'.format(job_type)
-        search_limit = 100
-        search_attempt = 0
-
-        while search_attempt < search_limit:
-
-            print 'finding request:'
-            for ctype in classification_list:
-                find_request = c_extracts.find_one({
-                    'status': 0,
-                    'generator': {'$in': generator_list},
-                    'classification': ctype
-                }, sort=[("priority", -1), ("submit_time", 1)])
-                if find_request is not None:
-                    print find_request
-                    break
-
-            if find_request is None:
-                request = None
-                break
-
-            request_accept = c_extracts.update_one({
-                '_id': find_request['_id'],
-                'status': find_request['status']
-            }, {
-                '$set': {
-                    'status': 2,
-                    'update_time': int(time.time())
-                }
-            })
-
-            print request_accept.raw_result
-
-            if (request_accept.acknowledged and
-                    request_accept.modified_count == 1):
-                request = find_request
-                break
-
-            search_attempt += 1
-
-            print 'looking for another request...'
+if job.job_type == 'det':
+    job.generator_list = ['det']
+    job.classification_list = ['raster', 'msr']
 
 
-        if search_attempt == search_limit:
-            print "error updating request status in mongodb (attempting to continue)"
-            request = "pass"
-        elif request is None:
-            print 'no jobs found in queue'
-        else:
-            print 'request found'
+if job.rank == 0:
+    print "running job type: {0}".format(job.job_type)
 
+# -------------------------------------
+# number of time mongo query/update for request can fail
+# to find and update a request before giving up
+#
+#   (soemtimes multiple jobs will pull same request and
+#   only one can be the first to update. if this happens 100
+#   times, something else is probably going on)
+job.search_limit = 100
 
-
-    request = job.comm.bcast(request, root=0)
-
-
-    if request is None:
-        break
-    elif request == "pass":
-        pass
-    # elif request == 'Error':
-        # raise Exception("error updating request status in mongodb")
-    elif request == 0:
-        raise Exception("error getting request from master")
-    else:
-        extract_list.append(request)
-
-
-# -----------------------------------------------------------------------------
-
-qlist = []
-
-for i in extract_list:
-    tmp = {}
-
-    tmp['_id'] = i['_id']
-
-    tmp['bnd_name'] = i['boundary']
-
-    bnd_info = c_asdf.find_one(
-        {'name': tmp['bnd_name']},
-        {'base': 1, 'resources': 1})
-
-    tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
-                           bnd_info['resources'][0]['path'])
-
-    tmp['data_name'] = i['data']
-
-    tmp['classification'] = i['classification']
-
-    if i['classification'] == 'msr':
-
-        rname = i['data']
-        rdataset = rname[:rname.rindex('_')]
-        rhash = rname[rname.rindex('_')+1:]
-
-        tmp['dataset_name'] = rdataset
-        tmp['data_path'] = os.path.join("/sciclone/aiddata10/REU/outputs/",
-                                            branch , "msr", "done",
-                                            rdataset, rhash, "raster.tif")
-        tmp['file_mask'] = "None"
-
-    else:
-
-        tmp['dataset_name'] = i['data'][:i['data'].rindex("_")]
-        # print i['data']
-        # print tmp['dataset_name']
-
-        data_info = c_asdf.find_one(
-            {'resources.name': i['data']},
-            {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
-
-
-        tmp['dataset_name'] = data_info['name']
-
-        tmp['data_path'] = (
-            data_info['base'] + '/'+
-            [
-                j['path'] for j in data_info['resources']
-                if j['name'] == i['data']
-            ][0])
-
-        tmp['file_mask'] = data_info['file_mask']
-
-
-    tmp['extract_type'] = i['extract_type']
-
-    tmp['output_base'] = general_output_base
-
-
-    qlist.append(tmp)
 
 
 # =============================================================================
@@ -455,22 +327,144 @@ def tmp_worker_job(self, task):
     return extract_status
 
 
-def tmp_get_task_data(self, task_index):
-    task_data = self.task_list[task_index]
-    return task_data
+
 
 
 # init / run job
-if qlist:
+job.set_task_count(extract_limit)
 
-    job.set_task_list(qlist)
+job.set_general_init(tmp_general_init)
+job.set_master_init(tmp_master_init)
+job.set_master_process(tmp_master_process)
+job.set_master_final(tmp_master_final)
+job.set_worker_job(tmp_worker_job)
+job.set_get_task_data(tmp_get_task_data)
 
-    job.set_general_init(tmp_general_init)
-    job.set_master_init(tmp_master_init)
-    job.set_master_process(tmp_master_process)
-    job.set_master_final(tmp_master_final)
-    job.set_worker_job(tmp_worker_job)
-    job.set_get_task_data(tmp_get_task_data)
+job.run()
 
-    job.run()
+
+
+
+
+def tmp_get_task_data(self, task_index):
+    # task_data = self.task_list[task_index]
+    # return task_data
+
+
+    print 'starting request search ({0})'.format(task_index)
+    search_attempt = 0
+
+    while search_attempt < self.search_limit:
+
+        print 'finding request:'
+
+        # look for request of each type in classification list
+        # (list is in order of priority)
+        for ctype in classification_list:
+            find_request = c_extracts.find_one({
+                'status': 0,
+                'generator': {'$in': generator_list},
+                'classification': ctype
+            }, sort=[("priority", -1), ("submit_time", 1)])
+            if find_request is not None:
+                # print find_request
+                break
+
+        # if None, there are no more requests
+        if find_request is None:
+            request = None
+            break
+
+        # attempt to "claim" found request by updating status
+        request_accept = c_extracts.update_one({
+            '_id': find_request['_id'],
+            'status': find_request['status']
+        }, {
+            '$set': {
+                'status': 2,
+                'update_time': int(time.time())
+            }
+        })
+
+        # print request_accept.raw_result
+
+        if (request_accept.acknowledged and
+                request_accept.modified_count == 1):
+            request = find_request
+            break
+
+        # only reaches here if update failed
+        search_attempt += 1
+        # print 'looking for another request...'
+
+
+
+
+    if search_attempt == job.search_limit:
+        # print "error updating request status in mongodb (attempting to continue)"
+        return ("error", "pass", "error updating request status in mongodb (attempting to continue)")
+
+    elif request is None:
+        # print 'no jobs found in queue'
+        return ("error", "empty", "no jobs found in queue")
+
+    else:
+
+        tmp = {}
+
+        tmp['_id'] = request['_id']
+
+        tmp['bnd_name'] = request['boundary']
+
+        bnd_info = c_asdf.find_one(
+            {'name': tmp['bnd_name']},
+            {'base': 1, 'resources': 1})
+
+        tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
+                               bnd_info['resources'][0]['path'])
+
+        tmp['data_name'] = request['data']
+
+        tmp['classification'] = request['classification']
+
+        if request['classification'] == 'msr':
+
+            rname = request['data']
+            rdataset = rname[:rname.rindex('_')]
+            rhash = rname[rname.rindex('_')+1:]
+
+            tmp['dataset_name'] = rdataset
+            tmp['data_path'] = os.path.join("/sciclone/aiddata10/REU/outputs/",
+                                                branch , "msr", "done",
+                                                rdataset, rhash, "raster.tif")
+            tmp['file_mask'] = "None"
+
+        else:
+
+            tmp['dataset_name'] = request['data'][:request['data'].rindex("_")]
+            # print request['data']
+            # print tmp['dataset_name']
+
+            data_info = c_asdf.find_one(
+                {'resources.name': request['data']},
+                {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
+
+
+            tmp['dataset_name'] = data_info['name']
+
+            tmp['data_path'] = (
+                data_info['base'] + '/'+
+                [
+                    j['path'] for j in data_info['resources']
+                    if j['name'] == request['data']
+                ][0])
+
+            tmp['file_mask'] = data_info['file_mask']
+
+
+        tmp['extract_type'] = request['extract_type']
+
+        tmp['output_base'] = general_output_base
+
+        return tmp
 
