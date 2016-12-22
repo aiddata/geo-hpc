@@ -306,6 +306,15 @@ class NewParallel():
             self.master_final()
 
 
+    def send_error(self):
+        """Send error to workers/master (depending on source"""
+        if self.rank == 0:
+            for i in range(1, self.size):
+                self.comm.send(None, dest=i, tag=self.tags.ERROR)
+        else:
+            self.comm.send(None, dest=0, tag=self.tags.ERROR)
+
+
     def run_parallel(self):
         """Run job using set functions in parallel."""
         self.general_init()
@@ -338,14 +347,23 @@ class NewParallel():
                 if tag == self.tags.READY:
 
                     if task_index < self.task_count:
-                        print "Master - sending task {0} to worker {1}".format(task_index, source)
 
                         task_data = self.get_task_data(task_index)
-                        task = (task_index, task_data)
 
-                        self.comm.send(task, dest=source, tag=self.tags.START)
+                        if isinstance(task_data, tuple) and len(task_data) == 3 and task_data[0] == "error":
+                            print "Master - shutting down worker {1} with task {0} ({2})".format(
+                                task_index, source, task_data[2])
 
-                        task_index += 1
+                            self.comm.send(None, dest=source, tag=self.tags.EXIT)
+                        else:
+                            print "Master - sending task {0} to worker {1}".format(
+                                task_index, source)
+
+                            task = (task_index, task_data)
+
+                            self.comm.send(task, dest=source, tag=self.tags.START)
+
+                            task_index += 1
 
                     else:
                         self.comm.send(None, dest=source, tag=self.tags.EXIT)
@@ -367,8 +385,7 @@ class NewParallel():
                 elif tag == self.tags.ERROR:
                     print "Master - error reported by worker {0}.".format(source)
                     # broadcast error to all workers
-                    for i in range(1, self.size):
-                        self.comm.send(None, dest=i, tag=self.tags.ERROR)
+                    self.send_error()
 
                     err_status = 1
                     # break
@@ -411,7 +428,7 @@ class NewParallel():
                         print "Worker ({0}) - encountered error".format(self.rank)
                         # print e.encode('utf-8')
                         traceback.print_exc()
-                        self.comm.send(None, dest=0, tag=self.tags.ERROR)
+                        self.send_error()
 
                     # ==================================================
 
