@@ -77,11 +77,11 @@
                 },
                 {
                     "question": "Why are some years not listed in the filter for the aid dataset I selected?",
-                    "answer": ""
+                    "answer": "Our filters are dynamically generated based on thhe underlying aid data and some datasets simply do not have projects for all years."
                 },
                 {
                     "question": "Where can I find more details on the extract methods used (e.g., mean, sum, count, as well as aid data extractions)",
-                    "answer": "You can read our paper <u><a href='http://geo.aiddata.wm.edu/docs/IntroducingtheAidDataGeoFramework.pdf'>HERE</a></u> or visit <u><a href='geo.aiddata.org'>geo.aiddata.org</a></u> for links to our code and additional resources and documentation."
+                    "answer": "You can read our paper <u><a href='http://geo.aiddata.wm.edu/docs/IntroducingtheAidDataGeoFramework.pdf'>HERE</a></u> or visit <u><a href='http://geo.aiddata.org'>geo.aiddata.org</a></u> for links to our code and additional resources and documentation."
                 }
             ],
             "welcome": {
