@@ -177,7 +177,7 @@ def tmp_master_init(self):
     print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
 
 
-def tmp_master_process(self, worker_data):
+def tmp_master_process(self, worker_result):
     pass
 
 
@@ -211,10 +211,9 @@ def tmp_master_final(self):
     # print 'Merge Runtime: ' + str(T_run2//60) +'m '+ str(int(T_run2%60)) +'s'
 
 
-def tmp_worker_job(self, task):
+def tmp_worker_job(self, task_index, task_data):
 
 
-    task_index, task_data = task
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
 
@@ -369,17 +368,20 @@ def tmp_worker_job(self, task):
 
 
 
-def tmp_get_task_data(self, task_index):
+def tmp_get_task_data(self, task_index, source):
     # task_data = self.task_list[task_index]
     # return task_data
 
 
-    print 'starting request search ({0})'.format(task_index)
+    print ("Master - starting request search for Worker {0} "
+           "(Task Index: {1})").format(
+                source, task_index)
+
     search_attempt = 0
 
     while search_attempt < self.search_limit:
 
-        print 'finding request:'
+        # print 'Master - finding request:'
 
         # look for request of each type in classification list
         # (list is in order of priority)
