@@ -15,7 +15,7 @@ except:
 
 import types
 import traceback
-
+from copy import deepcopy
 
 def enum(*sequential, **named):
     """Generate an enum type object."""
@@ -345,7 +345,7 @@ class NewParallel():
             }
             worker_log = dict(zip(
                 range(1, self.size),
-                [worker_info_template.copy() for i in range(1, self.size)]
+                [deepcopy(worker_info_template) for i in range(1, self.size)]
             ))
 
             print "Master - starting with {0} workers".format(num_workers)
