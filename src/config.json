@@ -31,17 +31,58 @@
         "det": {
             "download_server": "geo.aiddata.org",
             "help": [
-                {"question": "How do I select a new boundary?", "answer": "Right now, you can only download data for one boundary at a time, but can put in multiple requests to get broader regions.  We hope to improve this functionality in later releases."},
-                {"question": "What format will I receive data in?", "answer": "We will email you a CSV for use in common programs (Excel, STATA, SPSS, etc), shape boundary information if you prefer use in GIS programs, and a PDF metadata file."},
-                {"question": "How do I cite data I receive from this tool?", "answer": "You should cite both the individual data products you receive (details are provided in the metadata) as well as this tool: Goodman, S., BenYishay, A., Runfola, D., 2017. Overview of the geo Framework. AidData. Available online athttp://geo.aiddata.org/. DOI: 10.13140/RG.2.2.28363.59686"},
-                {"question": "Do I need to cite individual datasets?", "answer": "Yes. The documentation provided with your results will include citation and source information for individual datasets. These should be used along with a citation for geo.query"},
-                {"question": "How long will it take to receive my data?", "answer": "This is highly dependent on the number of aid permutations you request.  Each aid estimation can take from under 5 minutes (for small numbers of projects) up to 4 hours (for tens of thousands of projects)."},
-                {"question": "Where can I go to provide feedback or request new datasets?", "answer": "We have an online form <a href='https://goo.gl/forms/ctRMxcbffpoEpQyz1'>HERE</a>"},
-                {"question": "How can I contact you directly?", "answer": "Please email us at geo@aiddata.wm.edu"},
-                {"question": "Do you have examples of the types of analyses that can be conducted using this data?", "answer": "Yes - we provide a number of examples at geo.aiddata.org."},
-                {"question": "Do you conduct research using this information?", "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at geo.aiddata.org; you can also contact us at geo@aiddata.wm.edu."},
-                {"question": "How do I submit my request?", "answer": "Click the Submit Request at the upper-right then enter your email and click the big Submit button."},
-                {"question": "Can I edit/update/resubmit previous requests?", "answer": "While we hope to implement this feature at a later date, you currently cannot modify previous requests.  However, you can input multiple requests into the system, and requests you previously made will be cached (and thus will not need to be processed again, and be returned to you quicker)."}
+                {
+                    "question": "Can I select data for multiple boundaries?",
+                    "answer": "Right now, you can only download data for one boundary at a time, but can put in multiple requests to get data on additional regions. We hope to improve this functionality in later releases."
+                },
+                {
+                    "question": "What format will I receive data in?",
+                    "answer": "We will email you a CSV for use in common programs (Excel, STATA, SPSS, etc), shape boundary information if you prefer use in GIS programs, and a PDF metadata file."
+                },
+                {
+                    "question": "How do I cite data I receive from this tool?",
+                    "answer": "You should cite both the individual data products you receive (details are provided in the metadata) as well as this tool: Goodman, S., BenYishay, A., Runfola, D., 2017. Overview of the geo Framework. AidData. Available online athttp://geo.aiddata.org/. DOI: 10.13140/RG.2.2.28363.59686"
+                },
+                {
+                    "question": "Do I need to cite individual datasets?",
+                    "answer": "Yes. The documentation provided with your results will include citation and source information for individual datasets. These should be used along with a citation for geo.query"
+                },
+                {
+                    "question": "How long will it take to receive my data?",
+                    "answer": "This is highly dependent on the data requested. Many requests will be nearly instantaneous due to proprocessing and data caching, however requests which require processing may take up to several hours per aid permutation request (if selection has large number of project locations)."
+                },
+                {
+                    "question": "Where can I go to provide feedback or request new datasets?",
+                    "answer": "We have an online form you can access <u><a href='https://goo.gl/forms/ctRMxcbffpoEpQyz1'>HERE</a></u>"
+                },
+                {
+                    "question": "How can I contact you directly?",
+                    "answer": "Please email us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>"
+                },
+                {
+                    "question": "Do you have examples of the types of analyses that can be conducted using this data?",
+                    "answer": "Yes - we provide a number of examples at <u><a href='geo.aiddata.org'>geo.aiddata.org</a></u>."
+                },
+                {
+                    "question": "Do you conduct research using this information?",
+                    "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at <u><a href='geo.aiddata.org'>geo.aiddata.org</a></u>; you can also contact us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>."
+                },
+                {
+                    "question": "How do I submit my request?",
+                    "answer": "Click the Submit Request at the upper-right then enter your email and click the big Submit button."
+                },
+                {
+                    "question": "Can I edit/update/resubmit previous requests?",
+                    "answer": "While we hope to implement this feature at a later date, you currently cannot modify previous requests.  However, you can input multiple requests into the system, and requests you previously made will be cached (and thus will not need to be processed again, and be returned to you quicker)."
+                },
+                {
+                    "question": "Why are some years not listed in the filter for the aid dataset I selected?",
+                    "answer": ""
+                },
+                {
+                    "question": "Where can I find more details on the extract methods used (e.g., mean, sum, count, as well as aid data extractions)",
+                    "answer": "You can read our paper <u><a href='http://geo.aiddata.wm.edu/docs/IntroducingtheAidDataGeoFramework.pdf'>HERE</a></u> or visit <u><a href='geo.aiddata.org'>geo.aiddata.org</a></u> for links to our code and additional resources and documentation."
+                }
             ],
             "welcome": {
                 "title": "Welcome to geo(query)",
