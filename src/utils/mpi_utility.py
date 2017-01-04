@@ -287,6 +287,11 @@ class NewParallel():
     def run(self):
         """Run job in parallel or serial.
         """
+        if self.task_count == 0:
+            raise Exception("Task count = 0. Either set a non-zero "
+                            "task count, or make sure your task list "
+                            "is being properly populated)")
+
         if self.parallel:
            self.run_parallel()
         else:
@@ -340,7 +345,9 @@ class NewParallel():
             # distribute work
             while closed_workers < num_workers:
                 active_workers = num_workers - closed_workers
-                worker_data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.status)
+                worker_data = self.comm.recv(source=MPI.ANY_SOURCE,
+                                             tag=MPI.ANY_TAG,
+                                             status=self.status)
                 source = self.status.Get_source()
                 tag = self.status.Get_tag()
 
@@ -350,11 +357,16 @@ class NewParallel():
 
                         task_data = self.get_task_data(task_index)
 
-                        if isinstance(task_data, tuple) and len(task_data) == 3 and task_data[0] == "error":
-                            print "Master - shutting down worker {1} with task {0} ({2})".format(
-                                task_index, source, task_data[2])
+                        if (isinstance(task_data, tuple)
+                            and len(task_data) == 3
+                            and task_data[0] == "error"):
+
+                            print ("Master - shutting down worker {1} "
+                                   "with task {0} ({2})").format(
+                                        task_index, source, task_data[2])
 
                             self.comm.send(None, dest=source, tag=self.tags.EXIT)
+
                         else:
                             print "Master - sending task {0} to worker {1}".format(
                                 task_index, source)
@@ -379,7 +391,8 @@ class NewParallel():
                     # ==================================================
 
                 elif tag == self.tags.EXIT:
-                    print "Master - worker {0} exited. ({1})".format(source, active_workers - 1)
+                    print "Master - worker {0} exited. ({1})".format(
+                        source, active_workers - 1)
                     closed_workers += 1
 
                 elif tag == self.tags.ERROR:
@@ -411,7 +424,9 @@ class NewParallel():
             print "Worker {0} - rank {0} on {1}.".format(self.rank, name)
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
-                task = self.comm.recv(source=0, tag=MPI.ANY_TAG, status=self.status)
+                task = self.comm.recv(source=0,
+                                      tag=MPI.ANY_TAG,
+                                      status=self.status)
                 tag = self.status.Get_tag()
 
                 if tag == self.tags.START:
@@ -437,7 +452,8 @@ class NewParallel():
                     break
 
                 elif tag == self.tags.ERROR:
-                    print "Worker ({0}) - error message from Master. Shutting down.".format(self.rank)
+                    print ("Worker ({0}) - error message from Master. "
+                           "Shutting down.").format(self.rank)
                     # confirm error message received and exit
                     self.comm.send(None, dest=0, tag=self.tags.EXIT)
                     break
