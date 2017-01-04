@@ -214,7 +214,7 @@ class NewParallel():
         self.master_data = []
 
 
-    def master_process(self, worker_data):
+    def master_process(self, worker_result):
         """Template only.
 
         Should be replaced by user created function using
@@ -227,7 +227,7 @@ class NewParallel():
         Args:
             value (str): x
         """
-        self.master_data.append(worker_data)
+        self.master_data.append(worker_result)
 
 
     def master_final(self):
@@ -243,7 +243,7 @@ class NewParallel():
         master_data_stack = self.master_data
 
 
-    def worker_job(self, task):
+    def worker_job(self, task_index, task_data):
         """Template only.
 
         Should be replaced by user created function using
@@ -257,14 +257,15 @@ class NewParallel():
         Returns:
             results: object to be passed back from worker to master
         """
-        task_index, task_data = task
+        worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
+        print worker_tagline
 
         results = task_data
 
         return results
 
 
-    def get_task_data(self, task_index):
+    def get_task_data(self, task_index, source):
         """Template only.
 
         Should be replaced by user created function using
@@ -293,9 +294,9 @@ class NewParallel():
                             "is being properly populated)")
 
         if self.parallel:
-           self.run_parallel()
+            self.run_parallel()
         else:
-           self.run_serial()
+            self.run_serial()
 
 
     def run_serial(self):
@@ -304,9 +305,11 @@ class NewParallel():
             self.general_init()
             self.master_init()
 
-            for i in range(len(self.task_list)):
-                worker_result = self.worker_job(i)
-                self.master_process(worker_result)
+            for i in range(self.task_count):
+                task_data = self.get_task_data(i, 0)
+
+                worker_data = self.worker_job(i, task_data)
+                self.master_process(worker_data)
 
             self.master_final()
 
@@ -328,17 +331,19 @@ class NewParallel():
 
         if self.rank == 0:
 
-            # ==================================================
-            # MASTER INIT
-
             self.master_init()
-
-            # ==================================================
 
             task_index = 0
             num_workers = self.size - 1
             closed_workers = 0
             err_status = 0
+
+            worker_info_template = {
+                'status': 'up',
+                'current_task_index': None,
+                'task_index_history': []
+            }
+            worker_log = dict(zip(range(1, self.size), [worker_info_template] * self.size))
 
             print "Master - starting with {0} workers".format(num_workers)
 
@@ -355,7 +360,7 @@ class NewParallel():
 
                     if task_index < self.task_count:
 
-                        task_data = self.get_task_data(task_index)
+                        task_data = self.get_task_data(task_index, source)
 
                         if (isinstance(task_data, tuple)
                             and len(task_data) == 3
@@ -373,6 +378,8 @@ class NewParallel():
 
                             task = (task_index, task_data)
 
+                            worker_log[source]['current_task_index'] = task_index
+
                             self.comm.send(task, dest=source, tag=self.tags.START)
 
                             task_index += 1
@@ -381,14 +388,10 @@ class NewParallel():
                         self.comm.send(None, dest=source, tag=self.tags.EXIT)
 
                 elif tag == self.tags.DONE:
-                    print "Master - got data from worker {0}".format(source)
-
-                    # ==================================================
-                    # MASTER PROCESS
-
+                    task_index = worker_log[source]['current_task_index']
+                    worker_log[source]['task_index_history'].append(task_index)
+                    print "Master - received Task {0} data from Worker {1}".format(task_index, source)
                     self.master_process(worker_data)
-
-                    # ==================================================
 
                 elif tag == self.tags.EXIT:
                     print "Master - worker {0} exited. ({1})".format(
@@ -399,24 +402,20 @@ class NewParallel():
                     print "Master - error reported by worker {0}.".format(source)
                     # broadcast error to all workers
                     self.send_error()
-
                     err_status = 1
                     # break
 
 
             if err_status == 0:
                 print "Master - processing results"
-
-                # ==================================================
-                # MASTER FINAL
-
                 self.master_final()
-
-                # ==================================================
 
             else:
                 print "Master - terminating due to worker error."
 
+
+            print "Worker Log:"
+            print worker_log
 
         else:
             # Worker processes execute code below
@@ -424,28 +423,29 @@ class NewParallel():
             print "Worker {0} - rank {0} on {1}.".format(self.rank, name)
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
-                task = self.comm.recv(source=0,
-                                      tag=MPI.ANY_TAG,
-                                      status=self.status)
+                master_data = self.comm.recv(source=0,
+                                             tag=MPI.ANY_TAG,
+                                             status=self.status)
+
                 tag = self.status.Get_tag()
 
                 if tag == self.tags.START:
 
-                    # ==================================================
-                    # WORKER JOB
+                    task_index, task_data = master_data
 
                     try:
-                        worker_result = self.worker_job(task)
-                        # send worker_result back to master (master_process function)
-                        self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
+                        worker_result = self.worker_job(task_index, task_data)
 
                     except Exception as e:
-                        print "Worker ({0}) - encountered error".format(self.rank)
+                        print "Worker ({0}) - encountered error on Task {1}".format(self.rank, task_index)
                         # print e.encode('utf-8')
                         traceback.print_exc()
                         self.send_error()
 
-                    # ==================================================
+                    else:
+                        # send worker_result back to master (master_process function)
+                        self.comm.send(worker_result, dest=0, tag=self.tags.DONE)
+
 
                 elif tag == self.tags.EXIT:
                     self.comm.send(None, dest=0, tag=self.tags.EXIT)
