@@ -388,9 +388,9 @@ class NewParallel():
                         self.comm.send(None, dest=source, tag=self.tags.EXIT)
 
                 elif tag == self.tags.DONE:
-                    task_index = worker_log[source]['current_task_index']
-                    worker_log[source]['task_index_history'].append(task_index)
-                    print "Master - received Task {0} data from Worker {1}".format(task_index, source)
+                    worker_task_index = worker_log[source]['current_task_index']
+                    worker_log[source]['task_index_history'].append(worker_task_index)
+                    print "Master - received Task {0} data from Worker {1}".format(worker_task_index, source)
                     self.master_process(worker_data)
 
                 elif tag == self.tags.EXIT:
