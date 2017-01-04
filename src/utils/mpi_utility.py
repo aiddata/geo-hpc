@@ -15,6 +15,8 @@ except:
 
 import types
 import traceback
+
+import json
 from copy import deepcopy
 
 def enum(*sequential, **named):
@@ -418,7 +420,7 @@ class NewParallel():
 
 
             print "Worker Log:"
-            print worker_log
+            print json.dumps(worker_log, indent=4, separators=(",", ":"))
 
         else:
             # Worker processes execute code below
