@@ -328,24 +328,6 @@ def tmp_worker_job(self, task):
 
 
 
-
-
-# init / run job
-job.set_task_count(extract_limit)
-
-job.set_general_init(tmp_general_init)
-job.set_master_init(tmp_master_init)
-job.set_master_process(tmp_master_process)
-job.set_master_final(tmp_master_final)
-job.set_worker_job(tmp_worker_job)
-job.set_get_task_data(tmp_get_task_data)
-
-job.run()
-
-
-
-
-
 def tmp_get_task_data(self, task_index):
     # task_data = self.task_list[task_index]
     # return task_data
@@ -467,4 +449,18 @@ def tmp_get_task_data(self, task_index):
         tmp['output_base'] = general_output_base
 
         return tmp
+
+
+
+# init / run job
+job.set_task_count(extract_limit)
+
+job.set_general_init(tmp_general_init)
+job.set_master_init(tmp_master_init)
+job.set_master_process(tmp_master_process)
+job.set_master_final(tmp_master_final)
+job.set_worker_job(tmp_worker_job)
+job.set_get_task_data(tmp_get_task_data)
+
+job.run()
 
