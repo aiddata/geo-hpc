@@ -342,10 +342,10 @@ def tmp_get_task_data(self, task_index):
 
         # look for request of each type in classification list
         # (list is in order of priority)
-        for ctype in classification_list:
+        for ctype in self.classification_list:
             find_request = c_extracts.find_one({
                 'status': 0,
-                'generator': {'$in': generator_list},
+                'generator': {'$in': self.generator_list},
                 'classification': ctype
             }, sort=[("priority", -1), ("submit_time", 1)])
             if find_request is not None:
