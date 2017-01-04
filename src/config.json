@@ -36,12 +36,12 @@
                 {"question": "How do I cite data I receive from this tool?", "answer": "You should cite both the individual data products you receive (details are provided in the metadata) as well as this tool: Goodman, S., BenYishay, A., Runfola, D., 2017. Overview of the geo Framework. AidData. Available online athttp://geo.aiddata.org/. DOI: 10.13140/RG.2.2.28363.59686"},
                 {"question": "Do I need to cite individual datasets?", "answer": "Yes. The documentation provided with your results will include citation and source information for individual datasets. These should be used along with a citation for geo.query"},
                 {"question": "How long will it take to receive my data?", "answer": "This is highly dependent on the number of aid permutations you request.  Each aid estimation can take from under 5 minutes (for small numbers of projects) up to 4 hours (for tens of thousands of projects)."},
-                {"question": "Where can I go to provide feedback or request new datasets?", "answer": "We have an online form at https://goo.gl/forms/ctRMxcbffpoEpQyz1"},
+                {"question": "Where can I go to provide feedback or request new datasets?", "answer": "We have an online form <a href='https://goo.gl/forms/ctRMxcbffpoEpQyz1'>HERE</a>"},
                 {"question": "How can I contact you directly?", "answer": "Please email us at geo@aiddata.wm.edu"},
                 {"question": "Do you have examples of the types of analyses that can be conducted using this data?", "answer": "Yes - we provide a number of examples at geo.aiddata.org."},
                 {"question": "Do you conduct research using this information?", "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at geo.aiddata.org; you can also contact us at geo@aiddata.wm.edu."},
-                {"question": "How do I submit my request?", "answer": "Click Current Request at the upper-left to submit your request."},
-                {"question": "Can I edit my requests?", "answer": "While we hope to implement this feature at a later date, you currently cannot edit requests.  However, you can input multiple requests into the system, and requests you previously made will be cached (and thus will not need to be processed again, and be returned to you quicker)."}
+                {"question": "How do I submit my request?", "answer": "Click the Submit Request at the upper-right then enter your email and click the big Submit button."},
+                {"question": "Can I edit/update/resubmit previous requests?", "answer": "While we hope to implement this feature at a later date, you currently cannot modify previous requests.  However, you can input multiple requests into the system, and requests you previously made will be cached (and thus will not need to be processed again, and be returned to you quicker)."}
             ],
             "welcome": {
                 "title": "Welcome to geo(query)",
