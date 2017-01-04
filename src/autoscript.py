@@ -38,20 +38,28 @@ while True:
         break
 
 
-# -------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
+
+# -------------------------------------
+# initialize mpi
 
 import mpi_utility
 job = mpi_utility.NewParallel()
 
 
-connect_status = job.comm.gather((job.rank, config.connection_status, config.connection_error), root=0)
+# -------------------------------------
+# verify good mongo connection on all processors
+
+connect_status = job.comm.gather(
+    (job.rank, config.connection_status, config.connection_error), root=0)
 
 if job.rank == 0:
     connection_error = False
     for i in connect_status:
         if i[1] != 0:
-            print "mongodb connection error ({0} - {1}) on processor rank {2})".format(i[1], i[2], [3])
+            print ("mongodb connection error ({0} - {1}) "
+                   "on processor rank {2})").format(i[1], i[2], [3])
             connection_error = True
 
     if connection_error:
@@ -60,6 +68,9 @@ if job.rank == 0:
 
 job.comm.Barrier()
 
+
+# -------------------------------------
+# get / check version
 
 def get_version():
     vfile = os.path.join(os.path.dirname(__file__), "_version.py")
@@ -83,14 +94,24 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+# -------------------------------------
+# prepare mongo connections
+
 client = config.client
 c_asdf = client.asdf.data
 c_extracts = client.asdf.extracts
 c_features = client.asdf.features
 
+
+# -------------------------------------
+# prepare output path
+
 general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
                        '/extracts/' + version.replace('.', '_'))
 
+
+# -------------------------------------
+# number of extracts requests to process per job
 
 default_extract_limit = 100
 # default_time_limit = 5
@@ -108,6 +129,17 @@ extract_limit = default_extract_limit
 # limit of -1 means set limit to # workers (single cycle on cores)
 if extract_limit == -1:
     extract_limit = job.size -1
+
+
+# -------------------------------------
+# number of time mongo query/update for request can fail
+# to find and update a request before giving up
+#
+#   (soemtimes multiple jobs will pull same request and
+#   only one can be the first to update. if this happens 100
+#   times, something else is probably going on)
+job.search_limit = 100
+
 
 # -------------------------------------
 # job type definitions for request queries
@@ -128,20 +160,11 @@ if job.job_type == 'det':
 if job.rank == 0:
     print "running job type: {0}".format(job.job_type)
 
-# -------------------------------------
-# number of time mongo query/update for request can fail
-# to find and update a request before giving up
-#
-#   (soemtimes multiple jobs will pull same request and
-#   only one can be the first to update. if this happens 100
-#   times, something else is probably going on)
-job.search_limit = 100
-
-
 
 # =============================================================================
 # =============================================================================
 
+# define functions for parallel job instance
 
 def tmp_general_init(self):
     pass
@@ -192,7 +215,7 @@ def tmp_worker_job(self, task):
 
 
     task_index, task_data = task
-    worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_index)
+    worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
 
     # =================================
@@ -258,9 +281,14 @@ def tmp_worker_job(self, task):
 
 
     # run extract
-    print ((worker_tagline + 'running extract: ' +
-           '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-           (bnd_name, bnd_absolute, data_name, raster, extract_type))
+
+    print ("{0} running extract: "
+           "\n\tvector: ({2}) {3}"
+           "\n\traster: ({4}) {5}"
+           "\n\tmethod: {6}").format(
+                worker_tagline, None, bnd_name, bnd_absolute,
+                data_name, raster, extract_type)
+
 
     run_data = exo.run_feature_extract(raster)
 
@@ -291,22 +319,35 @@ def tmp_worker_job(self, task):
         Te_run = int(time.time() - Te_start)
 
         extract_status = 1
-        print ((worker_tagline + 'completed extract in %s seconds' +
-               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (Te_run, bnd_name, bnd_absolute, data_name, raster, extract_type))
+        print ("{0} completed extract in {1} seconds"
+               "\n\tvector: ({2}) {3}"
+               "\n\traster: ({4}) {5}"
+               "\n\tmethod: {6}").format(
+                    worker_tagline, Te_run, bnd_name, bnd_absolute,
+                    data_name, raster, extract_type)
 
 
     except MemoryError as e:
         extract_status = -2
-        print ((worker_tagline + 'memory error (%s)' +
-               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (extract_status, bnd_name, bnd_absolute, data_name, raster, extract_type))
+
+        print ("{0} memory error ({1})"
+               "\n\tvector: ({2}) {3}"
+               "\n\traster: ({4}) {5}"
+               "\n\tmethod: {6}").format(
+                    worker_tagline, extract_status, bnd_name, bnd_absolute,
+                    data_name, raster, extract_type)
+
 
     except Exception as e:
         extract_status = -1
-        print ((worker_tagline + 'unknown error (%s)' +
-               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (extract_status, bnd_name, bnd_absolute, data_name, raster, extract_type))
+
+        print ("{0} unknown error ({1})"
+               "\n\tvector: ({2}) {3}"
+               "\n\traster: ({4}) {5}"
+               "\n\tmethod: {6}").format(
+                    worker_tagline, extract_status, bnd_name, bnd_absolute,
+                    data_name, raster, extract_type)
+
 
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
@@ -381,10 +422,10 @@ def tmp_get_task_data(self, task_index):
 
 
 
-
     if search_attempt == job.search_limit:
         # print "error updating request status in mongodb (attempting to continue)"
-        return ("error", "pass", "error updating request status in mongodb (attempting to continue)")
+        return ("error", "pass",
+                "error updating request status in mongodb (attempting to continue)")
 
     elif request is None:
         # print 'no jobs found in queue'
