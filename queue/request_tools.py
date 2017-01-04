@@ -576,7 +576,7 @@ class QueueToolBox():
 
 
         # remove unzipped files which do not need direct access
-        shutil.remove(geo_pdf_dst)
+        os.remove(geo_pdf_dst)
         # shutil.rmtree(msr_jsons_dir)
 
 
