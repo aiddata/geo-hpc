@@ -172,7 +172,7 @@ class QueueToolBox():
         if is_prep:
             updates['stage.1.time'] = ctime
 
-            column_info_html = ''.join(open(self.dir_base + '/templates/column_info.txt')).replace('\n', '&#10;')
+            column_info_html = ''.join(open(self.dir_base + '/templates/column_info.txt')).replace('\n', '<br/>')
             updates['info'] = [column_info_html]
 
         try:
