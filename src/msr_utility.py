@@ -278,7 +278,7 @@ class CoreMSR():
                                    encoding='utf-8')
             except:
                 print ('merge_data - error opening files: '
-                       'unable to open file ({0})'.format(path))
+                       'unable to open file ({0})').format(path)
                 raise
 
         elif path.endswith('.csv'):
@@ -288,7 +288,7 @@ class CoreMSR():
                                    keep_default_na=False, encoding='utf-8')
             except:
                 print ('merge_data - error opening files: '
-                       'unable to open file ({0})'.format(path))
+                       'unable to open file ({0})').format(path)
                 raise
 
         else:

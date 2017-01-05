@@ -73,9 +73,15 @@ while True:
 # -------------------------------------------------------------------------
 
 
+# -------------------------------------
+# initialize mpi
+
 import mpi_utility
 job = mpi_utility.NewParallel()
 
+
+# -------------------------------------
+# verify good mongo connection on all processors
 
 connect_status = job.comm.gather((job.rank, config.connection_status, config.connection_error), root=0)
 
@@ -83,7 +89,8 @@ if job.rank == 0:
     connection_error = False
     for i in connect_status:
         if i[1] != 0:
-            print "mongodb connection error ({0} - {1}) on processor rank {2})".format(i[1], i[2], [3])
+            print ("mongodb connection error ({0} - {1}) "
+                   "on processor rank {2})").format(i[1], i[2], [3])
             connection_error = True
 
     if connection_error:
@@ -92,6 +99,9 @@ if job.rank == 0:
 
 job.comm.Barrier()
 
+
+# -------------------------------------
+# get / check version
 
 def get_version():
     vfile = os.path.join(os.path.dirname(__file__), "_version.py")
@@ -115,6 +125,9 @@ else:
     raise Exception("Config and src versions do not match")
 
 
+# -------------------------------------
+# prepare mongo connections
+
 client = config.client
 c_asdf = client.asdf.data
 c_msr = client.asdf.msr
@@ -128,14 +141,15 @@ request = 0
 
 if job.rank == 0:
 
-    print 'starting request search'
+    print 'Master - starting request search'
     search_limit = 5
     search_attempt = 0
 
 
     while search_attempt < search_limit:
 
-        print 'finding request:'
+        # print 'finding request:'
+
         find_request = c_msr.find_one({
             'status': 0,
             'priority': {'$gte': 0}
@@ -151,7 +165,7 @@ if job.rank == 0:
             # }, sort=[("priority", -1), ("percentage", -1)])
         ###
 
-        print find_request
+        # print find_request
 
         if find_request is None:
             request = None
@@ -167,22 +181,21 @@ if job.rank == 0:
             }
         })
 
-        print request_accept.raw_result
-
+        # print request_accept.raw_result
         if request_accept.acknowledged and request_accept.modified_count == 1:
             request = find_request
             break
 
 
         search_attempt += 1
-
-        print 'looking for another request...'
+        # print 'looking for another request...'
 
 
     if search_attempt == search_limit:
         request = 'Error'
 
-    print 'request found'
+    print 'Master - request found'
+    print json.dumps(request, indent=4, separators=(",", ":"))
 
 
 # ensure workers do not proceed until master successfully finds request
@@ -250,7 +263,13 @@ def make_dir(path):
 
 
 def str_sha1_hash(hash_str):
+    """Convert string to sha1 hash
 
+    Args:
+        hash_str (str): string to convert to hash
+    Returns:
+        (str): sha1 hash of input string
+    """
     hash_builder = hashlib.sha1()
     hash_builder.update(hash_str)
     hash_sha1 = hash_builder.hexdigest()
@@ -281,17 +300,18 @@ def tmp_worker_job(self, task_index, task_data):
     pg_type = pg_data.geom_type
 
     if pg_type not in core.geom_types:
-        msg = "{0} invalid pg_type: {1} ({2})".format(
+        msg = "Worker {0} - encountered invalid pg_type: {1} ({2})".format(
             self.rank, pg_type, pg_data['project_location_id'])
         raise Exception(msg)
 
 
-    print "{0} running pg_type: {1} ({2})".format(
+    print "Worker {0} - running pg_type: {1} ({2})".format(
         self.rank, pg_type, pg_data['project_location_id'])
 
 
 ###
-    w1_time = int(time.time())
+    # # this is essentially timing how long it takes to get geom from db
+    # w1_time = int(time.time())
 ###
 
     try:
@@ -316,23 +336,24 @@ def tmp_worker_job(self, task_index, task_data):
         pg_geom = None
 
 ###
-    w2_time = int(time.time())
-    w2_duration =  w2_time - w1_time
-    print '[[{0}]] get_geom_val ({1}) duration : {2}s'.format(
-        self.rank, pg_type, w2_duration)
+    # w2_time = int(time.time())
+    # w2_duration =  w2_time - w1_time
+    # print "[[{0}]] get_geom_val ({1}) duration : {2}s".format(
+    #     self.rank, pg_type, w2_duration)
 ###
 
 
     if pg_geom in [None, "None"]:
-        warn("Geom is none ({0})".format(pg_data['project_location_id']))
+        print "Worker {0} - Geom is none ({1})".format(
+            self.rank, pg_data['project_location_id'])
         return (task_data, "None", None, None)
 
     else:
         try:
             pg_geom = shape(pg_geom)
         except:
-            print "Geom is invalid - {0} ({1}) : {2}".format(
-                pg_data['project_location_id'], type(pg_geom), pg_geom)
+            print "Worker {0} - Geom is invalid - {1} ({2}) : {3}".format(
+                self.rank, pg_data['project_location_id'], type(pg_geom), pg_geom)
             raise
 
         # factor used to determine subgrid size
