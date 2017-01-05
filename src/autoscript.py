@@ -275,9 +275,7 @@ def tmp_master_init(self):
     print '\n'
 
 
-def tmp_worker_job(self, task):
-
-    task_index, task_data = task
+def tmp_worker_job(self, task_index, task_data):
 
     pg_data = active_data.loc[task_data]
     pg_type = pg_data.geom_type
@@ -351,8 +349,8 @@ def tmp_worker_job(self, task):
         return (task_data, pg_geom, mean_surf, surf_bounds)
 
 
-def tmp_master_process(self, worker_data):
-    task, geom, surf, bounds = worker_data
+def tmp_master_process(self, worker_result):
+    task, geom, surf, bounds = worker_result
 
     if geom != "None":
 
