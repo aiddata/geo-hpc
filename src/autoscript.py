@@ -195,7 +195,7 @@ if job.rank == 0:
         request = 'Error'
 
     print 'Master - request found'
-    print json.dumps(request, indent=4)
+    print request
 
 
 # ensure workers do not proceed until master successfully finds request
