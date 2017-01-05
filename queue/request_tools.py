@@ -76,6 +76,9 @@ class QueueToolBox():
     def set_branch_info(self, branch_config=None):
         """get branch info from config collection
         """
+
+        self.dir_base = os.path.dirname(os.path.abspath(__file__))
+
         if branch_config is None:
             raise Exception('no branch config found')
 
@@ -168,6 +171,9 @@ class QueueToolBox():
 
         if is_prep:
             updates['stage.1.time'] = ctime
+
+            column_info_html = ''.join(open(self.dir_base + '/templates/column_info.txt')).replace('\n', '&#10;')
+            updates['info'] = [column_info_html]
 
         try:
             # update request document
@@ -545,8 +551,7 @@ class QueueToolBox():
         rdoc_file.close()
 
 
-        dir_base = os.path.dirname(os.path.abspath(__file__))
-        geo_pdf_src = dir_base + "/other/IntroducingtheAidDataGeoFramework.pdf"
+        geo_pdf_src = self.dir_base + "/other/IntroducingtheAidDataGeoFramework.pdf"
         geo_pdf_dst = os.path.join(request_dir, "IntroducingtheAidDataGeoFramework.pdf")
         shutil.copyfile(geo_pdf_src, geo_pdf_dst)
 
