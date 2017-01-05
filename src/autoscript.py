@@ -654,10 +654,9 @@ def tmp_master_final(self):
         }
     }, upsert=False)
 
-    print request['_id']
-    print request['hash']
+    print "Request ObjectId: {0}".format(request['_id'])
+    print "Request Hash: {0}".format(request['hash'])
     print request
-
     print update_msr.raw_result
 
 
