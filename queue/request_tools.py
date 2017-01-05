@@ -175,6 +175,10 @@ class QueueToolBox():
             column_info_html = ''.join(open(self.dir_base + '/templates/column_info.txt')).replace('\n', '<br/>')
             updates['info'] = [column_info_html]
 
+            # Example push/prepend for info field if needed for manual updates
+            # https://docs.mongodb.com/manual/reference/operator/update/push/
+            # https://stackoverflow.com/questions/10131957/can-you-have-mongo-push-prepend-instead-of-append
+
         try:
             # update request document
             self.c_queue.update({"_id": ObjectId(rid)},
