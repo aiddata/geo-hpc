@@ -30,7 +30,7 @@ job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
 # if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
 
 # change this # to be 1 less than desired number of jobs
-if [[ $job_count -gt 1 ]]; then
+if [[ $job_count -gt 0 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
