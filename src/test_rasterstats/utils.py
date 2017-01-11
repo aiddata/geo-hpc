@@ -29,7 +29,7 @@ def get_percentile(stat):
     return q
 
 
-def rasterize_geom(geom, shape, affine, all_touched=False, scale=None):
+def rasterize_geom(geom, shape, affine, all_touched=False):
     geoms = [(geom, 1)]
     rv_array = features.rasterize(
         geoms,

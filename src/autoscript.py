@@ -113,7 +113,7 @@ general_output_base = ('/sciclone/aiddata10/REU/outputs/' + branch +
 # -------------------------------------
 # number of extracts requests to process per job
 
-default_extract_limit = 100
+default_extract_limit = 150
 # default_time_limit = 5
 # default_extract_minimum = 1
 
