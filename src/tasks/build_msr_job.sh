@@ -25,13 +25,17 @@ jobtime=$(date +%H%M%S)
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
+job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
 
-if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
+# if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
+
+# change this # to be 1 less than desired number of jobs
+if [[ $job_count -gt 1 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
+    echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
     echo "$qstat"
     echo -e "\n"
 
@@ -48,14 +52,12 @@ else
         updated=1
         cat "$i"
         rm "$i"
-    done
 
-    if [ "$updated" == 1 ]; then
         printf "%0.s-" {1..80}
         echo -e "\n"
-    fi
+    done
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
+    echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
 
     echo "Checking for items in msr queue..."
     queue_status=$(python "$src"/asdf/src/tools/check_msr_queue.py "$branch")
@@ -81,11 +83,11 @@ else
     echo '... items found in queue'
     echo -e "\n"
 
-    echo "Building job..."
+    echo "Building job #"$job_count"..."
 
     job_path=$(mktemp)
 
-    nodes=2
+    nodes=1
     ppn=16
     total=$(($nodes * $ppn))
 

@@ -28,12 +28,13 @@ qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
 
 # if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
+
+# change this # to be 1 less than desired number of jobs
 if [[ $job_count -gt 3 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
 
-    # echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
     echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
 
     echo "$qstat"
@@ -51,18 +52,13 @@ else
     job_dir="$src"/log/extract/jobs
     mkdir -p $job_dir
 
-    updated=0
     shopt -s nullglob
     for i in "$job_dir"/*.job; do
-
-        updated=1
-
         cat "$i"
         rm "$i"
 
         printf "%0.s-" {1..80}
         echo -e "\n"
-
     done
 
 
