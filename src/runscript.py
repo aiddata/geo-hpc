@@ -91,9 +91,8 @@ def tmp_master_final(self):
     print 'Merge Runtime: ' + str(T_run2//60) +'m '+ str(int(T_run2%60)) +'s'
 
 
-def tmp_worker_job(self, task):
+def tmp_worker_job(self, task_index, task_data):
 
-    task_index, task_data = task
     worker_tagline = 'Worker %s | Task %s - ' % (self.rank, task_index)
 
     # task = self.task_list[task_id]
