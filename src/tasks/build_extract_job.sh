@@ -28,7 +28,7 @@ qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
 
 # if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
-if [[ $job_count -gt 2 ]]; then
+if [[ $job_count -gt 3 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -42,9 +42,9 @@ if [[ $job_count -gt 2 ]]; then
 else
 
     job_type=default
-    if [[ $job_count -eq 2 ]]; then
-        job_type=det
-    fi
+    # if [[ $job_count -eq 2 ]]; then
+    #     job_type=det
+    # fi
 
     src="${HOME}"/active/"$branch"
 
@@ -96,7 +96,7 @@ else
 
     job_path=$(mktemp)
 
-    nodes=2
+    nodes=1
     ppn=16
     total=$(($nodes * $ppn))
 
