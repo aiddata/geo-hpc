@@ -106,11 +106,17 @@ extract_items = []
 raster_total_count = 0
 release_total_count = 0
 
+build_start_time = int(time.time())
+
 for group, group_bnds in bnd_groups.iteritems():
+
+    print "running extract updates for boundary group: {0}".format(group)
 
     datasets = db_trackers[group].find({"status":1})
 
     for data in datasets:
+
+        print "\tchecking dataset: {0} ({1})".format(data["name"], data["type"])
 
         if data["type"] == "raster":
 
@@ -142,7 +148,11 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
-            raster_total_count += len(extract_items) - base_count
+            additional_raster_count = len(extract_items) - base_count
+            raster_total_count += additional_raster_count
+            print "\t\tpotential dataset raster extracts: {0}".format(
+                additional_raster_count)
+
 
 
         elif data["type"] == "release":
@@ -173,7 +183,10 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
-            release_total_count += len(extract_items) - base_count
+            additional_release_count = len(extract_items) - base_count
+            release_total_count += additional_release_count
+            print "\t\tpotential dataset release extracts: {0}".format(
+                additional_release_count)
 
         else:
 
@@ -184,9 +197,12 @@ for group, group_bnds in bnd_groups.iteritems():
 
 
 
-print ('Potential raster extracts: {0}').format(raster_total_count)
-print ('Potential msr extracts: {0}').format(release_total_count)
+print "Potential raster extracts: {0}".format(raster_total_count)
+print "Potential msr extracts: {0}".format(release_total_count)
 
+build_end_time = int(time.time())
+build_duration = build_end_time - build_start_time
+print "time to build potential extract list: {0} seconds".format(build_duration)
 
 
 # check if unique extract combinations exist in tracker
@@ -218,11 +234,15 @@ for i in extract_items:
             release_add_count += 1
 
 
-print ('Added {0} raster extracts to queue out of {1} possible.').format(
+print ("Added {0} raster extracts to queue out of {1} possible.").format(
     raster_add_count, raster_total_count)
-print ('Added {0} msr extracts to queue out of {1} possible.').format(
+print ("Added {0} msr extracts to queue out of {1} possible.").format(
     release_add_count, release_total_count)
 
+
+update_end_time = int(time.time())
+update_duration = update_end_time - build_end_time
+print "time to check and insert extract items: {0} seconds".format(update_duration)
 
 
 # -------------------------------------
