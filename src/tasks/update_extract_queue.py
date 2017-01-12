@@ -37,7 +37,7 @@ if config.connection_status != 0:
 
 
 import time
-import copy
+from copy import deepcopy
 from warnings import warn
 
 
@@ -101,7 +101,8 @@ print ("{0} unprocessed outdated automated extract "
 
 # -------------------------------------
 
-extract_items = []
+raster_extract_items = []
+release_extract_items = []
 
 raster_total_count = 0
 release_total_count = 0
@@ -133,9 +134,9 @@ for group, group_bnds in bnd_groups.iteritems():
 
             extract_types = raster['options']['extract_types']
 
-            base_count = len(extract_items)
+            base_count = len(raster_extract_items)
 
-            extract_items += [
+            raster_extract_items += [
                 {
                     'boundary': b,
                     'data': r['name'],
@@ -148,7 +149,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
-            additional_raster_count = len(extract_items) - base_count
+            additional_raster_count = len(raster_extract_items) - base_count
             raster_total_count += additional_raster_count
             print "\t\tpotential dataset raster extracts: {0}".format(
                 additional_raster_count)
@@ -169,9 +170,9 @@ for group, group_bnds in bnd_groups.iteritems():
                 tmp_extract_type = 'sum'
             ###
 
-            base_count = len(extract_items)
+            base_count = len(release_extract_items)
 
-            extract_items += [
+            release_extract_items += [
                 {
                     'boundary': b,
                     'data': '{0}_{1}'.format(r["dataset"], r["hash"]),
@@ -183,7 +184,7 @@ for group, group_bnds in bnd_groups.iteritems():
                 for b in group_bnds
             ]
 
-            additional_release_count = len(extract_items) - base_count
+            additional_release_count = len(release_extract_items) - base_count
             release_total_count += additional_release_count
             print "\t\tpotential dataset release extracts: {0}".format(
                 additional_release_count)
@@ -205,17 +206,19 @@ build_duration = build_end_time - build_start_time
 print "time to build potential extract list: {0} seconds".format(build_duration)
 
 
+
 # check if unique extract combinations exist in tracker
 # and add if they do not
-raster_add_count = 0
-release_add_count = 0
 
-for i in extract_items:
+raster_add_count = 0
+bulk_raster = c_extracts.initialize_unordered_bulk_op()
+
+for i in raster_extract_items:
 
     # build full doc
     ctime = int(time.time())
 
-    i_full = copy.deepcopy(i)
+    i_full = deepcopy(i)
     i_full["status"] = 0
     i_full["generator"] = "auto"
     i_full["priority"] = -1
@@ -223,21 +226,43 @@ for i in extract_items:
     i_full["submit_time"] = ctime
     i_full["update_time"] = ctime
 
+    bulk_raster.find(i).upsert().update({'$setOnInsert': i_full})
 
-    # update/upsert and check if it exists in extracts queue
-    exists = c_extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
 
-    if exists.upserted_id != None:
-        if i['classification'] == 'raster':
-            raster_add_count += 1
-        elif i['classification'] == 'msr':
-            release_add_count += 1
-
+raster_result = bulk_raster.execute()
+raster_add_count += raster_result['nUpserted']
 
 print ("Added {0} raster extracts to queue out of {1} possible.").format(
     raster_add_count, raster_total_count)
+
+
+
+release_add_count = 0
+bulk_release = c_extracts.initialize_unordered_bulk_op()
+
+for i in release_extract_items:
+
+    # build full doc
+    ctime = int(time.time())
+
+    i_full = deepcopy(i)
+    i_full["status"] = 0
+    i_full["generator"] = "auto"
+    i_full["priority"] = -1
+
+    i_full["submit_time"] = ctime
+    i_full["update_time"] = ctime
+
+    bulk_release.find(i).upsert().update({'$setOnInsert': i_full})
+
+
+release_result = bulk_release.execute()
+release_add_count += release_result['nUpserted']
+
 print ("Added {0} msr extracts to queue out of {1} possible.").format(
     release_add_count, release_total_count)
+
+
 
 
 update_end_time = int(time.time())
