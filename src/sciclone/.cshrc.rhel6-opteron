@@ -1,0 +1,48 @@
+#  Environment configuration for RHEL 6.x / Opteron environment.
+#
+#  Revised:
+#    02/23/2012 tom       - To avoid conflicts in subshells, the ISA module is
+#                           explicitly loaded here rather than letting it
+#                           default.
+#    03/13/1012 tom       - Fix up the comments.
+#    02/28/2013 tom       - Add mvapich2-ib as the default MPI module.
+#    05/22/2014 tom       - Only available Xeon at the moment is
+#                           sandy-bridge-ep.
+#                         - Use MVAPICH2 1.9 as the default MPI.
+#
+
+#
+#  Personal module configuration:
+#    - Defaults to a 64-bit environment optimized for Intel Xeon
+#      Sandy Bridge-EP processors.
+#    - ISA module must be loaded before other modules.
+#    - Available ISA's include:
+#         seoul         - Opteron 4334  (vortex: c18a, c18b)
+#         valencia      - Opteron 4238  (vortex: s11b)
+#         santa-rosa    - Opteron 2218  (typhoon: c9, c9a)
+#
+#
+module load isa/seoul
+
+# Select ONE of the following compiler modules, depending on your needs.
+#
+#  For a high-performance x86/x64 compiler, use:
+#module load pgi mvapich2-ib/1.9/pgi
+#
+#  For applications which require a GCC compiler, we recommend:
+# module load gcc/4.7.3
+
+
+#module load gcc/5.2.0
+#module load python/2.7.8
+#module load openmpi/1.10.0/gcc
+
+module load mpi4py/2.0.0/gcc
+module load numpy/1.9.2
+
+module load gdal-nograss/1.11.2
+module load proj/4.7.0
+module load geos/3.5.0
+#module load geos/3.3.2
+
+#module load r/3.1.0
