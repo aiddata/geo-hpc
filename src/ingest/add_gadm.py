@@ -157,8 +157,13 @@ def run(path=None, client=None, version=None, config=None,
     gadm_iso3 = gadm_name[:3]
     gadm_adm = gadm_name[4:]
 
-    active_iso3_list = config.release_iso3.values() + config.other_iso3
-    is_active = gadm_iso3.upper() in active_iso3_list
+    # active_iso3_list = config.release_iso3.values() + config.other_iso3
+    # is_active = gadm_iso3.upper() in active_iso3_list
+
+    inactive_iso3_list = config.inactive_iso3
+    is_active = gadm_iso3.upper() not in inactive_iso3_list
+
+
     doc["active"] = int(is_active)
 
 
