@@ -197,13 +197,14 @@ for group, group_bnds in bnd_groups.iteritems():
             warn(msg)
 
 
-
+print ""
 print "Potential raster extracts: {0}".format(raster_total_count)
 print "Potential msr extracts: {0}".format(release_total_count)
 
 build_end_time = int(time.time())
 build_duration = build_end_time - build_start_time
-print "time to build potential extract list: {0} seconds".format(build_duration)
+print "Rime to build potential extract list: {0} seconds".format(build_duration)
+print ""
 
 
 
@@ -211,7 +212,7 @@ print "time to build potential extract list: {0} seconds".format(build_duration)
 # and add if they do not
 
 raster_add_count = 0
-bulk_raster = c_extracts.initialize_unordered_bulk_op()
+# bulk_raster = c_extracts.initialize_unordered_bulk_op()
 
 for i in raster_extract_items:
 
@@ -226,11 +227,15 @@ for i in raster_extract_items:
     i_full["submit_time"] = ctime
     i_full["update_time"] = ctime
 
-    bulk_raster.find(i).upsert().update({'$setOnInsert': i_full})
+    exists = c_extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
+    if exists.upserted_id != None:
+        raster_add_count += 1
+
+    # bulk_raster.find(i).upsert().update({'$setOnInsert': i_full})
 
 
-raster_result = bulk_raster.execute()
-raster_add_count += raster_result['nUpserted']
+# raster_result = bulk_raster.execute()
+# raster_add_count += raster_result['nUpserted']
 
 print ("Added {0} raster extracts to queue out of {1} possible.").format(
     raster_add_count, raster_total_count)
@@ -238,7 +243,7 @@ print ("Added {0} raster extracts to queue out of {1} possible.").format(
 
 
 release_add_count = 0
-bulk_release = c_extracts.initialize_unordered_bulk_op()
+# bulk_release = c_extracts.initialize_unordered_bulk_op()
 
 for i in release_extract_items:
 
@@ -253,11 +258,17 @@ for i in release_extract_items:
     i_full["submit_time"] = ctime
     i_full["update_time"] = ctime
 
-    bulk_release.find(i).upsert().update({'$setOnInsert': i_full})
+
+    exists = c_extracts.update_one(i, {'$setOnInsert': i_full}, upsert=True)
+
+    if exists.upserted_id != None:
+        release_add_count += 1
+
+    # bulk_release.find(i).upsert().update({'$setOnInsert': i_full})
 
 
-release_result = bulk_release.execute()
-release_add_count += release_result['nUpserted']
+# release_result = bulk_release.execute()
+# release_add_count += release_result['nUpserted']
 
 print ("Added {0} msr extracts to queue out of {1} possible.").format(
     release_add_count, release_total_count)
