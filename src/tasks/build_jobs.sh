@@ -31,6 +31,7 @@ case "$task" in
     update_trackers)
         short_name=upt
         ppn=16
+        cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/asdf/src/tasks/update_trackers.py "$branch"'
         ;;
 
     update_extract)
@@ -120,7 +121,22 @@ cat <<EOF >> "$job_path"
 #PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
 #PBS -V
 
-bash $src/asdf/src/tasks/run_jobs.sh $branch $timestamp $task
+# bash $src/asdf/src/tasks/run_jobs.sh $branch $timestamp $task
+
+
+echo "\n"
+date
+echo "\n"
+
+echo Timestamp: $timestamp
+echo Job: "\$PBS_JOBID"
+
+$cmd
+
+echo "\n"
+date
+echo "\nDone \n"
+
 
 EOF
 
@@ -129,6 +145,9 @@ EOF
 
     echo "Running job..."
     echo -e "\n"
+
+    # for debug
+    # cp "$job_path" ${HOME}
 
     rm "$job_path"
 
