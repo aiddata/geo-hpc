@@ -50,7 +50,9 @@ case "$task" in
     det)
         short_name=det
         echo -e "\n *** Running det queue processing... \n" #>> "$output_path"
-        python $src/det-module/queue/processing.py "$branch" #2>&1 | tee 1>> "$output_path"
+        # python $src/det-module/queue/processing.py "$branch" #2>&1 | tee 1>> "$output_path"
+        mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/det-module/queue/processing.py "$branch"
+
         ;;
 
     *)  echo "Invalid run_db_updates task.";

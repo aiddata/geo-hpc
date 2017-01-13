@@ -31,7 +31,10 @@ while True:
 
 # -----------------------------------------------------------------------------
 
-print "\n###\nTEST\n###\n"
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+print "\n###\nTEST -- rank: {0}\n###\n".format(rank)
 
 
 # if config.connection_status != 0:
