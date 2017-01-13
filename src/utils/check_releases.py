@@ -35,14 +35,6 @@ class ReleaseTools():
 
         self.all_releases = []
 
-        self.dst_dir = "/sciclone/aiddata10/REU/data/releases"
-
-        try:
-            os.makedirs(self.dst_dir)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
-
         self.is_connected = False
 
         self.method = None
