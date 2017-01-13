@@ -10,16 +10,16 @@
 - make sure HPC servers have necessary ports open for mongodb, gmail
 
 
-## database server
+### database server
 - have IT open mongodb ports for geo.aiddata.wm.edu and all HPC servers (prod and dev servers, where applicable)
 - update mongod.conf
 - copy db_backup_script.sh and add cron (see comments in script for details)
 
 
-## asdf setup
+### asdf setup
 - run `bash setup.sh <branch>`
 
-## asdf dataset ingest
+### asdf dataset ingest
 - see ingest dir for specifics on ingesting datasets (related resources in asdf-datasets repo)
 
 

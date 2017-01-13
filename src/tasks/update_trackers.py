@@ -56,8 +56,11 @@ bnds = c_asdf.find({
 })
 
 
-active_iso3_list = config.release_iso3.values() + config.other_iso3
-print "Active iso3 list: {0}".format(active_iso3_list)
+# active_iso3_list = config.release_iso3.values() + config.other_iso3
+# print "Active iso3 list: {0}".format(active_iso3_list)
+
+inactive_iso3_list = config.inactive_iso3
+print "Inactive iso3 list: {0}".format(inactive_iso3_list)
 
 # for each boundary dataset get boundary tracker
 for bnd in bnds:
@@ -72,7 +75,8 @@ for bnd in bnds:
     if "extras" in bnd and "gadm_iso3" in bnd["extras"]:
 
         print "\tGADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
-        is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
+        # is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
+        is_active_gadm = bnd["extras"]["gadm_iso3"].upper() not in inactive_iso3_list
 
         print "\tGADM boundary is active: {0}".format(is_active_gadm)
 

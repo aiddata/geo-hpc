@@ -20,6 +20,9 @@
         "other_iso3": [
             "LBR", "GHA", "MLI", "AGO", "GMB", "NER", "RWA", "MWI"
         ],
+        "inactive_iso3": [
+            "RUS", "USA", "CAN", "ATA", "GRL", "CHN", "AUS"
+        ],
         "versions": {
             "asdf": "0.4.1",
             "asdf-gadm": "0.4.1",
