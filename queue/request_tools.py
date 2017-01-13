@@ -334,7 +334,7 @@ class QueueToolBox():
     def check_request(self, request, dry_run=False):
         """check entire request object for cache
         """
-        outputs_base = "/sciclone/aiddata10/REU/outputs"
+        outputs_base = os.path.join(self.branch_info.data_root, "outputs")
         extract_base = os.path.join(outputs_base, self.branch, 'extracts',
                                     self.extract_version.replace('.', '_'))
         msr_base = os.path.join(outputs_base, self.branch, 'msr', 'done')
@@ -519,8 +519,8 @@ class QueueToolBox():
         request_id = str(request['_id'])
         request['_id'] = request_id
 
-        results_dir = ("/sciclone/aiddata10/REU/outputs/" +
-                       self.branch + "/det/results")
+        results_dir = os.path.join(self.branch_info.data_root, "outputs",
+                       self.branch, "det/results")
 
         request_dir = os.path.join(results_dir, request_id)
 
@@ -569,8 +569,8 @@ class QueueToolBox():
         #     tmp_dataset = i['dataset']
         #     tmp_hash = i['hash']
 
-        #     src = "/sciclone/aiddata10/REU/outputs/{0}/msr/done/{1}/{2}/summary.json".format(
-        #         branch, tmp_dataset, tmp_hash)
+        #     src = "{0}/outputs/{1}/msr/done/{2}/{3}/summary.json".format(
+        #         self.branch_info.data_root, branch, tmp_dataset, tmp_hash)
         #     dst = os.path.join(msr_jsons_dir, "{0}_{1}.json".format(
         #         tmp_dataset, tmp_hash))
 
