@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# scipip
+# pip wrapper to install package to aiddata10 central location
+#
+# some packages may have dependencies that require an HPC admin to
+# install them globally on sciclone
+#
+# input arg is python package name, same as with normal pip usage
+# if additional options are required, run manually
+# (this is just a simple wrapper to save time)
+
+pip install --install-option="--prefix=/sciclone/aiddata10/REU/py_libs" $1
