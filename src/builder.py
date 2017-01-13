@@ -41,6 +41,10 @@ datasets_file = open(base_dir + '/datasets.json','r')
 datasets_json = json.load(datasets_file)
 datasets_file.close()
 
+# =============================================================================
+# =============================================================================
+
+data_root = "/sciclone/aiddata10/REU"
 
 # =============================================================================
 # =============================================================================
@@ -99,7 +103,7 @@ for dataset_options in job_json['data']:
 
         print dataset_name
 
-        msr_dir = ('/sciclone/aiddata10/REU/outputs/' +
+        msr_dir = (data_root + '/outputs/' +
                    dataset_options['branch'] + '/msr/done/' +
                    dataset_options['release'] + '/' +
                    dataset_options['hash'])
