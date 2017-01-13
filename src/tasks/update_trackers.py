@@ -49,12 +49,22 @@ client = config.client
 c_asdf = client.asdf.data
 db_trackers = client.trackers
 
-# lookup all boundary datasets
+# lookup all boundary datasets that are the "actual" for their group
 bnds = c_asdf.find({
     "type": "boundary",
     "options.group_class": "actual"
 })
 
+# lookup all active non boundary dataset
+dsets = list(c_asdf.find({
+    'type': {'$ne': 'boundary'},
+    'active': {'$gte': 1}
+}, {
+    'name': 1,
+    'type': 1,
+    'spatial': 1,
+    'scale': 1
+}))
 
 # active_iso3_list = config.release_iso3.values() + config.other_iso3
 # print "Active iso3 list: {0}".format(active_iso3_list)
@@ -114,17 +124,13 @@ for bnd in bnds:
     # collection with "unprocessed" flag if it is not already
     # in collection
     # (no longer done during ingest)
-    dsets = c_asdf.find({
-        'type': {'$ne': 'boundary'},
-        'active': {'$gte': 1}
-    })
 
     for full_dset in dsets:
         dset = {
             'name': full_dset["name"],
             'type': full_dset["type"],
             'spatial': full_dset["spatial"],
-            'scale': full_dset["scale"],
+            'scale': full_dset["scale"]
         }
 
         if c_bnd.find_one(dset) == None:
