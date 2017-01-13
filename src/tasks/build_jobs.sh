@@ -29,13 +29,24 @@ jobtime=$(date +%H%M%S)
 case "$task" in
 
     update_trackers)
-        short_name=upt ;;
+        short_name=upt
+        ppn=16
+        ;;
 
     update_extract)
-        short_name=upe ;;
+        short_name=upe
+        ppn=16
+        ;;
 
     update_msr)
-        short_name=upm ;;
+        short_name=upm
+        ppn=1
+        ;;
+
+    det)
+        short_name=det
+        ppn=1
+        ;;
 
     *)  echo "Invalid build_db_updates_job task.";
         exit 1 ;;
@@ -62,9 +73,17 @@ else
 
     src="${HOME}"/active/"$branch"
 
-    job_dir="$src"/log/"$task" #/jobs
+    job_dir="$src"/log/"$task"/jobs
     mkdir -p $job_dir
 
+    shopt -s nullglob
+    for i in "$job_dir"/*.job; do
+        cat "$i"
+        rm "$i"
+
+        printf "%0.s-" {1..80}
+        echo -e "\n"
+    done
 
     echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
     echo "Building job..."
@@ -90,16 +109,18 @@ else
 #PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
 
 
+#PBS -k oe
+
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N ax-$short_name-$branch
-#PBS -l nodes=1:c18c:ppn=1
+#PBS -l nodes=1:c18c:ppn=$ppn
 #PBS -l walltime=48:00:00
 #PBS -j oe
-#PBS -k oe
+#PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
 #PBS -V
 
-bash $src/asdf/src/tasks/run_db_updates.sh $branch $timestamp $task
+bash $src/asdf/src/tasks/run_jobs.sh $branch $timestamp $task
 
 EOF
 

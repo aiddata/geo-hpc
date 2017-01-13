@@ -33,16 +33,20 @@ case $cron in
                             exit 0;;
 
     "build_update_trackers_job")    mkdir -p "$src"/log/update_trackers
-                                    bash "$src"/asdf/src/tasks/build_db_updates_job.sh "$branch" "$timestamp" update_trackers 2>&1 | tee 1>>"$src"/log/update_trackers/"$timestamp".update_trackers.log
+                                    bash "$src"/asdf/src/tasks/build_jobs.sh "$branch" "$timestamp" update_trackers 2>&1 | tee 1>>"$src"/log/update_trackers/"$timestamp".update_trackers.log
                                     exit 0;;
 
     "build_update_extract_job")     mkdir -p "$src"/log/update_extract
-                                    bash "$src"/asdf/src/tasks/build_db_updates_job.sh "$branch" "$timestamp" update_extract 2>&1 | tee 1>>"$src"/log/update_extract/"$timestamp".update_extract.log
+                                    bash "$src"/asdf/src/tasks/build_jobs.sh "$branch" "$timestamp" update_extract 2>&1 | tee 1>>"$src"/log/update_extract/"$timestamp".update_extract.log
                                     exit 0;;
 
     "build_update_msr_job")         mkdir -p "$src"/log/update_msr
-                                    bash "$src"/asdf/src/tasks/build_db_updates_job.sh "$branch" "$timestamp" update_msr 2>&1 | tee 1>>"$src"/log/update_msr/"$timestamp".update_msr.log
+                                    bash "$src"/asdf/src/tasks/build_jobs.sh "$branch" "$timestamp" update_msr 2>&1 | tee 1>>"$src"/log/update_msr/"$timestamp".update_msr.log
                                     exit 0;;
+
+    "build_det_job")        mkdir -p "$src"/log/det
+                            bash "$src"/asdf/src/tasks/build_jobs.sh "$branch" "$timestamp" det 2>&1 | tee 1>>"$src"/log/det/"$timestamp".det.log
+                            exit 0;;
 
     "build_msr_job")        mkdir -p "$src"/log/msr
                             bash "$src"/asdf/src/tasks/build_msr_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/msr/"$timestamp".msr.log
@@ -52,9 +56,6 @@ case $cron in
                             bash "$src"/asdf/src/tasks/build_extract_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/extract/"$timestamp".extract.log
                             exit 0;;
 
-    "build_det_job")        mkdir -p "$src"/log/det
-                            bash "$src"/asdf/src/tasks/build_det_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$src"/log/det/"$timestamp".det.log
-                            exit 0;;
 
     *)                      echo "Invalid cron.";
                             exit 1 ;;

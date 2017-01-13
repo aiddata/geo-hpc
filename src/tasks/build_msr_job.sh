@@ -46,10 +46,8 @@ else
     job_dir="$src"/log/msr/jobs
     mkdir -p $job_dir
 
-    updated=0
     shopt -s nullglob
     for i in "$job_dir"/*.job; do
-        updated=1
         cat "$i"
         rm "$i"
 

@@ -31,240 +31,242 @@ while True:
 
 # -----------------------------------------------------------------------------
 
-
-if config.connection_status != 0:
-    print "mongodb connection error ({0})".format(config.connection_error)
-    sys.exit()
+print "\n###\nTEST\n###\n"
 
 
-import pymongo
-import fiona
-from shapely.geometry import Point, shape, box
-from shapely.ops import cascaded_union
-import rasterstats as rs
+# if config.connection_status != 0:
+#     print "mongodb connection error ({0})".format(config.connection_error)
+#     sys.exit()
 
 
-# connect to mongodb
-client = config.client
-c_asdf = client.asdf.data
-db_trackers = client.trackers
-
-# lookup all boundary datasets that are the "actual" for their group
-bnds = c_asdf.find({
-    "type": "boundary",
-    "options.group_class": "actual"
-})
-
-# lookup all active non boundary dataset
-dsets = list(c_asdf.find({
-    'type': {'$ne': 'boundary'},
-    'active': {'$gte': 1}
-}, {
-    'name': 1,
-    'type': 1,
-    'spatial': 1,
-    'scale': 1
-}))
-
-# active_iso3_list = config.release_iso3.values() + config.other_iso3
-# print "Active iso3 list: {0}".format(active_iso3_list)
-
-inactive_iso3_list = config.inactive_iso3
-print "Inactive iso3 list: {0}".format(inactive_iso3_list)
-
-# for each boundary dataset get boundary tracker
-for bnd in bnds:
-
-    print "\nTracker for: {0}".format(bnd['options']['group'])
-    print "\tdataset active status: {0}".format(bnd["active"])
-
-    is_active = 0
-
-    # manage active state for gadm boundaries based on config settings
-    # do not process inactive boundaries
-    if "extras" in bnd and "gadm_iso3" in bnd["extras"]:
-
-        print "\tGADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
-        # is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
-        is_active_gadm = bnd["extras"]["gadm_iso3"].upper() not in inactive_iso3_list
-
-        print "\tGADM boundary is active: {0}".format(is_active_gadm)
-
-        if is_active_gadm:
-            print "\t\tsetting group active"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
-            is_active = 1
-
-        elif not is_active_gadm:
-            print "\t\tsetting group inactive"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
-            continue
+# import pymongo
+# import fiona
+# from shapely.geometry import Point, shape, box
+# from shapely.ops import cascaded_union
+# import rasterstats as rs
 
 
-    if not is_active and bnd["active"] == 0:
-        print "\tdataset inactive"
-        continue
+# # connect to mongodb
+# client = config.client
+# c_asdf = client.asdf.data
+# db_trackers = client.trackers
+
+# # lookup all boundary datasets that are the "actual" for their group
+# bnds = c_asdf.find({
+#     "type": "boundary",
+#     "options.group_class": "actual"
+# })
+
+# # lookup all active non boundary dataset
+# dsets = list(c_asdf.find({
+#     'type': {'$ne': 'boundary'},
+#     'active': {'$gte': 1}
+# }, {
+#     'name': 1,
+#     'type': 1,
+#     'spatial': 1,
+#     'scale': 1
+# }))
+
+# # active_iso3_list = config.release_iso3.values() + config.other_iso3
+# # print "Active iso3 list: {0}".format(active_iso3_list)
+
+# inactive_iso3_list = config.inactive_iso3
+# print "Inactive iso3 list: {0}".format(inactive_iso3_list)
+
+# # for each boundary dataset get boundary tracker
+# for bnd in bnds:
+
+#     print "\nTracker for: {0}".format(bnd['options']['group'])
+#     print "\tdataset active status: {0}".format(bnd["active"])
+
+#     is_active = 0
+
+#     # manage active state for gadm boundaries based on config settings
+#     # do not process inactive boundaries
+#     if "extras" in bnd and "gadm_iso3" in bnd["extras"]:
+
+#         print "\tGADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
+#         # is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
+#         is_active_gadm = bnd["extras"]["gadm_iso3"].upper() not in inactive_iso3_list
+
+#         print "\tGADM boundary is active: {0}".format(is_active_gadm)
+
+#         if is_active_gadm:
+#             print "\t\tsetting group active"
+#             c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
+#             is_active = 1
+
+#         elif not is_active_gadm:
+#             print "\t\tsetting group inactive"
+#             c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
+#             continue
 
 
-    # ---------------------------------
-
-    print '\tInitializing and populating tracker...'
-
-    if not bnd["options"]["group"] in db_trackers.collection_names():
-        c_bnd = db_trackers[bnd["options"]["group"]]
-        c_bnd.create_index("name", unique=True)
-        c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
-    else:
-        c_bnd = db_trackers[bnd["options"]["group"]]
-
-    # ---------------------------------
+#     if not is_active and bnd["active"] == 0:
+#         print "\tdataset inactive"
+#         continue
 
 
-    # add each non-boundary dataset item to boundary tracker
-    # collection with "unprocessed" flag if it is not already
-    # in collection
-    # (no longer done during ingest)
+#     # ---------------------------------
 
-    for full_dset in dsets:
-        dset = {
-            'name': full_dset["name"],
-            'type': full_dset["type"],
-            'spatial': full_dset["spatial"],
-            'scale': full_dset["scale"]
-        }
+#     print '\tInitializing and populating tracker...'
 
-        if c_bnd.find_one(dset) == None:
-            dset['status'] = -1
-            c_bnd.insert(dset)
+#     if not bnd["options"]["group"] in db_trackers.collection_names():
+#         c_bnd = db_trackers[bnd["options"]["group"]]
+#         c_bnd.create_index("name", unique=True)
+#         c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
+#     else:
+#         c_bnd = db_trackers[bnd["options"]["group"]]
 
-    # ---------------------------------
+#     # ---------------------------------
 
 
-    print '\tRunning relevance checks...'
+#     # add each non-boundary dataset item to boundary tracker
+#     # collection with "unprocessed" flag if it is not already
+#     # in collection
+#     # (no longer done during ingest)
 
-    # lookup unprocessed data in boundary tracker that
-    # intersect boundary (first stage search)
-    matches = c_bnd.find({
-        "status": -1,
-        "$or": [
-            {
-                "spatial": {
-                    "$geoIntersects": {
-                        "$geometry": bnd["spatial"]
-                    }
-                }
-            },
-            {
-                "scale": "global"
-            }
-        ]
-    })
+#     for full_dset in dsets:
+#         dset = {
+#             'name': full_dset["name"],
+#             'type': full_dset["type"],
+#             'spatial': full_dset["spatial"],
+#             'scale': full_dset["scale"]
+#         }
 
-    # for each unprocessed dataset in boundary tracker matched in
-    # first stage search (second stage search)
-    # search boundary actual vs dataset actual
-    for match in matches:
-        print "\tChecking dataset: {0}".format(match['name'])
+#         if c_bnd.find_one(dset) == None:
+#             dset['status'] = -1
+#             c_bnd.insert(dset)
 
-        # boundary base and type
-        bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
-        bnd_type = bnd['type']
-
-        meta = c_asdf.find({'name':match['name']})[0]
-
-        if "active" in meta and meta["active"] == 0:
-            c_bnd.update_one({"name": match['name']},
-                             {"$set": {"status": -3}}, upsert=False)
-            continue
-
-        # dataset base and type
-        dset_base = meta['base'] +"/"+ meta["resources"][0]["path"]
-        dset_type = meta['type']
-
-        result = False
-
-        if dset_type == "raster":
-            # python raster stats extract
-            # bnd_geo = cascaded_union(
-            #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-            bnd_geo = cascaded_union([shape(shp['geometry'])
-                                      for shp in fiona.open(bnd_base, 'r')])
-
-            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
-
-            if extract[0]['min'] != extract[0]['max']:
-                result = True
-
-        elif dset_type == "release":
-
-            # iterate over active (premable, iso3) in
-            # release_iso3 field of config
-            for k, v in config.release_iso3.items():
-                if (match['name'].startswith(k.lower()) and
-                        (bnd["extras"]["gadm_iso3"].upper() in v or
-                         "global" in v)):
-
-                    result = True
+#     # ---------------------------------
 
 
-        # elif dset_type == "polydata":
+#     print '\tRunning relevance checks...'
 
-        #   # shapely intersect
-        #   bnd_geo = cascaded_union(
-        #       [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-        #   dset_geo = cascaded_union(
-        #       [shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
+#     # lookup unprocessed data in boundary tracker that
+#     # intersect boundary (first stage search)
+#     matches = c_bnd.find({
+#         "status": -1,
+#         "$or": [
+#             {
+#                 "spatial": {
+#                     "$geoIntersects": {
+#                         "$geometry": bnd["spatial"]
+#                     }
+#                 }
+#             },
+#             {
+#                 "scale": "global"
+#             }
+#         ]
+#     })
 
-        #   intersect = bnd_geo.intersects(dset_geo)
+#     # for each unprocessed dataset in boundary tracker matched in
+#     # first stage search (second stage search)
+#     # search boundary actual vs dataset actual
+#     for match in matches:
+#         print "\tChecking dataset: {0}".format(match['name'])
 
-        #   if intersect == True:
-        #       result = True
+#         # boundary base and type
+#         bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
+#         bnd_type = bnd['type']
+
+#         meta = c_asdf.find({'name':match['name']})[0]
+
+#         if "active" in meta and meta["active"] == 0:
+#             c_bnd.update_one({"name": match['name']},
+#                              {"$set": {"status": -3}}, upsert=False)
+#             continue
+
+#         # dataset base and type
+#         dset_base = meta['base'] +"/"+ meta["resources"][0]["path"]
+#         dset_type = meta['type']
+
+#         result = False
+
+#         if dset_type == "raster":
+#             # python raster stats extract
+#             # bnd_geo = cascaded_union(
+#             #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+#             bnd_geo = cascaded_union([shape(shp['geometry'])
+#                                       for shp in fiona.open(bnd_base, 'r')])
+
+#             extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
+
+#             if extract[0]['min'] != extract[0]['max']:
+#                 result = True
+
+#         elif dset_type == "release":
+
+#             # iterate over active (premable, iso3) in
+#             # release_iso3 field of config
+#             for k, v in config.release_iso3.items():
+#                 if (match['name'].startswith(k.lower()) and
+#                         (bnd["extras"]["gadm_iso3"].upper() in v or
+#                          "global" in v)):
+
+#                     result = True
 
 
-        else:
-            print ("\tError - Dataset type not yet supported (skipping)")
-            c_bnd.update_one({"name": match['name']},
-                             {"$set": {"status": -2}}, upsert=False)
-            continue
+#         # elif dset_type == "polydata":
+
+#         #   # shapely intersect
+#         #   bnd_geo = cascaded_union(
+#         #       [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+#         #   dset_geo = cascaded_union(
+#         #       [shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
+
+#         #   intersect = bnd_geo.intersects(dset_geo)
+
+#         #   if intersect == True:
+#         #       result = True
 
 
-        print '\t\tactive: {0}'.format(result)
-
-        # check results and update tracker
-        if result == True:
-            c_bnd.update_one({"name": match['name']},
-                             {"$set": {"status": 1}}, upsert=False)
-        else:
-            c_bnd.update_one({"name": match['name']},
-                             {"$set": {"status": 0}}, upsert=False)
+#         else:
+#             print ("\tError - Dataset type not yet supported (skipping)")
+#             c_bnd.update_one({"name": match['name']},
+#                              {"$set": {"status": -2}}, upsert=False)
+#             continue
 
 
+#         print '\t\tactive: {0}'.format(result)
 
-
-        # run third stage search on second stage matches
-        # request actual vs dataset actual
-        # may only be needed for user point input files
-        #
-
-        # update tracker for third stage search
-        #
+#         # check results and update tracker
+#         if result == True:
+#             c_bnd.update_one({"name": match['name']},
+#                              {"$set": {"status": 1}}, upsert=False)
+#         else:
+#             c_bnd.update_one({"name": match['name']},
+#                              {"$set": {"status": 0}}, upsert=False)
 
 
 
-    # update tracker for all unprocessed dataset not matching first
-    # stage search
-    c_bnd.update_many({"status": -1}, {"$set": {"status": 0}}, upsert=False)
 
-    # reset all inactive from placeholder status (-3) to unprocessed (-1)
-    # so that their active state will be rechecked in case it changes
-    #
-    # Warning: datasets that have already been processed which are now inactive
-    #          will be left alone. Applications should do their own checks on
-    #          the active field.
-    #
-    # Note: As it related to this script, we must assume that
-    #       a dataset is inactive because there is an error that may prohibit
-    #       it being properly indexed, so it is continually left out until
-    #       it is removed from data collection or set to active and indexed.
-    c_bnd.update_many({"status": -3}, {"$set": {"status": -1}}, upsert=False)
+#         # run third stage search on second stage matches
+#         # request actual vs dataset actual
+#         # may only be needed for user point input files
+#         #
+
+#         # update tracker for third stage search
+#         #
+
+
+
+#     # update tracker for all unprocessed dataset not matching first
+#     # stage search
+#     c_bnd.update_many({"status": -1}, {"$set": {"status": 0}}, upsert=False)
+
+#     # reset all inactive from placeholder status (-3) to unprocessed (-1)
+#     # so that their active state will be rechecked in case it changes
+#     #
+#     # Warning: datasets that have already been processed which are now inactive
+#     #          will be left alone. Applications should do their own checks on
+#     #          the active field.
+#     #
+#     # Note: As it related to this script, we must assume that
+#     #       a dataset is inactive because there is an error that may prohibit
+#     #       it being properly indexed, so it is continually left out until
+#     #       it is removed from data collection or set to active and indexed.
+#     c_bnd.update_many({"status": -3}, {"$set": {"status": -1}}, upsert=False)
 
