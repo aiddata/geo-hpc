@@ -24,6 +24,7 @@ task=$3
 
 jobtime=$(date +%H%M%S)
 
+src="${HOME}"/active/"$branch"
 
 
 case "$task" in
@@ -31,7 +32,7 @@ case "$task" in
     update_trackers)
         short_name=upt
         ppn=16
-        cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/asdf/src/tasks/update_trackers.py "$branch"'
+        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/asdf/src/tasks/update_trackers.py ${branch}"
         ;;
 
     update_extract)

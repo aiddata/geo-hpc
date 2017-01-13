@@ -39,6 +39,7 @@ rank = comm.Get_rank()
 if rank == 0:
     print "Running update_trackers.py"
 
+comm.Barrier()
 print "\n###\nTEST -- rank: {0}\n###\n".format(rank)
 
 
