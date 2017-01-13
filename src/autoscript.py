@@ -132,7 +132,7 @@ client = config.client
 c_asdf = client.asdf.data
 c_msr = client.asdf.msr
 
-general_output_base = '/sciclone/aiddata10/REU/outputs/' + branch + '/msr'
+general_output_base = os.path.join(config.data_root, 'outputs', branch, 'msr')
 
 
 # -----------------------------------------------------------------------------
