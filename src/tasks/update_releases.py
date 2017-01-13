@@ -52,7 +52,7 @@ import add_release
 
 repo_dir = branch_dir + "/public_datasets/geocoded"
 
-data_dir = "/sciclone/aiddata10/REU/data/releases"
+data_dir = os.path.join(config.data_root, "data/releases")
 
 
 try:

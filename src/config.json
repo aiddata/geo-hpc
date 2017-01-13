@@ -2,6 +2,7 @@
     "master":{
         "active": 1,
         "name": "master",
+        "data_root": "/sciclone/aiddata10/REU",
         "database": "128.239.20.76",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
