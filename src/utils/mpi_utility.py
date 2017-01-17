@@ -59,7 +59,7 @@ class NewParallel():
 
     """
 
-    def __init__(self, parallel=True):
+    def __init__(self, parallel=True, capture=False):
 
         if run_mpi == False:
             print "NewParallel warning: mpi4py could not be loaded"
@@ -68,6 +68,7 @@ class NewParallel():
         else:
             self.parallel = parallel
 
+        self.capture = capture
 
         if self.parallel:
 
@@ -287,6 +288,24 @@ class NewParallel():
         return task_data
 
 
+    def _worker_job(self, task_index, task_data):
+
+        if not self.capture:
+            return self.worker_job(task_index, task_data)
+
+        else:
+            try:
+                with Capturing() as output:
+                    results = self.worker_job(task_index, task_data)
+
+                print '\n'.join(output)
+                return results
+
+            except:
+                print '\n'.join(output)
+                raise
+
+
     def run(self):
         """Run job in parallel or serial.
         """
@@ -439,7 +458,7 @@ class NewParallel():
                     task_index, task_data = master_data
 
                     try:
-                        worker_result = self.worker_job(task_index, task_data)
+                        worker_result = self._worker_job(task_index, task_data)
 
                     except Exception as e:
                         print "Worker ({0}) - encountered error on Task {1}".format(self.rank, task_index)
