@@ -35,7 +35,7 @@ while True:
 # initialize mpi
 
 import mpi_utility
-job = mpi_utility.NewParallel(capture=True)
+job = mpi_utility.NewParallel(capture=True, print_worker_log=False)
 
 
 # -------------------------------------
@@ -72,7 +72,24 @@ from warnings import warn
 
 client = config.client
 c_asdf = client.asdf.data
-c_extracts = client.asdf.extracts
+
+if not 'extracts' in client.asdf.collection_names():
+    c_extracts = client.asdf.extracts
+
+    extract_indexes = [
+        pymongo.IndexModel([('boundary', 1)]),
+        pymongo.IndexModel([('data', 1)]),
+        pymongo.IndexModel([('extract_type', 1)]),
+        pymongo.IndexModel([('version', 1)]),
+        pymongo.IndexModel([('classification', 1)])
+    ]
+
+    db.test.create_indexes(extract_indexes)
+
+else:
+    c_extracts = client.asdf.extracts
+
+
 c_msr = client.asdf.msr
 db_trackers = client.trackers
 
@@ -342,6 +359,7 @@ if job.rank == 0:
 
 
 
+print '\n'
 
 # run release job
 
@@ -354,7 +372,7 @@ def tmp_get_task_data(self, task_index, source):
            "(Task Index: {1})").format(
                 source, task_index)
 
-    return raster_extract_items[task_index]
+    return release_extract_items[task_index]
 
 
 if job.rank == 0:
@@ -363,7 +381,7 @@ if job.rank == 0:
 job.set_get_task_data(tmp_get_task_data)
 
 if job.rank == 0:
-    print "Checking msr extracts: {0}".format(raster_total_count)
+    print "Checking msr extracts: {0}".format(release_total_count)
 
 job.run()
 

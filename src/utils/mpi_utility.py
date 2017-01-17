@@ -59,7 +59,7 @@ class NewParallel():
 
     """
 
-    def __init__(self, parallel=True, capture=False):
+    def __init__(self, parallel=True, capture=False, print_worker_log=True):
 
         if run_mpi == False:
             print "NewParallel warning: mpi4py could not be loaded"
@@ -69,6 +69,7 @@ class NewParallel():
             self.parallel = parallel
 
         self.capture = capture
+        self.print_worker_log=print_worker_log
 
         if self.parallel:
 
@@ -438,9 +439,9 @@ class NewParallel():
             else:
                 print "Master - terminating due to worker error."
 
-
-            print "Worker Log:"
-            print json.dumps(worker_log, indent=4, separators=(",", ":"))
+            if self.print_worker_log:
+                print "Worker Log:"
+                print json.dumps(worker_log, indent=4, separators=(",", ":"))
 
         else:
             # Worker processes execute code below

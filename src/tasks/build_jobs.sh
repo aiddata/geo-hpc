@@ -39,8 +39,6 @@ case "$task" in
         short_name=upe
         ppn=16
         cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/asdf/src/tasks/update_extract_queue.py ${branch}"
-        # ppn=1
-        # cmd="python ${src}/asdf/src/tasks/update_extract_queue.py ${branch}"
         ;;
 
     update_msr)
