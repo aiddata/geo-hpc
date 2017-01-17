@@ -103,10 +103,12 @@ else:
 
 
 # active_iso3_list = config.release_iso3.values() + config.other_iso3
-# print "Active iso3 list: {0}".format(active_iso3_list)
+# if job.rank == 0:
+#     print "Active iso3 list: {0}".format(active_iso3_list)
 
 inactive_iso3_list = config.inactive_iso3
-print "Inactive iso3 list: {0}".format(inactive_iso3_list)
+if job.rank == 0:
+    print "Inactive iso3 list: {0}".format(inactive_iso3_list)
 
 
 
@@ -118,7 +120,9 @@ def tmp_master_init(self):
     # start job timer
     self.Ts = int(time.time())
     self.T_start = time.localtime()
+    print '\n\n'
     print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
+    print '\n\n'
 
 
 def tmp_master_process(self, worker_result):
@@ -140,6 +144,7 @@ def tmp_master_final(self):
 def tmp_worker_job(self, task_index, task_data):
 
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
+    print worker_tagline
 
     # for each boundary dataset get boundary tracker
     bnd = task_data
