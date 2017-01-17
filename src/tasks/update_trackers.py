@@ -74,7 +74,6 @@ import rasterstats as rs
 # -------------------------------------
 # prepare mongo connections
 
-# connect to mongodb
 client = config.client
 c_asdf = client.asdf.data
 db_trackers = client.trackers
@@ -166,12 +165,14 @@ def tmp_worker_job(self, task_index, task_data):
 
         if is_active_gadm:
             print "\t\t\tsetting group active"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0}, {"$set":{"active": 1}})
+            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0},
+                               {"$set":{"active": 1}})
             is_active = 1
 
         elif not is_active_gadm:
             print "\t\t\tsetting group inactive"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1}, {"$set":{"active": 0}})
+            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1},
+                               {"$set":{"active": 0}})
             return
 
 
