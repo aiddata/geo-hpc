@@ -2,18 +2,18 @@
 
 # automated script called by cron_wrapper.sh
 #
+# builds jobs for specified tasks
+#
 # required input:
 #   branch
 #   timestamp
+#   task - which job to build
 #
-# builds job that updates trackers
-# job runs the bash script update_trackers_script.sh
-#
-# only allows 1 job of this type to run at a time
+# only allows 1 job of each task type to run at a time
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-upt-<branch>
+# job name format: ax-<short_name>-<branch>
 
 
 branch=$1
@@ -37,23 +37,27 @@ case "$task" in
 
     update_extract)
         short_name=upe
-        ppn=16
+        # ppn=16
+        # cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/asdf/src/tasks/update_extract_queue.py ${branch}"
+        ppn=1
+        cmd="python ${src}/asdf/src/tasks/update_extract_queue.py ${branch}"
         ;;
 
     update_msr)
         short_name=upm
         ppn=1
+        cmd="python ${src}/asdf/src/tasks/update_msr_queue.py ${branch}"
         ;;
 
     det)
         short_name=det
         ppn=1
+        cmd="python ${src}/det-module/queue/processing.py ${branch}"
         ;;
 
     *)  echo "Invalid build_db_updates_job task.";
         exit 1 ;;
 esac
-
 
 
 # check if job needs to be run
@@ -99,20 +103,6 @@ else
 #   (can use `cat <<- EOF` to strip leading tabs )
 
 
-# this job uses `-k` instead of `-j` and `-o`
-#   this will place job oe file in user home dir and
-#   make it available on execution hosts
-# `-V` will export env from qsub to batch env (e.g., $PBS_JOBID)
-#
-# these options allow us to keep the full job output and then
-# concatenate with the main log file (PBS would overwrite existing
-# main log if using `-o` to specify it via qsub options)
-
-#PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
-
-
-#PBS -k oe
-
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N ax-$short_name-$branch
@@ -121,9 +111,6 @@ cat <<EOF >> "$job_path"
 #PBS -j oe
 #PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
 #PBS -V
-
-# bash $src/asdf/src/tasks/run_jobs.sh $branch $timestamp $task
-
 
 echo "\n"
 date
@@ -137,7 +124,6 @@ $cmd
 echo "\n"
 date
 echo "\nDone \n"
-
 
 EOF
 
