@@ -354,7 +354,8 @@ def tmp_get_task_data(self, task_index, source):
 
 
 # init / run job
-job.set_task_count(len(bnds))
+if job.rank == 0:
+    job.set_task_count(len(bnds))
 
 job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)

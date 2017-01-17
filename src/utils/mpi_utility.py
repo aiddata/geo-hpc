@@ -309,8 +309,9 @@ class NewParallel():
     def run(self):
         """Run job in parallel or serial.
         """
-        if self.task_count == 0:
-            raise Exception("Task count = 0. Either set a non-zero "
+        if self.rank == 0 and self.task_count == 0:
+            raise Exception("Task count = 0 on master node. "
+                            "Either set a non-zero "
                             "task count, or make sure your task list "
                             "is being properly populated)")
 

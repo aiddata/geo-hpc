@@ -118,6 +118,7 @@ echo "\n"
 
 echo Timestamp: $timestamp
 echo Job: "\$PBS_JOBID"
+echo "\n"
 
 $cmd
 
