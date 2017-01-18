@@ -321,11 +321,42 @@ def run(path=None, client=None, version=None, config=None,
     else:
         doc["extras"] = data["extras"]
 
-    if not "tags" in data["extras"]:
-        data["extras"]["tags"] = []
+    if not "tags" in doc["extras"]:
+        doc["extras"]["tags"] = []
 
-    if not "raster" in data["extras"]["tags"]:
-        data["extras"]["tags"].append("raster")
+    if not "raster" in doc["extras"]["tags"]:
+        doc["extras"]["tags"].append("raster")
+
+
+    if "categorical" in doc["options"]["extract_types"]:
+        if not "category_map" in doc["extras"]:
+            quit("'categorical' included as extract type but no 'category_map' dict provided in 'extras'.")
+        elif not isinstance(doc["extras"]["category_map"], dict):
+            quit("The 'category_map' field must be provided as a dict. Invalid type ({0}) given.".format(
+                type(doc["extras"]["category_map"])))
+        else:
+            # make sure category names and values are in proper key:val format
+            # and types
+            # {pixel_value: "field_name"}
+            # pixel value may be int, float
+            # field name may be str, int, float (but only using string for ingest rasters)
+            cat_map =  doc["extras"]["category_map"]
+            invalid_cat_keys = [i for i in cat_map.keys()
+                                if not isinstance(i, (int, float))]
+            invalid_cat_vals = [i for i in cat_map.values()
+                                if not isinstance(i, str)]
+
+            # make sure keys are str
+            if invalid_cat_keys:
+                print "Invalid `category_map` keys: ({0})".format(invalid_cat_keys)
+
+            # make sure vals or int/float
+            if invalid_cat_vals:
+                print "Invalid `category_map` values: ({0})".format(invalid_cat_vals)
+
+            if invalid_cat_keys or invalid_cat_vals:
+                raise Exception("Invalid `category_map` provided.")
+
 
     # -------------------------------------
 
