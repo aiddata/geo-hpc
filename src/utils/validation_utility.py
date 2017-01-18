@@ -71,7 +71,7 @@ class ValidationTools():
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
             },
-            "extracts": ['mean', 'max', 'sum', 'min', 'count'],
+            "extracts": ['mean', 'max', 'sum', 'min', 'count', "categorical"],
             "group_class": ['actual', 'sub']
         }
 
@@ -343,7 +343,11 @@ class ValidationTools():
         """
         out = ValidationResults(val)
 
-        if isinstance(val, list):
+        is_dict = False
+        if isinstance(val, dict):
+            is_dict = True
+            clean = val.keys()
+        elif isinstance(val, list):
             clean = val
         elif isinstance(val, str):
             clean = [x.strip(' ') for x in val.split(",")]
@@ -352,9 +356,9 @@ class ValidationTools():
                       "must be list or comma separate string.")
             return out
 
-        if any(i in clean for i in ['all', 'ALL', '*']):
-            out.success(self.types["extracts"])
-            return out
+        # if any(i in clean for i in ['all', 'ALL', '*']):
+        #     out.success(self.types["extracts"])
+        #     return out
 
         invalid = [i for i in clean if i not in self.types["extracts"]]
 
@@ -365,7 +369,10 @@ class ValidationTools():
                     invalid, self.types["extracts"]))
             out.error(msg)
         else:
-            out.success(clean)
+            if is_dict:
+                out.success(val)
+            else:
+                out.success(clean)
 
         return out
 
