@@ -269,6 +269,8 @@ def tmp_worker_job(self, task_index, task_data):
 
             extract = rs.zonal_stats(bnd_geo, dset_base, stats="min")
 
+            print extract
+
             if extract[0]['min'] != None:
                 result = True
 
