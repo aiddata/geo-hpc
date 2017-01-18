@@ -232,13 +232,6 @@ def tmp_worker_job(self, task_index, task_data):
     # extract type *
     extract_type = task_data['extract_type']
 
-    # # string containing year information *
-    # year_string = task_data['years']
-
-    # # file mask for dataset files *
-    # file_mask = task_data['file_mask']
-
-
     # boundary, dataset and raster names
     bnd_name = task_data['bnd_name']
     dataset_name = task_data['dataset_name']
@@ -246,7 +239,6 @@ def tmp_worker_job(self, task_index, task_data):
 
     # output directory
     output_base = task_data['output_base']
-
 
     # =================================
 
@@ -256,10 +248,11 @@ def tmp_worker_job(self, task_index, task_data):
 
     exo.set_base_path(data_path)
 
-    exo.set_extract_type(extract_type)
+    category_map = None
+    if extract_type == "categorical":
+        category_map = task_data['category_map']
 
-    # exo.set_years(year_string)
-    # exo.set_file_mask(file_mask)
+    exo.set_extract_type(extract_type, category_map=category_map)
 
 
     # =================================
@@ -488,6 +481,8 @@ def tmp_get_task_data(self, task_index, source):
 
 
         tmp['extract_type'] = request['extract_type']
+        if request['extract_type'] == 'categorical':
+            tmp['category_map'] = request['category_map']
 
         tmp['output_base'] = general_output_base
 
