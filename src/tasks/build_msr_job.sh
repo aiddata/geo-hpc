@@ -25,7 +25,7 @@ jobtime=$(date +%H%M%S)
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
-job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
+job_count=$(echo "$qstat" | grep 'ax-msr-'"$branch" | wc -l)
 
 # if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
 
