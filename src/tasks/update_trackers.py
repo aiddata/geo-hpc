@@ -268,8 +268,7 @@ def tmp_worker_job(self, task_index, task_data):
                                       for shp in fiona.open(bnd_base, 'r')])
 
             extract = rs.zonal_stats(bnd_geo, dset_base, stats="min")
-
-            print extract
+            # print extract
 
             if extract[0]['min'] != None:
                 result = True
