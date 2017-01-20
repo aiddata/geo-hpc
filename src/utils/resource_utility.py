@@ -194,6 +194,8 @@ def gen_nested_release(path=None):
 
 
     # add new data for each project
+    # missing_transactions = 0
+    # missing_locations = 0
     for project_row in tables['projects'].iterrows():
 
         project = dict(project_row[1])
@@ -208,6 +210,7 @@ def gen_nested_release(path=None):
 
         else:
             print "No transactions found for project id: " + str(project_id)
+            # missing_transactions += 1
 
 
         location_match = tables['locations'].loc[
@@ -229,6 +232,7 @@ def gen_nested_release(path=None):
 
         else:
             print "No locations found for project id: " + str(project_id)
+            # missing_locations += 1
 
 
         yield project

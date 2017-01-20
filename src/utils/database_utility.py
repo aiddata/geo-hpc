@@ -216,7 +216,7 @@ class MongoUpdate():
         db_releases.drop_collection(name)
         c_release = db_releases[name]
 
-        c_release.create_index([("locations.spatial", pymongo.GEOSPHERE)])
+        # c_release.create_index([("locations.spatial", pymongo.GEOSPHERE)])
 
         release_generator = gen_nested_release(path)
 
