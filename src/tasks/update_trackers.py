@@ -278,11 +278,12 @@ def tmp_worker_job(self, task_index, task_data):
             # iterate over active (premable, iso3) in
             # release_iso3 field of config
             for k, v in config.release_iso3.items():
-                if (match['name'].startswith(k.lower()) and
-                        (bnd["extras"]["gadm_iso3"].upper() in v or
-                         "global" in v)):
+                if match['name'].startswith(k.lower()):
+                    if bnd["extras"]["gadm_iso3"].upper() in v:
+                        result = True
 
-                    result = True
+                    elif "global" in v:
+                        result = True
 
 
         # elif dset_type == "polydata":
