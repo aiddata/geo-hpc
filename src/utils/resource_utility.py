@@ -220,10 +220,10 @@ def gen_nested_release(path=None):
         project["locations"] = []
         for x in location_match.iterrows():
             tmp_loc = dict(x[1])
-            tmp_loc['spatial'] = {
-                "type": "Point",
-                "coordinates": [tmp_loc['longitude'], tmp_loc['latitude']]
-            }
+            # tmp_loc['spatial'] = {
+            #     "type": "Point",
+            #     "coordinates": [tmp_loc['longitude'], tmp_loc['latitude']]
+            # }
             project["locations"].append(tmp_loc)
 
         # if len(location_match) > 0:
