@@ -203,9 +203,16 @@ class MongoUpdate():
 
         release_generator = gen_nested_release(path)
 
+        bulk_insert = c_release.initialize_unordered_bulk_op()
+
         for doc in release_generator:
             # add to collection
-            c_release.insert(doc)
+            # c_release.insert(doc)
+            bulk_insert.insert(doc)
+
+
+        bulk_result = bulk_insert.execute()
+        print bulk_result
 
         return 0
 
