@@ -159,28 +159,45 @@ class MongoUpdate():
                 c_bnd = db_trackers[bnd_group]
                 c_bnd.delete_one({"name": search_name})
 
+            ###
+            # 2017-01-20
+            # commented below sections out since whether we clear out existing
+            # msr/extract items depends on whether we are reingesting a
+            # dataset due to some processing/data issue that will impact the
+            # results of msr/extract vs something that does not warrant
+            # completely rerunning all msr/extract
+            #
+            # if it is an issue with the data it should probably be treated as new
+            # version of data. essentially: do not just delete all the msr/extract
+            # unless it is absolutely necessary
+            #
+            # probably need to revisit this so we have a better way to handle
+            # rather than commenting/uncommenting this block of code as needed
+            ###
 
-            # update msr
-            # clear all existing msr using release
-            if (doc["type"] == "release" and
-                    "msr" in self.db_asdf.collection_names()):
-                c_msr = self.db_asdf.msr
-                delete_msr = c_msr.delete_many({
-                    'dataset': search_name
-                })
-                if delete_msr.deleted_count > 0:
-                    print "Clearing msr for boundary"
+
+            # # update msr
+            # # clear all existing msr using release
+            # if (doc["type"] == "release" and
+            #         "msr" in self.db_asdf.collection_names()):
+            #     c_msr = self.db_asdf.msr
+            #     delete_msr = c_msr.delete_many({
+            #         'dataset': search_name,
+            #         'status':0
+            #     })
+            #     if delete_msr.deleted_count > 0:
+            #         print "Clearing unprocessed msr items for release dataset from msr queue"
 
 
-            # update extracts
-            # clear all existing extracts using dataset
-            if "extracts" in self.db_asdf.collection_names():
-                c_extracts = self.db_asdf.extracts
-                delete_extracts = c_extracts.delete_many({
-                    'raster': {'$regex': r'^{0}'.format(search_name)}
-                })
-                if delete_extracts.deleted_count > 0:
-                    print "Clearing extracts for dataset"
+            # # update extracts
+            # # clear all existing extracts using dataset
+            # if "extracts" in self.db_asdf.collection_names():
+            #     c_extracts = self.db_asdf.extracts
+            #     delete_extracts = c_extracts.delete_many({
+            #         'data': {'$regex': r'^{0}'.format(search_name)}
+            #     })
+            #     if delete_extracts.deleted_count > 0:
+            #         print "Clearing extracts for dataset"
 
 
         return 0
