@@ -213,9 +213,19 @@ def gen_nested_release(path=None):
         location_match = tables['locations'].loc[
             tables['locations']["project_id"] == project_id]
 
-        if len(location_match) > 0:
-            project["locations"] = [dict(x[1])
-                                    for x in location_match.iterrows()]
+
+        project["locations"] = []
+        for x in location_match.iterrows():
+            tmp_loc = dict(x[1])
+            tmp_loc['spatial'] = {
+                "type": "Point",
+                "coordinates": [tmp_loc['longitude'], tmp_loc['latitude']]
+            }
+            project["locations"].append(tmp_loc)
+
+        # if len(location_match) > 0:
+        #     project["locations"] = [dict(x[1])
+        #                             for x in location_match.iterrows()]
 
         else:
             print "No locations found for project id: " + str(project_id)
