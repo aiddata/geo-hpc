@@ -77,6 +77,7 @@ import rasterstats as rs
 client = config.client
 c_asdf = client.asdf.data
 db_trackers = client.trackers
+db_releases = client.releases
 
 # -------------------------------------
 
@@ -187,7 +188,7 @@ def tmp_worker_job(self, task_index, task_data):
 
     if not bnd["options"]["group"] in db_trackers.collection_names():
         c_bnd = db_trackers[bnd["options"]["group"]]
-        c_bnd.create_index("name", unique=True)
+        c_bnd.create_index("name")#, unique=True)
         c_bnd.create_index([("spatial", pymongo.GEOSPHERE)])
     else:
         c_bnd = db_trackers[bnd["options"]["group"]]
@@ -283,7 +284,23 @@ def tmp_worker_job(self, task_index, task_data):
                         result = True
 
                     elif "global" in v:
-                        result = True
+
+                        bnd_coords = bnd['spatial']['coordinates']
+
+                        bnd_minx = bnd_coords[0][0][0]
+                        bnd_miny = bnd_coords[0][1][1]
+                        bnd_maxx = bnd_coords[0][2][0]
+                        bnd_maxy = bnd_coords[0][0][1]
+
+                        loc_count = db_releases[match['name']].count({
+                            'locations.longitude': {'$gte': bnd_minx, '$lte': bnd_maxx},
+                            'locations.latitude': {'$gte': bnd_miny, '$lte': bnd_maxy}
+                        })
+
+                        print "\t\t\t{0} locations found".format(loc_count)
+                        if loc_count > 0:
+                            result = True
+
 
 
         # elif dset_type == "polydata":
