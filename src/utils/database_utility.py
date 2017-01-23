@@ -60,16 +60,19 @@ class MongoUpdate():
             search_name = doc['name']
 
         if doc["type"] == "release" and update != "partial":
+            print "Updating release..."
             if existing != None:
                 db_releases = self.client.releases
                 db_releases.drop_collection(existing['name'])
 
             self.release_to_mongo(doc["name"], doc["base"])
 
+        print "Updating core..."
         self.update_core(doc, search_name)
 
         if update != "partial":
             try:
+                print "Updating trackers..."
                 self.update_trackers(doc, search_name, existing)
             except Exception as e:
                 print "Error updating trackers. Removing core entry..."
@@ -213,23 +216,23 @@ class MongoUpdate():
 
         db_releases = self.client.releases
 
-        db_releases.drop_collection(name)
+        # db_releases.drop_collection(name)
         c_release = db_releases[name]
 
         # c_release.create_index([("locations.spatial", pymongo.GEOSPHERE)])
 
         release_generator = gen_nested_release(path)
 
-        # bulk_insert = c_release.initialize_unordered_bulk_op()
+        bulk_insert = c_release.initialize_unordered_bulk_op()
 
         for doc in release_generator:
             # add to collection
-            c_release.insert(doc)
-            # bulk_insert.insert(doc)
+            # c_release.insert(doc)
+            bulk_insert.insert(doc)
 
 
-        # bulk_result = bulk_insert.execute()
-        # print bulk_result
+        bulk_result = bulk_insert.execute()
+        print bulk_result
 
         return 0
 
