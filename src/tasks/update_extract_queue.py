@@ -121,6 +121,9 @@ if job.rank == 0:
 
     bnd_groups = {}
     for name, b in bnds_info.iteritems():
+        # skip adm0
+        if 'extras' in b and 'gadm_adm' in b['extras'] and b['extras']['gadm_adm'] == 0:
+            continue
         group = b['options']['group']
         if not group in bnd_groups:
             bnd_groups[group] = []
