@@ -6,6 +6,7 @@ import traceback
 import re
 import errno
 import time
+from random import randint
 
 import pymongo
 
@@ -371,7 +372,7 @@ def tmp_get_task_data(self, task_index, source):
                 source, task_index)
 
     search_attempt = 0
-
+    request = 0
     while search_attempt < self.search_limit:
 
         # print 'Master - finding request:'
@@ -379,36 +380,42 @@ def tmp_get_task_data(self, task_index, source):
         # look for request of each type in classification list
         # (list is in order of priority)
         for ctype in self.classification_list:
-            find_request = c_extracts.find_one({
+            potential_request_list = list(c_extracts.find({
                 'status': 0,
                 'generator': {'$in': self.generator_list},
                 'classification': ctype
-            }, sort=[("priority", -1), ("submit_time", 1)])
-            if find_request is not None:
-                # print find_request
+            }, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
+            if len(potential_request_list) > 0:
+                # print potential_request_list
                 break
 
-        # if None, there are no more requests
-        if find_request is None:
+        # if zero, there are no more requests of any classification
+        if len(potential_request_list) == 0:
             request = None
             break
 
-        # attempt to "claim" found request by updating status
-        request_accept = c_extracts.update_one({
-            '_id': find_request['_id'],
-            'status': find_request['status']
-        }, {
-            '$set': {
-                'status': 2,
-                'update_time': int(time.time())
-            }
-        })
+        for _ in range(len(potential_request_list)):
+            potential_request = potential_request_list[randint(0, len(potential_request_list)-1)]
 
-        # print request_accept.raw_result
+            # attempt to "claim" found request by updating status
+            request_accept = c_extracts.update_one({
+                '_id': potential_request['_id'],
+                'status': potential_request['status']
+            }, {
+                '$set': {
+                    'status': 2,
+                    'update_time': int(time.time())
+                }
+            })
 
-        if (request_accept.acknowledged and
-                request_accept.modified_count == 1):
-            request = find_request
+            # print request_accept.raw_result
+
+            if (request_accept.acknowledged and
+                    request_accept.modified_count == 1):
+                request = potential_request
+                break
+
+        if request != 0:
             break
 
         # only reaches here if update failed
