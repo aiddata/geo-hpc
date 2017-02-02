@@ -651,8 +651,10 @@ class QueueToolBox():
                         c[len("exfield_"):])
 
                 elif result_field.endswith('reliability'):
-                    tmp_field = "{0}{1}".format(
-                        result_field[:-len('reliability')],
+                    tmp_split = result_fieldsplit('.')
+                    tmp_field = "{0}.{1}.{2}".format(
+                        tmp_split[0],
+                        tmp_split[1][0:7], # result_field[:-len('reliability')],
                         c[len("exfield_"):])
 
                 else:

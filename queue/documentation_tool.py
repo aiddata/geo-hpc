@@ -238,13 +238,13 @@ class DocBuilder():
             self.Story.append(Spacer(1, 0.05*inch))
 
             colnames = ', '.join([
-                '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'], i)
+                '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], i)
                 for i in ['sum', 'potential', 'reliability']
             ])
 
             ###
             if dset['dataset'].startswith('worldbank'):
-                colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'], 'sum')
+                colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
             ###
 
             data = [
