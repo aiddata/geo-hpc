@@ -621,10 +621,16 @@ class ExtractObject():
                             all_touched=False)
 
         else:
+            all_touched = False
             if self._extract_type == 'reliability':
                 tmp_extract_type = 'sum'
             else:
                 tmp_extract_type = self._extract_type
+                if self._extract_type != 'sum' and percent_cover_weighting:
+                    # this should capture very small polygons for non sum extracts
+                    # when the use of percent_cover_weighting is an indication that
+                    # there may be very small polygons
+                    all_touched = True
 
             raw_stats = rs.gen_zonal_stats(vector, raster,
                             geojson_out=True,
@@ -632,7 +638,8 @@ class ExtractObject():
                             stats=tmp_extract_type,
                             percent_cover_scale=percent_cover_scale,
                             percent_cover_weighting=percent_cover_weighting,
-                            latitude_correction=latitude_correction)
+                            latitude_correction=latitude_correction,
+                            all_touched=all_touched)
 
 
         stats = self.format_extract(raw_stats)
