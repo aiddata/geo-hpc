@@ -651,6 +651,7 @@ class QueueToolBox():
                         c[len("exfield_"):])
 
                 elif result_field.endswith('reliability') or result_field.startswith('worldbank'):
+                    print "\n###\n{0}\n###".format(result_field)
                     tmp_split = result_field.split('.')
                     tmp_field = "{0}.{1}.{2}".format(
                         tmp_split[0],
