@@ -285,6 +285,14 @@ def run(path=None, client=None, version=None, config=None,
     doc["options"]["extract_types"] = valid_extract_types.value
 
 
+    valid_extract_types_info = v.extract_types(data["options"]["extract_types_info"])
+
+    if not valid_extract_types_info.isvalid:
+        quit(valid_extract_types_info.error)
+
+    doc["options"]["extract_types_info"] = valid_extract_types_info.value
+
+
     # Description of the variable (units, range, etc.)
     doc["options"]["variable_description"] = str(
         data["options"]["variable_description"])
