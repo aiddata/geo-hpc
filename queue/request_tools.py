@@ -264,10 +264,10 @@ class QueueToolBox():
                         " request has been completed. \n\n"
                         "The status of your request can be viewed using"
                         " the following link: \n"
-                        "http://{0}/query/#/status/{1}\n\n"
+                        "http://{0}/query/#!/status/{1}\n\n"
                         "You can also view all your current and previous "
                         "requests using: \n"
-                        "http://{0}/query/#/requests/{2}\n\n").format(
+                        "http://{0}/query/#!/requests/{2}\n\n").format(
                             self.branch_info.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
@@ -291,14 +291,14 @@ class QueueToolBox():
             Your request has been completed.
 
             You can review your request and download the results using the following page:
-            \thttp://{0}/query/#/status/{1}
+            \thttp://{0}/query/#!/status/{1}
 
             or download the results directly (this link will always be available):
             \thttp://{0}/data/geoquery_results/{1}/{1}.zip
 
 
             You can also view all your current and previous requests using:
-            \thttp://{0}/query/#/requests/{2}
+            \thttp://{0}/query/#!/requests/{2}
 
 
             If you have not done so before or if you would like to provide additional feedback,

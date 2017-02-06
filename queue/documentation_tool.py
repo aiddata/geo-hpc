@@ -126,7 +126,7 @@ class DocBuilder():
             ['Request Id', str(self.request['_id'])],
             ['Email', self.request['email']],
             ['Generated on', self.time_str()],
-            ['Download Link', '<a href="http://{0}/query/#/status/{1}">{0}/query/#/status/{1}</a>'.format(
+            ['Download Link', '<a href="http://{0}/query/#!/status/{1}">{0}/query/#!/status/{1}</a>'.format(
                 self.download_server, self.request['_id'])]
         ]
 
