@@ -378,16 +378,29 @@ def tmp_get_task_data(self, task_index, source):
         # print 'Master - finding request:'
 
         # look for request of each type in classification list
-        # (list is in order of priority)
+        #   * list is in order of priority
+        #   * separate pulls for priority >= 0 and auto jobs (priority -1)
         for ctype in self.classification_list:
             potential_request_list = list(c_extracts.find({
                 'status': 0,
                 'generator': {'$in': self.generator_list},
-                'classification': ctype
+                'classification': ctype,
+                'priority': {'$gte': 0}
             }, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
             if len(potential_request_list) > 0:
-                # print potential_request_list
                 break
+
+        # check for auto jobs if there are no priority jobs
+        if len(potential_request_list) == 0:
+            for ctype in self.classification_list:
+                potential_request_list = list(c_extracts.find({
+                    'status': 0,
+                    'generator': {'$in': self.generator_list},
+                    'classification': ctype,
+                    'priority': -1
+                }, sort=[("submit_time", 1)]).limit(10))
+                if len(potential_request_list) > 0:
+                    break
 
         # if zero, there are no more requests of any classification
         if len(potential_request_list) == 0:
