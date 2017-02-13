@@ -360,11 +360,14 @@ class QueueToolBox():
 
 
             # remove filters without actual fields
-            tmp_filters = {
-                fk: fv
-                for fk, fv in raw_data['filters'].iteritems()
-                if not any([fvx in ['All', 'None', None] for fvx in fv])
-            }
+            tmp_filters = {}
+            if len(raw_data['filters']) > 0:
+                tmp_filters = {
+                    fk: fv
+                    for fk, fv in raw_data['filters'].iteritems()
+                    if not any([fvx in ['All', 'None', None] for fvx in fv])
+                }
+
 
 
             # msr request object format
