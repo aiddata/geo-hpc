@@ -355,9 +355,9 @@ def run(path=None, client=None, version=None, config=None,
             # pixel value may be int, float
             # field name may be str, int, float (but only using string for ingest rasters)
             cat_map =  doc["extras"]["category_map"]
-            invalid_cat_keys = [i for i in cat_map.keys()
-                                if not isinstance(i, (int, float))]
             invalid_cat_vals = [i for i in cat_map.values()
+                                if not isinstance(i, (int, float))]
+            invalid_cat_keys = [i for i in cat_map.keys()
                                 if not isinstance(i, str)]
 
             # make sure keys are str
