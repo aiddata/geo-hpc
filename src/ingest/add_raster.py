@@ -345,7 +345,13 @@ def run(path=None, client=None, version=None, config=None,
         else:
             # make sure category names and values are in proper key:val format
             # and types
-            # {pixel_value: "field_name"}
+            # {"field_name": pixel_value}
+
+            # NOTE: rasterstats requires input cmap as {pixel_value: "field_name"}
+            #       this gets switched in extract utility. This was done since using integers
+            #       or floats as key values is not valid json and would break ingest jsons
+            # (could put int/float as str maybe? then could keep as key)
+
             # pixel value may be int, float
             # field name may be str, int, float (but only using string for ingest rasters)
             cat_map =  doc["extras"]["category_map"]
