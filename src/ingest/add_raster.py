@@ -358,7 +358,7 @@ def run(path=None, client=None, version=None, config=None,
             invalid_cat_vals = [i for i in cat_map.values()
                                 if not isinstance(i, (int, float))]
             invalid_cat_keys = [i for i in cat_map.keys()
-                                if not isinstance(i, str)]
+                                if not isinstance(i, basestring)]
 
             # make sure keys are str
             if invalid_cat_keys:
