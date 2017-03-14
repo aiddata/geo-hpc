@@ -438,14 +438,15 @@ def complete_unique_geoms():
     # output unique geometries and sum of all
     # project locations associated with that geometry
 
-    unique_active_data = active_data.loc[
-        active_data.geom_val != "None"].copy(deep=True)
+    unique_geo_df = gpd.GeoDataFrame()
 
+    if unique_active_data.size > 0:
 
-    if unique_active_data.size == 0:
-        unique_geo_df = gpd.GeoDataFrame()
+        unique_active_data = active_data.loc[
+            active_data.geom_val != "None"].copy(deep=True)
 
-    else:
+    if unique_active_data.size > 0:
+
         # creating geodataframe
         geo_df = gpd.GeoDataFrame()
         # location id
@@ -509,7 +510,7 @@ def complete_unique_geoms():
 
         # create final output geodataframe with index, unique_dollars
         # and unique geometry
-        unique_geo_df = gpd.GeoDataFrame()
+        # unique_geo_df = gpd.GeoDataFrame()
         unique_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
         unique_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
         unique_geo_df["location_count"] = new_geo_df["location_count"]
