@@ -440,7 +440,7 @@ def complete_unique_geoms():
 
     unique_geo_df = gpd.GeoDataFrame()
 
-    if unique_active_data.size > 0:
+    if active_data.size > 0:
 
         unique_active_data = active_data.loc[
             active_data.geom_val != "None"].copy(deep=True)
