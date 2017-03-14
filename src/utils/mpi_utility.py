@@ -18,6 +18,7 @@ import traceback
 
 import json
 from copy import deepcopy
+from warnings import warn
 
 def enum(*sequential, **named):
     """Generate an enum type object."""
@@ -307,14 +308,19 @@ class NewParallel():
                 raise
 
 
-    def run(self):
+    def run(self, allow_empty=False):
         """Run job in parallel or serial.
         """
-        if self.rank == 0 and self.task_count == 0:
-            raise Exception("Task count = 0 on master node. "
-                            "Either set a non-zero "
-                            "task count, or make sure your task list "
-                            "is being properly populated)")
+        if self.rank == 0 and self.task_count == 0
+            msg = ("Task count = 0 on master node. "
+                   "Either set a non-zero task count, "
+                   "or make sure your task list "
+                   "is being properly populated)")
+
+            if allow_empty:
+                warn(msg)
+            else:
+                raise Exception(msg)
 
         if self.parallel:
             self.run_parallel()
