@@ -371,7 +371,8 @@ class CoreMSR():
         df_filtered = self.filter_data(df_prep, filters)
 
         if df_filtered.size == 0:
-            raise Exception('no data remaining after filter')
+            # raise Exception('no data remaining after filter')
+            return df_filtered
 
         df_adjusted = self.adjust_val(df_filtered, filters)
 

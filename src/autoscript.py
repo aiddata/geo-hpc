@@ -442,76 +442,80 @@ def complete_unique_geoms():
         active_data.geom_val != "None"].copy(deep=True)
 
 
-    # creating geodataframe
-    geo_df = gpd.GeoDataFrame()
-    # location id
-    geo_df["project_location_id"] = unique_active_data["project_location_id"]
-    geo_df["project_location_id"].fillna(unique_active_data["project_id"],
-                                         inplace=True)
-    geo_df["project_location_id"] = geo_df["project_location_id"].astype(str)
+    if unique_active_data.size == 0:
+        unique_geo_df = gpd.GeoDataFrame()
 
-    # assuming even split of total project dollars is "max" dollars
-    # that project location could receive
-    geo_df["dollars"] = unique_active_data["adjusted_val"]
-    # geometry for each project location
-    geo_df["geometry"] = gpd.GeoSeries(unique_active_data["geom_val"])
+    else:
+        # creating geodataframe
+        geo_df = gpd.GeoDataFrame()
+        # location id
+        geo_df["project_location_id"] = unique_active_data["project_location_id"]
+        geo_df["project_location_id"].fillna(unique_active_data["project_id"],
+                                             inplace=True)
+        geo_df["project_location_id"] = geo_df["project_location_id"].astype(str)
 
-    # # write full to geojson
-    # full_geo_json = geo_df.to_json()
-    # full_geo_file = open(dir_working + "/full.geojson", "w")
-    # json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
-    # full_geo_file.close()
+        # assuming even split of total project dollars is "max" dollars
+        # that project location could receive
+        geo_df["dollars"] = unique_active_data["adjusted_val"]
+        # geometry for each project location
+        geo_df["geometry"] = gpd.GeoSeries(unique_active_data["geom_val"])
+
+        # # write full to geojson
+        # full_geo_json = geo_df.to_json()
+        # full_geo_file = open(dir_working + "/full.geojson", "w")
+        # json.dump(json.loads(full_geo_json), full_geo_file, indent=4)
+        # full_geo_file.close()
 
 
-    # string version of geometry used to determine duplicates
-    geo_df["str_geo_hash"] = geo_df["geometry"].astype(str).apply(
-        lambda z: str_sha1_hash(z))
+        # string version of geometry used to determine duplicates
+        geo_df["str_geo_hash"] = geo_df["geometry"].astype(str).apply(
+            lambda z: str_sha1_hash(z))
 
-    # create and set unique index
-    geo_df['index'] = range(0, len(geo_df))
-    geo_df = geo_df.set_index('index')
+        # create and set unique index
+        geo_df['index'] = range(0, len(geo_df))
+        geo_df = geo_df.set_index('index')
 
-    # group project locations by geometry using str_geo_hash field
-    # and for each unique geometry get the sum of dollars for
-    # all project locations with that geometry
-    sum_unique = geo_df.groupby(by='str_geo_hash')['dollars'].sum()
+        # group project locations by geometry using str_geo_hash field
+        # and for each unique geometry get the sum of dollars for
+        # all project locations with that geometry
+        sum_unique = geo_df.groupby(by='str_geo_hash')['dollars'].sum()
 
-    # get count of locations for each unique geom
-    geo_df['ones'] = 1 #(pd.Series(np.ones(len(geo_df)))).values
-    sum_count = geo_df.groupby(by='str_geo_hash')['ones'].sum()
+        # get count of locations for each unique geom
+        geo_df['ones'] = 1 #(pd.Series(np.ones(len(geo_df)))).values
+        sum_count = geo_df.groupby(by='str_geo_hash')['ones'].sum()
 
-    # create list of project location ids for unique geoms
-    cat_plids = geo_df.groupby(by='str_geo_hash')['project_location_id'].apply(
-        lambda z: '|'.join(list(z)))
+        # create list of project location ids for unique geoms
+        cat_plids = geo_df.groupby(by='str_geo_hash')['project_location_id'].apply(
+            lambda z: '|'.join(list(z)))
 
-    # temporary dataframe with
-    #   unique geometry
-    #   location_count
-    #   dollar sums
-    # which can be used to merge with original geo_df dataframe
-    tmp_geo_df = gpd.GeoDataFrame()
-    tmp_geo_df['unique_dollars'] = sum_unique
-    tmp_geo_df['location_count'] = sum_count
-    tmp_geo_df['project_location_ids'] = cat_plids
+        # temporary dataframe with
+        #   unique geometry
+        #   location_count
+        #   dollar sums
+        # which can be used to merge with original geo_df dataframe
+        tmp_geo_df = gpd.GeoDataFrame()
+        tmp_geo_df['unique_dollars'] = sum_unique
+        tmp_geo_df['location_count'] = sum_count
+        tmp_geo_df['project_location_ids'] = cat_plids
 
-    tmp_geo_df['str_geo_hash'] = tmp_geo_df.index
+        tmp_geo_df['str_geo_hash'] = tmp_geo_df.index
 
-    # merge geo_df with tmp_geo_df
-    new_geo_df = geo_df.merge(tmp_geo_df, how='inner', on="str_geo_hash")
-    # drops duplicate rows
-    new_geo_df.drop_duplicates(subset="str_geo_hash", inplace=True)
-    # gets rid of str_geo_hash column
-    new_geo_df.drop('str_geo_hash', axis=1, inplace=True)
+        # merge geo_df with tmp_geo_df
+        new_geo_df = geo_df.merge(tmp_geo_df, how='inner', on="str_geo_hash")
+        # drops duplicate rows
+        new_geo_df.drop_duplicates(subset="str_geo_hash", inplace=True)
+        # gets rid of str_geo_hash column
+        new_geo_df.drop('str_geo_hash', axis=1, inplace=True)
 
-    # create final output geodataframe with index, unique_dollars
-    # and unique geometry
-    unique_geo_df = gpd.GeoDataFrame()
-    unique_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
-    unique_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
-    unique_geo_df["location_count"] = new_geo_df["location_count"]
-    unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
+        # create final output geodataframe with index, unique_dollars
+        # and unique geometry
+        unique_geo_df = gpd.GeoDataFrame()
+        unique_geo_df["geometry"] = gpd.GeoSeries(new_geo_df["geometry"])
+        unique_geo_df["unique_dollars"] = new_geo_df["unique_dollars"]
+        unique_geo_df["location_count"] = new_geo_df["location_count"]
+        unique_geo_df["project_location_ids"] = new_geo_df["project_location_ids"]
 
-    # unique_geo_df['index'] = range(len(unique_geo_df))
+        # unique_geo_df['index'] = range(len(unique_geo_df))
 
 
     # write unique to geojson
@@ -778,29 +782,36 @@ if job.rank == 0:
 dir_data = release_path + '/data'
 
 active_data = core.process_data(dir_data, request)
-active_data["geom_val"] = "None"
-
-task_id_list = list(active_data['task_ids'])
-
-if len(task_id_list) == 0:
-    quit("task id list is missing")
-
-if job.rank == 0:
-    print "Starting to process tasks ({0})...".format(len(task_id_list))
 
 
-# =============================================================================
-# =============================================================================
+if active_data.size > 0:
+
+    active_data["geom_val"] = "None"
+
+    task_id_list = list(active_data['task_ids'])
+
+    # if len(task_id_list) == 0:
+    #     quit("task id list is missing")
+
+    if job.rank == 0:
+        print "Starting to process tasks ({0})...".format(len(task_id_list))
+
+else:
+    task_id_list = []
+
+    if job.rank == 0:
+        print "No data found. Outputting empty raster..."
+
+
+# -------------------------------------
 # RUN MPI (init / run job)
 
 job.set_task_list(task_id_list)
-
 # job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)
 job.set_master_process(tmp_master_process)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
-
 
 try:
     job.run()
@@ -811,4 +822,3 @@ except Exception as err:
                                 {'$set': {"status": -1,}},
                                 upsert=False)
     raise
-
