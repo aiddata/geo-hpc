@@ -814,7 +814,7 @@ job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
 try:
-    job.run()
+    job.run(allow_empty=True)
 except Exception as err:
     print "error running msr job (hash: {0}".format(request['hash'])
     # add error status to request in msr queue
