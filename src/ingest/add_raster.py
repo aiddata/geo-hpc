@@ -386,6 +386,29 @@ def run(path=None, client=None, version=None, config=None,
         return 0
 
 
+
+    # -------------------------------------
+    # resource scan
+
+    # find all files with file_extension in path
+    file_list = []
+    for root, dirs, files in os.walk(doc["base"]):
+        for file in files:
+
+            file = os.path.join(root, file)
+            file_check = file.endswith('.' + doc["file_extension"])
+
+            if file_check == True:
+                file_list.append(file)
+
+        if data["file_mask"] == "None":
+            break
+
+
+    if data["file_mask"] == "None" and len(file_list) != 1:
+        quit("Multiple files found when `file_mask = None`")
+
+
     # -------------------------------------
     # check file mask
 
@@ -413,29 +436,6 @@ def run(path=None, client=None, version=None, config=None,
         doc["file_mask"] = data["file_mask"]
     else:
         quit(valid_file_mask[1])
-
-
-    # -------------------------------------
-    # resource scan
-
-    # find all files with file_extension in path
-    file_list = []
-    for root, dirs, files in os.walk(doc["base"]):
-        for file in files:
-
-            file = os.path.join(root, file)
-            file_check = file.endswith('.' + doc["file_extension"])
-
-            if file_check == True:
-                file_list.append(file)
-
-        if doc["file_mask"] == "None":
-            break
-
-
-    if doc["file_mask"] == "None" and len(file_list) != 1:
-        quit("Multiple files found when `file_mask = None`")
-
 
     # -------------------------------------
     print "\nProcessing temporal..."
