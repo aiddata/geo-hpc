@@ -193,34 +193,17 @@ if job.rank == 0:
 
                 for e in extract_types:
 
-                    if e == "categorical":
-                        category_map = raster['extras']['category_map']
-
-                        raster_extract_items += [
-                            {
-                                'boundary': b,
-                                'data': r['name'],
-                                'extract_type': e,
-                                'category_map': category_map,
-                                'version': version,
-                                'classification': 'raster'
-                            }
-                            for r in raster['resources']
-                            for b in group_bnds
-                        ]
-
-                    else:
-                        raster_extract_items += [
-                            {
-                                'boundary': b,
-                                'data': r['name'],
-                                'extract_type': e,
-                                'version': version,
-                                'classification': 'raster'
-                            }
-                            for r in raster['resources']
-                            for b in group_bnds
-                        ]
+                    raster_extract_items += [
+                        {
+                            'boundary': b,
+                            'data': r['name'],
+                            'extract_type': e,
+                            'version': version,
+                            'classification': 'raster'
+                        }
+                        for r in raster['resources']
+                        for b in group_bnds
+                    ]
 
                 additional_raster_count = len(raster_extract_items) - base_count
                 raster_total_count += additional_raster_count
