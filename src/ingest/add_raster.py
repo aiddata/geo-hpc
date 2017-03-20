@@ -385,25 +385,9 @@ def run(path=None, client=None, version=None, config=None,
         print "\n{0}: Done ({1} update).\n".format(script, update)
         return 0
 
-    # -------------------------------------
-    # resource scan
-
-    # find all files with file_extension in path
-    file_list = []
-    for root, dirs, files in os.walk(doc["base"]):
-        for file in files:
-
-            file = os.path.join(root, file)
-            file_check = file.endswith('.' + doc["file_extension"])
-
-            if file_check == True:
-                file_list.append(file)
-
-        if doc["file_mask"] == "None":
-            break
 
     # -------------------------------------
-    print "\nProcessing temporal..."
+    # check file mask
 
     def validate_file_mask(vmask):
         """Validate a file mask"""
@@ -430,6 +414,26 @@ def run(path=None, client=None, version=None, config=None,
     else:
         quit(valid_file_mask[1])
 
+
+    # -------------------------------------
+    # resource scan
+
+    # find all files with file_extension in path
+    file_list = []
+    for root, dirs, files in os.walk(doc["base"]):
+        for file in files:
+
+            file = os.path.join(root, file)
+            file_check = file.endswith('.' + doc["file_extension"])
+
+            if file_check == True:
+                file_list.append(file)
+
+        if doc["file_mask"] == "None":
+            break
+
+    # -------------------------------------
+    print "\nProcessing temporal..."
 
     doc["temporal"] = {}
 
