@@ -1289,7 +1289,7 @@ class FeatureTool():
             ex_value = {
                 k[len('exfield_'):]: v
                 for (k,v) in feat['properties'].iteritems()
-                if i.startswith('exfield_')
+                if k.startswith('exfield_')
             }
         else:
             ex_value = feat['properties']['exfield_' + self.ex_method]
