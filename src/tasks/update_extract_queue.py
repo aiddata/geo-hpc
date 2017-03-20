@@ -194,7 +194,7 @@ if job.rank == 0:
                 for e in extract_types:
 
                     if e == "categorical":
-                        category_map = raster['options']['category_map']
+                        category_map = raster['extras']['category_map']
 
                         raster_extract_items += [
                             {
