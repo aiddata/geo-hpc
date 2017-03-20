@@ -484,8 +484,8 @@ def tmp_get_task_data(self, task_index, source):
             # print tmp['dataset_name']
 
             data_info = c_asdf.find_one(
-                {'resources.name': request['data']},
-                {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
+                {'resources.name': request['data']}, {})
+                # {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
 
 
             tmp['dataset_name'] = data_info['name']
@@ -502,7 +502,7 @@ def tmp_get_task_data(self, task_index, source):
 
         tmp['extract_type'] = request['extract_type']
         if request['extract_type'] == 'categorical':
-            tmp['category_map'] = request['category_map']
+            tmp['category_map'] = data_info['extras']['category_map']
 
         tmp['output_base'] = general_output_base
 
