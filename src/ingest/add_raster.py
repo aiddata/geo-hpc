@@ -432,6 +432,11 @@ def run(path=None, client=None, version=None, config=None,
         if doc["file_mask"] == "None":
             break
 
+
+    if doc["file_mask"] == "None" and len(file_list) != 1:
+        quit("Multiple files found when `file_mask = None`")
+
+
     # -------------------------------------
     print "\nProcessing temporal..."
 
