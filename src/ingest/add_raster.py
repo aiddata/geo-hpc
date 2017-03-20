@@ -399,6 +399,9 @@ def run(path=None, client=None, version=None, config=None,
             if file_check == True:
                 file_list.append(file)
 
+        if doc["file_mask"] == "None":
+            break
+
     # -------------------------------------
     print "\nProcessing temporal..."
 
