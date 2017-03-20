@@ -483,8 +483,7 @@ def tmp_get_task_data(self, task_index, source):
             # print request['data']
             # print tmp['dataset_name']
 
-            data_info = c_asdf.find_one(
-                {'resources.name': request['data']}, {})
+            data_info = c_asdf.find_one({'resources.name': request['data']})
                 # {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
 
 
