@@ -1285,6 +1285,12 @@ class FeatureTool():
                 'reliability': feat['properties']['exfield_reliability'],
                 'potential': feat['properties']['exfield_potential']
             }
+        elif  self.ex_method == 'categorical':
+            ex_value = {
+                k[len('exfield_'):]: v
+                for (k,v) in feat['properties'].iteritems()
+                if i.startswith('exfield_')
+            }
         else:
             ex_value = feat['properties']['exfield_' + self.ex_method]
 
