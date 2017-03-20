@@ -8,6 +8,7 @@ add raster dataset to asdf
 
 import sys
 import os
+import re
 from pprint import pprint
 import datetime
 import json
@@ -370,6 +371,11 @@ def run(path=None, client=None, version=None, config=None,
 
             if invalid_cat_keys or invalid_cat_vals:
                 raise Exception("Invalid `category_map` provided.")
+
+            cat_map = dict(zip(
+                [re.sub('[^0-9a-z]', '_', i.lower()) for i in cat_map.keys()],
+                cat_map.values()
+            ))
 
 
     # -------------------------------------
