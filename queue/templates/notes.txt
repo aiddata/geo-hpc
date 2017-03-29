@@ -1,4 +1,4 @@
 <b><font size=14>Usage Notes</font></b>
 
-- if you attempt to merge geo(query) results wth vector data (e.g., shapefiles) downloaded from GADM, the GADM data may not always contain a unique id field to merge on. In these cases, please feel free to contact us and we can provide you with a modified file that contains a unique field for merging ("asdf_id" field, found in all result csvs).
+- If you attempt to merge geo(query) results wth vector data (e.g., shapefiles) downloaded from GADM, the GADM data may not always contain a unique id field to merge on. In these cases, please feel free to contact us and we can provide you with a modified file that contains a unique field for merging ("asdf_id" field, found in all result csvs).
 
