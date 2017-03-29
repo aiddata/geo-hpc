@@ -120,6 +120,21 @@ else:
     update = "full"
 
 
+if len(sys.argv) >= 4:
+    dry_run = sys.argv[3]
+
+    if dry_run in ["false", "False", "0", "None", "none", "no"]:
+        dry_run = False
+
+    dry_run = bool(dry_run)
+    if dry_run:
+        print "running dry run"
+
+else:
+    dry_run = False
+
+
+
 # check if already in asdf
 # run add_release to add if needed
 for i in latest_data_dirnames:
@@ -136,7 +151,8 @@ for i in latest_data_dirnames:
         print "adding " + i + "..."
         add_release_instance = add_release
         add_release_instance.run(path=ipath, config=config,
-                                 generator="auto", update=update)
+                                 generator="auto", update=update,
+                                 dry_run=dry_run)
 
 
 # mark as inactive in asdf
@@ -144,8 +160,9 @@ for i in outdated_data_dirnames:
 
     ipath = data_dir +"/"+ i
 
-    update_outdated = c_asdf.update_one({
-        "base": ipath
-    },
-    {"$set": {"active": 0}})
+    if not dry_run:
+        update_outdated = c_asdf.update_one(
+            {"base": ipath},
+            {"$set": {"active": 0}}
+        )
 
