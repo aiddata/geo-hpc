@@ -1,0 +1,7 @@
+<b><font size=14>Notes About Aid Datasets</font></b>
+
+- when requesting aid data using a very specific filter (usually resulting in only a single project match), the location count shown in geo(query) may be inaccurate. This can results in aid filters which appear valid while building your request, but result in no aid data in your results csv. This is due to a slight reduction in the accuracy of location counts for the web page in order to make the responses fast enough for user interaction.
+
+- the year filter for aid data is based on project start and end dates (determined by earliest and latest transactions). because projects are repsented by year ranges, multiple aid data selections for individual years may contain duplicate aid. this will result in an inflated total if you sum the aid from each individual year (compared to a single selection for all years). limited source information on individual or even yearly transactions for a project prevent us from offering more granular temporal aid values for projects
+
+- all aid data selections result in commitment values, regardless of whether you filter by commitment values or disbursement values (or both). this is due to the notably better project coverage of commitments vs disbursements (e.g., World Bank aid dataset has 99% commitment coverage vs ~75% for disbursements)

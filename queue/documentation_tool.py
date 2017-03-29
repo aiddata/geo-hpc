@@ -183,6 +183,19 @@ class DocBuilder():
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
+        self.Story.append(PageBreak())
+
+        with open(self.dir_base + '/templates/notes.txt') as field_names:
+            for line in field_names:
+                p = Paragraph(line, self.styles['BodyText'])
+                self.Story.append(p)
+
+        self.Story.append(PageBreak())
+
+        with open(self.dir_base + '/templates/aid_data.txt') as field_names:
+            for line in field_names:
+                p = Paragraph(line, self.styles['BodyText'])
+                self.Story.append(p)
 
 
 
