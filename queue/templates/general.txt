@@ -12,8 +12,6 @@ Please cite the following in any and all applications of the extracted datasets:
 - JSON file containing your request parameters
 - "Introducing the AidData Geo Framework" paper (pdf)
 
-<b>
-For additional information, usage tips, guides and more please visit <i><a href="http://geo.aiddata.org">geo.aiddata.org</a></i>.
+<b>For additional information, usage tips, guides and more please visit <i><a href="http://geo.aiddata.org">geo.aiddata.org</a></i>.</b>
 
-To get in touch, please contact us via <i><a href="mailto:geo@aiddata.org">geo@aiddata.org</a></i>.
-</b>
+<b>To get in touch, please contact us via <i><a href="mailto:geo@aiddata.org">geo@aiddata.org</a></i>.</b>
