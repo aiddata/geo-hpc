@@ -267,11 +267,10 @@ class DocBuilder():
                 [pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])]
             ]
 
-            try:
-                for f in dset['filters']:
+            for f in dset['filters']:
+                try:
                     data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
-            except:
-                for f in dset['filters']:
+                except:
                     data.append([f, ', '.join([i.encode('ascii', 'ignore') for i in dset['filters'][f]])])
 
             data = [[i[0], pg(i[1], 2)] for i in data]
