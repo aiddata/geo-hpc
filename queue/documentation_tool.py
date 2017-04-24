@@ -267,8 +267,12 @@ class DocBuilder():
                 [pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])]
             ]
 
-            for f in dset['filters']:
-                data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
+            try:
+                for f in dset['filters']:
+                    data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
+            except:
+                for f in dset['filters']:
+                    data.append([f, ', '.join([i for i in dset['filters'][f]])])
 
             data = [[i[0], pg(i[1], 2)] for i in data]
             t = Table(data)
