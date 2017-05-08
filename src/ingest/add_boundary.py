@@ -262,15 +262,15 @@ def run(path=None, client=None, version=None, config=None,
          "group_class, existing groups, etc.).")
 
     # validate group info
-    valid_group = v.group(data["group"], data["group_class"])
+    valid_group = v.group(data["options"]["group"], data["options"]["group_class"])
 
     if not valid_group.isvalid:
         quit(valid_group.error)
 
-    doc["group"] = valid_group.value
+    doc["options"]["group"] = valid_group.value
 
-    doc["group_class"] = data["group_class"]
-    doc["group_title"] = data["group_title"]
+    doc["options"]["group_class"] = data["options"]["group_class"]
+    doc["options"]["group_title"] = data["options"]["group_title"]
 
 
     ###
