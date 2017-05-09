@@ -1,17 +1,17 @@
 {
-    "dist_to_all_rivers": {
-        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/dist_to_all_rivers/world_allrivsCOMP.tif",
-        "data_name": "dist_to_all_rivers",
+    "dist_to_gadm28_borders": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/distance_to/gadm28_borders/gadm28_borders_distance.tif",
+        "data_name": "dist_to_gadm28_borders",
         "file_mask": "None"
     },
-    "dist_to_big_rivers": {
-        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/dist_to_big_rivers/world_bigrivCOMP.tif",
-        "data_name": "dist_to_big_rivers",
+    "dist_to_water": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/distance_to/water/water_distance.tif",
+        "data_name": "dist_to_water",
         "file_mask": "None"
     },
-    "dist_to_roads": {
-        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/dist_to_roads/WorldRoadsCOMP.tif",
-        "data_name": "dist_to_roads",
+    "dist_to_groads": {
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/distance_to/groads/groads_distance.tif",
+        "data_name": "dist_to_groads",
         "file_mask": "None"
     },
     "srtm_elevation_500m": {
