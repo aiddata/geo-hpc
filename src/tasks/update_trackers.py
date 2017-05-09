@@ -231,6 +231,13 @@ def tmp_worker_job(self, task_index, task_data):
                 }
             },
             {
+                "spatial": {
+                    "$geoWithin": {
+                        "$geometry": bnd["spatial"]
+                    }
+                }
+            },
+            {
                 "scale": "global"
             }
         ]
@@ -261,7 +268,7 @@ def tmp_worker_job(self, task_index, task_data):
 
         result = False
 
-        if bnd["scae"] == "global":
+        if bnd["scale"] == "global":
             result = True
 
         elif dset_type == "raster":
