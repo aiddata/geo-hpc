@@ -261,7 +261,10 @@ def tmp_worker_job(self, task_index, task_data):
 
         result = False
 
-        if dset_type == "raster":
+        if bnd["scae"] == "global":
+            result = True
+
+        elif dset_type == "raster":
             # python raster stats extract
             # bnd_geo = cascaded_union(
             #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
@@ -280,7 +283,7 @@ def tmp_worker_job(self, task_index, task_data):
             # release_iso3 field of config
             for k, v in config.release_iso3.items():
                 if match['name'].startswith(k.lower()):
-                    if bnd["scale"] == "global" or ("gadm_iso3" in bnd["extras"] and bnd["extras"]["gadm_iso3"].upper() in v):
+                    if "gadm_iso3" in bnd["extras"] and bnd["extras"]["gadm_iso3"].upper() in v:
                         result = True
 
                     elif "global" in v:
