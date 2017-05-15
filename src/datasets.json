@@ -240,6 +240,7 @@
             "not_assigned": 9,
             "not_reported": 10,
             "mix": 11
+        }
     }
 
 }
