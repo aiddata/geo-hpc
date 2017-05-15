@@ -224,7 +224,7 @@
         }
     },
     "wdpa_iucn": {
-        "data_base": "sciclone/aiddata10/REU/data/rasters/external/global/wdpa/iucn_cat_201704/wdpa_iucn_cat_201704.tif",
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/wdpa/iucn_cat_201704/wdpa_iucn_cat_201704.tif",
         "data_name": "wdpa_iucn",
         "file_mask": "None",
         "categories": {
