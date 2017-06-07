@@ -4,6 +4,11 @@
         "data_name": "child_mortality",
         "file_mask": "africa_child_mortality_YYYY.tif"
     },
+    "gdp_grid": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/external/global/GDP_grid/GDP_grid_flt.tif",
+        "data_name": "gdp_grid",
+        "file_mask": "None"
+    },
     "dist_to_gadm28_borders": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/distance_to/gadm28_borders/gadm28_borders_distance.tif",
         "data_name": "dist_to_gadm28_borders",
@@ -239,8 +244,42 @@
             "not_applicable": 8,
             "not_assigned": 9,
             "not_reported": 10,
-            "mix": 11
-        }
-    }
+            "mix": 11}
+    },
+    "modis_landcover":{
+        "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/glcf/modis_landcover_5.1",
+        "data_name": "modis_landcover",
+        "file_mask": "YYYY.xx.xx.tif",
+        "categories": {
+            "water": 0,
+            "evergreen_needleleaf_forest": 1,
+            "evergreen_broadleaf_forest": 2,
+            "deciduous_needleleaf_forest": 3,
+            "deciduous_broadleaf_forest": 4,
+            "mixed_forest": 5,
+            "closed_shrublands": 6,
+            "open_shrublands": 7,
+            "woody_savannas": 8,
+            "savannas": 9,
+            "grasslands": 10,
+            "permanent_wetlands": 11,
+            "croplands": 12,
+            "urban_and_builtup": 13,
+            "cropland_natural_vegetation_mosaic": 14,
+            "snow_and_ice": 15,
+            "barren_or_sparsely_vegetated": 16,
+            "unclassified": 254,
+            "fill_value": 255
+     }},
+     "air_pollution_pm2.5":{
+          "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/external/global/ambient_air_pollution_2013/fus_calibrated",
+          "data_name": "air_pollution_pm2.5",
+          "file_mask": "fus_calibrated_YYYY.tif"
+     },
+     "air_pollution_o3": {
+          "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/external/global/ambient_air_pollution_2013/o3",
+          "data_name": "air_pollution_o3",
+          "file_mask": "o3_YYYY.tif"
+     }
 
 }
