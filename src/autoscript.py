@@ -618,6 +618,10 @@ def tmp_master_final(self):
     # build output directories
     make_dir(dir_working)
 
+    project_locations_path = dir_working + '/project_locations.csv'
+    active_data.to_csv(project_locations_path, index=False, encoding='utf-8')
+
+
     # run final output gen functions
     complete_final_raster()
     complete_unique_geoms()
@@ -796,8 +800,6 @@ if active_data.size > 0:
 
     if job.rank == 0:
         print "Starting to process tasks ({0})...".format(len(task_id_list))
-        project_locations_path = dir_working + '/project_locations.csv'
-        active_data.to_csv(project_locations_path, index=False, encoding='utf-8')
 
 
 else:
