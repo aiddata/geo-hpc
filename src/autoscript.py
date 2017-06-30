@@ -619,7 +619,8 @@ def tmp_master_final(self):
     make_dir(dir_working)
 
     project_locations_path = dir_working + '/project_locations.csv'
-    active_data.to_csv(project_locations_path, index=False, encoding='utf-8')
+    active_data[[i for i in active_data.columns if i != "geom_val"]].to_csv(
+        project_locations_path, index=False, encoding='utf-8')
 
 
     # run final output gen functions
