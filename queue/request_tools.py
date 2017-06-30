@@ -580,6 +580,25 @@ class QueueToolBox():
         #     shutil.copyfile(src, dst)
 
 
+        # make msr aid folder in request_dir
+        msr_aid_dir = os.path.join(request_dir, 'raw_aid_data')
+        make_dir(msr_aid_dir)
+
+        # copy all aid csv into msr aid folder
+        for i in request['release_data']:
+            tmp_dataset = i['dataset']
+            tmp_hash = i['hash']
+
+            src = "{0}/outputs/{1}/msr/done/{2}/{3}/project_locations.csv".format(
+                self.branch_info.data_root, branch, tmp_dataset, tmp_hash)
+            dst = os.path.join(msr_aid_dir, "{0}_{1}.csv".format(
+                tmp_dataset, tmp_hash))
+            try:
+                shutil.copyfile(src, dst)
+            except:
+                pass
+
+
         # make zip of request dir
         shutil.make_archive(request_dir, "zip", request_dir)
 
