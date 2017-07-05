@@ -199,14 +199,14 @@
                     "parent": "transactions"
                 },
                 {
-                    "field": "transaction_start_year",
+                    "field": "transactions_start_year",
                     "display": "start year",
                     "description": "Earliest year associated with project",
                     "is_default": false,
                     "filter_type": "list",
                     "parent": false
                 },                {
-                    "field": "transaction_end_year",
+                    "field": "transactions_end_year",
                     "display": "end year",
                     "description": "Latest year associated with project",
                     "is_default": false,
