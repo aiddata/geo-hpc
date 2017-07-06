@@ -384,11 +384,31 @@ class DocBuilder():
         if 'sources_name' in meta['extras']:
             data.append(['Source Name', meta['extras']['sources_name']])
 
+
+        def enforce_max_word_length(string, max_chars=80):
+            raw_word_list = string.split(" ")
+            short_word_list = []
+            for word in raw_word_list:
+                if len(word) > max_chars:
+                    split_word = [
+                        word[i:i+max_chars]
+                        for i in range(0, len(word), max_chars)
+                    ]
+                else:
+                    split_word = [word]
+                short_word_list += split_word
+            return " ".join(short_word_list)
+
+
         if 'sources_web' in meta['extras']:
-            data.append(['Source Link', meta['extras']['sources_web']])
+            tmp_sources_web = meta['extras']['sources_web']
+            tmp_sources_web = enforce_max_word_length(tmp_sources_web)
+            data.append(['Source Link', tmp_sources_web])
 
         if 'citation' in meta['extras']:
-            data.append(['Citation', meta['extras']['citation']])
+            tmp_citation = meta['extras']['citation']
+            tmp_citation = enforce_max_word_length(tmp_citation)
+            data.append(['Citation', tmp_citation])
 
 
         if item_type == 'boundary':
