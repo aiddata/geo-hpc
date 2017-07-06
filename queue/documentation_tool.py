@@ -394,9 +394,10 @@ class DocBuilder():
                         word[i:i+max_chars]
                         for i in range(0, len(word), max_chars)
                     ]
+                    fixed_word = "\n".join(split_word)
                 else:
-                    split_word = [word]
-                short_word_list += split_word
+                    fixed_word = word
+                short_word_list += [fixed_word]
             return " ".join(short_word_list)
 
 
