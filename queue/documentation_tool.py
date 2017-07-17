@@ -351,7 +351,7 @@ class DocBuilder():
                    'build_meta').format(name, item_type)
             raise Exception(msg)
 
-        details = "(no additional details"
+        details = "(no additional details)"
         if "details" in meta:
             details = meta["details"]
 
