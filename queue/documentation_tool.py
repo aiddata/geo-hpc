@@ -351,12 +351,17 @@ class DocBuilder():
                    'build_meta').format(name, item_type)
             raise Exception(msg)
 
+        details = ""
+        if "details" in meta:
+            details = meta["details"]
+
         # build generic meta
         data = [
             ['Title', meta['title']],
             ['Name', meta['name']],
             ['Version', str(meta['version'])],
             ['Description', meta['description']],
+            ['Details', details],
 
             ['Type', meta['type']],
             ['File Format', meta['file_format']],
