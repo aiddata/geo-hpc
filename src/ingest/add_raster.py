@@ -231,6 +231,11 @@ def run(path=None, client=None, version=None, config=None,
     # validate title, description and version
     doc["title"] = str(data["title"])
     doc["description"] = str(data["description"])
+
+    doc["details"] = ""
+    if "details" in data:
+        doc["details"] = str(data["details"])
+
     doc["version"] = str(data["version"])
 
     doc["active"] = int(data["active"])
