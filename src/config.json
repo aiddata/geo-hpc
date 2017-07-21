@@ -7,6 +7,7 @@
         "active_adm_suffix": "gadm28",
         "release_iso3": {
             "AfghanistanAIMS": "AFG",
+            "BurundiAIMS": "BDI",
             "ColombiaAIMS": "COL",
             "DRC-AIMS": "COD",
             "HondurasAIMS": "HND",
@@ -14,6 +15,7 @@
             "NepalAIMS": "NPL",
             "NigeriaAIMS": "NGA",
             "SenegalAIMS": "SEN",
+            "SierraLeoneAIMS": "SLE",
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA",
             "WorldBank": "global"
