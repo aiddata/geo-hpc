@@ -50,7 +50,7 @@ case "$task" in
     det)
         short_name=det
         ppn=1
-        cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/det-module/queue/processing.py ${branch}"
+        cmd="python ${src}/det-module/queue/processing.py ${branch}"
         ;;
 
     *)  echo "Invalid build_db_updates_job task.";
