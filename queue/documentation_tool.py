@@ -423,7 +423,6 @@ class DocBuilder():
             data.append(['Group Title', meta['options']['group_title']])
 
         elif item_type == 'raster':
-            data.append(['Mini Name', meta['options']['mini_name']])
             data.append(['Variable Description', meta['options']['variable_description']])
             data.append(['Resolution', str(meta['options']['resolution'])])
             data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
