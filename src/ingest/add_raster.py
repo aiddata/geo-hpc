@@ -231,6 +231,11 @@ def run(path=None, client=None, version=None, config=None,
     # validate title, description and version
     doc["title"] = str(data["title"])
     doc["description"] = str(data["description"])
+
+    doc["details"] = ""
+    if "details" in data:
+        doc["details"] = str(data["details"])
+
     doc["version"] = str(data["version"])
 
     doc["active"] = int(data["active"])
@@ -243,7 +248,7 @@ def run(path=None, client=None, version=None, config=None,
 
 
     required_options = ["resolution", "extract_types", "factor",
-                       "variable_description", "mini_name"]
+                       "variable_description"]
 
     missing_options = [i for i in required_options
                        if i not in data["options"]]
@@ -297,24 +302,6 @@ def run(path=None, client=None, version=None, config=None,
     # Description of the variable (units, range, etc.)
     doc["options"]["variable_description"] = str(
         data["options"]["variable_description"])
-
-
-    # mini name (4 valid chars and unique across datasets)
-    valid_mini_name = v.mini_name(data["options"]["mini_name"], update)
-
-    if not valid_mini_name.isvalid:
-        quit(valid_mini_name.error)
-
-    doc["options"]["mini_name"] = valid_mini_name.value
-    mini_name_exists = valid_mini_name.data['exists']
-
-    if update and mini_name_exists:
-        base_id = str(valid_base.data['search']['_id'])
-        mini_name_id = str(valid_mini_name.data['search']['_id'])
-
-        if base_id != mini_name_id:
-            quit("Mini name ({0}) already used for another "
-                 "dataset".format(doc["options"]["mini_name"]))
 
 
     # extras

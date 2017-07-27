@@ -31,8 +31,8 @@ case "$task" in
 
     update_trackers)
         short_name=upt
-        ppn=16
-        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/asdf/src/tasks/update_trackers.py ${branch}"
+        ppn=4
+        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 4 python-mpi ${src}/asdf/src/tasks/update_trackers.py ${branch}"
         ;;
 
     update_extract)
@@ -44,7 +44,7 @@ case "$task" in
     update_msr)
         short_name=upm
         ppn=1
-        cmd="python ${src}/asdf/src/tasks/update_msr_queue.py ${branch}"
+        cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/asdf/src/tasks/update_msr_queue.py ${branch}"
         ;;
 
     det)

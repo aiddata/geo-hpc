@@ -143,7 +143,7 @@ for i in latest_data_dirnames:
 
     find_latest = c_asdf.find_one({
         "base": ipath,
-        "asdf_version": version
+        "asdf.version": version
     })
     latest_exists = find_latest != None
 
