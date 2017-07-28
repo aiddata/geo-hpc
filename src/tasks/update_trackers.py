@@ -287,11 +287,13 @@ def tmp_worker_job(self, task_index, task_data):
             bnd_geo = cascaded_union([shape(shp['geometry'])
                                       for shp in fiona.open(bnd_base, 'r')])
 
-            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min")
+            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max")
             # print extract
 
-            if extract[0]['min'] != None:
-                result = True
+            for i in extract:
+                if i['min'] != None or i['max'] != None:
+                    result = True
+                    break
 
         elif dset_type == "release":
 
