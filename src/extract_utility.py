@@ -480,14 +480,21 @@ class ExtractObject():
 
                     file_check = file.endswith(tuple(self._raster_extensions))
 
-                    valid_year =
+                    name = file[len(self._base_path)+1:]
+
+                    year = "".join([
+                        x for x,y in zip(name, self._file_mask)
+                        if y == 'Y' and x.isdigit()
+                    ])
+
+                    # prevent error in cases where year/month/day is
+                    # used more than once in file mask/names
+                    year = year[:4]
+
+
+                    valid_year = year in self._years
 
                     if file_check and valid_year:
-                        name = file[len(self._base_path)+1:]
-                        year = "".join([
-                            x for x,y in zip(name, self._file_mask)
-                            if y == 'Y' and x.isdigit()
-                        ])[:4]
 
                         sub = "".join([
                             x for x,y in zip(name, self._file_mask)
@@ -496,7 +503,6 @@ class ExtractObject():
 
                         # prevent error in cases where year/month/day is
                         # used more than once in file mask/names
-                        year = year[:4]
                         if id_char == "M":
                             sub = sub[:2]
                         else:
