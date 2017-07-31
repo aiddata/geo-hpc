@@ -445,8 +445,10 @@ class ExtractObject():
             qlist = [
                 [
                     [
-                        "".join([x for x,y in zip(name, self._file_mask)
-                        if y == id_char and x.isdigit()])
+                        "".join([
+                            x for x,y in zip(name, self._file_mask)
+                            if y == id_char and x.isdigit()
+                        ])
                     ], name
                 ]
                 for name in os.listdir(self._base_path)
@@ -469,31 +471,88 @@ class ExtractObject():
                 id_char = "D"
 
 
-            years = [
-                        name for name in os.listdir(self._base_path)
-                        if os.path.isdir(os.path.join(self._base_path, name))
-                        and name in self._years
-                    ]
 
-            # list of all [[year, month], name] combos
             qlist = []
+            for root, dirs, files in os.walk(self._base_path):
+                for file in files:
 
-            for year in years:
-                path_year = self._base_path +"/"+ year
-                qlist += [
-                    [
-                        [
-                            year, "".join([
-                                x
-                                for x,y in zip(year+"/"+name, self._file_mask)
-                                if y == id_char and x.isdigit()
-                            ])
-                        ], year+"/"+name
-                    ]
-                    for name in os.listdir(path_year)
-                    if not os.path.isdir(os.path.join(path_year, name))
-                    and name.endswith(tuple(self._raster_extensions))
-                ]
+                    file = os.path.join(root, file)
+
+                    file_check = file.endswith(tuple(self._raster_extensions))
+
+                    valid_year =
+
+                    if file_check and valid_year:
+                        name = file[len(self._base_path)+1:]
+                        year = "".join([
+                            x for x,y in zip(name, self._file_mask)
+                            if y == 'Y' and x.isdigit()
+                        ])[:4]
+
+                        sub = "".join([
+                            x for x,y in zip(name, self._file_mask)
+                            if y == id_char and x.isdigit()
+                        ])
+
+                        # prevent error in cases where year/month/day is
+                        # used more than once in file mask/names
+                        year = year[:4]
+                        if id_char == "M":
+                            sub = sub[:2]
+                        else:
+                            sub = sub[:3]
+
+                        qlist.append([[year, sub], name])
+
+
+
+
+            # qlist = [
+            #     [
+            #         [
+            #             "".join([
+            #                 x for x,y in zip(name, self._file_mask)
+            #                 if y == id_char and x.isdigit()
+            #             ])
+            #         ], name
+            #     ]
+            #     for name in os.listdir(self._base_path)
+            #     if not os.path.isdir(os.path.join(self._base_path, name))
+            #     and name.endswith(tuple(self._raster_extensions))
+            #     and "".join([
+            #         x for x,y in zip(name, self._file_mask)
+            #         if y == "Y" and x.isdigit()
+            #     ]) in self._years
+            # ]
+
+
+
+
+            # years = [
+            #             name for name in os.listdir(self._base_path)
+            #             if os.path.isdir(os.path.join(self._base_path, name))
+            #             and name in self._years
+            #         ]
+
+            # # list of all [[year, month], name] combos
+            # qlist = []
+
+            # for year in years:
+            #     path_year = self._base_path +"/"+ year
+            #     qlist += [
+            #         [
+            #             [
+            #                 year, "".join([
+            #                     x
+            #                     for x,y in zip(year+"/"+name, self._file_mask)
+            #                     if y == id_char and x.isdigit()
+            #                 ])
+            #             ], year+"/"+name
+            #         ]
+            #         for name in os.listdir(path_year)
+            #         if not os.path.isdir(os.path.join(path_year, name))
+            #         and name.endswith(tuple(self._raster_extensions))
+            #     ]
 
         else:
             raise Exception("Invalid run_option value: " +
