@@ -90,7 +90,7 @@
         "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif"
     },
     "viirs_ntl_yearly": {
-        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/yearky/max",
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/yearly/max",
         "data_name": "viirs_ntl_yearly",
         "file_mask": "YYYY.tif"
     },
