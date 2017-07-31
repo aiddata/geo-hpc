@@ -89,6 +89,21 @@
         "data_name": "v4composites_calibrated",
         "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif"
     },
+    "viirs_ntl_yearly": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/yearky/max",
+        "data_name": "viirs_ntl_yearly",
+        "file_mask": "YYYY.tif"
+    },
+    "viirs_ntl_monthly": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/monthly",
+        "data_name": "viirs_ntl_monthly",
+        "file_mask": "YYYYMM.tif"
+    },
+    "ltdr_avhrr_yearly_ndvi": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v4/yearly",
+        "data_name": "ltdr_avhrr_yearly_ndvi",
+        "file_mask": "avhrr_ndvi_YYYY.tif"
+    },
     "terrestrial_air_temperature_v4_01": {
         "data_base": "/sciclone/aiddata10/REU/data/rasters/external/global/udel_climate/interpolated/terrestrial_air_temperature_v4.01",
         "data_name": "terrestrial_air_temperature_v4.01",
