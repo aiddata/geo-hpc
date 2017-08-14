@@ -25,7 +25,8 @@ def envelope_to_scale(env):
     tsize = abs(xsize * ysize)
 
     scale = "regional"
-    if tsize >= 32400:
+    # if tsize >= 32400:
+    if tsize >= 22500:
         scale = "global"
 
     return scale
