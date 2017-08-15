@@ -1,0 +1,39 @@
+{
+    "config": {
+        "user_prefix": "asg", 
+        "batch_name": "test_batch", 
+        "job_name": "testjob", 
+        "node_spec": "xeon", 
+        "max_node_count": 2, 
+        "ppn_override": 0, 
+        "walltime_override": true, 
+        "walltime": 1
+    }, 
+    "defaults": {
+        "bnd_absolute": "/sciclone/aiddata10/REU/projects/python-rasterstats-test/shps/raster_qa_points.geojson", 
+        "bnd_name": "stat-test", 
+        "extract_type": "mean", 
+        "extract_method": "python", 
+        "output_base": "/sciclone/aiddata10/REU/projects/python-rasterstats-test", 
+        "years": "1980:2015|!1990:1995|1993|!1982",
+        "run_hours": 2
+    }, 
+    "data": [
+        {
+            "name": "accessibility_map", 
+            "run_hours": 2
+        }, 
+        {
+            "name": "ndvi_max_mask_lt6k", 
+            "extract_type": "max", 
+            "run_hours": 0.5
+        }, 
+        {
+            "name": "gpw_v3", 
+            "run_hours": 1, 
+            "years": "2000", 
+            "bnd_absolute": "/sciclone/aiddata10/REU/projects/nepal_adm3/shps/ADM3/NPL_adm3.shp", 
+            "bnd_name": "npl_adm3"
+        }
+    ]
+}
