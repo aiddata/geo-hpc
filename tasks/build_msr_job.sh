@@ -41,7 +41,7 @@ if [[ $job_count -gt 0 ]]; then
 
 else
 
-    src="${HOME}"/active/"$branch"
+    src="${HOME}"/geo/"$branch"
 
     job_dir="$src"/log/msr/jobs
     mkdir -p $job_dir

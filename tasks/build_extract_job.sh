@@ -47,7 +47,7 @@ else
     #     job_type=det
     # fi
 
-    src="${HOME}"/active/"$branch"
+    src="${HOME}"/geo/"$branch"
 
     job_dir="$src"/log/extract/jobs
     mkdir -p $job_dir
@@ -154,7 +154,7 @@ else
     #     job_type=det
     # fi
 
-    src="${HOME}"/active/"$branch"
+    src="${HOME}"/geo/"$branch"
 
     job_dir="$src"/log/extract/jobs
     mkdir -p $job_dir

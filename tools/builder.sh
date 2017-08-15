@@ -26,7 +26,7 @@ echo -e "\n"
 
 
 # setup branch directory
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 # rm -rf "$src"
 find "$src" -type f -exec rm -rf "{}" \;

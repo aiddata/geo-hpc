@@ -23,7 +23,7 @@ echo Timestamp: $(date) '('"$timestamp"')'
 echo -e "\n"
 
 
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 # rm -rf "$src"/git
 # mkdir "$src"/git
@@ -44,7 +44,7 @@ check_repo() {
         exit 0
     fi
 
-    if [ "$repo" = 'asdf' ]; then
+    if [ "$repo" = 'geo-hpc' ]; then
         old_manage_cron_hash=$(md5sum "$src"/git/geo-hpc/tools/manage_crons.sh | awk '{ print $1 }')
         old_repo_hash=$(md5sum "$src"/git/geo-hpc/repo_list.txt | awk '{ print $1 }')
         old_load_hash=$(md5sum "$src"/git/geo-hpc/tools/load_repos.sh | awk '{ print $1 }')
@@ -79,7 +79,7 @@ check_repo() {
         #     fi
         # done
 
-        if [ "$repo" = 'asdf' ]; then
+        if [ "$repo" = 'geo-hpc' ]; then
             new_manage_cron_hash=$(md5sum "$src"/git/geo-hpc/tools/manage_crons.sh | awk '{ print $1 }')
             new_repo_hash=$(md5sum "$src"/git/geo-hpc/repo_list.txt | awk '{ print $1 }')
             new_load_hash=$(md5sum "$src"/git/geo-hpc/tools/load_repos.sh | awk '{ print $1 }')

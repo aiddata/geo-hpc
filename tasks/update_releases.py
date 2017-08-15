@@ -13,7 +13,7 @@ import os
 
 branch = sys.argv[1]
 
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+branch_dir = os.path.join(os.path.expanduser('~'), 'geo', branch)
 
 if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')

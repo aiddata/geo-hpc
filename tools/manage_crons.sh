@@ -36,7 +36,7 @@ branch=$1
 action=$2
 
 
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 cron_tag='#asdf'
 

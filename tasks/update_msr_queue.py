@@ -10,7 +10,7 @@ import os
 
 branch = sys.argv[1]
 
-branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+branch_dir = os.path.join(os.path.expanduser('~'), 'geo', branch)
 
 if not os.path.isdir(branch_dir):
     raise Exception('Branch directory does not exist')
@@ -45,8 +45,7 @@ import json
 import hashlib
 import pandas as pd
 
-sys.path.insert(0, os.path.join(
-    branch_dir, 'geo-hpc/mean-surface-rasters'))
+sys.path.insert(0, os.path.join(branch_dir, 'geo-hpc/mean-surface-rasters'))
 
 from msr_utility import CoreMSR
 

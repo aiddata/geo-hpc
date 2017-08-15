@@ -12,7 +12,7 @@
 branch=$1
 cron=$2
 
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 timestamp=$(date +%Y%m%d)
 

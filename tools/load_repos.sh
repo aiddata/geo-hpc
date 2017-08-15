@@ -25,7 +25,7 @@ echo Timestamp: "$timestamp"
 echo -e "\n"
 
 
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 # rm -rf "$src"/git
 find "$src"/git -type f -exec rm -rf "{}" \;

@@ -24,7 +24,7 @@ task=$3
 
 jobtime=$(date +%H%M%S)
 
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 
 case "$task" in
@@ -75,7 +75,7 @@ else
     printf "%0.s-" {1..80}
     echo -e "\n"
 
-    src="${HOME}"/active/"$branch"
+    src="${HOME}"/geo/"$branch"
 
     job_dir="$src"/log/"$task"/jobs
     mkdir -p $job_dir

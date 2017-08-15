@@ -22,7 +22,7 @@ echo Timestamp: $(date) '('"$timestamp"')'
 echo -e "\n"
 
 
-src="${HOME}"/active/"$branch"
+src="${HOME}"/geo/"$branch"
 
 
 cd "$src"/latest
