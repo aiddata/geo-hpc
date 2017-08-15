@@ -1,0 +1,7 @@
+<b><font size=4>CSV Column Names</font></b>
+Each CSV will contain a column labeled "asdf_id" which has values for each feature that are unique (within that boundary dataset), one or more columns for your extract data, followed by the original source attributes for the boundary file (e.g., from GADM)
+
+The standard format for extract data column names is a three part string delimited by periods (.)
+&nbsp;&nbsp;&nbsp;&nbsp;Example:  <b>&#60;dataset&#62;.&#60;filter&#62;.&#60;method&#62;</b>  =  gpw_v4_count<b>.</b>2010<b>.</b>sum
+
+For more details, please read the documentation pdf accompanying your request results.
