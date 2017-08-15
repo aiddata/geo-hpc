@@ -63,3 +63,5 @@ Previous repos for components of the Geo Framework which were combined in this r
 - https://github.com/itpir/extract-scripts
 - https://github.com/itpir/det-module
 
+SciClone Resources:
+https://github.com/itpir/aiddata-sciclone
