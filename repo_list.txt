@@ -1,0 +1,3 @@
+itpir/geo-hpc
+itpir/asdf-datasets
+AidData-WM/public_datasets

@@ -1,0 +1,13 @@
+pymongo
+shapely
+fiona
+rasterstats
+pandas
+geopandas
+numpy>=1.9
+rasterio>=0.27
+reportlab
+pyshp
+pyproj
+
+

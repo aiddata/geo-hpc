@@ -1,7 +1,0 @@
-pymongo
-shapely
-fiona
-rasterio
-rasterstats
-pandas
-geopandas

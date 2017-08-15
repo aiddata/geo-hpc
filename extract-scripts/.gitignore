@@ -1,8 +1,0 @@
-*.pyc
-*.aux.xml
-.coverage
-src/ioe/*
-src/old
-tests/data/datasets/*
-tests/.cache
-tests/__pycache__
