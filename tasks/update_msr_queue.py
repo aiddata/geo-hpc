@@ -45,7 +45,6 @@ import json
 import hashlib
 import pandas as pd
 
-sys.path.insert(0, os.path.join(branch_dir, 'geo-hpc/mean-surface-rasters'))
 
 from msr_utility import CoreMSR
 

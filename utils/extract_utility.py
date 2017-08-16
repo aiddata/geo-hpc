@@ -17,10 +17,6 @@ import warnings
 import time
 from numpy import isnan
 
-# import rasterstats as rs
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import test_rasterstats as rs
-
 import pandas as pd
 
 # import geopandas as gpd
@@ -28,6 +24,9 @@ import fiona
 from shapely.geometry import shape
 from shapely.geos import TopologicalError
 import pymongo
+
+# sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import geo_rasterstats as rs
 
 
 # -----------------------------------------------------------------------------

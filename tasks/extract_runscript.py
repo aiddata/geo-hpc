@@ -10,7 +10,6 @@ from random import randint
 
 import pymongo
 
-import extract_utility
 
 
 # -----------------------------------------------------------------------------
@@ -40,6 +39,8 @@ while True:
 
 
 # -----------------------------------------------------------------------------
+
+import extract_utility
 
 
 # -------------------------------------
@@ -73,26 +74,7 @@ job.comm.Barrier()
 # -------------------------------------
 # get / check version
 
-def get_version():
-    vfile = os.path.join(os.path.dirname(__file__), "_version.py")
-    with open(vfile, "r") as vfh:
-        vline = vfh.read()
-    vregex = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    match = re.search(vregex, vline, re.M)
-    if match:
-        return match.group(1)
-    else:
-        raise RuntimeError(
-            "Unable to find version string in {}.".format(vfile))
-
-
-tmp_v1 = config.versions["extract-scripts"]
-tmp_v2 = get_version()
-
-if tmp_v1 == tmp_v2:
-    version = tmp_v1
-else:
-    raise Exception("Config and src versions do not match")
+version = config.versions["extract-scripts"]
 
 
 # -------------------------------------
