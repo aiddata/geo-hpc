@@ -8,13 +8,14 @@ import errno
 import time
 import json
 
-import extract_utility
-
 
 branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
+
 config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
 sys.path.insert(0, config_dir)
+
+import extract_utility
 
 import mpi_utility
 job = mpi_utility.NewParallel()
