@@ -15,13 +15,16 @@ if [[ $branch == "" ]]; then
     exit 1
 fi
 
-backup_root=/opt/aiddata
-
 timestamp=`date +%Y%m%d_%H%M%S`
-tmp_backup=$backup_root/mongodump_$timestamp
 
-mongodump -o $tmp_backup
+backup_dir=/sciclone/aiddata10/REU/backups/mongodb_backups
 
-rsync -r --delete $tmp_backup/ aiddatageo@vortex.sciclone.wm.edu:data20/mongodb_backups/$branch/$timestamp
+# compresses individual items then archives
+# example mongorestore:
+#   mongorestore --gzip --archive=backup.archive
+# for details see:
+#   https://www.mongodb.com/blog/post/archiving-and-compression-in-mongodb-tools
 
-rm -r $tmp_backup
+mongodump --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu "cat - > $backup_dir/$branch/$timestamp.archive"
+
+
