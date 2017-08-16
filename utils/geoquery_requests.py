@@ -16,10 +16,9 @@ from bson.objectid import ObjectId
 
 import pandas as pd
 
-from documentation_tool import DocBuilder
-
 from extract_check import ExtractItem
 from msr_check import MSRItem
+from geoquery_documentation import DocBuilder
 
 
 def make_dir(path):
@@ -57,7 +56,7 @@ class QueueToolBox():
         self.c_queue = None
         self.c_email = None
 
-        self.branch_info = None
+        self.config = None
         self.branch = None
         self.msr_version = None
         self.extract_version = None
@@ -73,25 +72,25 @@ class QueueToolBox():
     #               str(message))
 
 
-    def set_branch_info(self, branch_config=None):
+    def set_branch_info(self, config=None):
         """get branch info from config collection
         """
-
-        self.dir_base = os.path.dirname(os.path.abspath(__file__))
-
-        if branch_config is None:
+        if config is None:
             raise Exception('no branch config found')
 
-        self.client = branch_config.client
+        self.assets_dir = os.path.join(os.path.expanduser('~'), 'geo', config.branch, 'geo-hpc/assets')
+
+        self.config = config
+
+        self.client = config.client
 
         self.c_queue = self.client.asdf.det
         self.c_email = self.client.asdf.email
 
-        self.branch_info = branch_config
-        self.branch = branch_config.name
-        self.msr_version = branch_config.versions['mean-surface-rasters']
-        self.extract_version = branch_config.versions['extract-scripts']
-        return branch_config
+        self.branch = config.name
+        self.msr_version = config.versions['mean-surface-rasters']
+        self.extract_version = config.versions['extract-scripts']
+        return config
 
 
     def check_id(self, rid):
@@ -172,7 +171,7 @@ class QueueToolBox():
         if is_prep:
             updates['stage.1.time'] = ctime
 
-            column_info_html = ''.join(open(self.dir_base + '/templates/column_info.txt')).replace('\n', '<br/>')
+            column_info_html = ''.join(open(self.assets_dir + '/templates/column_info.txt')).replace('\n', '<br/>')
             updates['info'] = [column_info_html]
 
             # Example push/prepend for info field if needed for manual updates
@@ -268,7 +267,7 @@ class QueueToolBox():
                         "You can also view all your current and previous "
                         "requests using: \n"
                         "http://{0}/query/#!/requests/{2}\n\n").format(
-                            self.branch_info.det['download_server'], request_id, mail_to)
+                            self.config.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
@@ -316,7 +315,7 @@ class QueueToolBox():
             Thank you,
             \tThe AidData Team
             """).format(
-                self.branch_info.det['download_server'], request_id, mail_to)
+                self.config.det['download_server'], request_id, mail_to)
 
         mail_status = self.send_email(mail_to, mail_subject, mail_message)
 
@@ -334,11 +333,6 @@ class QueueToolBox():
     def check_request(self, request, dry_run=False):
         """check entire request object for cache
         """
-        outputs_base = os.path.join(self.branch_info.data_root, "outputs")
-        extract_base = os.path.join(outputs_base, self.branch, 'extracts',
-                                    self.extract_version.replace('.', '_'))
-        msr_base = os.path.join(outputs_base, self.branch, 'msr', 'done')
-
         merge_list = []
         extract_count = 0
         msr_count = 0
@@ -395,8 +389,7 @@ class QueueToolBox():
             print '\t{0}'.format(data)
             print '\t----------'
 
-            msr_item = MSRItem(self.client,
-                               msr_base,
+            msr_item = MSRItem(self.config,
                                data_hash,
                                data)
 
@@ -414,8 +407,7 @@ class QueueToolBox():
                     tmp_extract_type = 'sum'
                 ###
 
-                msr_ex_item = ExtractItem(self.client,
-                                          extract_base,
+                msr_ex_item = ExtractItem(self.config,
                                           request["boundary"]["name"],
                                           data["dataset"],
                                           data["dataset"] + '_' + data_hash,
@@ -466,8 +458,7 @@ class QueueToolBox():
 
                     temporal = i["name"][len(data["name"])+1:]
 
-                    extract_item = ExtractItem(self.client,
-                                               extract_base,
+                    extract_item = ExtractItem(self.config,
                                                request["boundary"]["name"],
                                                data["name"],
                                                i["name"],
@@ -522,7 +513,7 @@ class QueueToolBox():
         request_id = str(request['_id'])
         request['_id'] = request_id
 
-        results_dir = os.path.join(self.branch_info.data_root, "outputs",
+        results_dir = os.path.join(self.config.data_root, "outputs",
                        self.branch, "det/results")
 
         request_dir = os.path.join(results_dir, request_id)
@@ -545,7 +536,7 @@ class QueueToolBox():
         # generate documentation
         doc_output =  os.path.join(request_dir,
                                    "{0}_documentation.pdf".format(request_id))
-        doc = DocBuilder(self.client, request, doc_output, self.branch_info.det['download_server'])
+        doc = DocBuilder(self.config, request, doc_output, self.config.det['download_server'])
         bd_status = doc.build_doc()
         # print bd_status
 
@@ -558,7 +549,7 @@ class QueueToolBox():
         rdoc_file.close()
 
 
-        geo_pdf_src = self.dir_base + "/other/IntroducingtheAidDataGeoFramework.pdf"
+        geo_pdf_src = self.assets_dir + "/other/IntroducingtheAidDataGeoFramework.pdf"
         geo_pdf_dst = os.path.join(request_dir, "IntroducingtheAidDataGeoFramework.pdf")
         shutil.copyfile(geo_pdf_src, geo_pdf_dst)
 
@@ -573,7 +564,7 @@ class QueueToolBox():
         #     tmp_hash = i['hash']
 
         #     src = "{0}/outputs/{1}/msr/done/{2}/{3}/summary.json".format(
-        #         self.branch_info.data_root, branch, tmp_dataset, tmp_hash)
+        #         self.config.data_root, branch, tmp_dataset, tmp_hash)
         #     dst = os.path.join(msr_jsons_dir, "{0}_{1}.json".format(
         #         tmp_dataset, tmp_hash))
 
@@ -590,7 +581,7 @@ class QueueToolBox():
             tmp_hash = i['hash']
 
             src = "{0}/outputs/{1}/msr/done/{2}/{3}/project_locations.csv".format(
-                self.branch_info.data_root, branch, tmp_dataset, tmp_hash)
+                self.config.data_root, branch, tmp_dataset, tmp_hash)
             dst = os.path.join(msr_aid_dir, "{0}_{1}.csv".format(
                 tmp_dataset, tmp_hash))
             try:

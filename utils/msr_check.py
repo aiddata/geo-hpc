@@ -7,11 +7,16 @@ import time
 class MSRItem():
     """check status of item in msr queue
     """
-    def __init__(self, client, base, data_hash, selection):
-        self.client = client
+    def __init__(self, config, data_hash, selection):
+
+        self.config = config
+
+        self.client = config.client
         self.c_msr = self.client.asdf.msr
 
-        self.base = base
+        self.base = os.path.join(config.data_root, "outputs",
+                                 config.branch, 'msr', 'done')
+
 
         self.data_hash = data_hash
 

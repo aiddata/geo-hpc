@@ -29,15 +29,17 @@ def pg(text, pg_type):
 
 class DocBuilder():
 
-    def __init__(self, client, request, output, download_server):
+    def __init__(self, config, request, output, download_server):
 
-        self.client = client
+        self.config = config
+        self.client = config.client
         self.c_asdf = self.client.asdf.data
 
         self.request_id = str(request['_id'])
         self.request = request
         self.output = output
-        self.dir_base = os.path.dirname(os.path.abspath(__file__))
+
+        self.assets_dir = os.path.join(os.path.expanduser('~'), 'geo', config.branch, 'geo-hpc/assets')
 
         self.download_server = download_server
 
@@ -102,7 +104,7 @@ class DocBuilder():
     # documentation header
     def add_header(self):
         # aiddata logo
-        logo = self.dir_base + '/templates/logo.png'
+        logo = self.assets_dir + '/templates/logo.png'
 
         im = Image(logo, 2.188*inch, 0.5*inch)
         im.hAlign = 'LEFT'
@@ -171,28 +173,28 @@ class DocBuilder():
     # intro paragraphs
     def add_general(self):
 
-        with open(self.dir_base + '/templates/general.txt') as general:
+        with open(self.assets_dir + '/templates/general.txt') as general:
             for line in general:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
         self.Story.append(PageBreak())
 
-        with open(self.dir_base + '/templates/field_names.txt') as field_names:
+        with open(self.assets_dir + '/templates/field_names.txt') as field_names:
             for line in field_names:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
         self.Story.append(PageBreak())
 
-        with open(self.dir_base + '/templates/notes.txt') as field_names:
+        with open(self.assets_dir + '/templates/notes.txt') as field_names:
             for line in field_names:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
         self.Story.append(PageBreak())
 
-        with open(self.dir_base + '/templates/aid_data.txt') as field_names:
+        with open(self.assets_dir + '/templates/aid_data.txt') as field_names:
             for line in field_names:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
@@ -518,7 +520,7 @@ class DocBuilder():
     # license stuff
     def add_additional(self):
 
-        with open(self.dir_base + '/templates/additional.txt') as license:
+        with open(self.assets_dir + '/templates/additional.txt') as license:
             for line in license:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)

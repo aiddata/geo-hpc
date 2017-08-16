@@ -50,7 +50,7 @@ case "$task" in
     det)
         short_name=det
         ppn=1
-        cmd="python ${src}/geo-hpc/geoquery-queue/processing.py ${branch}"
+        cmd="python ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
         ;;
 
     *)  echo "Invalid build_db_updates_job task.";

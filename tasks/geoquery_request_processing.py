@@ -74,7 +74,7 @@ import warnings
 # sys.stdout = sys.stderr = open(
 #     os.path.dirname(os.path.abspath(__file__)) + '/processing.log', 'a')
 
-from request_tools import QueueToolBox
+from geoquery_requests import QueueToolBox
 
 # =============================================================================
 
