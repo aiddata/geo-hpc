@@ -39,6 +39,6 @@ db.runCommand( { logRotate : 1 } )
 quit()
 EOF
 
-rsync ${tmp_log} aiddatageo@vortex.sciclone.wm.edu:data20/mongodb_logs/${branch}/${tmp_name}
+rsync ${tmp_log} aiddatageo@vortex.sciclone.wm.edu:/sciclone/aiddata10/REU/backups/mongodb_logs/${branch}/${tmp_name}
 
 rm $tmp_log
