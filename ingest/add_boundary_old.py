@@ -20,9 +20,9 @@ import datetime
 import json
 from collections import OrderedDict
 
-from validation_utility import ValidationTools
+from ingest_validation import ValidationTools
+from ingest_resources import ResourceTools
 from prompt_utility import PromptKit
-from resource_utility import ResourceTools
 from mongo_utility import MongoUpdate
 
 # --------------------------------------------------

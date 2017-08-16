@@ -20,9 +20,9 @@ util_dir = os.path.join(
     'utils')
 sys.path.insert(0, util_dir)
 
-import resource_utility as ru
-from validation_utility import ValidationTools
-from database_utility import MongoUpdate
+import ingest_resources as ru
+from ingest_validation import ValidationTools
+from ingest_database import MongoUpdate
 
 
 def run(path=None, client=None, version=None, config=None,
