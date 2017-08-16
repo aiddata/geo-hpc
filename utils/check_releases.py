@@ -49,7 +49,7 @@ class ReleaseTools():
             raise Exception('Branch directory does not exist')
 
 
-        config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
+        config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
         sys.path.insert(0, config_dir)
 
         from config_utility import BranchConfig
