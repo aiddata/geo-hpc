@@ -43,9 +43,9 @@ todo
 todo
 
 
-### geoquery-queue
+### Assets
 
-Process requests from geoquery website
+static files/resources used by other scripts (e.g., images, text templates, pdfs)
 
 
 ## Tests
@@ -63,11 +63,15 @@ Tools for manually running batch extract jobs
 Dataset preparation and ingest:
 - https://github.com/itpir/asdf-datasets
 
-Private components (website source and related config files):
+Website source and related config files (Private repos):
 - https://github.com/itpir/geo-query
 - https://github.com/itpir/geo-core
 
+SciClone Resources:
+- https://github.com/itpir/aiddata-sciclone
+
 Related:
+- https://github.com/itpir/geo-portal
 - https://github.com/itpir/geoMatch
 - https://github.com/itpir/geoML
 - https://github.com/itpir/geoDash
@@ -79,5 +83,3 @@ Previous repos for components of the Geo Framework which were combined in this r
 - https://github.com/itpir/extract-scripts
 - https://github.com/itpir/det-module
 
-SciClone Resources:
-https://github.com/itpir/aiddata-sciclone
