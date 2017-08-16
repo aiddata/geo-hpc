@@ -48,6 +48,11 @@ todo
 static files/resources used by other scripts (e.g., images, text templates, pdfs)
 
 
+### Scr
+
+Scratch - misc scripts and tools not critical to running geo framework
+
+
 ## Tests
 
 py-test based tests for testing geo utiltiies and components
