@@ -125,7 +125,7 @@ alias q "qstat -nu $user"            # show nodes of my jobs
 alias qva "qstat -na | grep va -B 1" # show nodes for jobs on vortex-alpha"
 
 setenv PYTHONPATH ${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages
-setenv PYTHONPATH ${PYTHONPATH}:${HOME}/py_libs/lib/python2.7/site-packages
+#setenv PYTHONPATH ${PYTHONPATH}:${HOME}/py_libs/lib/python2.7/site-packages
 
 setenv VISUAL /usr/bin/nano
 setenv EDITOR /usr/bin/nano

@@ -39,23 +39,19 @@ if config.connection_status != 0:
     print "error"
     # sys.exit("connection status error: " + str(config.connection_error))
 
+else:
 
-# ----------------------------------------------------------------------------
+    import json
 
+    client = config.client
 
-import json
+    branch_info = config.branch_settings
 
+    c_config = client.asdf.config
 
-client = config.client
+    # c_config.remove({'name': branch_info['name']})
+    c_config.remove({})
 
+    c_config.insert(branch_info)
 
-branch_info = config.branch_settings
-
-
-c_config = client.asdf.config
-
-# c_config.remove({'name': branch_info['name']})
-c_config.remove({})
-
-c_config.insert(branch_info)
-
+    print "success"
