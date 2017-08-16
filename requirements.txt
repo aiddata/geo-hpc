@@ -7,7 +7,6 @@ fiona
 rasterio>=0.27
 pyproj
 utm
-pyshp
 reportlab
 simplejson
 #cligj>=0.4
