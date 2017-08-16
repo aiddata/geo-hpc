@@ -1,6 +1,7 @@
 # AidData's Geo Framework
-### on William and Mary's High Performance Computing cluster, SciClone
+Core components of AidData's Geo Framework running on William and Mary's SciClone High Permance Computing cluster.
 
+http://geo.aiddata.wm.edu
 
 ## Setup
 
