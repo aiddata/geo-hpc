@@ -25,6 +25,8 @@ backup_dir=/sciclone/aiddata10/REU/backups/mongodb_backups
 # for details see:
 #   https://www.mongodb.com/blog/post/archiving-and-compression-in-mongodb-tools
 
-mongodump --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu "cat - > $backup_dir/$branch/$timestamp.archive"
+output="${backup_dir}/${branch}/${timestamp}.archive"
 
+mongodump --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu \
+"mkdir -p $dirname(${output}) && cat - > ${output} && chmod g=rw,o=r ${output}"
 
