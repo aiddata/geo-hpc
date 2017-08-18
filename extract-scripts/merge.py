@@ -14,7 +14,7 @@ utils_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
 sys.path.insert(0, utils_dir)
 
-from extract_utility import *
+import extract_utility
 
 
 
@@ -36,7 +36,7 @@ T_start = time.localtime()
 print 'Merge Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', T_start)
 
 
-merge_obj = MergeObject(input_json, os.path.dirname(input_json_path), interface=True)
+merge_obj = extract_utility.MergeObject(input_json, os.path.dirname(input_json_path), interface=True)
 merge_obj.build_merge_list()
 merge_obj.run_merge()
 

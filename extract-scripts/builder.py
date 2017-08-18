@@ -18,12 +18,13 @@ import subprocess as sp
 from collections import OrderedDict
 
 
-
 utils_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
 sys.path.insert(0, utils_dir)
 
 import extract_utility
+
+branch_dir = "/sciclone/aiddata10/geo/" + dataset_options['branch']
 
 
 # =============================================================================
@@ -51,7 +52,6 @@ datasets_file.close()
 # =============================================================================
 # =============================================================================
 
-data_root = "/sciclone/aiddata10/REU"
 
 # =============================================================================
 # =============================================================================
@@ -110,8 +110,7 @@ for dataset_options in job_json['data']:
 
         print dataset_name
 
-        msr_dir = (data_root + '/outputs/' +
-                   dataset_options['branch'] + '/msr/done/' +
+        msr_dir = (branch_dir + '/outputs/msr/done/' +
                    dataset_options['release'] + '/' +
                    dataset_options['hash'])
 
