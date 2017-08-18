@@ -39,9 +39,10 @@ db.runCommand( { logRotate : 1 } )
 quit()
 EOF
 
-output=/sciclone/aiddata10/geo/backups/mongodb_logs/${branch}/${tmp_name}
+output=/sciclone/aiddata10/geo/backups/${branch}/mongodb_logs/${tmp_name}
 
 rsync ${tmp_log} aiddatageo@vortex.sciclone.wm.edu:${output}
-ssh aiddatageo@vortex.sciclone.wm.edu "mkdir -p $(dirname ${output} && chmod g+rw,o+r ${output}"
+
+ssh aiddatageo@vortex.sciclone.wm.edu "mkdir -p $(dirname ${output}); chmod g=rw,o=r ${output}"
 
 rm $tmp_log
