@@ -39,7 +39,7 @@ db.runCommand( { logRotate : 1 } )
 quit()
 EOF
 
-output=/sciclone/aiddata10/geo/${branch}/backups/mongodb_logs/${tmp_name}
+output=/sciclone/aiddata10/geo/"${branch}"/backups/mongodb_logs/"${tmp_name}"
 
 rsync ${tmp_log} aiddatageo@vortex.sciclone.wm.edu:${output}
 

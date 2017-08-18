@@ -1,6 +1,9 @@
 #!/bin/sh
 
-# unfinished script
+# ---
+echo "unfinished script"
+exit 1
+# ---
 
 
 backup_root=/sciclone/aiddata10/REU/backups/mongodb_backups
