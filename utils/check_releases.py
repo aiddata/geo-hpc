@@ -43,14 +43,14 @@ class ReleaseTools():
     def connect_mongo(self, branch):
         """Connect to mongo db. """
 
-        branch_dir = os.path.join(os.path.expanduser('~'), 'geo', branch)
+        # branch_dir = os.path.join(os.path.expanduser('~'), 'geo', branch)
 
-        if not os.path.isdir(branch_dir):
-            raise Exception('Branch directory does not exist')
+        # if not os.path.isdir(branch_dir):
+        #     raise Exception('Branch directory does not exist')
 
 
-        config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
-        sys.path.insert(0, config_dir)
+        # config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
+        # sys.path.insert(0, config_dir)
 
         from config_utility import BranchConfig
 
