@@ -18,9 +18,8 @@ class ExtractItem():
         self.c_msr = self.client.asdf.msr
 
 
-        self.base = os.path.join(config.data_root, "outputs",
-                                 config.branch, 'extracts',
-                                 version.replace('.', '_'))
+        self.base = os.path.join(
+            config.branch_dir, "outputs/extracts", version.replace('.', '_'))
 
         self.boundary = boundary
         self.dataset = dataset
@@ -31,18 +30,15 @@ class ExtractItem():
 
         self.extract_options = {
             "categorical": "c",
-            "weighted_mean": "E",
-            "weighted_count": "N",
-            "weighted_sum": "S",
             "mean": "e",
             "count": "n",
             "sum": "s",
             "min": "m",
             "max": "x",
-            # "std": "d",
 
             "reliability": "r"
 
+            # "std": "d",
             # "median": "?"
             # "majority": "?"
             # "minority": "?"

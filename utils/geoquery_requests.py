@@ -78,7 +78,7 @@ class QueueToolBox():
         if config is None:
             raise Exception('no branch config found')
 
-        self.assets_dir = os.path.join(os.path.expanduser('~'), 'geo', config.branch, 'geo-hpc/assets')
+        self.assets_dir = os.path.join(config.source_dir, 'geo-hpc/assets')
 
         self.config = config
 
@@ -513,8 +513,7 @@ class QueueToolBox():
         request_id = str(request['_id'])
         request['_id'] = request_id
 
-        results_dir = os.path.join(self.config.data_root, "outputs",
-                       self.branch, "det/results")
+        results_dir = os.path.join(self.config.branch_dir, "outputs/det")
 
         request_dir = os.path.join(results_dir, request_id)
 
@@ -563,8 +562,8 @@ class QueueToolBox():
         #     tmp_dataset = i['dataset']
         #     tmp_hash = i['hash']
 
-        #     src = "{0}/outputs/{1}/msr/done/{2}/{3}/summary.json".format(
-        #         self.config.data_root, branch, tmp_dataset, tmp_hash)
+        #     src = "{0}/outputs/msr/done/{1}/{2}/summary.json".format(
+        #         self.config.branch_dir, tmp_dataset, tmp_hash)
         #     dst = os.path.join(msr_jsons_dir, "{0}_{1}.json".format(
         #         tmp_dataset, tmp_hash))
 
@@ -580,8 +579,8 @@ class QueueToolBox():
             tmp_dataset = i['dataset']
             tmp_hash = i['hash']
 
-            src = "{0}/outputs/{1}/msr/done/{2}/{3}/project_locations.csv".format(
-                self.config.data_root, branch, tmp_dataset, tmp_hash)
+            src = "{0}/outputs/msr/done/{1}/{2}/project_locations.csv".format(
+                self.config.branch_dir, tmp_dataset, tmp_hash)
             dst = os.path.join(msr_aid_dir, "{0}_{1}.csv".format(
                 tmp_dataset, tmp_hash))
             try:

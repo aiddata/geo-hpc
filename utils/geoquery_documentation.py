@@ -39,7 +39,7 @@ class DocBuilder():
         self.request = request
         self.output = output
 
-        self.assets_dir = os.path.join(os.path.expanduser('~'), 'geo', config.branch, 'geo-hpc/assets')
+        self.assets_dir = os.path.join(config.source_dir, 'geo-hpc/assets')
 
         self.download_server = download_server
 

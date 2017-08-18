@@ -28,7 +28,11 @@ class BranchConfig():
     def __init__(self, branch=None):
         self.branch = None
         self.valid_branches = ['master', 'develop']
-        self.root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.source_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.config_path = os.path.join(self.source_dir, 'geo-hpc/config.json')
+
+        self.branch_dir = os.path.dirname(self.source_dir)
+
 
         if branch != None:
             self.set_branch(branch)
@@ -56,12 +60,11 @@ class BranchConfig():
         Raise exception if config json does not exist.
         """
         # config file from branch's asdf
-        config_path = os.path.join(self.root, 'config.json')
-        config_exists = os.path.isfile(config_path)
+        config_exists = os.path.isfile(self.config_path)
 
         if config_exists:
 
-            config_file = open(config_path, 'r')
+            config_file = open(self.config_path, 'r')
             self.config_json = json.load(config_file)
             config_file.close()
 

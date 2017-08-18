@@ -17,8 +17,8 @@
 #     esac
 # done
 
-echo -e "\n"
 while true; do
+    echo -e "\n"
     echo "Input development branch [master / develop]:"
     read REPLY
     case $REPLY in

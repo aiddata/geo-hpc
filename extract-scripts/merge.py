@@ -8,6 +8,12 @@ import time
 
 from collections import OrderedDict
 
+
+
+utils_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
+sys.path.insert(0, utils_dir)
+
 from extract_utility import *
 
 

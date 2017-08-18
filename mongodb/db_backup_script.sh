@@ -17,7 +17,7 @@ fi
 
 timestamp=`date +%Y%m%d_%H%M%S`
 
-backup_dir=/sciclone/aiddata10/geo/backups/"${branch}"/mongodb_backups
+backup_dir=/sciclone/aiddata10/geo/"${branch}"/backups/mongodb_backups
 
 # compresses individual items then archives
 # example mongorestor:

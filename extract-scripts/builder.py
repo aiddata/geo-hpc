@@ -19,11 +19,9 @@ from collections import OrderedDict
 
 
 
-branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
-
-config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
-sys.path.insert(0, config_dir)
+utils_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
+sys.path.insert(0, utils_dir)
 
 import extract_utility
 

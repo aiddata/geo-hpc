@@ -14,8 +14,8 @@ class MSRItem():
         self.client = config.client
         self.c_msr = self.client.asdf.msr
 
-        self.base = os.path.join(config.data_root, "outputs",
-                                 config.branch, 'msr', 'done')
+        self.base = os.path.join(
+            config.branch_dir, "outputs/msr/done")
 
 
         self.data_hash = data_hash

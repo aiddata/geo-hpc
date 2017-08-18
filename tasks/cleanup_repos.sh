@@ -22,8 +22,8 @@ echo Timestamp: $(date) '('"$timestamp"')'
 echo -e "\n"
 
 
-src="${HOME}"/geo/"$branch"
-
+branch_dir="/sciclone/aiddata10/geo/${branch}"
+src="${branch_dir}/source"
 
 cd "$src"/latest
 

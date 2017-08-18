@@ -20,6 +20,10 @@ import datetime
 import json
 from collections import OrderedDict
 
+utils_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
+sys.path.insert(0, utils_dir)
+
 from ingest_validation import ValidationTools
 from ingest_resources import ResourceTools
 from prompt_utility import PromptKit

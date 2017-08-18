@@ -23,6 +23,10 @@ timestamp=$2
 jobtime=$(date +%H%M%S)
 
 
+branch_dir="/sciclone/aiddata10/geo/${branch}"
+src="${branch_dir}/source"
+
+
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 job_count=$(echo "$qstat" | grep 'ax-msr-'"$branch" | wc -l)
@@ -41,9 +45,8 @@ if [[ $job_count -gt 0 ]]; then
 
 else
 
-    src="${HOME}"/geo/"$branch"
 
-    job_dir="$src"/log/msr/jobs
+    job_dir="$branch_dir"/log/msr/jobs
     mkdir -p $job_dir
 
     shopt -s nullglob
@@ -101,15 +104,15 @@ cat <<EOF >> "$job_path"
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=24:00:00
 #PBS -j oe
-#PBS -o $src/log/msr/jobs/$timestamp.$jobtime.msr.job
+#PBS -o $branch_dir/log/msr/jobs/$timestamp.$jobtime.msr.job
 #PBS -V
 
-echo -e "\n *** Running mean-surface-rasters autoscript.py... \n"
+echo -e "\n *** Running mean-surface-rasters job... \n"
 mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp
 
 EOF
 
-    # cd "$src"/log/msr/jobs
+    # cd "$branch_dir"/log/msr/jobs
     /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."

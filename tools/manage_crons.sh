@@ -36,7 +36,8 @@ branch=$1
 action=$2
 
 
-src="${HOME}"/geo/"$branch"
+branch_dir="/sciclone/aiddata10/geo/${branch}"
+src="${branch_dir}/source"
 
 cron_tag='#geo-hpc'
 
@@ -44,8 +45,8 @@ cron_tag='#geo-hpc'
 
 # backup crontab
 backup_cron() {
-    mkdir -p "$src"/../crontab.backup
-    crontab -l > "$src"/../crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
+    mkdir -p "$branch_dir"/backups/crontab.backup
+    crontab -l > "$branch_dir"/backups/crontab.backup/$(date +%Y%m%d.%s)."$branch".crontab
 }
 
 
@@ -86,9 +87,9 @@ init() {
     build_update_msr_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_msr_job #geo-hpc'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_msr_job' | { cat; echo "$build_update_msr_job_cron"; } | crontab -
 
-    # build_det_job
-    build_det_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_det_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_det_job' | { cat; echo "$build_det_job_cron"; } | crontab -
+    # build_geoquery_job
+    build_geoquery_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_geoquery_job #geo-hpc'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_geoquery_job' | { cat; echo "$build_geoquery_job_cron"; } | crontab -
 
     # build_msr_job
     build_msr_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_msr_job #geo-hpc'
@@ -114,6 +115,6 @@ init() {
 # --------------------------------------------------
 
 case $action in
-    "init")     $backup_cron; $action; exit 0;;
+    "init")     backup_cron; $action; exit 0;;
     *)          echo "Invalid input."; exit 1 ;;
 esac

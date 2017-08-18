@@ -15,10 +15,9 @@ import pymongo
 from warnings import warn
 import re
 
-util_dir = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-    'utils')
-sys.path.insert(0, util_dir)
+utils_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
+sys.path.insert(0, utils_dir)
 
 import ingest_resources as ru
 from ingest_database import MongoUpdate
@@ -330,19 +329,19 @@ if __name__ == '__main__':
     #   generator (optional, defaults to "manual")
     #   update (bool)
 
-    import sys
-    import os
+    # import sys
+    # import os
 
     branch = sys.argv[1]
 
-    branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
+    # branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
 
-    if not os.path.isdir(branch_dir):
-        raise Exception('Branch directory does not exist')
+    # if not os.path.isdir(branch_dir):
+    #     raise Exception('Branch directory does not exist')
 
 
-    config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
-    sys.path.insert(0, config_dir)
+    # config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
+    # sys.path.insert(0, config_dir)
 
     from config_utility import BranchConfig
 

@@ -3,15 +3,7 @@ import os
 import pymongo
 from bson.objectid import ObjectId
 
-
 import fiona
-
-# build path to extract_utility and add to sys.path
-import sys
-branch_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__)))))
-sys.path.insert(0, os.path.join(branch_dir, 'geo-hpc/extract-scripts'))
-sys.path.insert(0, os.path.join(os.path.dirname(branch_dir), 'geo-hpc/extract-scripts'))
 
 from extract_utility import FeatureTool
 from ingest_resources import gen_nested_release

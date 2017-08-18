@@ -24,8 +24,8 @@ task=$3
 
 jobtime=$(date +%H%M%S)
 
-src="${HOME}"/geo/"$branch"
-
+branch_dir="/sciclone/aiddata10/geo/${branch}"
+src="${branch_dir}/source"
 
 case "$task" in
 
@@ -75,9 +75,8 @@ else
     printf "%0.s-" {1..80}
     echo -e "\n"
 
-    src="${HOME}"/geo/"$branch"
 
-    job_dir="$src"/log/"$task"/jobs
+    job_dir="$branch_dir"/log/"$task"/jobs
     mkdir -p $job_dir
 
     shopt -s nullglob
@@ -107,7 +106,7 @@ cat <<EOF >> "$job_path"
 #PBS -l nodes=1:c18c:ppn=$ppn
 #PBS -l walltime=48:00:00
 #PBS -j oe
-#PBS -o $src/log/$task/jobs/$timestamp.$jobtime.$task.job
+#PBS -o $branch_dir/log/$task/jobs/$timestamp.$jobtime.$task.job
 #PBS -V
 
 echo "\n"
@@ -126,7 +125,7 @@ echo "\nDone \n"
 
 EOF
 
-    # cd "$src"/log/"$task"/jobs
+    # cd "$branch_dir"/log/"$task"/jobs
     /usr/local/torque-6.0.2/bin/qsub "$job_path"
 
     echo "Running job..."

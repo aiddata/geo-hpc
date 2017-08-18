@@ -19,14 +19,9 @@ import os
 
 branch = sys.argv[1]
 
-branch_dir = os.path.join(os.path.expanduser('~'), 'geo', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
-config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
-sys.path.insert(0, config_dir)
+utils_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
+sys.path.insert(0, utils_dir)
 
 from config_utility import BranchConfig
 
@@ -89,8 +84,8 @@ c_features = client.asdf.features
 # -------------------------------------
 # prepare output path
 
-general_output_base = os.path.join(config.data_root, 'outputs', branch,
-                                   'extracts',  version.replace('.', '_'))
+general_output_base = os.path.join(
+    config.branch_dir, 'outputs/extracts',  version.replace('.', '_'))
 
 
 # -------------------------------------
@@ -454,9 +449,9 @@ def tmp_get_task_data(self, task_index, source):
             rhash = rname[rname.rindex('_')+1:]
 
             tmp['dataset_name'] = rdataset
-            tmp['data_path'] = os.path.join(config.data_root, "outputs",
-                                            branch , "msr", "done",
-                                            rdataset, rhash, "raster.tif")
+            tmp['data_path'] = os.path.join(
+                config.branch_dir, "outputs/msr/done",
+                rdataset, rhash, "raster.tif")
             tmp['file_mask'] = "None"
 
         else:

@@ -13,14 +13,9 @@ import os
 
 branch = sys.argv[1]
 
-branch_dir = os.path.join(os.path.expanduser('~'), 'geo', branch)
-
-if not os.path.isdir(branch_dir):
-    raise Exception('Branch directory does not exist')
-
-
-config_dir = os.path.join(branch_dir, 'geo-hpc/utils')
-sys.path.insert(0, config_dir)
+utils_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
+sys.path.insert(0, utils_dir)
 
 from config_utility import BranchConfig
 
@@ -50,7 +45,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(config_dir), 'ingest'))
 import add_release
 
 
-repo_dir = branch_dir + "/public_datasets/geocoded"
+repo_dir = config.source_dir + "/public_datasets/geocoded"
 
 data_dir = os.path.join(config.data_root, "data/releases")
 
