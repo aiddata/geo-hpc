@@ -28,7 +28,6 @@ def run(path=None, client=None, version=None, config=None,
 
     print '\n---------------------------------------'
 
-    parent = os.path.dirname(os.path.abspath(__file__))
     script = os.path.basename(__file__)
 
     def quit(reason):
@@ -329,29 +328,17 @@ if __name__ == '__main__':
     #   generator (optional, defaults to "manual")
     #   update (bool)
 
-    # import sys
-    # import os
-
     branch = sys.argv[1]
-
-    # branch_dir = os.path.join(os.path.expanduser('~'), 'active', branch)
-
-    # if not os.path.isdir(branch_dir):
-    #     raise Exception('Branch directory does not exist')
-
-
-    # config_dir = os.path.join(branch_dir, 'asdf', 'src', 'utils')
-    # sys.path.insert(0, config_dir)
 
     from config_utility import BranchConfig
 
     config = BranchConfig(branch=branch)
 
-
     # check mongodb connection
     if config.connection_status != 0:
         raise Exception("connection status error: {0}".format(
             config.connection_error))
+
 
     # -------------------------------------------------------------------------
 
