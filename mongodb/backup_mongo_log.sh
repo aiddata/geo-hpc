@@ -4,7 +4,7 @@
 #   /opt/aiddata/backup_mongo_log.sh
 #
 # with a crontab set:
-#   1 0 * * * bash /opt/aiddata/backup_mongo_log.sh BRANCH >> /opt/aiddata/cron_log.log
+#   1 0 * * * bash /opt/aiddata/backup_mongo_log.sh BRANCH 2>&1 | tee 1>>/opt/aiddata/cron_log.log
 # where BRANCH is either "master" or "develop"
 #
 # requires ssh key be setup on server for aiddatageo

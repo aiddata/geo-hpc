@@ -28,7 +28,7 @@ backup_name=cron_log.${timestamp}
 src_dir=/opt/aiddata/
 dst_dir=/sciclone/aiddata10/geo/${branch}/backups/mongodb_cron_logs
 
-cron_log_src=${src_dir}/${backup_name}
+cron_log_src=${src_dir}/cron_log.log
 cron_log_dst=${dst_dir}/${backup_name}
 
 rsync ${cron_log_src} aiddatageo@vortex.sciclone.wm.edu:${cron_log_dst}

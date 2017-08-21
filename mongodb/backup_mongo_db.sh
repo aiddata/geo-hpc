@@ -4,7 +4,7 @@
 #   /opt/aiddata/backup_mongo_db.sh
 #
 # with a crontab set:
-#   1 1 * * * bash /opt/aiddata/backup_mongo_db.sh BRANCH >> /opt/aiddata/cron_log.log
+#   1 1 * * * bash /opt/aiddata/backup_mongo_db.sh BRANCH 2>&1 | tee 1>>/opt/aiddata/cron_log.log
 # where BRANCH is either "master" or "develop"
 #
 # requires ssh key be setup on server for aiddatageo
@@ -23,11 +23,8 @@ if [[ $branch == "" ]]; then
 fi
 
 
-backup_name="${timestamp}".archive
-
 dst_dir=/sciclone/aiddata10/geo/"${branch}"/backups/mongodb_backups/
 
-output=${dst_dir}/${backup_name}
 
 # compresses individual items then archives
 # example mongorestor:
@@ -35,6 +32,23 @@ output=${dst_dir}/${backup_name}
 # for details see:
 #   https://www.mongodb.com/blog/post/archiving-and-compression-in-mongodb-tools
 
-mongodump --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu \
-"cat - > ${output} && chmod g=rw,o=r ${output}"
+
+asdf_output=${dst_dir}/${timestamp}.asdf.archive
+
+mongodump --db asdf --excludeCollection features --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu \
+"cat - > ${asdf_output} && chmod g=rw,o=r ${asdf_output}"
+
+
+
+trackers_output=${dst_dir}/${timestamp}.trackers.archive
+
+mongodump --db trackers --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu \
+"cat - > ${trackers_output} && chmod g=rw,o=r ${trackers_output}"
+
+
+
+releases_output=${dst_dir}/${timestamp}.releases.archive
+
+mongodump --db releases --gzip --archive | ssh aiddatageo@vortex.sciclone.wm.edu \
+"cat - > ${releases_output} && chmod g=rw,o=r ${releases_output}"
 
