@@ -12,4 +12,7 @@ db.data.find({}, {base:1}).forEach(function(doc){
     final_base = new_base.replace('external/global/', '')
     print(final_base)
 
+    doc['base'] = final_base;
+    db.data.save(doc);
+
 })
