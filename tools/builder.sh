@@ -72,7 +72,7 @@ rm -rf "$tmp"
 mkdir -p "${backup_dir"/log
 
 backup_dir="${branch_dir}"/backups
-mkdir -p "${backup_dir}"/{mongodb_backups,mongodb_logs}
+mkdir -p "${backup_dir}"/{mongodb_backups,mongodb_logs,mongodb_cron_logs}
 
 
 output_dir="${branch_dir}"/outputs
