@@ -38,6 +38,7 @@ if [[ -d ${src} ]];then
     echo "Warning: Source directory exists for branch (${branch_dir})"
     echo "    Use --overwrite option to rebuild source for branch"
     echo "    (Other directories in branch will not be removed)"
+    exit 1
 fi
 
 
@@ -47,6 +48,9 @@ mkdir -p "$src"/{git,latest}
 # create temp dir, clone geo-hpc for init scripts
 tmp=$(mktemp -d)
 git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
+
+# need this so load_repo.sh can find repos_list.txt
+ln -sfn $tmp "$src"/geo-hpc
 
 
 # run load_repos.sh
