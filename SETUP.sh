@@ -3,6 +3,7 @@
 # used to get and run geo-hpc builder
 # NOTE: this script must be manually replaced/updated if changes to setup.sh are made
 
+# user may pass  "--overwrite" as option which will be passed on to builder.sh
 
 # get server/branch inputs from user
 
@@ -28,8 +29,9 @@ while true; do
     esac
 done
 
+
 # create temp dir, clone geo-hpc, run builder, then clean up
 tmp=$(mktemp -d)
 git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
-bash "$tmp"/geo-hpc/tools/builder.sh "$branch"
+bash "$tmp"/geo-hpc/tools/builder.sh "$branch" $1
 rm -rf "$tmp"
