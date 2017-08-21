@@ -46,31 +46,34 @@ mkdir -p "$src"/{git,latest}
 
 
 # create temp dir, clone geo-hpc for init scripts
-# tmp=$(mktemp -d)
-git clone -b "$branch" https://github.com/itpir/geo-hpc "$src"/geo-hpc
+tmp=$(mktemp -d)
+git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
+
+# need this so load_repo.sh can find repos_list.txt
+ln -sfn $tmp/geo-hpc "$src"/geo-hpc
 
 
 # run load_repos.sh
-bash "$src"/geo-hpc/tools/load_repos.sh "$branch" #2>&1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
+bash "$tmp"/geo-hpc/tools/load_repos.sh "$branch" #2>&1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
 
 # setup crons using manage_crons.sh script
-bash "$src"/geo-hpc/tools/manage_crons.sh "$branch" init
+bash "$tmp"/geo-hpc/tools/manage_crons.sh "$branch" init
 
 
 # add basic config info to mongo (for det, etc.)
 # does not update when config changes
 #   may change later, currently just needs basic branch name/server info
-python "$src"/geo-hpc/tools/add_config_to_mongo.py "$branch"
+python "$tmp"/geo-hpc/tools/add_config_to_mongo.py "$branch"
 
 
 # clean up tmp geo-hpc
-# rm -rf "$tmp"
+rm -rf "$tmp"
 
 
 
 # initialize other directories in case they do not exist
 
-mkdir -p "${backup_dir"/log
+mkdir -p "${backup_dir}"/log
 
 backup_dir="${branch_dir}"/backups
 mkdir -p "${backup_dir}"/{mongodb_backups,mongodb_logs,mongodb_cron_logs}
