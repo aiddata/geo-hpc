@@ -82,5 +82,8 @@ output_dir="${branch_dir}"/outputs
 mkdir -p "${backup_dir}"/{det,extracts,msr}
 
 
+echo "Updating permissions..."
+echo "(this may take a few minutes if there are existing files)"
+
 find "${branch_dir}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
 find "${branch_dir}" -type f -exec chmod u=rw,g=rw,o=r {} +
