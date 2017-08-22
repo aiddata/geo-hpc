@@ -123,6 +123,8 @@ endsw
 
 alias q "qstat -nu $user"            # show nodes of my jobs
 alias qva "qstat -na | grep va -B 1" # show nodes for jobs on vortex-alpha"
+alias p "pbstop -u all"
+alias c "bash ~/check_oe.sh"
 
 setenv PYTHONPATH ${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages
 #setenv PYTHONPATH ${PYTHONPATH}:${HOME}/py_libs/lib/python2.7/site-packages
