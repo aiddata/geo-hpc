@@ -70,7 +70,6 @@ python "$tmp"/geo-hpc/tools/add_config_to_mongo.py "$branch"
 rm -rf "$tmp"
 
 
-
 # initialize other directories in case they do not exist
 
 mkdir -p "${branch_dir}"/log
