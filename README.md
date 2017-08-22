@@ -66,15 +66,15 @@ Tools for manually running batch extract jobs
 
 ## Related Repos / Resources
 
+Wiki - Additional details about Geo Framework and Sciclone:
+- https://github.com/itpir/geo-hpc/wiki
+
 Dataset preparation and ingest:
-- https://github.com/itpir/asdf-datasets
+- https://github.com/itpir/geo-datasets
 
 Website source and related config files (Private repos):
 - https://github.com/itpir/geo-query
 - https://github.com/itpir/geo-core
-
-SciClone Resources:
-- https://github.com/itpir/aiddata-sciclone
 
 Related:
 - https://github.com/itpir/geo-portal
