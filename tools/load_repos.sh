@@ -28,9 +28,12 @@ echo -e "\n"
 branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
-# rm -rf "$src"/git
-find "$src"/git -type f -exec rm -rf "{}" \;
-find "$src"/git -type d -exec rm -rf "{}" \;
+
+if [[ -d "$src"/git ]]; then
+    # rm -rf "$src"/git
+    find "$src"/git -type f -exec rm -rf "{}" \;
+    find "$src"/git -type d -exec rm -rf "{}" \;
+fi
 
 mkdir "$src"/git
 cd "$src"/git

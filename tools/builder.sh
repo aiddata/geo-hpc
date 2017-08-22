@@ -73,7 +73,7 @@ rm -rf "$tmp"
 
 # initialize other directories in case they do not exist
 
-mkdir -p "${backup_dir}"/log
+mkdir -p "${branch_dir}"/log
 
 backup_dir="${branch_dir}"/backups
 mkdir -p "${backup_dir}"/{mongodb_backups,mongodb_logs,mongodb_cron_logs}
