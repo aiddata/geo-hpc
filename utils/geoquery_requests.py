@@ -513,7 +513,7 @@ class QueueToolBox():
         request_id = str(request['_id'])
         request['_id'] = request_id
 
-        results_dir = os.path.join(self.config.branch_dir, "outputs/det")
+        results_dir = os.path.join(self.config.branch_dir, "outputs/det/results")
 
         request_dir = os.path.join(results_dir, request_id)
 
