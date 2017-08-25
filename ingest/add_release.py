@@ -313,7 +313,7 @@ def run(path=None, client=None, version=None, config=None,
     else:
         print "\n{0}: Done.\n".format(script)
 
-    print '\n---------------------------------------'
+    print '\n---------------------------------------\n'
 
     return 0
 
@@ -346,11 +346,6 @@ if __name__ == '__main__':
     path = sys.argv[2]
 
     generator = sys.argv[3]
-
-    if len(sys.argv) == 5:
-        update = sys.argv[4]
-    else:
-        update = False
 
     if len(sys.argv) >= 5:
         update = sys.argv[4]
