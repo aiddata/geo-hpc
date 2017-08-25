@@ -13,7 +13,7 @@
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-ex-<branch>
+# job name format: geo-ex-<branch>
 
 
 branch=$1
@@ -29,9 +29,9 @@ src="${branch_dir}/source"
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
-job_count=$(echo "$qstat" | grep 'ax-ex-'"$branch" | wc -l)
+job_count=$(echo "$qstat" | grep 'geo-ex-'"$branch" | wc -l)
 
-# if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
+# if echo "$qstat" | grep -q 'geo-ex-'"$branch"; then
 
 # change this # to be 1 less than desired number of jobs
 if [[ $job_count -gt 3 ]]; then
@@ -107,7 +107,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-ex-$branch
+#PBS -N geo-ex-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=48:00:00
 #PBS -j oe
@@ -135,9 +135,9 @@ fi
 # -----------------------------------------------------------------------------
 
 
-job_count=$(echo "$qstat" | grep 'ax-ex2-'"$branch" | wc -l)
+job_count=$(echo "$qstat" | grep 'geo-ex2-'"$branch" | wc -l)
 
-# if echo "$qstat" | grep -q 'ax-ex-'"$branch"; then
+# if echo "$qstat" | grep -q 'geo-ex-'"$branch"; then
 
 # change this # to be 1 less than desired number of jobs
 if [[ $job_count -gt 11 ]]; then
@@ -213,7 +213,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-ex2-$branch
+#PBS -N geo-ex2-$branch
 #PBS -l nodes=$nodes:c18a:ppn=$ppn
 #PBS -l walltime=48:00:00
 #PBS -j oe

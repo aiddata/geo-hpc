@@ -13,7 +13,7 @@
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-<short_name>-<branch>
+# job name format: geo-<short_name>-<branch>
 
 
 branch=$1
@@ -61,7 +61,7 @@ esac
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 
-if echo "$qstat" | grep -q 'ax-'"$short_name"'-'"$branch"; then
+if echo "$qstat" | grep -q 'geo-'"$short_name"'-'"$branch"; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
@@ -102,7 +102,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-$short_name-$branch
+#PBS -N geo-$short_name-$branch
 #PBS -l nodes=1:c18c:ppn=$ppn
 #PBS -l walltime=48:00:00
 #PBS -j oe

@@ -13,7 +13,7 @@
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: ax-msr-<branch>
+# job name format: geo-msr-<branch>
 
 
 branch=$1
@@ -29,9 +29,9 @@ src="${branch_dir}/source"
 
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
-job_count=$(echo "$qstat" | grep 'ax-msr-'"$branch" | wc -l)
+job_count=$(echo "$qstat" | grep 'geo-msr-'"$branch" | wc -l)
 
-# if echo "$qstat" | grep -q 'ax-msr-'"$branch"; then
+# if echo "$qstat" | grep -q 'geo-msr-'"$branch"; then
 
 # change this # to be 1 less than desired number of jobs
 if [[ $job_count -gt 0 ]]; then
@@ -100,7 +100,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N ax-msr-$branch
+#PBS -N geo-msr-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=24:00:00
 #PBS -j oe
