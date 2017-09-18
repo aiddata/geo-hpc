@@ -381,19 +381,23 @@ def run(path=None, client=None, version=None, config=None,
     # -------------------------------------
     # resource scan
 
-    # find all files with file_extension in path
-    file_list = []
-    for root, dirs, files in os.walk(doc["base"]):
-        for file in files:
+    if data["file_mask"] == "None" and os.path.isfile(doc["base"]):
+        file_list = [doc["base"]]
 
-            file = os.path.join(root, file)
-            file_check = file.endswith('.' + doc["file_extension"])
+    else:
+        # find all files with file_extension in path
+        file_list = []
+        for root, dirs, files in os.walk(doc["base"]):
+            for file in files:
 
-            if file_check == True:
-                file_list.append(file)
+                file = os.path.join(root, file)
+                file_check = file.endswith('.' + doc["file_extension"])
 
-        if data["file_mask"] == "None":
-            break
+                if file_check == True:
+                    file_list.append(file)
+
+            if data["file_mask"] == "None":
+                break
 
 
     if data["file_mask"] == "None" and len(file_list) != 1:
