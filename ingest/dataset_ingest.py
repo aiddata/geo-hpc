@@ -64,10 +64,10 @@ data = json.load(open(path, 'r'))
 if not 'base' in data:
     raise Exception("base path missing from ingest json")
 
-if not os.path.exists(base):
+if not os.path.exists(data['base']):
     raise Exception('specified base path does not exist')
 
-if not os.path.isdir(base):
+if not os.path.isdir(data['base']):
     raise Exception('base path is not a directory')
 
 # check / update permissions for everything in base path
