@@ -1,6 +1,12 @@
+"""
+example usage:
 
+cd /sciclone/aiddata10/geo/master/source
+python geo-hpc/ingest/dataset_ingest.py master raster geo-datasets/gpw/gpw_v3_count_raster_ingest.json manual partial True
+"""
 import sys
 import os
+import json
 
 utils_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
