@@ -256,7 +256,11 @@ def tmp_worker_job(self, task_index, task_data):
         print "\t\tChecking dataset: {0}".format(match['name'])
 
         # boundary base and type
-        bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
+        if bnd["resources"][0]["path"] == "":
+            bnd_base = bnd['base']
+        else:
+            bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
+
         bnd_type = bnd['type']
 
         meta = c_asdf.find({'name':match['name']})[0]
