@@ -67,8 +67,8 @@ if not 'base' in data:
 if not os.path.exists(data['base']):
     raise Exception('specified base path does not exist')
 
-if not os.path.isdir(data['base']):
-    raise Exception('base path is not a directory')
+# if not os.path.isdir(data['base']):
+    # raise Exception('base path is not a directory')
 
 # check / update permissions for everything in base path
 #
