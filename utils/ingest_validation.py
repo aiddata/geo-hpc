@@ -99,8 +99,8 @@ class ValidationTools():
         }
 
         # should we check to make sure path is in .../REU/data folder?
-        if not os.path.isdir(val):
-            msg = "Could not find base directory provided ({0})".format(val)
+        if not os.path.exists(val):
+            msg = "Could not find base path provided ({0})".format(val)
             out.error(msg, data)
             return out
 
