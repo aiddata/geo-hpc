@@ -466,12 +466,18 @@ def tmp_get_task_data(self, task_index, source):
 
             tmp['dataset_name'] = data_info['name']
 
-            tmp['data_path'] = (
-                data_info['base'] + '/'+
-                [
-                    j['path'] for j in data_info['resources']
-                    if j['name'] == request['data']
-                ][0])
+
+            tmp_resource_path = [
+                j['path'] for j in data_info['resources']
+                if j['name'] == request['data']
+            ][0]
+
+            if tmp_resource_path == '':
+                tmp['data_path'] = data_info['base']
+            else:
+                tmp['data_path'] = data_info['base'] + '/'+ tmp_resource_path
+
+
 
             tmp['file_mask'] = data_info['file_mask']
 
