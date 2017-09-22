@@ -31,8 +31,8 @@ case "$task" in
 
     update_trackers)
         short_name=upt
-        ppn=8
-        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 8 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
+        ppn=16
+        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
         ;;
 
     update_extract)
