@@ -34,7 +34,7 @@ job_count=$(echo "$qstat" | grep 'geo-ex-'"$branch" | wc -l)
 # if echo "$qstat" | grep -q 'geo-ex-'"$branch"; then
 
 # change this # to be 1 less than desired number of jobs
-if [[ $job_count -gt 3 ]]; then
+if [[ $job_count -gt 5 ]]; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
