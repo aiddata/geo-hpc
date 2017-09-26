@@ -665,6 +665,8 @@ class ExtractObject():
         percent_cover_weighting = True
         latitude_correction = True
 
+        pixel_limit = 4000000
+
         if 'percent_cover_scale' in kwargs:
             percent_cover_scale = kwargs['percent_cover_scale']
         if 'percent_cover_weighting' in kwargs:
@@ -682,6 +684,7 @@ class ExtractObject():
                             prefix="exfield_",
                             stats="count",
                             categorical=True, category_map=self._cmap,
+                            limit=pixel_limit,
                             all_touched=False)
 
         else:
@@ -703,6 +706,7 @@ class ExtractObject():
                             percent_cover_scale=percent_cover_scale,
                             percent_cover_weighting=percent_cover_weighting,
                             latitude_correction=latitude_correction,
+                            limit=pixel_limit,
                             all_touched=all_touched)
 
 
