@@ -1,3 +1,4 @@
 itpir/geo-hpc
 itpir/geo-datasets
 AidData-WM/public_datasets
+sgoodm/python-rasterstats

@@ -114,6 +114,11 @@ check_repo() {
                 fi
             fi
 
+            # create symlink from geo-hpc/utils/geo_rasterstats to source code dir of rasterstats repo
+            rs_src="${src}/python-rasterstats/src/rasterstats"
+            rs_dst="${src}/geo-hpc/utils/geo_rasterstats"
+            rm -r ${rs_dst}
+            ln -s ${rs_src} ${rs_dst}
         fi
 
     fi
