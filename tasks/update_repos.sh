@@ -138,8 +138,8 @@ ln -s ${rs_src} ${rs_dst}
 
 
 # make sure permissions are set
-find "${branch_dir}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
-find "${branch_dir}" -type f -exec chmod u=rw,g=rw,o=r {} +
+find "${src}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
+find "${src}" -type f -exec chmod u=rw,g=rw,o=r {} +
 
 echo 'Done'
 echo -e "\n"
