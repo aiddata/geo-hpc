@@ -157,6 +157,10 @@ def tmp_worker_job(self, task_index, task_data):
         # is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
         is_active_gadm = bnd["extras"]["gadm_iso3"].upper() not in inactive_iso3_list
 
+        # countries are inactive
+        if bnd['options']['gadm_adm'] == 0:
+            is_active_gadm = 0
+
         print "\t\tGADM boundary is active: {0}".format(is_active_gadm)
 
         if is_active_gadm:
