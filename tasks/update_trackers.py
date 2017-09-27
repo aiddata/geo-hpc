@@ -157,15 +157,12 @@ def tmp_worker_job(self, task_index, task_data):
         # is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
         is_active_gadm = bnd["extras"]["gadm_iso3"].upper() not in inactive_iso3_list
 
-        # countries are inactive
-        if bnd['options']['gadm_adm'] == 0:
-            is_active_gadm = 0
 
         print "\t\tGADM boundary is active: {0}".format(is_active_gadm)
 
         if is_active_gadm:
             print "\t\t\tsetting group active"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 0},
+            c_asdf.update_many({"options.group": bnd["options"]["group"], "extras.gadm_adm": {'$ne': 0}, "active": 0},
                                {"$set":{"active": 1}})
             is_active = 1
 
