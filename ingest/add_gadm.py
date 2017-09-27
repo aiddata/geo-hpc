@@ -177,8 +177,8 @@ def run(path=None, client=None, version=None, config=None,
         name_original = client.asdf.data.find_one({'name': doc["name"]})
 
         if update == "missing" and name_original is not None and base_original is not None:
-            quit("Dataset exists (running in 'missing' update mode). Terminating.")
-
+            warn("Dataset exists (running in 'missing' update mode). Running partial update and setting to active (if possible).")
+            update = "partial"
 
         if name_original is None and base_original is None:
             update = False
