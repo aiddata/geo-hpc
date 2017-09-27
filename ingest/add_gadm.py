@@ -97,6 +97,17 @@ def run(path=None, client=None, version=None, config=None,
     if dry_run:
         print "running dry run"
 
+    base_original = client.asdf.data.find_one({'base': path})
+    name_original = client.asdf.data.find_one({'name': doc["name"]})
+
+    if not update and base_original is not None:
+        msg = "No update specified but dataset exists (base: {0})".format(base_original['base'])
+        raise Exception(msg)
+    elif not update and name_original is not None:
+        msg = "No update specified but dataset exists (name: {0})".format(name_original['name'])
+        raise Exception(msg)
+
+
     existing_original = None
     if update:
         if not "data" in client.asdf.collection_names():
@@ -107,7 +118,6 @@ def run(path=None, client=None, version=None, config=None,
             else:
                 warn(msg)
         else:
-            base_original = client.asdf.data.find_one({'base': path})
             if base_original is None and update != "missing":
                 update = False
                 msg = "Update specified but no existing dataset found."
@@ -175,7 +185,6 @@ def run(path=None, client=None, version=None, config=None,
                    gadm_version.replace('.', ''))
 
     if update:
-        name_original = client.asdf.data.find_one({'name': doc["name"]})
 
         if update == "missing" and name_original is not None and base_original is not None:
             warn("Dataset exists (running in 'missing' update mode). Running partial update and setting to active (if possible).")
