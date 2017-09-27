@@ -171,7 +171,7 @@ def run(path=None, client=None, version=None, config=None,
     gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
 
     doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
-                   str(gadm_version).replace('.', ''))
+                   gadm_version.replace('.', ''))
 
     if update:
         name_original = client.asdf.data.find_one({'name': doc["name"]})
@@ -209,8 +209,7 @@ def run(path=None, client=None, version=None, config=None,
         # doc["active"] = existing_original["active"]
 
 
-    doc["title"] = (gadm_country + " " + gadm_adm.upper() +
-                  " Boundary - GADM " + str(gadm_version))
+    doc["title"] = " ".join([gadm_country, gadm_adm.upper(), "Boundary - GADM", gadm_version])
 
     doc["description"] = "PLACEHOLDER"
 
@@ -219,7 +218,7 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["options"] = {}
     doc["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
-                               str(gadm_version).replace('.', ''))
+                               gadm_version.replace('.', ''))
 
     doc["extras"] = {}
 
