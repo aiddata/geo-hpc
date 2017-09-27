@@ -181,33 +181,35 @@ def run(path=None, client=None, version=None, config=None,
             warn("Dataset exists (running in 'missing' update mode). Running partial update and setting to active (if possible).")
             update = "partial"
 
-        if name_original is None and base_original is None:
-            update = False
-            warn(("Update specified but no dataset with matching "
-                  "base ({0}) or name ({1}) was found").format(doc["base"],
-                                                               doc["name"]))
+        if update != "missing":
+            if name_original is None and base_original is None:
+                update = False
+                warn(("Update specified but no dataset with matching "
+                      "base ({0}) or name ({1}) was found").format(doc["base"],
+                                                                   doc["name"]))
 
-            # in case we ended up not finding a match for name
-            doc["asdf"]["date_added"] = str(datetime.date.today())
+                # in case we ended up not finding a match for name
+                doc["asdf"]["date_added"] = str(datetime.date.today())
 
-        elif name_original is not None and base_original is not None:
+            elif name_original is not None and base_original is not None:
 
-            if str(name_original['_id']) != str(base_original['_id']):
-                quit("Update option specified but identifying fields (base "
-                     "and name) belong to different existing datasets."
-                     "\n\tBase: {0}\n\tName: {1}".format(doc["base"],
-                                                         doc["name"]))
-            else:
+                if str(name_original['_id']) != str(base_original['_id']):
+                    quit("Update option specified but identifying fields (base "
+                         "and name) belong to different existing datasets."
+                         "\n\tBase: {0}\n\tName: {1}".format(doc["base"],
+                                                             doc["name"]))
+                else:
+                    existing_original = name_original
+
+            elif name_original is not None:
                 existing_original = name_original
 
-        elif name_original is not None:
-            existing_original = name_original
+            elif base_original is not None:
+                existing_original = base_original
 
-        elif base_original is not None:
-            existing_original = base_original
 
-        doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
-        # doc["active"] = existing_original["active"]
+            doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
+            # doc["active"] = existing_original["active"]
 
 
     doc["title"] = " ".join([gadm_country, gadm_adm.upper(), "Boundary - GADM", gadm_version])
