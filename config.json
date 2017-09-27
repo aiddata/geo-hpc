@@ -20,7 +20,6 @@
             "WorldBank": "global"
         },
         "inactive_iso3": [
-            "RUS", "USA", "CAN", "ATA", "GRL", "AUS"
         ],
         "versions": {
             "asdf": "0.4.1",
