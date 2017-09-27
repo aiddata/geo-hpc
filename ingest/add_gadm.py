@@ -11,6 +11,7 @@ import os
 from pprint import pprint
 import datetime
 import json
+from unidecode import unidecode
 import pymongo
 from warnings import warn
 
@@ -168,7 +169,7 @@ def run(path=None, client=None, version=None, config=None,
     gadm_lookup_path = parent + '/gadm_iso3.json'
     gadm_lookup =  json.load(open(gadm_lookup_path, 'r'))
 
-    gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
+    gadm_country = unidecode(gadm_lookup[gadm_iso3])
 
     doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
                    gadm_version.replace('.', ''))
