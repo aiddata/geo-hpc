@@ -65,11 +65,9 @@ def run(path=None, client=None, version=None, config=None,
     else:
         quit("No path provided")
 
-
     # optional arg - mainly for user to specify manual run
     if generator not in ['auto', 'manual']:
         quit("Invalid generator input")
-
 
     if client is None:
         quit("No mongodb client connection provided")
@@ -83,6 +81,8 @@ def run(path=None, client=None, version=None, config=None,
         update = "partial"
     elif update in ["update", True, 1, "True", "full", "all"]:
         update = "full"
+    elif update in ["missing"]:
+        update = "missing"
     else:
         update = False
 
@@ -107,7 +107,7 @@ def run(path=None, client=None, version=None, config=None,
                 warn(msg)
         else:
             base_original = client.asdf.data.find_one({'base': path})
-            if base_original is None:
+            if base_original is None and update != "missing":
                 update = False
                 msg = "Update specified but no existing dataset found."
                 if generator == "manual":
@@ -124,7 +124,7 @@ def run(path=None, client=None, version=None, config=None,
     doc["asdf"]["version"] = version
     doc["asdf"]["generator"] = generator
     doc["asdf"]["date_updated"] = str(datetime.date.today())
-    if not update:
+    if not update or update == "missing":
         doc["asdf"]["date_added"] = str(datetime.date.today())
 
     # -------------------------------------
@@ -171,10 +171,14 @@ def run(path=None, client=None, version=None, config=None,
     gadm_country = gadm_lookup[gadm_iso3].encode('utf8')
 
     doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
-                 str(gadm_version).replace('.', ''))
+                   str(gadm_version).replace('.', ''))
 
     if update:
         name_original = client.asdf.data.find_one({'name': doc["name"]})
+
+        if update == "missing" and name_original is not None and base_original is not None:
+            quit("Dataset exists (running in 'missing' update mode). Terminating.")
+
 
         if name_original is None and base_original is None:
             update = False
@@ -215,7 +219,7 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["options"] = {}
     doc["options"]["group"] = (gadm_iso3.lower() + "_gadm" +
-                             str(gadm_version).replace('.', ''))
+                               str(gadm_version).replace('.', ''))
 
     doc["extras"] = {}
 
@@ -236,6 +240,7 @@ def run(path=None, client=None, version=None, config=None,
     # boundary group
     if "adm0" in gadm_name.lower():
          doc["options"]["group_class"] = "actual"
+         doc["active"] = 0
     else:
          doc["options"]["group_class"] = "sub"
 

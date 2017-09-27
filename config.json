@@ -19,11 +19,8 @@
             "UgandaAIMS": "UGA",
             "WorldBank": "global"
         },
-        "other_iso3": [
-            "LBR", "GHA", "MLI", "AGO", "GMB", "NER", "RWA", "MWI"
-        ],
         "inactive_iso3": [
-            "RUS", "USA", "CAN", "ATA", "GRL", "CHN", "AUS", "NZL", "FJI"
+            "RUS", "USA", "CAN", "ATA", "GRL", "AUS", "NZL", "FJI"
         ],
         "versions": {
             "asdf": "0.4.1",
