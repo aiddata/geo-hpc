@@ -120,6 +120,11 @@ job.search_limit = 100
 
 
 # -------------------------------------
+# interval at which to update `update_time` field for active extract tasks
+update_interval = 60*60
+
+
+# -------------------------------------
 # job type definitions for request queries
 
 job.job_type = 'default'
@@ -159,6 +164,21 @@ def tmp_master_process(self, worker_result):
     pass
 
 
+def tmp_master_update(self):
+    update_time = int(time.time())
+    for i in self.worker_log:
+        ctd = i['current_task_data']
+        if ctd is not None:
+            # update status of item in extract queue
+            update_extract = c_extracts.update_one({
+                '_id': ctd['_id']
+            }, {
+                '$set': {
+                    'update_time': update_time
+                }
+            }, upsert=False)
+
+
 def tmp_master_final(self):
 
     # stop job timer
@@ -191,9 +211,7 @@ def tmp_master_final(self):
 
 def tmp_worker_job(self, task_index, task_data):
 
-
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
-
 
     # =================================
 
@@ -498,6 +516,8 @@ job.set_task_count(extract_limit)
 job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)
 job.set_master_process(tmp_master_process)
+job.set_master_update(tmp_master_update)
+job.set_update_interval(update_interval)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 job.set_get_task_data(tmp_get_task_data)

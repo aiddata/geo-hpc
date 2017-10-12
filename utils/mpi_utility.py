@@ -95,6 +95,7 @@ class NewParallel():
 
         self.task_count = 0
         self.task_list = None
+        self.update_interval = None
 
 
     def set_task_list(self, input_list):
@@ -122,6 +123,18 @@ class NewParallel():
             raise Exception("set_task_count: requires input of type int")
 
 
+    def set_update_interval(self, val):
+        """Set update interval for master_update function.
+
+        Args:
+            val (int): x
+        """
+        if isinstance(val, int):
+            self.update_interval = val
+        else:
+            raise Exception("set_update_interval: requires input of type int")
+
+
     def set_general_init(self, input_function):
         """Set general_init function.
 
@@ -144,6 +157,18 @@ class NewParallel():
             self.master_init = types.MethodType(input_function, self)
         else:
             raise Exception("set_master_init: requires input to be a function")
+
+
+    def set_master_update(self, input_function):
+        """Set master_update function.
+
+        Args:
+            input_function (func): x
+        """
+        if hasattr(input_function, '__call__'):
+            self.master_update = types.MethodType(input_function, self)
+        else:
+            raise Exception("set_master_update: requires input to be a function")
 
 
     def set_master_process(self, input_function):
@@ -217,6 +242,19 @@ class NewParallel():
         No args or return value.
         """
         self.master_data = []
+
+
+    def master_update(self):
+        """Template only.
+
+        Should be replaced by user created function using
+            set_master_update method.
+
+        Run by master during intervals determined by `update_interval`.
+            Only runs when using parallel processing method.
+        No args or return value.
+        """
+        pass
 
 
     def master_process(self, worker_result):
@@ -370,72 +408,92 @@ class NewParallel():
             worker_info_template = {
                 'status': 'up',
                 'current_task_index': None,
+                'current_task_data': None,
                 'task_index_history': []
             }
-            worker_log = dict(zip(
+            self.worker_log = dict(zip(
                 range(1, self.size),
                 [deepcopy(worker_info_template) for i in range(1, self.size)]
             ))
 
             print "Master - starting with {0} workers".format(num_workers)
 
+            last_update = time.time()
+
             # distribute work
             while closed_workers < num_workers:
                 active_workers = num_workers - closed_workers
-                worker_data = self.comm.recv(source=MPI.ANY_SOURCE,
-                                             tag=MPI.ANY_TAG,
-                                             status=self.status)
-                source = self.status.Get_source()
-                tag = self.status.Get_tag()
 
-                if tag == self.tags.READY:
+                req = self.comm.irecv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
 
-                    if task_index < self.task_count:
+                while True:
 
-                        task_data = self.get_task_data(task_index, source)
+                    if update_interval and time.time() - last_update > update_interval:
+                        self.master_update()
+                        last_update = time.time()
 
-                        if (isinstance(task_data, tuple)
-                            and len(task_data) == 3
-                            and task_data[0] == "error"):
+                    re = req.test(status=self.status)
 
-                            print ("Master - shutting down worker {1} "
-                                   "with task {0} ({2})").format(
-                                        task_index, source, task_data[2])
+                    if re[0] != False:
+                        worker_data = re[1]
 
-                            self.comm.send(None, dest=source, tag=self.tags.EXIT)
+                        source = self.status.Get_source()
+                        tag = self.status.Get_tag()
 
-                        else:
-                            print "Master - sending task {0} to worker {1}".format(
-                                task_index, source)
+                        if tag == self.tags.READY:
 
-                            task = (task_index, task_data)
+                            if task_index < self.task_count:
 
-                            worker_log[source]['current_task_index'] = task_index
+                                task_data = self.get_task_data(task_index, source)
 
-                            self.comm.send(task, dest=source, tag=self.tags.START)
+                                if (isinstance(task_data, tuple)
+                                    and len(task_data) == 3
+                                    and task_data[0] == "error"):
 
-                            task_index += 1
+                                    print ("Master - shutting down worker {1} "
+                                           "with task {0} ({2})").format(
+                                                task_index, source, task_data[2])
 
-                    else:
-                        self.comm.send(None, dest=source, tag=self.tags.EXIT)
+                                    self.comm.send(None, dest=source, tag=self.tags.EXIT)
 
-                elif tag == self.tags.DONE:
-                    worker_task_index = worker_log[source]['current_task_index']
-                    worker_log[source]['task_index_history'].append(worker_task_index)
-                    print "Master - received Task {0} data from Worker {1}".format(worker_task_index, source)
-                    self.master_process(worker_data)
+                                else:
+                                    print "Master - sending task {0} to worker {1}".format(
+                                        task_index, source)
 
-                elif tag == self.tags.EXIT:
-                    print "Master - worker {0} exited. ({1})".format(
-                        source, active_workers - 1)
-                    closed_workers += 1
+                                    task = (task_index, task_data)
 
-                elif tag == self.tags.ERROR:
-                    print "Master - error reported by worker {0}.".format(source)
-                    # broadcast error to all workers
-                    self.send_error()
-                    err_status = 1
-                    # break
+                                    self.worker_log[source]['current_task_index'] = task_index
+                                    self.worker_log[source]['current_task_data'] = task_data
+
+                                    self.comm.send(task, dest=source, tag=self.tags.START)
+
+                                    task_index += 1
+
+                            else:
+                                self.comm.send(None, dest=source, tag=self.tags.EXIT)
+
+                        elif tag == self.tags.DONE:
+                            worker_task_index = self.worker_log[source]['current_task_index']
+                            self.worker_log[source]['current_task_index'] = None
+                            self.worker_log[source]['current_task_data'] = None
+                            self.worker_log[source]['task_index_history'].append(worker_task_index)
+                            print "Master - received Task {0} data from Worker {1}".format(worker_task_index, source)
+                            self.master_process(worker_data)
+
+                        elif tag == self.tags.EXIT:
+                            print "Master - worker {0} exited. ({1})".format(
+                                source, active_workers - 1)
+                            closed_workers += 1
+
+                        elif tag == self.tags.ERROR:
+                            print "Master - error reported by worker {0}.".format(source)
+                            # broadcast error to all workers
+                            self.send_error()
+                            err_status = 1
+
+                        # finish handling nonblocking receive and return to
+                        # main worker communication loop to wait for next work message
+                        break
 
 
             if err_status == 0:
@@ -447,7 +505,7 @@ class NewParallel():
 
             if self.print_worker_log:
                 print "Worker Log:"
-                print json.dumps(worker_log, indent=4, separators=(",", ":"))
+                print json.dumps(self.worker_log, indent=4, separators=(",", ":"))
 
         else:
             # Worker processes execute code below
