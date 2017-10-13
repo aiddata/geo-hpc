@@ -121,7 +121,9 @@ job.search_limit = 100
 
 # -------------------------------------
 # interval at which to update `update_time` field for active extract tasks
-update_interval = 60*60
+# time in seconds
+
+update_interval = 60*1
 
 
 # -------------------------------------
