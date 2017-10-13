@@ -96,6 +96,8 @@ class NewParallel():
 
         self.task_count = 0
         self.task_list = None
+
+        self.use_master_update = False
         self.update_interval = None
 
 
@@ -168,6 +170,7 @@ class NewParallel():
         """
         if hasattr(input_function, '__call__'):
             self.master_update = types.MethodType(input_function, self)
+            self.use_master_update = True
         else:
             raise Exception("set_master_update: requires input to be a function")
 
