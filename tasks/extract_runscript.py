@@ -168,7 +168,7 @@ def tmp_master_process(self, worker_result):
 
 def tmp_master_update(self):
     update_time = int(time.time())
-    for i in self.worker_log:
+    for i in self.worker_log.values():
         ctd = i['current_task_data']
         if ctd is not None:
             # update status of item in extract queue
