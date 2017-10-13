@@ -429,7 +429,7 @@ class NewParallel():
 
                 while True:
 
-                    if update_interval and time.time() - last_update > update_interval:
+                    if self.update_interval and time.time() - last_update > self.update_interval:
                         self.master_update()
                         last_update = time.time()
 
