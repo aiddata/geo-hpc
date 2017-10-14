@@ -428,18 +428,26 @@ class NewParallel():
             while closed_workers < num_workers:
                 active_workers = num_workers - closed_workers
 
-                req = self.comm.irecv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
+                if self.use_master_update:
+                    req = self.comm.irecv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
+                else:
+                    worker_data = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=self.status)
 
                 while True:
 
-                    if self.update_interval and time.time() - last_update > self.update_interval:
-                        self.master_update()
-                        last_update = time.time()
+                    if self.use_master_update:
 
-                    re = req.test(status=self.status)
+                        if self.update_interval and time.time() - last_update > self.update_interval:
+                            self.master_update()
+                            last_update = time.time()
 
-                    if re[0] != False:
-                        worker_data = re[1]
+                        re = req.test(status=self.status)
+
+
+                    if not self.use_master_update or re[0] != False:
+
+                        if self.use_master_update:
+                            worker_data = re[1]
 
                         source = self.status.Get_source()
                         tag = self.status.Get_tag()
