@@ -665,7 +665,7 @@ class ExtractObject():
         percent_cover_weighting = True
         latitude_correction = True
 
-        pixel_limit = 1000000
+        pixel_limit = 250000
 
         if 'percent_cover_scale' in kwargs:
             percent_cover_scale = kwargs['percent_cover_scale']

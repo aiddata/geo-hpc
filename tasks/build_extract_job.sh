@@ -27,6 +27,9 @@ branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
 
+walltime="180:00:00"
+
+
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
 job_count=$(echo "$qstat" | grep 'geo-ex-'"$branch" | wc -l)
@@ -109,7 +112,7 @@ cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N geo-ex-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
-#PBS -l walltime=48:00:00
+#PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/extract/jobs/$timestamp.$jobtime.extract.job
 #PBS -V
@@ -216,7 +219,7 @@ cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N geo-ex2-$branch
 #PBS -l nodes=$nodes:c18a:ppn=$ppn
-#PBS -l walltime=48:00:00
+#PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/extract/jobs/$timestamp.$jobtime.extract.job
 #PBS -V
