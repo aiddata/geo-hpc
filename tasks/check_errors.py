@@ -84,8 +84,13 @@ for i in extract_errors:
         {'_id': ObjectId(i['_id'])},
         {'$set': updates}
     )
+    if new_status == 0:
+        print "Resetting extract task with {0} attempts ({1})".format(attempts+1, str(i['_id']))
 
     if new_status == -2:
+
+        print "Flagging extract task with {0} attempts as error ({1})".format(attempts+1, str(i['_id']))
+
         subject = "Geo ({0}) - Error : extract task [{1}]".format(config.branch, str(i['_id']))
 
         last_update = datetime.fromtimestamp(float(i['update_time'])).strftime('%Y-%m-%d %H:%M:%S')
@@ -146,7 +151,13 @@ for i in msr_errors:
         {'$set': updates}
     )
 
+    if new_status == 0:
+        print "Resetting msr task with {0} attempts ({1})".format(attempts+1, str(i['_id']))
+
     if new_status == -2:
+
+        print "Flagging msr task with {0} attempts as error ({1})".format(attempts+1, str(i['_id']))
+
         subject = "Geo ({0}) - Error : msr task [{1}]".format(config.branch, str(i['_id']))
 
         last_update = datetime.fromtimestamp(float(i['update_time'])).strftime('%Y-%m-%d %H:%M:%S')
