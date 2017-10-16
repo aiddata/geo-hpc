@@ -115,8 +115,6 @@ for i in extract_errors:
 
         mail_status = email.send_email(dev_email, subject, message, reply_to=reply_to)
 
-        print mail_status
-
         if not mail_status[0]:
             print mail_status[1]
             raise mail_status[2]
