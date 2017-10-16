@@ -14,6 +14,7 @@ from bson.objectid import ObjectId
 import pandas as pd
 
 from email_utility import GeoEmail
+from extract_utility import merge_file_list
 from extract_check import ExtractItem
 from msr_check import MSRItem
 from geoquery_documentation import DocBuilder
@@ -461,7 +462,7 @@ class QueueToolBox():
                                     "{0}_results.csv".format(request_id))
 
         # merge cached results if all are available
-        merge_status = self.merge_file_list(merge_list, merge_output)
+        merge_status = merge_file_list(merge_list, merge_output)
 
         if not merge_status:
             raise Exception('\tWarning: no extracts merged for '
@@ -537,102 +538,5 @@ class QueueToolBox():
         # remove unzipped files which do not need direct access
         os.remove(geo_pdf_dst)
         # shutil.rmtree(msr_jsons_dir)
-
-
-
-
-
-    def merge_file_list(self, file_list, merge_output):
-        """merge extracts for given file list
-
-        outputs to given csv path
-
-        Args:
-        file_list (list): contains file paths of extract csv files
-                          to merge. may be a tuple, to pass additional
-                          info, but extract file path must be first item
-
-        merge_output (str): absolute path for merged output file
-        """
-
-        field_list = ['asdf_id']
-
-        merged_df = 0
-        for file_info in file_list:
-
-            if isinstance(file_info, tuple):
-                result_csv = file_info[0]
-            else:
-                result_csv = file_info
-
-
-            if not os.path.isfile(result_csv):
-                raise Exception("missing file ({0})".format(result_csv))
-
-
-            result_df = pd.read_csv(result_csv, quotechar='\"',
-                                    na_values='', keep_default_na=False)
-
-
-            exfields = [
-                cname for cname in list(result_df.columns)
-                if cname.startswith("exfield_")
-            ]
-
-            if not isinstance(merged_df, pd.DataFrame):
-                merged_df = result_df.copy(deep=True)
-                merged_df.drop(exfields, axis=1, inplace=True)
-
-
-            result_field = result_csv[result_csv.rindex('/')+1:-4]
-
-            # could add something here that attempt to cap field name at 10 chars
-            #
-            # rasters... lookup mini name, extract method abbrv,
-            #            attempt to include temporal infl
-            # msr... use dynamic_merge_count and something else?
-
-
-            for c in exfields:
-
-                if result_field.endswith('categorical'):
-                    tmp_field = "{0}_{1}".format(
-                        result_field,
-                        c[len("exfield_"):])
-
-                elif result_field.endswith('reliability') or result_field.startswith('worldbank_'):
-                    tmp_split = result_field.split('.')
-                    tmp_field = "{0}.{1}.{2}".format(
-                        tmp_split[0],
-                        tmp_split[1][0:7], # result_field[:-len('reliability')],
-                        c[len("exfield_"):])
-
-                else:
-                    tmp_field = result_field
-
-
-                merged_df[tmp_field] = result_df[c]
-                field_list.append(tmp_field)
-
-
-        if isinstance(merged_df, pd.DataFrame):
-
-            # reorder columns to put id and extract columns first
-            field_list += [i for i in list(merged_df.columns)
-                           if i not in field_list]
-            merged_df = merged_df[field_list]
-
-            # output merged dataframe to csv
-            # generate output folder for merged df using request id
-            make_dir(os.path.dirname(merge_output))
-
-            # write merged df to csv
-            merged_df.to_csv(merge_output, index=False)
-            print '\tResults output to {0}'.format(merge_output)
-            return True
-
-        else:
-            print '\tWarning: no extracts merged'
-            return False
 
 
