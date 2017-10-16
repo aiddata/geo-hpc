@@ -7,15 +7,13 @@ import json
 import warnings
 import shutil
 import hashlib
-import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
 
 import pymongo
 from bson.objectid import ObjectId
 
 import pandas as pd
 
+from email utility import GeoEmail
 from extract_check import ExtractItem
 from msr_check import MSRItem
 from geoquery_documentation import DocBuilder
@@ -54,7 +52,7 @@ class QueueToolBox():
         self.client = None
 
         self.c_queue = None
-        self.c_email = None
+        self.email = None
 
         self.config = None
         self.branch = None
@@ -85,7 +83,8 @@ class QueueToolBox():
         self.client = config.client
 
         self.c_queue = self.client.asdf.det
-        self.c_email = self.client.asdf.email
+
+        self.email = GeoEmail(config)
 
         self.branch = config.name
         self.msr_version = config.versions['mean-surface-rasters']
@@ -189,67 +188,6 @@ class QueueToolBox():
             raise e
 
 
-    def send_email(self, receiver, subject, message):
-        """send an email
-
-        Args:
-            receiver (str): email address to send to
-            subject (str): subject of email
-            message (str): body of email
-
-        Returns:
-            (tuple): status, error message, exception
-            status is bool
-            error message and exception are None on success
-        """
-        reply_to = 'AidData W&M <data@aiddata.org>'
-        sender = 'noreply@aiddata.wm.edu'
-
-        try:
-            pw_search = self.c_email.find({"address": sender},
-                                          {"password":1})
-
-            if pw_search.count() > 0:
-                passwd = str(pw_search[0]["password"])
-            else:
-                msg = "Error - specified email does not exist"
-                return 0, msg, Exception(msg)
-
-        except Exception as e:
-            return 0, "Error looking up email", e
-
-
-        try:
-            # source:
-            # http://stackoverflow.com/questions/64505/
-            #   sending-mail-from-python-using-smtp
-
-            msg = MIMEMultipart()
-
-            msg.add_header('reply-to', reply_to)
-            msg['From'] = reply_to
-            msg['To'] = receiver
-            msg['Subject'] = subject
-            msg.attach(MIMEText(message))
-
-            mailserver = smtplib.SMTP('smtp.gmail.com', 587)
-            # identify ourselves to smtp gmail client
-            mailserver.ehlo()
-            # secure our email with tls encryption
-            mailserver.starttls()
-            # re-identify ourselves as an encrypted connection
-            mailserver.ehlo()
-
-            mailserver.login(sender, passwd)
-            mailserver.sendmail(sender, receiver, msg.as_string())
-            mailserver.quit()
-
-            return 1, None, None
-
-        except Exception as e:
-            return 0, "Error sending email", e
-
-
     def notify_received(self, request_id, email):
         """send email that request was received
         """
@@ -269,7 +207,7 @@ class QueueToolBox():
                         "http://{0}/query/#!/requests/{2}\n\n").format(
                             self.config.det['download_server'], request_id, mail_to)
 
-        mail_status = self.send_email(mail_to, mail_subject, mail_message)
+        mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
         if not mail_status[0]:
             print mail_status[1]
@@ -317,7 +255,7 @@ class QueueToolBox():
             """).format(
                 self.config.det['download_server'], request_id, mail_to)
 
-        mail_status = self.send_email(mail_to, mail_subject, mail_message)
+        mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
         if not mail_status[0]:
             print mail_status[1]
