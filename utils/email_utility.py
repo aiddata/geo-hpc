@@ -9,7 +9,7 @@ class GeoEmail():
     def __init__(self, config):
         self.config = config
         self.client = config.client
-        self.c_email = config.client.email
+        self.c_email = config.client.asdf.email
         self.branch = config.branch
 
         self.defaults = {
