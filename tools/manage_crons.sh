@@ -76,7 +76,7 @@ init() {
     # db_updates
 
     # build_error_check_job - manage errors from jobs
-    build_error_check_job_cron='0 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_error_check_job #geo-hpc'
+    build_error_check_job_cron='*/5 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_error_check_job #geo-hpc'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_error_check_job' | { cat; echo "$build_error_check_job_cron"; } | crontab -
 
     # build_update_trackers_job - index tracker update

@@ -31,30 +31,35 @@ case "$task" in
 
     error_check)
         short_name=ec
+        nodespec=c18x
         ppn=1
         cmd="python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
         ;;
 
     update_trackers)
         short_name=upt
+        nodespec=c18c
         ppn=16
         cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
         ;;
 
     update_extract)
         short_name=upe
+        nodespec=c18c
         ppn=16
         cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}"
         ;;
 
     update_msr)
         short_name=upm
+        nodespec=c18x
         ppn=1
         cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}"
         ;;
 
     det)
         short_name=det
+        nodespec=c18x
         ppn=1
         cmd="python ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
         ;;
@@ -109,7 +114,7 @@ else
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N geo-$short_name-$branch
-#PBS -l nodes=1:c18c:ppn=$ppn
+#PBS -l nodes=1:$nodespec:ppn=$ppn
 #PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -o $branch_dir/log/$task/jobs/$timestamp.$jobtime.$task.job
