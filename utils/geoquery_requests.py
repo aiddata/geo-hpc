@@ -13,7 +13,7 @@ from bson.objectid import ObjectId
 
 import pandas as pd
 
-from email utility import GeoEmail
+from email_utility import GeoEmail
 from extract_check import ExtractItem
 from msr_check import MSRItem
 from geoquery_documentation import DocBuilder

@@ -29,6 +29,12 @@ src="${branch_dir}/source"
 
 case "$task" in
 
+    error_check)
+        short_name=ec
+        ppn=1
+        cmd="python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
+        ;;
+
     update_trackers)
         short_name=upt
         ppn=16

@@ -33,6 +33,10 @@ case $cron in
                             bash "$src"/geo-hpc/tasks/cleanup_repos.sh "$branch" 2>&1 | tee 1>>"$branch_dir"/log/cleanup_repos/"$timestamp".cleanup_repos.log
                             exit 0;;
 
+    "build_error_check_job")    mkdir -p "$branch_dir"/log/error_check
+                                bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" error_check 2>&1 | tee 1>>"$branch_dir"/log/error_check/"$timestamp".error_check.log
+                                exit 0;;
+
     "build_update_trackers_job")    mkdir -p "$branch_dir"/log/update_trackers
                                     bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" update_trackers 2>&1 | tee 1>>"$branch_dir"/log/update_trackers/"$timestamp".update_trackers.log
                                     exit 0;;
