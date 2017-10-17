@@ -291,12 +291,12 @@ class DocBuilder():
         # data.append(['Temporal', ''])
 
 
-        data.append(['Temporal Type', meta['temporal']['name']])
+        # data.append(['Temporal Type', meta['temporal']['name']])
 
-        if meta['temporal']['format'] != 'None':
-            data.append(['Temporal Format', meta['temporal']['format']])
-            data.append(['Temporal Start', str(meta['temporal']['start'])])
-            data.append(['Temporal End', str(meta['temporal']['end'])])
+        # if meta['temporal']['format'] != 'None':
+        #     data.append(['Temporal Format', meta['temporal']['format']])
+        #     data.append(['Temporal Start', str(meta['temporal']['start'])])
+        #     data.append(['Temporal End', str(meta['temporal']['end'])])
 
         data.append(['Bounding Box', str(meta['spatial']['coordinates'])])
 
