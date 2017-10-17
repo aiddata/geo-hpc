@@ -34,6 +34,7 @@
             "featured_datasets": [
                 "afg_adm1_gadm28",
                 "npl_adm1_gadm28",
+                "npl_adm2_gadm28",
                 "uga_adm1_gadm28",
                 "jey_adm0_gadm28",
                 "jor_adm1_gadm28",
