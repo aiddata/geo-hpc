@@ -1,6 +1,6 @@
 <b><font size=14>Notes About Aid Datasets</font></b>
 
-- When requesting aid data using a very specific filter (usually resulting in only a single project match), the location count shown in geo(query) may be inaccurate. This can results in aid filters which appear valid while building your request, but result in no aid data in your results csv. This is due to a slight reduction in the accuracy of location counts for the web page in order to make the responses fast enough for user interaction.
+- When requesting aid data using a very specific filter (usually resulting in only a single project match), the location count shown in geo(query) may be inaccurate. This can result in aid filters which appear valid while building your request, but result in no aid data in your results csv. This is due to a slight reduction in the accuracy of location counts for the web page in order to make the responses fast enough for user interaction.
 
 - The year filter for aid data is based on project start and end dates (determined by earliest and latest transactions). Because projects are represented by year ranges, multiple aid data selections for individual years may contain duplicate aid. This will result in an inflated total if you sum the aid from each individual year (compared to a single selection for all years). Limited source information on individual or even yearly transactions for a project prevent us from offering more granular temporal aid values for projects.
 

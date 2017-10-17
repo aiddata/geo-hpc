@@ -15,7 +15,7 @@ This is not a license. It is simply a handy reference for understanding the ODC-
 
 <b><font size=14>Acknowledgements</font></b>
 
-GeoQuery is an academic research project based out of AidData at William and Mary dedicated to enabling the use of spatial data in decisionmaking.
+GeoQuery is an academic research project based out of AidData at William and Mary dedicated to enabling the use of spatial data in decision-making.
 
 This work was performed in part using computational facilities at the College of William and Mary which were provided with assistance from the National Science Foundation, the Virginia Port Authority, and Virginia's Commonwealth Technology Research Fund.
 
