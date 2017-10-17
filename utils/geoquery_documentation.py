@@ -83,12 +83,13 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.3*inch))
         self.add_timeline()
         self.Story.append(Spacer(1, 0.3*inch))
+        self.add_cite_and_contents()
         self.Story.append(PageBreak())
 
         self.add_meta()
         self.Story.append(PageBreak())
 
-        self.add_general()
+        self.add_notes()
         self.Story.append(PageBreak())
 
         self.add_additional()
@@ -142,6 +143,7 @@ class DocBuilder():
         self.Story.append(t)
 
 
+
     # full request timeline / other processing info
     def add_timeline(self):
 
@@ -167,17 +169,16 @@ class DocBuilder():
 
         self.Story.append(t)
 
-
-
-    # intro paragraphs
-    def add_general(self):
+    def add_cite_and_contents(self):
 
         with open(self.assets_dir + '/templates/general.txt') as general:
             for line in general:
                 p = Paragraph(line, self.styles['BodyText'])
                 self.Story.append(p)
 
-        self.Story.append(PageBreak())
+
+    # intro paragraphs
+    def add_notes(self):
 
         with open(self.assets_dir + '/templates/field_names.txt') as field_names:
             for line in field_names:
