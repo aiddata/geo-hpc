@@ -633,7 +633,7 @@ class ExtractObject():
 
         for f in feats:
             try:
-                stats = list(self.run_extract(raster, vector=f, kwargs))
+                stats = list(self.run_extract(raster, vector=f, **kwargs))
 
                 if len(stats) != 1:
                     raise Exception('multiple extract results for single '
