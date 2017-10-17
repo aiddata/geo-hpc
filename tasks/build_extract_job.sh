@@ -85,7 +85,7 @@ build_job() {
 
         if [ "$queue_status" = "ready" ]; then
             job_type=default
-            if [ $jobname = "ex1"]; then
+            if [ $jobname = "ex1" ]; then
                 echo '... no priority tasks found'
                 exit 0
             fi
