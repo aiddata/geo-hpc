@@ -39,10 +39,10 @@ qstat=$($torque_path/qstat -nu $USER)
 
 # -----------------------------------------------------------------------------
 
-
+# generic vortex-alpha job
 jobname=ex
 nodespec=c18c
-jobcount=5
+max_jobs=6
 nodes=1
 ppn=16
 
@@ -50,9 +50,21 @@ build_job
 
 # ----------------------------------------
 
+# priority only vortex-alpha job
+jobname=ex1
+nodespec=c18c
+max_jobs=1
+nodes=1
+ppn=16
+
+build_job
+
+# ----------------------------------------
+
+# generic vortex (c18a) job
 jobname=ex2
 nodespec=c18a
-jobcount=-1
+max_jobs=0
 nodes=1
 ppn=12
 
@@ -64,12 +76,11 @@ build_job
 
 build_job() {
 
-    job_count=$(echo "$qstat" | grep 'geo-$jobname-'"$branch" | wc -l)
+    active_jobs=$(echo "$qstat" | grep 'geo-$jobname-'"$branch" | wc -l)
 
     # if echo "$qstat" | grep -q 'geo-$jobname-'"$branch"; then
 
-    # change this # to be 1 less than desired number of jobs
-    if [[ $job_count -gt 5 ]]; then
+    if [[ $active_jobs -ge $max_jobs ]]; then
 
         printf "%0.s-" {1..40}
         echo -e "\n"
@@ -82,7 +93,7 @@ build_job() {
     else
 
         # job_type=default
-        # if [[ $job_count -eq 2 ]]; then
+        # if [[ $active_jobs -eq 2 ]]; then
         #     job_type=det
         # fi
 
@@ -107,6 +118,10 @@ build_job() {
 
         if [ "$queue_status" != "ready" ]; then
             job_type=default
+            if [ $jobname == "ex1"]; then
+                echo '... no priority tasks found'
+                exit 0
+            fi
 
         elif [ "$queue_status" = "det" ]; then
             job_type=det
@@ -128,7 +143,7 @@ build_job() {
         echo '... items found in queue'
         echo -e "\n"
 
-        echo "Building <"$jobname"> job #"$job_count" ("$job_type" job)..."
+        echo "Building <"$jobname"> job #"$active_jobs" ("$job_type" job)..."
 
         job_path=$(mktemp)
 
@@ -143,14 +158,14 @@ build_job() {
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N geo-$jobname-$branch
-#PBS -l nodes=$nodes:c18c:ppn=$ppn
+#PBS -l nodes=$nodes:$nodespec:ppn=$ppn
 #PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/extract/jobs/$timestamp.$jobtime.extract.job
 #PBS -V
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
-mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type
+mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
 # mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
 
 EOF
