@@ -88,7 +88,7 @@ else:
 c_msr = client.asdf.msr
 db_trackers = client.trackers
 
-version = config.versions["extract-scripts"]
+version = config.versions["extracts"]
 
 
 # -------------------------------------

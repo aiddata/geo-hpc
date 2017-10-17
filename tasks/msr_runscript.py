@@ -101,7 +101,7 @@ job.comm.Barrier()
 # get / check version
 
 
-version = config.versions["mean-surface-rasters"]
+version = config.versions["msr"]
 
 
 # -------------------------------------

@@ -63,7 +63,7 @@ c_asdf = client.asdf.data
 c_msr = client.asdf.msr
 db_releases = client.releases
 
-version = config.versions["mean-surface-rasters"]
+version = config.versions["msr"]
 
 
 # set active datasets that are not in config to inactive

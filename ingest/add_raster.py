@@ -50,7 +50,7 @@ def run(path=None, client=None, version=None, config=None,
     else:
         quit('Neither config nor client provided.')
 
-    version = config.versions["asdf-rasters"]
+    version = config.versions["raster-ingest"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)

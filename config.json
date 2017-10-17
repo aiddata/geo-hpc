@@ -22,12 +22,13 @@
         "inactive_iso3": [
         ],
         "versions": {
-            "asdf": "0.4.1",
-            "asdf-gadm": "0.4.1",
-            "asdf-releases": "0.4.1",
-            "asdf-rasters": "0.4.1",
-            "extract-scripts": "0.3.1",
-            "mean-surface-rasters": "0.11.1"
+            "geo": "0.4.1",
+            "gadm-ingest": "0.4.1",
+            "release-ingest": "0.4.1",
+            "raster-ingest": "0.4.1",
+            "boundary-ingest": "0.4.1",
+            "extracts": "0.3.1",
+            "msr": "0.11.1"
         },
         "det": {
             "download_server": "geo.aiddata.org",

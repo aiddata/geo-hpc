@@ -49,7 +49,7 @@ def run(path=None, client=None, version=None, config=None,
     else:
         quit('Neither config nor client provided.')
 
-    version = config.versions["asdf-releases"]
+    version = config.versions["release-ingest"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)

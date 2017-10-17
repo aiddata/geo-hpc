@@ -57,7 +57,7 @@ reply_to = "Geo Dev <{0}>".format(dev_email)
 c_extracts = client.asdf.extracts
 
 extract_errors = c_extracts.find({
-    'version': config.versions['extract-scripts'],
+    'version': config.versions['extracts'],
     '$or': [
         {'status': -1},
         {
@@ -127,7 +127,7 @@ for i in extract_errors:
 c_msr = client.asdf.msr
 
 msr_errors = c_msr.find({
-    'version': config.versions['mean-surface-rasters'],
+    'version': config.versions['msr'],
     'status': -1
 })
 

@@ -106,7 +106,7 @@ outdated_data_dirnames = [i for i in os.listdir(data_dir)
 client = config.client
 c_asdf = client.asdf.data
 
-version = config.versions["asdf-releases"]
+version = config.versions["release-ingest"]
 
 
 if len(sys.argv) >= 3:

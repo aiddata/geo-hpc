@@ -88,8 +88,8 @@ class QueueToolBox():
         self.email = GeoEmail(config)
 
         self.branch = config.name
-        self.msr_version = config.versions['mean-surface-rasters']
-        self.extract_version = config.versions['extract-scripts']
+        self.msr_version = config.versions['msr']
+        self.extract_version = config.versions['extracts']
         return config
 
 

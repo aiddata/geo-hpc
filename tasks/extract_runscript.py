@@ -69,7 +69,7 @@ job.comm.Barrier()
 # -------------------------------------
 # get / check version
 
-version = config.versions["extract-scripts"]
+version = config.versions["extracts"]
 
 
 # -------------------------------------

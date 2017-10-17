@@ -51,7 +51,7 @@ def run(path=None, client=None, version=None, config=None,
     else:
         quit('Neither config nor client provided.')
 
-    version = config.versions["asdf-gadm"]
+    version = config.versions["gadm-ingest"]
 
     # update mongo class instance
     dbu = MongoUpdate(client)
