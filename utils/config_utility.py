@@ -39,7 +39,7 @@ class BranchConfig():
         self.connection_timeout_ms = 60000 * 3
 
 
-    def set_connection_timeout_ms(self, value)
+    def set_connection_timeout_ms(self, value):
         self.connection_timeout_ms = int(value)
 
 
@@ -124,7 +124,7 @@ class BranchConfig():
                 break
 
 
-    def print_connection_state(self)
+    def print_connection_state(self):
         if self.connection_status == 0:
             out = "success"
         else:
