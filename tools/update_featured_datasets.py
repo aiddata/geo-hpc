@@ -45,14 +45,14 @@ else:
 
 
     # remove featured tag from datasets not in list
-    db.data.update(
+    c_data.update(
         {'name': {'$nin': featured_datasets}},
         {'$pull':{'extras.tags': 'featured'}},
         {'multi':1}
     )
 
     # add featured tag to datasets in list
-    db.data.update(
+    c_data.update(
         {'name': {'$in': featured_datasets}},
         {'$addToSet':{'extras.tags': 'featured'}},
         {'multi':1}
