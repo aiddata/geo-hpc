@@ -236,11 +236,9 @@ class DocBuilder():
                             dset['name'], len(colnames_list)
                         )
 
-            # data.append(['Title', dset['title']])
             data.append(['Column Names ', colnames])
-            data.append(['Dataset', dset['name']])
 
-            data.append(['Temporal Type', dset['temporal_type']])
+            # data.append(['Temporal Type', dset['temporal_type']])
 
             temporal_raw = [f['name'].split('_')[-1] for f in dset['files']]
 
@@ -271,9 +269,7 @@ class DocBuilder():
                 colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
             ###
 
-            # data.append(['Title', dset['title']]) # release data do not have title in request object
             data.append(['Column Names ', colnames])
-            data.append(['Dataset ', dset['dataset']])
             data.append([pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])])
 
             for f in dset['filters']:
@@ -284,6 +280,7 @@ class DocBuilder():
 
 
 
+        data.append(['','']
         data.append(['Description', meta['description']])
         data.append(['Details', details])
 
@@ -297,7 +294,6 @@ class DocBuilder():
         data.append(['Temporal Type', meta['temporal']['name']])
 
         if meta['temporal']['format'] != 'None':
-            data.append(['Temporal Name', meta['temporal']['name']])
             data.append(['Temporal Format', meta['temporal']['format']])
             data.append(['Temporal Start', str(meta['temporal']['start'])])
             data.append(['Temporal End', str(meta['temporal']['end'])])
