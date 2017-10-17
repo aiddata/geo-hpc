@@ -44,7 +44,8 @@
                 "ltu_adm1_gadm28",
                 "lso_adm1_gadm28",
                 "lux_adm1_gadm28",
-                "lva_adm1_gadm28"
+                "lva_adm1_gadm28",
+                "mac_adm1_gadm28"
             ],
             "help": [
                 {
