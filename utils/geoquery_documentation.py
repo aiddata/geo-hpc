@@ -280,7 +280,7 @@ class DocBuilder():
 
 
 
-        data.append(['','']
+        data.append(['',''])
         data.append(['Description', meta['description']])
         data.append(['Details', details])
 
