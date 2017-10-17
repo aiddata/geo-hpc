@@ -254,7 +254,7 @@ class DocBuilder():
             data.append(['Temporal Selection', ', '.join(temporal_str)])
 
             data.append(['Extract Types Selected', ', '.join([
-                "{0} ({1})".format(i, dset['options']['extract_types_info'][i])
+                "{0} ({1})".format(i, meta['options']['extract_types_info'][i])
                 for i in dset['options']['extract_types']
             ])])
 
