@@ -37,39 +37,6 @@ torque_path=/usr/local/torque-6.1.1.1/bin
 qstat=$($torque_path/qstat -nu $USER)
 
 
-# -----------------------------------------------------------------------------
-
-# generic vortex-alpha job
-jobname=ex
-nodespec=c18c
-max_jobs=6
-nodes=1
-ppn=16
-
-build_job
-
-# ----------------------------------------
-
-# priority only vortex-alpha job
-jobname=ex1
-nodespec=c18c
-max_jobs=1
-nodes=1
-ppn=16
-
-build_job
-
-# ----------------------------------------
-
-# generic vortex (c18a) job
-jobname=ex2
-nodespec=c18a
-max_jobs=0
-nodes=1
-ppn=12
-
-build_job
-
 
 # -----------------------------------------------------------------------------
 
@@ -184,3 +151,36 @@ EOF
 }
 
 
+# -----------------------------------------------------------------------------
+
+
+# generic vortex-alpha job
+jobname=ex
+nodespec=c18c
+max_jobs=6
+nodes=1
+ppn=16
+
+build_job
+
+# ----------------------------------------
+
+# priority only vortex-alpha job
+jobname=ex1
+nodespec=c18c
+max_jobs=1
+nodes=1
+ppn=16
+
+build_job
+
+# ----------------------------------------
+
+# generic vortex (c18a) job
+jobname=ex2
+nodespec=c18a
+max_jobs=0
+nodes=1
+ppn=12
+
+build_job
