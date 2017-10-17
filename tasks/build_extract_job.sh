@@ -83,9 +83,9 @@ build_job() {
         queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
 
 
-        if [ "$queue_status" != "ready" ]; then
+        if [ "$queue_status" = "ready" ]; then
             job_type=default
-            if [ $jobname == "ex1"]; then
+            if [ $jobname = "ex1"]; then
                 echo '... no priority tasks found'
                 exit 0
             fi
