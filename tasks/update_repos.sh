@@ -97,6 +97,7 @@ check_repo() {
                 echo -e "\n"
                 echo "Updating config db ..."
                 python "$src"/git/geo-hpc/tools/add_config_to_mongo.py "$branch"
+                python "$src"/git/geo-hpc/tools/update_featured_datasets.py "$branch"
             fi
 
 

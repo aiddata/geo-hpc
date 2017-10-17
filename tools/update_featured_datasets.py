@@ -2,13 +2,6 @@
 loads config.json options from specified branch into mongodb
 
 mongodb db/collection: info->config
-
-Note:
-BranchConfig instance from config_utility loads directly from config.json,
-not the existing config collections. May be better to have config_utility
-load from config collection and this script load directly from config.json
-(potential change in future)
-
 """
 
 
@@ -46,14 +39,23 @@ else:
     import json
 
     client = config.client
+    c_data = client.asdf.data
 
-    branch_info = config.branch_settings
+    featured_datasets = config.det['featured_datasets']
 
-    c_config = client.asdf.config
 
-    # c_config.remove({'name': branch_info['name']})
-    c_config.remove({})
+    # remove featured tag from datasets not in list
+    db.data.update(
+        {'name': {'$nin': featured_datasets}},
+        {'$pull':{'extras.tags': 'featured'}},
+        {'multi':1}
+    )
 
-    c_config.insert(branch_info)
+    # add featured tag to datasets in list
+    db.data.update(
+        {'name': {'$in': featured_datasets}},
+        {'$addToSet':{'extras.tags': 'featured'}},
+        {'multi':1}
+    )
 
     print "success"
