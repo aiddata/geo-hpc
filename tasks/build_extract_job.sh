@@ -43,9 +43,8 @@ qstat=$($torque_path/qstat -nu $USER)
 
 build_job() {
 
-    active_jobs=$(echo "$qstat" | grep 'geo-$jobname-'"$branch" | wc -l)
+    active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
 
-    # if echo "$qstat" | grep -q 'geo-$jobname-'"$branch"; then
 
     if [[ $active_jobs -ge $max_jobs ]]; then
 
@@ -58,11 +57,6 @@ build_job() {
         echo -e "\n"
 
     else
-
-        # job_type=default
-        # if [[ $active_jobs -eq 2 ]]; then
-        #     job_type=det
-        # fi
 
         job_dir="$branch_dir"/log/extract/jobs
         mkdir -p $job_dir
