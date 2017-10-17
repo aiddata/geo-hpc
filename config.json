@@ -34,19 +34,12 @@
             "featured_datasets": [
                 "afg_adm1_gadm28",
                 "npl_adm1_gadm28",
-                "npl_adm2_gadm28",
                 "uga_adm1_gadm28",
-                "jey_adm0_gadm28",
-                "jor_adm1_gadm28",
-                "kaz_adm1_gadm28",
-                "ita_adm2_gadm28",
-                "ken_adm1_gadm28",
-                "can_adm2_gadm28",
-                "ltu_adm1_gadm28",
-                "lso_adm1_gadm28",
-                "lux_adm1_gadm28",
-                "lva_adm1_gadm28",
-                "mac_adm1_gadm28"
+                "viirs_vcmcfg_dnb_composites_v10_yearly_max",
+                "ltdr_avhrr_ndvi_v4_yearly",
+                "esa_landcover_v207",
+                "wdpa_iucn_cat_201704",
+                "distance_to_gold_v12"
             ],
             "help": [
                 {
