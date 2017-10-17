@@ -50,7 +50,7 @@ det_requests = c_extracts.find({'status': 0, 'priority': {'$gt': -1}}).count()
 request_count = c_extracts.find({'status': 0}).count()
 
 # make sure request was found
-if user_request_count > 0:
+if det_requests > 0:
     print "det"
 
 elif request_count > 0:
