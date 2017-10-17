@@ -86,9 +86,6 @@ class DocBuilder():
         self.add_general()
         self.Story.append(PageBreak())
 
-        self.add_overview()
-        self.Story.append(PageBreak())
-
         self.add_meta()
         self.Story.append(PageBreak())
 
@@ -201,149 +198,7 @@ class DocBuilder():
 
 
 
-    # request overview
-    def add_overview(self):
-
-
-        ptext = '<b><font size=14>Request Overview</font></b>'
-        self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.25*inch))
-
-        ptext = '<i>Note: This section only contains an overview of boundary and data selections. For meta data, see the "Meta Information" section.</i>'
-        self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.25*inch))
-
-        # ----------------------------------------
-
-        # boundary selection
-        ptext = '<b><font size=10>Boundary Selection</font></b>'
-        self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        self.Story.append(Spacer(1, 0.05*inch))
-
-        data = [
-            ['Title', self.request['boundary']['title']],
-            ['Dataset', self.request['boundary']['name']],
-            ['Group', self.request['boundary']['group']],
-            ['Description',  self.request['boundary']['description']]
-        ]
-
-        data = [[i[0], pg(i[1], 1)] for i in data]
-        t = Table(data)
-        t.setStyle(TableStyle([
-            ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-            ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-        ]))
-
-        self.Story.append(t)
-        self.Story.append(Spacer(1, 0.25*inch))
-
-        # ----------------------------------------
-
-        # column information / selections
-        # ptext = '<b><font size=12>Data Selections</font></b>'
-        # self.Story.append(Paragraph(ptext, self.styles['Normal']))
-        # self.Story.append(Spacer(1, 0.15*inch))
-
-        selection_count = 0
-        for dset in self.request['release_data']:
-            # for dset in self.request['release_data'].values():
-            selection_count += 1
-            ptext = '<font size=10><b>Data Selection {0} - {1}</b></font>'.format(selection_count, dset['custom_name'])
-            self.Story.append(Paragraph(ptext, self.styles['Normal']))
-            self.Story.append(Spacer(1, 0.05*inch))
-
-            colnames = ', '.join([
-                '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], i)
-                for i in ['sum', 'potential', 'reliability']
-            ])
-
-            ###
-            if dset['dataset'].startswith('worldbank'):
-                colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
-            ###
-
-            data = [
-                # ['Title', dset['title']], # release data do not have title in request object
-                ['Column Names ', colnames],
-                ['Dataset ', dset['dataset']],
-                [pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])]
-            ]
-
-            for f in dset['filters']:
-                try:
-                    data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
-                except:
-                    data.append([f, ', '.join([i.encode('ascii', 'ignore') for i in dset['filters'][f]])])
-
-            data = [[i[0], pg(i[1], 2)] for i in data]
-            t = Table(data)
-            t.setStyle(TableStyle([
-                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-            ]))
-
-            self.Story.append(t)
-            self.Story.append(Spacer(1, 0.25*inch))
-
-
-        for dset in self.request['raster_data']:
-            selection_count += 1
-
-            ptext = '<font size=10><b>Data Selection {0} - {1}</b></font>'.format(selection_count, dset['custom_name'])
-            self.Story.append(Paragraph(ptext, self.styles['Normal']))
-            self.Story.append(Spacer(1, 0.05*inch))
-
-
-            colnames_list =  [
-                '{0}.{1}.{2}'.format(dset['name'], i, j)
-                for i in [f['name'].split('_')[-1] for f in dset['files']]
-                for j in dset['options']['extract_types']
-            ]
-
-            colnames = ('Format: "{0}.&lt;temporal&gt;.&lt;method&gt;" <br /> '
-                        'for all combinations of &lt;temporal&gt; and &lt;method&gt; '
-                        'which can be found in the "Temporal Selection" and '
-                        '"Extract Types Selected" fields below '
-                        '({1} columns total)').format(
-                            dset['name'], len(colnames_list)
-                        )
-
-            data = [
-                # ['Title', dset['title']],
-                ['Column Names ', colnames],
-                ['Dataset', dset['name']],
-            ]
-
-            data.append(['Temporal Type', dset['temporal_type']])
-
-            temporal_raw = [f['name'].split('_')[-1] for f in dset['files']]
-
-            if 'none' in temporal_raw:
-                temporal_str = temporal_raw
-            else:
-                temporal_int = [int(s) for s in temporal_raw]
-                temporal_sorted = sorted(temporal_int, reverse=True)
-                temporal_str = [str(ts) for ts in temporal_sorted]
-
-            data.append(['Temporal Selection', ', '.join(temporal_str)])
-
-            data.append(['Extract Types Selected', ', '.join(dset['options']['extract_types'])])
-
-
-            data = [[i[0], pg(i[1], 1)] for i in data]
-            t = Table(data)
-            t.setStyle(TableStyle([
-                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-            ]))
-
-            self.Story.append(t)
-            self.Story.append(Spacer(1, 0.25*inch))
-
-
-
-
-    def build_meta(self, name, item_type):
+    def build_meta(self, name, item_type, dset):
 
         # get metadata for dataset from asdf->data collection
         meta = self.c_asdf.find_one({'name': name})
@@ -362,15 +217,82 @@ class DocBuilder():
             ['Title', meta['title']],
             ['Name', meta['name']],
             ['Version', str(meta['version'])],
-            ['Description', meta['description']],
-            ['Details', details],
-
-            ['Type', meta['type']],
-            ['File Format', meta['file_format']],
-            ['File Extension', meta['file_extension']],
-            ['Scale', meta['scale']],
-            ['Temporal', '']
         ]
+
+
+        if item_type == 'raster':
+
+            colnames_list =  [
+                '{0}.{1}.{2}'.format(dset['name'], i, j)
+                for i in [f['name'].split('_')[-1] for f in dset['files']]
+                for j in dset['options']['extract_types']
+            ]
+
+            colnames = ('Format: "{0}.&lt;temporal&gt;.&lt;method&gt;" <br /> '
+                        'for all combinations of &lt;temporal&gt; and &lt;method&gt; '
+                        'which can be found in the "Temporal Selection" and '
+                        '"Extract Types Selected" fields below '
+                        '({1} columns total)').format(
+                            dset['name'], len(colnames_list)
+                        )
+
+            # data.append(['Title', dset['title']])
+            data.append(['Column Names ', colnames])
+            data.append(['Dataset', dset['name']])
+
+            data.append(['Temporal Type', dset['temporal_type']])
+
+            temporal_raw = [f['name'].split('_')[-1] for f in dset['files']]
+
+            if 'none' in temporal_raw:
+                temporal_str = temporal_raw
+            else:
+                temporal_int = [int(s) for s in temporal_raw]
+                temporal_sorted = sorted(temporal_int, reverse=True)
+                temporal_str = [str(ts) for ts in temporal_sorted]
+
+            data.append(['Temporal Selection', ', '.join(temporal_str)])
+
+            data.append(['Extract Types Selected', ', '.join([
+                "{0} ({1})".format(i, dset['options']['extract_types_info'][i])
+                for i in dset['options']['extract_types']
+            ])])
+
+
+        elif item_type == 'release':
+
+            colnames = ', '.join([
+                '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], i)
+                for i in ['sum', 'potential', 'reliability']
+            ])
+
+            ###
+            if dset['dataset'].startswith('worldbank'):
+                colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
+            ###
+
+            # data.append(['Title', dset['title']]) # release data do not have title in request object
+            data.append(['Column Names ', colnames])
+            data.append(['Dataset ', dset['dataset']])
+            data.append([pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])])
+
+            for f in dset['filters']:
+                try:
+                    data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
+                except:
+                    data.append([f, ', '.join([i.encode('ascii', 'ignore') for i in dset['filters'][f]])])
+
+
+
+        data.append(['Description', meta['description']])
+        data.append(['Details', details])
+
+        # data.append(['Type', meta['type']])
+        # data.append(['File Format', meta['file_format']])
+        # data.append(['File Extension', meta['file_extension']])
+        # data.append(['Scale', meta['scale']])
+        # data.append(['Temporal', ''])
+
 
         data.append(['Temporal Type', meta['temporal']['name']])
 
@@ -380,17 +302,13 @@ class DocBuilder():
             data.append(['Temporal Start', str(meta['temporal']['start'])])
             data.append(['Temporal End', str(meta['temporal']['end'])])
 
-
         data.append(['Bounding Box', str(meta['spatial']['coordinates'])])
-
 
         data.append(['Date Added', str(meta['asdf']['date_added'])])
         data.append(['Date Updated', str(meta['asdf']['date_updated'])])
 
-
         if 'sources_name' in meta['extras']:
             data.append(['Source Name', meta['extras']['sources_name']])
-
 
         def enforce_max_word_length(string, max_chars=80):
             raw_word_list = string.split(" ")
@@ -407,7 +325,6 @@ class DocBuilder():
                 short_word_list += [fixed_word]
             return " ".join(short_word_list)
 
-
         if 'sources_web' in meta['extras']:
             tmp_sources_web = meta['extras']['sources_web']
             tmp_sources_web = enforce_max_word_length(tmp_sources_web)
@@ -420,21 +337,21 @@ class DocBuilder():
 
 
         if item_type == 'boundary':
-            data.append(['Group', meta['options']['group']])
-            data.append(['Group Class', meta['options']['group_class']])
-            data.append(['Group Title', meta['options']['group_title']])
+            pass
+            # data.append(['Group', meta['options']['group']])
+            # data.append(['Group Class', meta['options']['group_class']])
+            # data.append(['Group Title', meta['options']['group_title']])
 
         elif item_type == 'raster':
             data.append(['Variable Description', meta['options']['variable_description']])
             data.append(['Resolution', str(meta['options']['resolution'])])
-            data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
+            # data.append(['Extract Types', ', '.join(meta['options']['extract_types'])])
             data.append(['Factor', str(meta['options']['factor'])])
 
         elif item_type == 'release':
-            download_link = 'http://aiddata.org/geocoded-datasets'
+            download_link = 'http://aiddata.org/datasets'
             # download_link = 'https://github.com/AidData-WM/public_datasets/tree/master/geocoded' #+ meta['data_set_preamble'] +'_'+ meta['data_type'] +'_v'+ str(meta['version']) + '.zip'
             data.append(['Download Link', download_link])
-
 
         return data
 
@@ -473,12 +390,14 @@ class DocBuilder():
             if dset['dataset'] not in meta_log:
                 meta_log.append(dset['dataset'])
 
-                ptext = '<font size=10><b>Dataset {0}</b></font>'.format(len(meta_log))
+                ptext = '<font size=10><b>Dataset {0} - {1}</b></font>'.format(
+                    len(meta_log), dset['custom_name'])
+
                 self.Story.append(Paragraph(ptext, self.styles['Normal']))
                 self.Story.append(Spacer(1, 0.05*inch))
 
                 # build dataset meta table array
-                data = self.build_meta(dset['dataset'], 'release')
+                data = self.build_meta(dset['dataset'], 'release', dset)
 
                 data = [[i[0], pg(i[1], 2)] for i in data]
                 t = Table(data)
@@ -496,12 +415,13 @@ class DocBuilder():
             if dset['name'] not in meta_log:
                 meta_log.append(dset['name'])
 
-                ptext = '<font size=10><b>Dataset {0}</b></font>'.format(len(meta_log))
+                ptext = '<font size=10><b>Dataset {0} - {1}</b></font>'.format(
+                    len(meta_log), dset['custom_name'])
                 self.Story.append(Paragraph(ptext, self.styles['Normal']))
                 self.Story.append(Spacer(1, 0.05*inch))
 
                 # build dataset meta table array
-                data = self.build_meta(dset['name'], dset['type'])
+                data = self.build_meta(dset['name'], dset['type'], dset)
 
                 data = [[i[0], pg(i[1], 2)] for i in data]
                 t = Table(data)
