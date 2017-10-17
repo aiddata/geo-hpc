@@ -44,12 +44,16 @@ import pymongo
 
 client = pymongo.MongoClient(config.database)
 
-extracts = client.asdf.extracts
+c_extracts = client.asdf.extracts
 
-request_count = extracts.find({'status':0}).count()
+det_requests = c_extracts.find({'status': 0, 'priority': {'$gt': -1}}).count()
+request_count = c_extracts.find({'status': 0}).count()
 
 # make sure request was found
-if request_count > 0:
+if user_request_count > 0:
+    print "det"
+
+elif request_count > 0:
     print "ready"
 
 else:

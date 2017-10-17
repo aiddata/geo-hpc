@@ -133,17 +133,38 @@ job.job_type = 'default'
 if len(sys.argv) == 3:
     job.job_type = sys.argv[2]
 
+
 if job.job_type == 'default':
     job.generator_list = ['auto', 'det']
     job.classification_list = ['raster', 'msr']
 
-if job.job_type == 'det':
+elif job.job_type == 'det':
     job.generator_list = ['det']
     job.classification_list = ['raster', 'msr']
 
 
 if job.rank == 0:
     print "running job type: {0}".format(job.job_type)
+
+
+# -------------------------------------
+# nodespec definitions for request queries
+
+job.nodespec = 'c18c'
+if len(sys.argv) == 4:
+    job.nodespec = sys.argv[3]
+
+
+if job.nodespec == 'c18c':
+    job.pixel_limit = 250000
+
+elif job.nodespec == 'c18a':
+    job.pixel_limit = 100000
+
+
+if job.rank == 0:
+    print "running job nodespec: {0}".format(job.nodespec)
+
 
 
 # =============================================================================
@@ -280,7 +301,7 @@ def tmp_worker_job(self, task_index, task_data):
                 data_name, raster, extract_type)
 
 
-    run_data = exo.run_feature_extract(raster)
+    run_data = exo.run_feature_extract(raster, pixel_limit=job.pixel_limit)
 
 
     # generate output path

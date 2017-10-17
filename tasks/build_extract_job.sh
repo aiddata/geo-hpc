@@ -30,77 +30,109 @@ src="${branch_dir}/source"
 walltime="180:00:00"
 
 
+torque_path=/usr/local/torque-6.1.1.1/bin
+
+
 # check if job needs to be run
-qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
-job_count=$(echo "$qstat" | grep 'geo-ex-'"$branch" | wc -l)
-
-# if echo "$qstat" | grep -q 'geo-ex-'"$branch"; then
-
-# change this # to be 1 less than desired number of jobs
-if [[ $job_count -gt 5 ]]; then
-
-    printf "%0.s-" {1..40}
-    echo -e "\n"
-
-    echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
-
-    echo "$qstat"
-    echo -e "\n"
-
-else
-
-    job_type=default
-    # if [[ $job_count -eq 2 ]]; then
-    #     job_type=det
-    # fi
+qstat=$($torque_path/qstat -nu $USER)
 
 
-    job_dir="$branch_dir"/log/extract/jobs
-    mkdir -p $job_dir
+# -----------------------------------------------------------------------------
 
-    shopt -s nullglob
-    for i in "$job_dir"/*.job; do
-        cat "$i"
-        rm "$i"
 
-        printf "%0.s-" {1..80}
+jobname=ex
+nodespec=c18c
+jobcount=5
+nodes=1
+ppn=16
+
+build_job
+
+# ----------------------------------------
+
+jobname=ex2
+nodespec=c18a
+jobcount=-1
+nodes=1
+ppn=12
+
+build_job
+
+
+# -----------------------------------------------------------------------------
+
+
+build_job() {
+
+    job_count=$(echo "$qstat" | grep 'geo-$jobname-'"$branch" | wc -l)
+
+    # if echo "$qstat" | grep -q 'geo-$jobname-'"$branch"; then
+
+    # change this # to be 1 less than desired number of jobs
+    if [[ $job_count -gt 5 ]]; then
+
+        printf "%0.s-" {1..40}
         echo -e "\n"
-    done
+
+        echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
+
+        echo "$qstat"
+        echo -e "\n"
+
+    else
+
+        # job_type=default
+        # if [[ $job_count -eq 2 ]]; then
+        #     job_type=det
+        # fi
+
+        job_dir="$branch_dir"/log/extract/jobs
+        mkdir -p $job_dir
+
+        shopt -s nullglob
+        for i in "$job_dir"/*.job; do
+            cat "$i"
+            rm "$i"
+
+            printf "%0.s-" {1..80}
+            echo -e "\n"
+        done
 
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
+        echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
 
-    echo "Checking for items in extract queue..."
-    queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
+        echo "Checking for items in extract queue..."
+        queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
 
 
-    if [ "$queue_status" != "ready" ]; then
+        if [ "$queue_status" != "ready" ]; then
+            job_type=default
 
-        if [ "$queue_status" = "error" ]; then
-            echo '... error connecting to extract queue'
-            exit 1
-        fi
+        elif [ "$queue_status" = "det" ]; then
+            job_type=det
 
-        if [ "$queue_status" = "empty" ]; then
+        elif [ "$queue_status" = "empty" ]; then
             echo '... extract queue empty'
             exit 0
+
+        elif [ "$queue_status" = "error" ]; then
+            echo '... error connecting to extract queue'
+            exit 1
+
+        else
+            echo '... unknown error checking extract queue'
+            exit 2
+
         fi
 
-        echo '... unknown error checking extract queue'
-        exit 2
+        echo '... items found in queue'
+        echo -e "\n"
 
-    fi
+        echo "Building <"$jobname"> job #"$job_count" ("$job_type" job)..."
 
-    echo '... items found in queue'
-    echo -e "\n"
+        job_path=$(mktemp)
 
-    echo "Building job #"$job_count" ("$job_type" job)..."
-
-    job_path=$(mktemp)
-
-    nodes=1
-    ppn=16
-    total=$(($nodes * $ppn))
+        total=$(($nodes * $ppn))
 
 
 # NOTE: just leave this heredoc unindented
@@ -110,7 +142,7 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N geo-ex-$branch
+#PBS -N geo-$jobname-$branch
 #PBS -l nodes=$nodes:c18c:ppn=$ppn
 #PBS -l walltime=$walltime
 #PBS -j oe
@@ -119,123 +151,21 @@ cat <<EOF >> "$job_path"
 
 echo -e "\n *** Running extract-scripts autoscript.py... \n"
 mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type
-# mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type
+# mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
 
 EOF
 
-    # cd "$branch_dir"/log/extract/jobs
-    /usr/local/torque-6.0.2/bin/qsub "$job_path"
+        # cd "$branch_dir"/log/extract/jobs
+        $torque_path/qsub "$job_path"
 
-    echo "Running job..."
-    echo -e "\n"
-
-    rm "$job_path"
-
-fi
-
-
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-
-job_count=$(echo "$qstat" | grep 'geo-ex2-'"$branch" | wc -l)
-
-# if echo "$qstat" | grep -q 'geo-ex-'"$branch"; then
-
-# change this # to be 1 less than desired number of jobs
-if [[ $job_count -gt -1 ]]; then
-
-    printf "%0.s-" {1..40}
-    echo -e "\n"
-
-    echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
-
-    echo "$qstat"
-    echo -e "\n"
-
-else
-
-    job_type=default
-    # if [[ $job_count -eq 2 ]]; then
-    #     job_type=det
-    # fi
-
-
-    job_dir="$branch_dir"/log/extract/jobs
-    mkdir -p $job_dir
-
-    shopt -s nullglob
-    for i in "$job_dir"/*.job; do
-        cat "$i"
-        rm "$i"
-
-        printf "%0.s-" {1..80}
+        echo "Running job..."
         echo -e "\n"
-    done
 
-
-    echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
-
-    echo "Checking for items in extract queue..."
-    queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
-
-
-    if [ "$queue_status" != "ready" ]; then
-
-        if [ "$queue_status" = "error" ]; then
-            echo '... error connecting to extract queue'
-            exit 1
-        fi
-
-        if [ "$queue_status" = "empty" ]; then
-            echo '... extract queue empty'
-            exit 0
-        fi
-
-        echo '... unknown error checking extract queue'
-        exit 2
+        rm "$job_path"
 
     fi
 
-    echo '... items found in queue'
-    echo -e "\n"
 
-    echo "Building job #"$job_count" ("$job_type" job)..."
+}
 
-    job_path=$(mktemp)
-
-    nodes=1
-    ppn=12
-    total=$(($nodes * $ppn))
-
-
-# NOTE: just leave this heredoc unindented
-#   sublime text is set to indent with spaces
-#   heredocs can only be indented with true tabs
-#   (can use `cat <<- EOF` to strip leading tabs )
-
-cat <<EOF >> "$job_path"
-#!/bin/tcsh
-#PBS -N geo-ex2-$branch
-#PBS -l nodes=$nodes:c18a:ppn=$ppn
-#PBS -l walltime=$walltime
-#PBS -j oe
-#PBS -o $branch_dir/log/extract/jobs/$timestamp.$jobtime.extract.job
-#PBS -V
-
-echo -e "\n *** Running extract job... \n"
-mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type
-
-EOF
-
-    # cd "$branch_dir"/log/extract/jobs
-    /usr/local/torque-6.0.2/bin/qsub "$job_path"
-
-    echo "Running job..."
-    echo -e "\n"
-
-    rm "$job_path"
-
-fi
 

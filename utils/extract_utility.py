@@ -265,6 +265,8 @@ class ExtractObject():
 
         # self._raster_path = None
 
+        self.pixel_limit = 250000
+
 
     def set_vector_path(self, value):
         """Set vector file path.
@@ -424,6 +426,12 @@ class ExtractObject():
         self._cmap = category_map
 
         self._set_reliability(self._extract_type)
+
+
+
+    def set_pixel_limit(self, value):
+        """set pixel limit for split feature extracts"""
+        self.pixel_limit = int(value)
 
 
     def gen_data_list(self):
@@ -606,7 +614,7 @@ class ExtractObject():
     #     return feat
 
 
-    def run_feature_extract(self, raster, callback=None):
+    def run_feature_extract(self, raster, callback=None, **kwargs):
         """Run extract on a per feature basis
 
         Wrapper for standard run_extract method
@@ -625,7 +633,7 @@ class ExtractObject():
 
         for f in feats:
             try:
-                stats = list(self.run_extract(raster, vector=f))
+                stats = list(self.run_extract(raster, vector=f, kwargs))
 
                 if len(stats) != 1:
                     raise Exception('multiple extract results for single '
@@ -664,7 +672,6 @@ class ExtractObject():
         percent_cover_scale = 10
         percent_cover_weighting = True
         latitude_correction = True
-
         pixel_limit = 250000
 
         if 'percent_cover_scale' in kwargs:
@@ -673,7 +680,8 @@ class ExtractObject():
             percent_cover_weighting = kwargs['percent_cover_weighting']
         if 'latitude_correction' in kwargs:
             latitude_correction = kwargs['latitude_correction']
-
+        if 'pixel_limit' in kwargs:
+            pixel_limit = kwargs['pixel_limit']
 
         if vector == None:
             vector = self._vector_path
