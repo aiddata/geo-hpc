@@ -33,9 +33,14 @@ class BranchConfig():
 
         self.branch_dir = os.path.dirname(self.source_dir)
 
-
         if branch != None:
             self.set_branch(branch)
+
+        self.connection_timeout_ms = 60000 * 3
+
+
+    def set_connection_timeout_ms(self, value)
+        self.connection_timeout_ms = int(value)
 
 
     def set_branch(self, branch):
@@ -49,7 +54,7 @@ class BranchConfig():
         if branch in self.valid_branches:
             self.branch = branch
             self.load_settings()
-            self.check_connection()
+            self.connect()
         else:
             raise Exception('Error BranchConfig: invalid branch')
 
@@ -84,14 +89,12 @@ class BranchConfig():
             raise Exception("Error BranchConfig: could not add config settings to BranchConfig")
 
 
-    def check_connection(self):
+    def connect(self):
         """Test mongodb connection
         """
         try:
-            connection_timeout_ms = 60000 * 3
-
             self.client = pymongo.MongoClient(
-                self.database, serverSelectionTimeoutMS=connection_timeout_ms)
+                self.database, serverSelectionTimeoutMS=self.connection_timeout_ms)
 
             self.client.server_info()
             self.connection_status = 0
