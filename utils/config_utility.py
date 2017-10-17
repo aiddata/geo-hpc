@@ -115,19 +115,22 @@ class BranchConfig():
             self.connection_error = err
 
 
-    def test_connection(self):
+    def test_connection(self, max_attempts=5):
 
         config_attempts = 0
         while True:
             config_attempts += 1
-            if self.connection_status == 0 or config_attempts > 5:
+            if self.connection_status == 0 or config_attempts > max_attempts:
                 break
 
-        if self.connection_status == 0:
-            return "success"
-        else:
-            return "error"
 
+    def print_connection_state(self)
+        if self.connection_status == 0:
+            out = "success"
+        else:
+            out = "error"
+        print out
+        return out
 
 
 if __name__ == 'main':
@@ -138,5 +141,5 @@ if __name__ == 'main':
     branch = sys.argv[1]
 
     config = BranchConfig(branch=branch)
-    status = config.test_connection()
-    print status
+    config.test_connection()
+    config.print_connection_status()
