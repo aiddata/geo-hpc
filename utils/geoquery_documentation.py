@@ -103,14 +103,14 @@ class DocBuilder():
 
     # documentation header
     def add_header(self):
-        # aiddata logo
-        logo = self.assets_dir + '/templates/aid_data.png'
+        # # aiddata logo
+        # logo = self.assets_dir + '/templates/aid_data.png'
 
-        im = Image(logo, 2.188*inch, 0.5*inch)
-        im.hAlign = 'LEFT'
-        self.Story.append(im)
+        # im = Image(logo, 2.188*inch, 0.5*inch)
+        # im.hAlign = 'LEFT'
+        # self.Story.append(im)
 
-        self.Story.append(Spacer(1, 0.25*inch))
+        # self.Story.append(Spacer(1, 0.25*inch))
 
         # title
         ptext = '<font size=20>AidData GeoQuery Request Documentation</font>'
