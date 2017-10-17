@@ -110,3 +110,30 @@ class BranchConfig():
             self.client = None
             self.connection_status = 2
             self.connection_error = err
+
+
+    def test_connection(self):
+
+        config_attempts = 0
+        while True:
+            config_attempts += 1
+            if self.connection_status == 0 or config_attempts > 5:
+                break
+
+        if self.connection_status == 0:
+            return "success"
+        else:
+            return "error"
+
+
+
+if __name__ == 'main':
+
+    import sys
+    import os
+
+    branch = sys.argv[1]
+
+    config = BranchConfig(branch=branch)
+    status = config.test_connection()
+    print status

@@ -24,6 +24,10 @@ while True:
 
 # -----------------------------------------------------------------------------
 
+if config.connection_status != 0:
+    raise Exception('Could not connect db')
+
+
 import time
 from datetime import datetime
 
