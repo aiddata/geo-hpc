@@ -6,14 +6,7 @@
 #   branch
 #   timestamp
 #
-# builds job that runs tasks for mean-surface-raster module
-# job runs python-mpi script autoscript.py from mean-surface-rasters repo
-#
-# only allows 1 job of this type to run at a time
-# utilizes qstat grep to search for standardized job name to
-# determine if job is already running
-#
-# job name format: geo-msr-<branch>
+# builds job that runs msr tasks
 
 
 branch=$1
@@ -26,71 +19,75 @@ jobtime=$(date +%H%M%S)
 branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
+torque_path=/usr/local/torque-6.1.1.1/bin
 
 # check if job needs to be run
-qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
-job_count=$(echo "$qstat" | grep 'geo-msr-'"$branch" | wc -l)
-
-# if echo "$qstat" | grep -q 'geo-msr-'"$branch"; then
-
-# change this # to be 1 less than desired number of jobs
-if [[ $job_count -gt 0 ]]; then
-
-    printf "%0.s-" {1..40}
-    echo -e "\n"
-
-    echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
-    echo "$qstat"
-    echo -e "\n"
-
-else
+qstat=$($torque_path/qstat -nu $USER)
 
 
-    job_dir="$branch_dir"/log/msr/jobs
-    mkdir -p $job_dir
+# -----------------------------------------------------------------------------
 
-    shopt -s nullglob
-    for i in "$job_dir"/*.job; do
-        cat "$i"
-        rm "$i"
 
-        printf "%0.s-" {1..80}
+build_job() {
+
+    echo Preparing $jobname job...
+
+    active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
+
+    if [[ $active_jobs -ge $max_jobs ]]; then
+
+        printf "%0.s-" {1..40}
         echo -e "\n"
-    done
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
+        echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
+        echo "$qstat"
+        echo -e "\n"
 
-    echo "Checking for items in msr queue..."
-    queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
+    else
+
+        job_dir="$branch_dir"/log/msr/jobs
+        mkdir -p $job_dir
+
+        shopt -s nullglob
+        for i in "$job_dir"/*.job; do
+            cat "$i"
+            rm "$i"
+
+            printf "%0.s-" {1..80}
+            echo -e "\n"
+        done
+
+        echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found
+
+        echo "Checking for items in queue..."
+        queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
 
 
-    if [ "$queue_status" != "ready" ]; then
+        if [ "$queue_status" = "ready" ]; then
+            :
 
-        if [ "$queue_status" = "error" ]; then
-            echo '... error connecting to msr queue'
-            exit 1
-        fi
-
-        if [ "$queue_status" = "empty" ]; then
-            echo '... msr queue empty'
+        elif [ "$queue_status" = "empty" ]; then
+            echo '... queue empty'
             exit 0
+
+        elif [ "$queue_status" = "error" ]; then
+            echo '... error connecting to queue'
+            exit 1
+
+        else
+            echo '... unknown error checking queue'
+            exit 2
+
         fi
 
-        echo '... unknown error checking msr queue'
-        exit 2
+        echo '... items found in queue'
+        echo -e "\n"
 
-    fi
+        echo "Building <"$jobname"> job #"$active_jobs"..."
 
-    echo '... items found in queue'
-    echo -e "\n"
+        job_path=$(mktemp)
 
-    echo "Building job #"$job_count"..."
-
-    job_path=$(mktemp)
-
-    nodes=1
-    ppn=16
-    total=$(($nodes * $ppn))
+        total=$(($nodes * $ppn))
 
 
 # NOTE: just leave this heredoc unindented
@@ -100,24 +97,56 @@ else
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N geo-msr-$branch
-#PBS -l nodes=$nodes:c18c:ppn=$ppn
-#PBS -l walltime=24:00:00
+#PBS -N geo-$jobname-$branch
+#PBS -l nodes=$nodes:$nodespec:ppn=$ppn
+#PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/msr/jobs/$timestamp.$jobtime.msr.job
 #PBS -V
 
-echo -e "\n *** Running mean-surface-rasters job... \n"
+echo -e "\n *** Running $jobname job... \n"
 mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp
 
 EOF
 
-    # cd "$branch_dir"/log/msr/jobs
-    /usr/local/torque-6.0.2/bin/qsub "$job_path"
+        # cd "$branch_dir"/log/msr/jobs
+        $torque_path/qsub "$job_path"
 
-    echo "Running job..."
-    echo -e "\n"
+        echo "Running job..."
+        echo -e "\n"
 
-    rm "$job_path"
+        rm "$job_path"
 
-fi
+    fi
+
+
+}
+
+
+# -----------------------------------------------------------------------------
+
+# load job settings from config json and
+# build jobs using those settings
+
+config_path=$src/geo-hpc/config.json
+job_class=msr
+
+get_val() {
+    jobnumber=$1
+    field=$2
+    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'][$jobnumber]['$field']")
+    echo $val
+}
+
+x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
+
+for ((i=0;i<$x;i+=1)); do
+    jobname=$(get_val $i jobname)
+    nodespec=$(get_val $i nodespec)
+    max_jobs=$(get_val $i max_jobs)
+    nodes=$(get_val $i nodes)
+    ppn=$(get_val $i ppn)
+    walltime=$(get_val $i walltime)
+
+    build_job
+done

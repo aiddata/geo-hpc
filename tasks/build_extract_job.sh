@@ -26,13 +26,10 @@ jobtime=$(date +%H%M%S)
 branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
-
 torque_path=/usr/local/torque-6.1.1.1/bin
-
 
 # check if job needs to be run
 qstat=$($torque_path/qstat -nu $USER)
-
 
 
 # -----------------------------------------------------------------------------
@@ -40,8 +37,9 @@ qstat=$($torque_path/qstat -nu $USER)
 
 build_job() {
 
-    active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
+    echo Preparing $jobname job...
 
+    active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
 
     if [[ $active_jobs -ge $max_jobs ]]; then
 
@@ -49,7 +47,6 @@ build_job() {
         echo -e "\n"
 
         echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
-
         echo "$qstat"
         echo -e "\n"
 
@@ -68,9 +65,9 @@ build_job() {
         done
 
 
-        echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found.
+        echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found
 
-        echo "Checking for items in extract queue..."
+        echo "Checking for items in queue..."
         queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
 
 
@@ -85,15 +82,15 @@ build_job() {
             job_type=det
 
         elif [ "$queue_status" = "empty" ]; then
-            echo '... extract queue empty'
+            echo '... queue empty'
             exit 0
 
         elif [ "$queue_status" = "error" ]; then
-            echo '... error connecting to extract queue'
+            echo '... error connecting to queue'
             exit 1
 
         else
-            echo '... unknown error checking extract queue'
+            echo '... unknown error checking queue'
             exit 2
 
         fi
@@ -122,7 +119,7 @@ cat <<EOF >> "$job_path"
 #PBS -o $branch_dir/log/extract/jobs/$timestamp.$jobtime.extract.job
 #PBS -V
 
-echo -e "\n *** Running extract-scripts autoscript.py... \n"
+echo -e "\n *** Running $jobname job... \n"
 mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
 # mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
 
@@ -144,19 +141,20 @@ EOF
 
 # -----------------------------------------------------------------------------
 
-# load extract job settings from config json and
+# load job settings from config json and
 # build jobs using those settings
 
 config_path=$src/geo-hpc/config.json
+job_class=extracts
 
 get_val() {
     jobnumber=$1
     field=$2
-    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['extracts'][$jobnumber]['$field']")
+    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'][$jobnumber]['$field']")
     echo $val
 }
 
-x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['extracts'])")
+x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
 
 for ((i=0;i<$x;i+=1)); do
     jobname=$(get_val $i jobname)

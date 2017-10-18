@@ -60,7 +60,17 @@
                     "walltime": "180:00:00"
                 }
             ],
-            "msr": []
+            "msr": [
+                {
+                    "description": "generic vortex-alpha job",
+                    "jobname": "msr",
+                    "nodespec": "c18c",
+                    "max_jobs": 1,
+                    "nodes": 1,
+                    "ppn": 16,
+                    "walltime": "24:00:00"
+                }
+            ]
         },
         "det": {
             "download_server": "geo.aiddata.org",
