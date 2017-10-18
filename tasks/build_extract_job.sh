@@ -31,7 +31,7 @@ qstat=$($torque_path/qstat -nu $USER)
 
 clean_jobs() {
 
-    job_dir="$branch_dir"/log/extract/jobs
+    job_dir="$branch_dir"/log/extracts/jobs
     mkdir -p $job_dir
 
     shopt -s nullglob
@@ -110,7 +110,7 @@ cat <<EOF >> "$job_path"
 #PBS -l nodes=$nodes:$nodespec:ppn=$ppn
 #PBS -l walltime=$walltime
 #PBS -j oe
-#PBS -o $branch_dir/log/extract/jobs/$timestamp.$jobtime.extract.job
+#PBS -o $branch_dir/log/extracts/jobs/$timestamp.$jobtime.extracts.job
 #PBS -V
 
 echo -e "\n *** Running $jobname job... \n"
