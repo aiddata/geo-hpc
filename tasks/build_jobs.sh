@@ -66,7 +66,7 @@ case "$task" in
         nodespec=c18x
         ppn=1
         walltime=48:00:00
-        cmd="python ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
+        cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
         ;;
 
     *)  echo "Invalid build_db_updates_job task.";
@@ -77,12 +77,15 @@ esac
 # check if job needs to be run
 qstat=$(/usr/local/torque-6.1.1.1/bin/qstat -nu $USER)
 
+echo [$(date) \("$timestamp"."$jobtime"\)]
+echo Preparing $task job...
+
 if echo "$qstat" | grep -q 'geo-'"$short_name"'-'"$branch"; then
 
     printf "%0.s-" {1..40}
     echo -e "\n"
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] Existing job found
+    echo Existing job found
     echo "$qstat"
     echo -e "\n"
 
@@ -104,7 +107,7 @@ else
         echo -e "\n"
     done
 
-    echo [$(date) \("$timestamp"."$jobtime"\)] No existing job found.
+    echo No existing job found.
     echo "Building job..."
 
     job_path=$(mktemp)

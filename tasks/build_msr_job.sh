@@ -30,6 +30,7 @@ qstat=$($torque_path/qstat -nu $USER)
 
 build_job() {
 
+    echo [$(date) \("$timestamp"."$jobtime"\)]
     echo Preparing $jobname job...
 
     active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
@@ -39,7 +40,7 @@ build_job() {
         printf "%0.s-" {1..40}
         echo -e "\n"
 
-        echo [$(date) \("$timestamp"."$jobtime"\)] Max number of jobs running
+        echo Max number of jobs running
         echo "$qstat"
         echo -e "\n"
 
@@ -57,7 +58,7 @@ build_job() {
             echo -e "\n"
         done
 
-        echo [$(date) \("$timestamp"."$jobtime"\)] Job opening found
+        echo Job opening found
 
         echo "Checking for items in queue..."
         queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
