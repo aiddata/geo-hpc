@@ -13,6 +13,8 @@ branch=$1
 
 timestamp=$2
 
+job_class=extracts
+
 jobtime=$(date +%H%M%S)
 
 
@@ -25,12 +27,16 @@ torque_path=/usr/local/torque-6.1.1.1/bin
 qstat=$($torque_path/qstat -nu $USER)
 
 
+config_path=$src/geo-hpc/config.json
+
+
+
 # -----------------------------------------------------------------------------
 
 
 clean_jobs() {
 
-    job_dir="$branch_dir"/log/extracts/jobs
+    job_dir="$branch_dir"/log/$job_class/jobs
     mkdir -p $job_dir
 
     shopt -s nullglob
@@ -109,7 +115,7 @@ cat <<EOF >> "$job_path"
 #PBS -l nodes=$nodes:$nodespec:ppn=$ppn
 #PBS -l walltime=$walltime
 #PBS -j oe
-#PBS -o $branch_dir/log/extracts/jobs/$timestamp.$jobtime.extracts.job
+#PBS -o $branch_dir/log/$job_class/jobs/$timestamp.$jobtime.$job_class.job
 #PBS -V
 
 echo -e "\n *** Running $jobname job... \n"
@@ -120,7 +126,6 @@ mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -n
 
 EOF
 
-        # cd "$branch_dir"/log/extracts/jobs
         $torque_path/qsub "$job_path"
 
         echo "Running job..."
@@ -142,8 +147,6 @@ clean_jobs
 # load job settings from config json and
 # build jobs using those settings
 
-config_path=$src/geo-hpc/config.json
-job_class=extracts
 
 get_val() {
     jobnumber=$1
