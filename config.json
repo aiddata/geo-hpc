@@ -39,7 +39,9 @@
                     "max_jobs": 6,
                     "nodes": 1,
                     "ppn": 16,
-                    "walltime": "180:00:00"
+                    "walltime": "180:00:00",
+                    "extract_limit": 200,
+                    "pixel_limit": 250000
                 },
                 {
                     "description": "priority only vortex-alpha job",
@@ -48,7 +50,9 @@
                     "max_jobs": 1,
                     "nodes": 1,
                     "ppn": 16,
-                    "walltime": "180:00:00"
+                    "walltime": "180:00:00",
+                    "extract_limit": 200,
+                    "pixel_limit": 250000
                 },
                 {
                     "description": "generic vortex (c18a) job",
@@ -57,7 +61,9 @@
                     "max_jobs": 0,
                     "nodes": 1,
                     "ppn": 12,
-                    "walltime": "180:00:00"
+                    "walltime": "180:00:00",
+                    "extract_limit": 200,
+                    "pixel_limit": 100000
                 }
             ],
             "msr": [

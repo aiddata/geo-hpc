@@ -120,9 +120,9 @@ cat <<EOF >> "$job_path"
 
 echo -e "\n *** Running $jobname job... \n"
 
-mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
+mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit
 
-# mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
+# mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit
 
 EOF
 
@@ -169,6 +169,11 @@ for ((i=0;i<$x;i+=1)); do
     nodes=$(get_val $i nodes)
     ppn=$(get_val $i ppn)
     walltime=$(get_val $i walltime)
+
+    if [ $job_class = "extracts" ]; then
+        extract_limit=$(get_val $i extract_limit)
+        pixel_limit=$(get_val $i pixel_limit)
+    fi
 
     build_job
 

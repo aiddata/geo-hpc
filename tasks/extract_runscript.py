@@ -25,12 +25,8 @@ sys.path.insert(0, utils_dir)
 
 from config_utility import BranchConfig
 
-config_attempts = 0
-while True:
-    config = BranchConfig(branch=branch)
-    config_attempts += 1
-    if config.connection_status == 0 or config_attempts > 5:
-        break
+config = BranchConfig(branch=branch)
+config.test_connection()
 
 
 # -----------------------------------------------------------------------------
@@ -87,28 +83,6 @@ c_features = client.asdf.features
 general_output_base = os.path.join(
     config.branch_dir, 'outputs/extracts',  version.replace('.', '_'))
 
-
-# -------------------------------------
-# number of extracts requests to process per job
-
-default_extract_limit = 150
-# default_time_limit = 5
-# default_extract_minimum = 1
-
-
-# if something:
-#   check config/input/request for extract_limit parameter
-#   extract_limit = some val
-# else:
-#   use default
-extract_limit = default_extract_limit
-
-# limit of 0 = no limit
-# limit of -1 means set limit to # workers (single cycle on cores)
-if extract_limit == -1:
-    extract_limit = job.size -1
-
-
 # -------------------------------------
 # number of time mongo query/update for request can fail
 # to find and update a request before giving up
@@ -147,23 +121,29 @@ if job.rank == 0:
     print "running job type: {0}".format(job.job_type)
 
 
+
 # -------------------------------------
-# nodespec definitions for request queries
+# number of extracts requests to process per job
 
-job.nodespec = 'c18c'
+extract_limit = 150
+
 if len(sys.argv) == 4:
-    job.nodespec = sys.argv[3]
+    extract_limit= int(sys.argv[3])
 
 
-if job.nodespec == 'c18c':
-    job.pixel_limit = 250000
+# limit of 0 = no limit
+# limit of -1 means set limit to # workers (single cycle on cores)
+if extract_limit == -1:
+    extract_limit = job.size -1
 
-elif job.nodespec == 'c18a':
-    job.pixel_limit = 100000
 
+# -------------------------------------
+# pixel_limit definitions for request queries
 
-if job.rank == 0:
-    print "running job nodespec: {0}".format(job.nodespec)
+job.pixel_limit = 250000
+
+if len(sys.argv) == 5:
+    job.pixel_limit = int(sys.argv[4])
 
 
 
