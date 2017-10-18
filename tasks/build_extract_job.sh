@@ -29,42 +29,49 @@ qstat=$($torque_path/qstat -nu $USER)
 # -----------------------------------------------------------------------------
 
 
+clean_jobs() {
+
+    job_dir="$branch_dir"/log/extract/jobs
+    mkdir -p $job_dir
+
+    shopt -s nullglob
+    for i in "$job_dir"/*.job; do
+        echo -e "\n"
+        printf "%0.s-" {1..40}
+        echo -e "\n"
+
+        cat "$i"
+        rm "$i"
+
+        echo -e "\n"
+        printf "%0.s-" {1..40}
+        echo -e "\n"
+    done
+
+}
+
+
 build_job() {
 
-    echo [$(date) \("$timestamp"."$jobtime"\)]
-    echo Preparing $jobname job...
+    # always clean up old job outputs first
+    clean_jobs
+
+    echo \n[$(date) \("$timestamp"."$jobtime"\)]\n
+    echo "Preparing $jobname job..."
 
     active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
 
     if [[ $active_jobs -ge $max_jobs ]]; then
 
-        printf "%0.s-" {1..40}
-        echo -e "\n"
-
-        echo Max number of jobs running
+        echo "Max number of jobs running"
         echo "$qstat"
-        echo -e "\n"
 
     else
 
-        job_dir="$branch_dir"/log/extract/jobs
-        mkdir -p $job_dir
-
-        shopt -s nullglob
-        for i in "$job_dir"/*.job; do
-            cat "$i"
-            rm "$i"
-
-            printf "%0.s-" {1..80}
-            echo -e "\n"
-        done
-
-
-        echo Job opening found
+        echo "Job opening found"
 
         echo "Checking for items in queue..."
         queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
-
 
         if [ "$queue_status" = "ready" ]; then
             job_type=default
@@ -72,8 +79,10 @@ build_job() {
                 echo '... no priority tasks found'
                 exit 0
             fi
+            echo '... items found in queue'
 
         elif [ "$queue_status" = "det" ]; then
+            echo 'items found in queue'
             job_type=det
 
         elif [ "$queue_status" = "empty" ]; then
@@ -89,9 +98,6 @@ build_job() {
             exit 2
 
         fi
-
-        echo '... items found in queue'
-        echo -e "\n"
 
         echo "Building <"$jobname"> job #"$active_jobs" ("$job_type" job)..."
 
@@ -115,7 +121,9 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running $jobname job... \n"
+
 mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
+
 # mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $nodespec
 
 EOF
@@ -124,13 +132,13 @@ EOF
         $torque_path/qsub "$job_path"
 
         echo "Running job..."
-        echo -e "\n"
 
         rm "$job_path"
 
     fi
 
-
+    echo -e "\n"
+    printf "%0.s-" {1..40}
 }
 
 
@@ -152,6 +160,7 @@ get_val() {
 x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
 
 for ((i=0;i<$x;i+=1)); do
+    echo $i
     jobname=$(get_val $i jobname)
     nodespec=$(get_val $i nodespec)
     max_jobs=$(get_val $i max_jobs)
