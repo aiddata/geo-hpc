@@ -30,6 +30,38 @@
             "extracts": "0.3.1",
             "msr": "0.11.1"
         },
+        "jobs": {
+            "extracts": [
+                {
+                    "description": "generic vortex-alpha job",
+                    "jobname": "ex",
+                    "nodespec": "c18c",
+                    "max_jobs": 6,
+                    "nodes": 1,
+                    "ppn": 16,
+                    "walltime": "180:00:00"
+                },
+                {
+                    "description": "priority only vortex-alpha job",
+                    "jobname": "ex1",
+                    "nodespec": "c18c",
+                    "max_jobs": 1,
+                    "nodes": 1,
+                    "ppn": 16,
+                    "walltime": "180:00:00"
+                },
+                {
+                    "description": "generic vortex (c18a) job",
+                    "jobname": "ex2",
+                    "nodespec": "c18a",
+                    "max_jobs": 0,
+                    "nodes": 1,
+                    "ppn": 12,
+                    "walltime": "180:00:00"
+                }
+            ],
+            "msr": []
+        },
         "det": {
             "download_server": "geo.aiddata.org",
             "featured_datasets": [

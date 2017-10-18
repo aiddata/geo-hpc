@@ -27,9 +27,6 @@ branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
 
-walltime="180:00:00"
-
-
 torque_path=/usr/local/torque-6.1.1.1/bin
 
 
@@ -147,34 +144,28 @@ EOF
 
 # -----------------------------------------------------------------------------
 
+# load extract job settings from config json and
+# build jobs using those settings
 
-# generic vortex-alpha job
-jobname=ex
-nodespec=c18c
-max_jobs=6
-nodes=1
-ppn=16
+config_path=$src/geo-hpc/config.json
 
-build_job
+get_val() {
+    jobnumber=$1
+    field=$2
+    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['extracts'][$jobnumber]['$field']")
+    echo $val
+}
 
-# ----------------------------------------
+x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['extracts'])")
 
-# priority only vortex-alpha job
-jobname=ex1
-nodespec=c18c
-max_jobs=1
-nodes=1
-ppn=16
+for ((i=0;i<$x;i+=1)); do
+    jobname=$(get_val $i jobname)
+    nodespec=$(get_val $i nodespec)
+    max_jobs=$(get_val $i max_jobs)
+    nodes=$(get_val $i nodes)
+    ppn=$(get_val $i ppn)
+    walltime=$(get_val $i walltime)
 
-build_job
+    build_job
+done
 
-# ----------------------------------------
-
-# generic vortex (c18a) job
-jobname=ex2
-nodespec=c18a
-max_jobs=0
-nodes=1
-ppn=12
-
-build_job
