@@ -9,7 +9,6 @@
 # builds job that runs extract tasks
 
 
-
 branch=$1
 
 timestamp=$2
@@ -121,7 +120,7 @@ mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -n
 
 EOF
 
-        # cd "$branch_dir"/log/extract/jobs
+        # cd "$branch_dir"/log/extracts/jobs
         $torque_path/qsub "$job_path"
 
         echo "Running job..."
