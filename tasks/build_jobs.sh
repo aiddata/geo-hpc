@@ -155,14 +155,11 @@ cat <<EOF >> "$job_path"
 #PBS -o $branch_dir/log/$job_class/jobs/$timestamp.$jobtime.$job_class.job
 #PBS -V
 
-echo "\n"
 date
-echo "\n"
 
-echo -e "\n *** Running $jobname job... \n"
+echo "*** Running $jobname job..."
 echo Timestamp: $timestamp
 echo Job: "\$PBS_JOBID"
-echo "\n"
 
 $cmd
 
