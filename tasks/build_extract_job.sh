@@ -37,15 +37,12 @@ clean_jobs() {
     shopt -s nullglob
     for i in "$job_dir"/*.job; do
         echo -e "\n"
-        printf "%0.s-" {1..40}
-        echo -e "\n"
 
         cat "$i"
         rm "$i"
 
         echo -e "\n"
         printf "%0.s-" {1..40}
-        echo -e "\n"
     done
 
 }
@@ -53,10 +50,6 @@ clean_jobs() {
 
 build_job() {
 
-    # always clean up old job outputs first
-    clean_jobs
-
-    echo \n[$(date) \("$timestamp"."$jobtime"\)]\n
     echo "Preparing $jobname job..."
 
     active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
@@ -137,12 +130,15 @@ EOF
 
     fi
 
-    echo -e "\n"
-    printf "%0.s-" {1..40}
 }
 
 
 # -----------------------------------------------------------------------------
+
+
+# always clean up old job outputs first
+clean_jobs
+
 
 # load job settings from config json and
 # build jobs using those settings
@@ -160,7 +156,13 @@ get_val() {
 x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
 
 for ((i=0;i<$x;i+=1)); do
+
+    echo -e "\n"
+    echo [$(date) \("$timestamp"."$jobtime"\)]
+    echo -e "\n"
+
     echo $i
+
     jobname=$(get_val $i jobname)
     nodespec=$(get_val $i nodespec)
     max_jobs=$(get_val $i max_jobs)
@@ -169,5 +171,9 @@ for ((i=0;i<$x;i+=1)); do
     walltime=$(get_val $i walltime)
 
     build_job
+
+    echo -e "\n"
+    printf "%0.s-" {1..40}
+
 done
 
