@@ -371,7 +371,8 @@ def tmp_worker_job(self, task_index, task_data):
     }, {
         '$set': {
             'status': extract_status,
-            'update_time': int(time.time())
+            'update_time': int(time.time()),
+            'complete_time': int(time.time())
         }
     }, upsert=False)
 
@@ -435,7 +436,9 @@ def tmp_get_task_data(self, task_index, source):
             }, {
                 '$set': {
                     'status': 2,
-                    'update_time': int(time.time())
+                    'update_time': int(time.time()),
+                    'start_time': int(time.time()),
+                    'complete_time': 0
                 }
             })
 
