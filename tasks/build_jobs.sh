@@ -33,6 +33,7 @@ case "$task" in
         short_name=ec
         nodespec=c18x
         ppn=1
+        walltime=48:00:00
         cmd="python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
         ;;
 
@@ -40,6 +41,7 @@ case "$task" in
         short_name=upt
         nodespec=c18c
         ppn=16
+        walltime=48:00:00
         cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
         ;;
 
@@ -47,6 +49,7 @@ case "$task" in
         short_name=upe
         nodespec=c18c
         ppn=16
+        walltime=48:00:00
         cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}"
         ;;
 
@@ -54,6 +57,7 @@ case "$task" in
         short_name=upm
         nodespec=c18x
         ppn=1
+        walltime=48:00:00
         cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}"
         ;;
 
@@ -61,6 +65,7 @@ case "$task" in
         short_name=det
         nodespec=c18x
         ppn=1
+        walltime=48:00:00
         cmd="python ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
         ;;
 
@@ -70,7 +75,7 @@ esac
 
 
 # check if job needs to be run
-qstat=$(/usr/local/torque-6.0.2/bin/qstat -nu $USER)
+qstat=$(/usr/local/torque-6.1.1.1/bin/qstat -nu $USER)
 
 if echo "$qstat" | grep -q 'geo-'"$short_name"'-'"$branch"; then
 
@@ -115,7 +120,7 @@ cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N geo-$short_name-$branch
 #PBS -l nodes=1:$nodespec:ppn=$ppn
-#PBS -l walltime=48:00:00
+#PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/$task/jobs/$timestamp.$jobtime.$task.job
 #PBS -V
@@ -137,7 +142,7 @@ echo "\nDone \n"
 EOF
 
     # cd "$branch_dir"/log/"$task"/jobs
-    /usr/local/torque-6.0.2/bin/qsub "$job_path"
+    /usr/local/torque-6.1.1.1/bin/qsub "$job_path"
 
     echo "Running job..."
     echo -e "\n"
