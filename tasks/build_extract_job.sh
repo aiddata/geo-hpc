@@ -134,10 +134,6 @@ echo "\n"
 
 $cmd
 
-echo "\n"
-date
-echo "\nDone \n"
-
 EOF
 
         $torque_path/qsub "$job_path"

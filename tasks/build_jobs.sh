@@ -110,7 +110,7 @@ clean_jobs() {
         rm "$i"
 
         echo -e "\n"
-        printf "%0.s-" {1..80}
+        printf "%0.s-" {1..40}
     done
 
 }
@@ -165,10 +165,6 @@ echo Job: "\$PBS_JOBID"
 echo "\n"
 
 $cmd
-
-echo "\n"
-date
-echo "\nDone \n"
 
 EOF
 
