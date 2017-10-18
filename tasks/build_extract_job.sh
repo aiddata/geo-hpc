@@ -30,8 +30,8 @@ qstat=$($torque_path/qstat -nu $USER)
 config_path=$src/geo-hpc/config.json
 
 
-cmd="mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit"
-# cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit"
+cmd='mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit'
+# cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit'
 
 
 # -----------------------------------------------------------------------------
@@ -105,6 +105,8 @@ build_job() {
         job_path=$(mktemp)
 
         total=$(($nodes * $ppn))
+
+        cmd=$(eval "echo $cmd")
 
 
 # NOTE: just leave this heredoc unindented

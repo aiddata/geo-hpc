@@ -46,7 +46,7 @@ case "$job_class" in
         nodes=1
         ppn=1
         walltime=48:00:00
-        cmd="python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
+        cmd='python ${src}/geo-hpc/tasks/check_errors.py ${branch}'
         ;;
 
     update_trackers)
@@ -56,7 +56,7 @@ case "$job_class" in
         nodes=1
         ppn=16
         walltime=48:00:00
-        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
+        cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}'
         ;;
 
     update_extracts)
@@ -66,7 +66,7 @@ case "$job_class" in
         nodes=1
         ppn=16
         walltime=48:00:00
-        cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}"
+        cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}'
         ;;
 
     update_msr)
@@ -76,7 +76,7 @@ case "$job_class" in
         nodes=1
         ppn=1
         walltime=48:00:00
-        cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}"
+        cmd='mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}'
         ;;
 
     det)
@@ -86,10 +86,10 @@ case "$job_class" in
         nodes=1
         ppn=1
         walltime=48:00:00
-        cmd="mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
+        cmd='mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}'
         ;;
 
-    *)  echo "Invalid build_db_updates_job job_class.";
+    *)  echo "Invalid job_class";
         exit 1 ;;
 esac
 
@@ -131,11 +131,13 @@ build_job() {
 
         echo "Job opening found"
 
-        echo "Building job..."
+        echo "Building <"$jobname"> job #"$active_jobs"..."
 
         job_path=$(mktemp)
 
         total=$(($nodes * $ppn))
+
+        cmd=$(eval "echo $cmd")
 
 
 # NOTE: just leave this heredoc unindented

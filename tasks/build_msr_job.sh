@@ -30,7 +30,7 @@ qstat=$($torque_path/qstat -nu $USER)
 config_path=$src/geo-hpc/config.json
 
 
-cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp"
+cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp'
 
 
 # -----------------------------------------------------------------------------
@@ -96,6 +96,8 @@ build_job() {
         job_path=$(mktemp)
 
         total=$(($nodes * $ppn))
+
+        cmd=$(eval "echo $cmd")
 
 
 # NOTE: just leave this heredoc unindented
