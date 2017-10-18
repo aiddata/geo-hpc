@@ -27,6 +27,15 @@ jobtime=$(date +%H%M%S)
 branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
+torque_path=/usr/local/torque-6.1.1.1/bin
+
+# check if job needs to be run
+qstat=$($torque_path/qstat -nu $USER)
+
+
+# -----------------------------------------------------------------------------
+
+
 case "$task" in
 
     error_check)
@@ -74,40 +83,45 @@ case "$task" in
 esac
 
 
-# check if job needs to be run
-qstat=$(/usr/local/torque-6.1.1.1/bin/qstat -nu $USER)
+# -----------------------------------------------------------------------------
 
-echo [$(date) \("$timestamp"."$jobtime"\)]
-echo Preparing $task job...
 
-if echo "$qstat" | grep -q 'geo-'"$short_name"'-'"$branch"; then
-
-    printf "%0.s-" {1..40}
-    echo -e "\n"
-
-    echo Existing job found
-    echo "$qstat"
-    echo -e "\n"
-
-else
-
-    printf "%0.s-" {1..80}
-    echo -e "\n"
-
+clean_jobs() {
 
     job_dir="$branch_dir"/log/"$task"/jobs
     mkdir -p $job_dir
 
     shopt -s nullglob
     for i in "$job_dir"/*.job; do
+        echo -e "\n"
+
         cat "$i"
         rm "$i"
 
-        printf "%0.s-" {1..80}
         echo -e "\n"
+        printf "%0.s-" {1..80}
     done
 
-    echo No existing job found.
+}
+
+# always clean up old job outputs first
+clean_jobs
+
+
+echo -e "\n"
+echo [$(date) \("$timestamp"."$jobtime"\)]
+echo -e "\n"
+
+echo "Preparing $task job..."
+
+if echo "$qstat" | grep -q 'geo-'"$short_name"'-'"$branch"; then
+
+    echo "Max number of jobs running"
+    echo "$qstat"
+
+else
+
+    echo "Job opening found"
     echo "Building job..."
 
     job_path=$(mktemp)
@@ -145,10 +159,9 @@ echo "\nDone \n"
 EOF
 
     # cd "$branch_dir"/log/"$task"/jobs
-    /usr/local/torque-6.1.1.1/bin/qsub "$job_path"
+    $torque_path/qsub "$job_path"
 
     echo "Running job..."
-    echo -e "\n"
 
     # for debug
     # cp "$job_path" ${HOME}
@@ -156,3 +169,6 @@ EOF
     rm "$job_path"
 
 fi
+
+echo -e "\n"
+printf "%0.s-" {1..40}

@@ -28,61 +28,60 @@ qstat=$($torque_path/qstat -nu $USER)
 # -----------------------------------------------------------------------------
 
 
+clean_jobs() {
+
+    job_dir="$branch_dir"/log/msr/jobs
+    mkdir -p $job_dir
+
+    shopt -s nullglob
+    for i in "$job_dir"/*.job; do
+        echo -e "\n"
+
+        cat "$i"
+        rm "$i"
+
+        echo -e "\n"
+        printf "%0.s-" {1..40}
+    done
+
+}
+
+
 build_job() {
 
-    echo [$(date) \("$timestamp"."$jobtime"\)]
-    echo Preparing $jobname job...
+    echo "Preparing $jobname job..."
 
     active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
 
     if [[ $active_jobs -ge $max_jobs ]]; then
 
-        printf "%0.s-" {1..40}
-        echo -e "\n"
-
-        echo Max number of jobs running
+        echo "Max number of jobs running"
         echo "$qstat"
-        echo -e "\n"
 
     else
 
-        job_dir="$branch_dir"/log/msr/jobs
-        mkdir -p $job_dir
-
-        shopt -s nullglob
-        for i in "$job_dir"/*.job; do
-            cat "$i"
-            rm "$i"
-
-            printf "%0.s-" {1..80}
-            echo -e "\n"
-        done
-
-        echo Job opening found
+        echo "Job opening found"
 
         echo "Checking for items in queue..."
         queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
 
 
         if [ "$queue_status" = "ready" ]; then
-            :
+            echo '... items found in queue'
 
         elif [ "$queue_status" = "empty" ]; then
             echo '... queue empty'
-            exit 0
+            return 0
 
         elif [ "$queue_status" = "error" ]; then
             echo '... error connecting to queue'
-            exit 1
+            return 1
 
         else
             echo '... unknown error checking queue'
-            exit 2
+            return 2
 
         fi
-
-        echo '... items found in queue'
-        echo -e "\n"
 
         echo "Building <"$jobname"> job #"$active_jobs"..."
 
@@ -106,6 +105,7 @@ cat <<EOF >> "$job_path"
 #PBS -V
 
 echo -e "\n *** Running $jobname job... \n"
+
 mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp
 
 EOF
@@ -114,7 +114,6 @@ EOF
         $torque_path/qsub "$job_path"
 
         echo "Running job..."
-        echo -e "\n"
 
         rm "$job_path"
 
@@ -125,6 +124,11 @@ EOF
 
 
 # -----------------------------------------------------------------------------
+
+
+# always clean up old job outputs first
+clean_jobs
+
 
 # load job settings from config json and
 # build jobs using those settings
@@ -142,6 +146,10 @@ get_val() {
 x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
 
 for ((i=0;i<$x;i+=1)); do
+    echo -e "\n"
+    echo [$(date) \("$timestamp"."$jobtime"\)]
+    echo -e "\n"
+
     jobname=$(get_val $i jobname)
     nodespec=$(get_val $i nodespec)
     max_jobs=$(get_val $i max_jobs)
@@ -150,4 +158,8 @@ for ((i=0;i<$x;i+=1)); do
     walltime=$(get_val $i walltime)
 
     build_job
+
+    echo -e "\n"
+    printf "%0.s-" {1..40}
+
 done

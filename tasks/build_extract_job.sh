@@ -161,8 +161,6 @@ for ((i=0;i<$x;i+=1)); do
     echo [$(date) \("$timestamp"."$jobtime"\)]
     echo -e "\n"
 
-    echo $i
-
     jobname=$(get_val $i jobname)
     nodespec=$(get_val $i nodespec)
     max_jobs=$(get_val $i max_jobs)
