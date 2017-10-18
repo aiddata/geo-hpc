@@ -6,14 +6,8 @@
 #   branch
 #   timestamp
 #
-# builds job that runs tasks for extract-scripts module
-# job runs python-mpi script autoscript.py from extract-scripts repo
-#
-# only allows 1 job of this type to run at a time
-# utilizes qstat grep to search for standardized job name to
-# determine if job is already running
-#
-# job name format: geo-ex-<branch>
+# builds job that runs extract tasks
+
 
 
 branch=$1
