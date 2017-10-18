@@ -30,6 +30,8 @@ qstat=$($torque_path/qstat -nu $USER)
 config_path=$src/geo-hpc/config.json
 
 
+cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp"
+
 
 # -----------------------------------------------------------------------------
 
@@ -72,14 +74,14 @@ build_job() {
         queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
 
 
-        if [ "$queue_status" = "ready" ]; then
+        if [ $queue_status = "ready" ]; then
             echo '... items found in queue'
 
-        elif [ "$queue_status" = "empty" ]; then
+        elif [ $queue_status = "empty" ]; then
             echo '... queue empty'
             return 0
 
-        elif [ "$queue_status" = "error" ]; then
+        elif [ $queue_status = "error" ]; then
             echo '... error connecting to queue'
             return 1
 
@@ -110,9 +112,20 @@ cat <<EOF >> "$job_path"
 #PBS -o $branch_dir/log/$job_class/jobs/$timestamp.$jobtime.$job_class.job
 #PBS -V
 
-echo -e "\n *** Running $jobname job... \n"
+echo "\n"
+date
+echo "\n"
 
-mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp
+echo -e "\n *** Running $jobname job... \n"
+echo Timestamp: $timestamp
+echo Job: "\$PBS_JOBID"
+echo "\n"
+
+$cmd
+
+echo "\n"
+date
+echo "\nDone \n"
 
 EOF
 

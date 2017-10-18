@@ -13,7 +13,7 @@
 # utilizes qstat grep to search for standardized job name to
 # determine if job is already running
 #
-# job name format: geo-<short_name>-<branch>
+# job name format: geo-<job_name>-<branch>
 
 
 branch=$1
@@ -40,7 +40,7 @@ qstat=$($torque_path/qstat -nu $USER)
 case "$job_class" in
 
     error_check)
-        short_name=ec
+        job_name=ec
         nodespec=c18x
         max_jobs=1
         nodes=1
@@ -50,7 +50,7 @@ case "$job_class" in
         ;;
 
     update_trackers)
-        short_name=upt
+        job_name=upt
         nodespec=c18c
         max_jobs=1
         nodes=1
@@ -60,7 +60,7 @@ case "$job_class" in
         ;;
 
     update_extracts)
-        short_name=upe
+        job_name=upe
         nodespec=c18c
         max_jobs=1
         nodes=1
@@ -70,7 +70,7 @@ case "$job_class" in
         ;;
 
     update_msr)
-        short_name=upm
+        job_name=upm
         nodespec=c18x
         max_jobs=1
         nodes=1
@@ -80,7 +80,7 @@ case "$job_class" in
         ;;
 
     det)
-        short_name=det
+        job_name=det
         nodespec=c18x
         max_jobs=1
         nodes=1
@@ -120,7 +120,7 @@ build_job() {
 
     echo "Preparing $job_class job..."
 
-    active_jobs=$(echo "$qstat" | grep 'geo-'"$short_name"'-'"$branch" | wc -l)
+    active_jobs=$(echo "$qstat" | grep 'geo-'"$job_name"'-'"$branch" | wc -l)
 
     if [[ $active_jobs -ge $max_jobs ]]; then
 
@@ -146,7 +146,7 @@ build_job() {
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
-#PBS -N geo-$short_name-$branch
+#PBS -N geo-$job_name-$branch
 #PBS -l nodes=$nodes:$nodespec:ppn=$ppn
 #PBS -l walltime=$walltime
 #PBS -j oe
@@ -157,7 +157,7 @@ echo "\n"
 date
 echo "\n"
 
-echo -e "\n *** Running $short_name job... \n"
+echo -e "\n *** Running $job_name job... \n"
 echo Timestamp: $timestamp
 echo Job: "\$PBS_JOBID"
 echo "\n"
