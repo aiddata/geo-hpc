@@ -70,7 +70,7 @@ build_job() {
             job_type=default
             if [ $jobname = "ex1" ]; then
                 echo '... no priority tasks found'
-                exit 0
+                return 0
             fi
             echo '... items found in queue'
 
@@ -80,15 +80,15 @@ build_job() {
 
         elif [ "$queue_status" = "empty" ]; then
             echo '... queue empty'
-            exit 0
+            return 0
 
         elif [ "$queue_status" = "error" ]; then
             echo '... error connecting to queue'
-            exit 1
+            return 1
 
         else
             echo '... unknown error checking queue'
-            exit 2
+            return 2
 
         fi
 
