@@ -33,10 +33,11 @@ class BranchConfig():
 
         self.branch_dir = os.path.dirname(self.source_dir)
 
+        self.connection_timeout_ms = 60000 * 3
+
         if branch != None:
             self.set_branch(branch)
 
-        self.connection_timeout_ms = 60000 * 3
 
 
     def set_connection_timeout_ms(self, value):
@@ -118,10 +119,9 @@ class BranchConfig():
     def test_connection(self, max_attempts=5):
 
         config_attempts = 0
-        while True:
+        while self.connection_status != 0 and config_attempts < max_attempts:
+            self.connect()
             config_attempts += 1
-            if self.connection_status == 0 or config_attempts > max_attempts:
-                break
 
 
     def print_connection_state(self):
