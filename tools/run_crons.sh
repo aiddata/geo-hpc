@@ -58,7 +58,7 @@ case $cron in
                             exit 0;;
 
     "build_extracts_job")   mkdir -p "$branch_dir"/log/extracts
-                            bash "$src"/geo-hpc/tasks/build_extracts_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/extracts/"$timestamp".extracts.log
+                            bash "$src"/geo-hpc/tasks/build_extract_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/extracts/"$timestamp".extracts.log
                             exit 0;;
 
 
