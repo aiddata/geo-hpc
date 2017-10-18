@@ -83,9 +83,9 @@ init() {
     build_update_trackers_job_cron='0 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_trackers_job #geo-hpc'
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_trackers_job' | { cat; echo "$build_update_trackers_job_cron"; } | crontab -
 
-    # build_update_extract_job - extract queue update
-    build_update_extract_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_extract_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_extract_job' | { cat; echo "$build_update_extract_job_cron"; } | crontab -
+    # build_update_extracts_job - extract queue update
+    build_update_extracts_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_extracts_job #geo-hpc'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_extracts_job' | { cat; echo "$build_update_extracts_job_cron"; } | crontab -
 
     # build_update_msr_job - msr queue update
     build_update_msr_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_msr_job #geo-hpc'
@@ -100,8 +100,8 @@ init() {
     crontab -l | grep -v 'run_crons.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
 
     # build_extract_job
-    build_extract_job_cron='*/2 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_extract_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_extract_job' | { cat; echo "$build_extract_job_cron"; } | crontab -
+    build_extracts_job_cron='*/2 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_extracts_job #geo-hpc'
+    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_extracts_job' | { cat; echo "$build_extracts_job_cron"; } | crontab -
 
 
 }

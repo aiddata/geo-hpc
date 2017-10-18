@@ -54,7 +54,7 @@ case "$task" in
         cmd="mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
         ;;
 
-    update_extract)
+    update_extracts)
         short_name=upe
         nodespec=c18c
         ppn=16

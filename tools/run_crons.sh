@@ -41,8 +41,8 @@ case $cron in
                                     bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" update_trackers 2>&1 | tee 1>>"$branch_dir"/log/update_trackers/"$timestamp".update_trackers.log
                                     exit 0;;
 
-    "build_update_extract_job")     mkdir -p "$branch_dir"/log/update_extract
-                                    bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" update_extract 2>&1 | tee 1>>"$branch_dir"/log/update_extract/"$timestamp".update_extract.log
+    "build_update_extracts_job")     mkdir -p "$branch_dir"/log/update_extracts
+                                    bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" update_extracts 2>&1 | tee 1>>"$branch_dir"/log/update_extracts/"$timestamp".update_extracts.log
                                     exit 0;;
 
     "build_update_msr_job")         mkdir -p "$branch_dir"/log/update_msr
@@ -57,8 +57,8 @@ case $cron in
                             bash "$src"/geo-hpc/tasks/build_msr_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/msr/"$timestamp".msr.log
                             exit 0;;
 
-    "build_extract_job")    mkdir -p "$branch_dir"/log/extract
-                            bash "$src"/geo-hpc/tasks/build_extract_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/extract/"$timestamp".extract.log
+    "build_extracts_job")   mkdir -p "$branch_dir"/log/extracts
+                            bash "$src"/geo-hpc/tasks/build_extracts_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/extracts/"$timestamp".extracts.log
                             exit 0;;
 
 
