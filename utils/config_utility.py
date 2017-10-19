@@ -35,9 +35,12 @@ class BranchConfig():
 
         self.connection_timeout_ms = 60000 * 3
 
+        self.client = None
+        self.connection_status = None
+        self.connection_error = None
+
         if branch != None:
             self.set_branch(branch)
-
 
 
     def set_connection_timeout_ms(self, value):
@@ -124,7 +127,7 @@ class BranchConfig():
             config_attempts += 1
 
 
-    def print_connection_state(self):
+    def print_connection_status(self):
         if self.connection_status == 0:
             out = "success"
         else:
@@ -133,10 +136,9 @@ class BranchConfig():
         return out
 
 
-if __name__ == 'main':
+if __name__ == "__main__":
 
     import sys
-    import os
 
     branch = sys.argv[1]
 
