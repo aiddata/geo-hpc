@@ -254,6 +254,11 @@ class DocBuilder():
 
             data.append(['Temporal Selection', ', '.join(temporal_str)])
 
+            # prevent issue due to missing extract_types_info field
+            for i in dset['options']['extract_types']:
+                if i not in meta['options']['extract_types_info']:
+                    meta['options']['extract_types_info'][i] = ""
+
             data.append(['Extract Types Selected', ', '.join([
                 "{0} ({1})".format(i, meta['options']['extract_types_info'][i])
                 for i in dset['options']['extract_types']
