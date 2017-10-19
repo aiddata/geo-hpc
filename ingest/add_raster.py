@@ -297,6 +297,11 @@ def run(path=None, client=None, version=None, config=None,
     doc["options"]["extract_types_info"] = valid_extract_types_info.value
 
 
+    for i in doc["options"]["extract_types"]:
+        if i not in  doc["options"]["extract_types_info"]:
+            raise Exception("Value from `extract_type` missing from `extract_types_info` ({0})".format(i))
+
+
     # Description of the variable (units, range, etc.)
     doc["options"]["variable_description"] = str(
         data["options"]["variable_description"])
