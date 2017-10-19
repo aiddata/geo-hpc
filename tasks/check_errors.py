@@ -21,7 +21,7 @@ config.test_connection()
 # -----------------------------------------------------------------------------
 
 if config.connection_status != 0:
-    raise Exception('Could not connect db')
+    raise Exception('Could not connect to mongodb')
 
 
 import time

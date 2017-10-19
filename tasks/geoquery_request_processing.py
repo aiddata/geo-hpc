@@ -29,35 +29,14 @@ sys.path.insert(0, utils_dir)
 
 from config_utility import BranchConfig
 
-config_attempts = 0
-while True:
-    config = BranchConfig(branch=branch)
-    config_attempts += 1
-    if config.connection_status == 0 or config_attempts > 5:
-        break
-
+config = BranchConfig(branch=branch)
+config.test_connection()
 
 # -------------------------------------------------------------------------
 
 
-import mpi_utility
-job = mpi_utility.NewParallel()
-
-
-connect_status = job.comm.gather((job.rank, config.connection_status, config.connection_error), root=0)
-
-if job.rank == 0:
-    connection_error = False
-    for i in connect_status:
-        if i[1] != 0:
-            print "mongodb connection error ({0} - {1}) on processor rank {2})".format(i[1], i[2], [3])
-            connection_error = True
-
-    if connection_error:
-        sys.exit()
-
-
-job.comm.Barrier()
+if config.connection_status != 0:
+    raise Exception('Could not connect to mongodb')
 
 
 import os
@@ -101,7 +80,7 @@ if len(sys.argv) == 3:
         raise
 
     if request_check is None:
-        sys.exit("Request with id does not exist (" + request_id + ")")
+        raise Exception("Request with id does not exist (" + request_id + ")")
 
     request_objects += [request_check]
 
@@ -122,7 +101,7 @@ else:
 
     # verify that we have some requests
     if len(request_objects) == 0:
-       sys.exit("Request queue is empty")
+       print "Request queue is empty"
 
 
 
@@ -150,7 +129,6 @@ for request_obj in request_objects:
 
     # set status 2 (no email)
     queue.update_status(request_id, 2, is_prep)
-
 
 
     try:
