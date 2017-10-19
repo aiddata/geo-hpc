@@ -181,6 +181,18 @@ EOF
 clean_jobs
 
 
+# test mongo connection before building job
+db_conn_status=$(python ${src}/geo-hpc/utils/config_utility.py $branch)
+if [ $db_conn_status != "success" ]; then
+    echo -e "\n"
+    echo [$(date) \("$timestamp"."$jobtime"\)]
+    echo -e "\n"
+
+    echo "Error connecting to mongodb"
+    exit 1
+fi
+
+
 echo -e "\n"
 echo [$(date) \("$timestamp"."$jobtime"\)]
 echo -e "\n"
