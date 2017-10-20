@@ -210,7 +210,11 @@ for ((i=0;i<$x;i+=1)); do
         pixel_limit=$(get_val $i pixel_limit)
     fi
 
-    build_job
+    if [ $nodespec = "local" ]; then
+        $cmd
+    else
+        build_job
+    fi
 
     echo -e "\n"
     printf "%0.s-" {1..40}

@@ -92,12 +92,12 @@
                 "tasks": [
                     {
                         "description": "",
-                        "jobname": "ur",
-                        "nodespec": "c18x",
-                        "max_jobs": 1,
-                        "nodes": 1,
-                        "ppn": 1,
-                        "walltime": "24:00:00",
+                        "jobname": "",
+                        "nodespec": "local",
+                        "max_jobs": 0,
+                        "nodes": 0,
+                        "ppn": 0,
+                        "walltime": "0",
                         "cmd": "bash ${src}/geo-hpc/tasks/update_repos.sh ${branch}"
                     }
                 ]
