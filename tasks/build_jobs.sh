@@ -147,9 +147,10 @@ $cmd
 
 EOF
 
-        $torque_path/qsub "$job_path"
+        out=$($torque_path/qsub "$job_path")
 
         echo "Running job..."
+        echo "$out"
 
         rm "$job_path"
 
@@ -215,6 +216,7 @@ for ((i=0;i<$x;i+=1)); do
         $cmd
     else
         build_job
+        sleep 10
     fi
 
     echo -e "\n"
