@@ -56,7 +56,7 @@ init() {
 
     get_job_class() {
         val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs'].keys()[$1]")
-        echo $val
+        echo "$val"
     }
 
     get_cron_schedule() {

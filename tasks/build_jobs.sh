@@ -122,8 +122,6 @@ build_job() {
 
         total=$(($nodes * $ppn))
 
-        cmd=$(eval "echo $cmd")
-
 
 # NOTE: just leave this heredoc unindented
 #   sublime text is set to indent with spaces
@@ -204,6 +202,7 @@ for ((i=0;i<$x;i+=1)); do
     ppn=$(get_val $i ppn)
     walltime=$(get_val $i walltime)
     cmd=$(get_val $i cmd)
+    cmd=$(eval "echo $cmd")
 
     if [ $job_class = "extracts" ]; then
         extract_limit=$(get_val $i extract_limit)
