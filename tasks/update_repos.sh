@@ -59,10 +59,10 @@ check_repo() {
 
     echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
-    if echo "$update_status" | grep -q 'Update complete'; then
+    valid_update=$(echo "$update_status" | grep -q 'Update complete')
+    if [ "$valid_update" ] || [[ "$repo" = 'geo-hpc' && "$force_update" ]]; then
 
         echo 'Completing update for repo: '"$repo"
-
 
         cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
         ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
@@ -89,7 +89,7 @@ check_repo() {
             new_update_hash=$(md5sum "$src"/git/geo-hpc/tasks/update_repos.sh | awk '{ print $1 }')
             new_config_hash=$(md5sum "$src"/git/geo-hpc/config.json | awk '{ print $1 }')
 
-            if [ "$force_update" != "" ] || [ "$old_config_hash" != "$new_config_hash" ]; then
+            if [ "$force_update" ] || [ "$old_config_hash" != "$new_config_hash" ]; then
                 echo -e "\n"
                 echo "Updating config db ..."
                 python "$src"/git/geo-hpc/tools/add_config_to_mongo.py "$branch"
@@ -97,7 +97,7 @@ check_repo() {
                 python "$src"/git/geo-hpc/tools/update_featured_datasets.py "$branch"
             fi
 
-            if [ "$force_update" != "" ] || [ "$old_config_hash" != "$new_config_hash" ] || [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
+            if [ "$force_update" ] || [ "$old_config_hash" != "$new_config_hash" ] || [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
                 echo -e "\n"
                 echo "Updating crons ..."
                 bash "$src"/git/geo-hpc/tools/manage_crons.sh "$branch" init
