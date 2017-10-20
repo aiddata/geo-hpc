@@ -212,7 +212,7 @@ for ((i=0;i<$x;i+=1)); do
 
     if [ $nodespec = "local" ]; then
         cmd=$(echo "$cmd")
-        $cmd
+        "$cmd"
     else
         build_job
     fi

@@ -140,13 +140,15 @@ for orgrepo in ${repo_list[*]}; do
     check_repo
 done
 
-echo "Cleaning up files and permissions..."
+echo "Cleaning up files..."
+
 # create symlink from geo-hpc/utils/geo_rasterstats to source code dir of rasterstats repo
 rs_src="${src}/python-rasterstats/src/rasterstats"
 rs_dst="${src}/geo-hpc/utils/geo_rasterstats"
 rm -r ${rs_dst}
 ln -s ${rs_src} ${rs_dst}
 
+echo "Setting permissions..."
 
 # make sure permissions are set
 find "${src}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
@@ -154,4 +156,5 @@ find "${src}" -type f -exec chmod u=rw,g=rw,o=r {} +
 
 echo 'Done'
 echo -e "\n"
+printf "%0.s-" {1..40}
 
