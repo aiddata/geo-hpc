@@ -140,6 +140,7 @@ for orgrepo in ${repo_list[*]}; do
     check_repo
 done
 
+echo "Cleaning up files and permissions..."
 # create symlink from geo-hpc/utils/geo_rasterstats to source code dir of rasterstats repo
 rs_src="${src}/python-rasterstats/src/rasterstats"
 rs_dst="${src}/geo-hpc/utils/geo_rasterstats"
