@@ -8,6 +8,7 @@
 #
 # input args:
 #   branch
+#   force_update (optional, any input for this var will enable force_update clauses)
 
 
 branch=$1
