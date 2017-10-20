@@ -98,7 +98,7 @@
                         "nodes": 0,
                         "ppn": 0,
                         "walltime": "0",
-                        "cmd": "bash ${src}/geo-hpc/tasks/update_repos.sh ${branch}"
+                        "cmd": "bash $src/geo-hpc/tasks/update_repos.sh $branch"
                     }
                 ]
             },
@@ -113,7 +113,7 @@
                         "nodes": 1,
                         "ppn": 1,
                         "walltime": "24:00:00",
-                        "cmd": "bash ${src}/geo-hpc/tasks/cleanup_repos.sh ${branch}"
+                        "cmd": "bash $src/geo-hpc/tasks/cleanup_repos.sh $branch"
                     }
                 ]
             },
@@ -128,7 +128,7 @@
                         "nodes": 1,
                         "ppn": 1,
                         "walltime": "48:00:00",
-                        "cmd": "python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
+                        "cmd": "python $src/geo-hpc/tasks/check_errors.py $branch"
                     }
                 ]
             },
@@ -143,7 +143,7 @@
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "48:00:00",
-                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/geo-hpc/tasks/update_trackers.py $branch"
                     }
                 ]
             },
@@ -158,7 +158,7 @@
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "48:00:00",
-                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}"
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/geo-hpc/tasks/update_extract_queue.py $branch"
                     }
                 ]
             },
@@ -173,7 +173,7 @@
                         "nodes": 1,
                         "ppn": 1,
                         "walltime": "48:00:00",
-                        "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}"
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi $src/geo-hpc/tasks/update_msr_queue.py $branch"
                     }
                 ]
             },
@@ -188,7 +188,7 @@
                         "nodes": 1,
                         "ppn": 1,
                         "walltime": "48:00:00",
-                        "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi $src/geo-hpc/tasks/geoquery_request_processing.py $branch"
                     }
                 ]
             }
