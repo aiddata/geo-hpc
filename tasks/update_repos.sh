@@ -135,8 +135,5 @@ echo "Setting permissions..."
 find "${src}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
 find "${src}" -type f -exec chmod u=rw,g=rw,o=r {} +
 
-echo -e "\n"
-echo 'Done'
-echo -e "\n"
-printf "%0.s-" {1..40}
+
 

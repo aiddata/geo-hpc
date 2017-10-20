@@ -217,6 +217,7 @@ for ((i=0;i<$x;i+=1)); do
 
     echo -e "\n"
     printf "%0.s-" {1..40}
+    echo -e "\n"
 
 done
 
