@@ -87,12 +87,6 @@ check_repo() {
             new_update_hash=$(md5sum "$src"/git/geo-hpc/tasks/update_repos.sh | awk '{ print $1 }')
             new_config_hash=$(md5sum "$src"/git/geo-hpc/config.json | awk '{ print $1 }')
 
-            if [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
-                echo -e "\n"
-                echo "Updating crons ..."
-                bash "$src"/git/geo-hpc/tools/manage_crons.sh "$branch" init
-            fi
-
             if [ "$old_config_hash" != "$new_config_hash" ]; then
                 echo -e "\n"
                 echo "Updating config db ..."
@@ -101,12 +95,18 @@ check_repo() {
                 python "$src"/git/geo-hpc/tools/update_featured_datasets.py "$branch"
             fi
 
+            if [ "$old_config_hash" != "$new_config_hash" ] || [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
+                echo -e "\n"
+                echo "Updating crons ..."
+                bash "$src"/git/geo-hpc/tools/manage_crons.sh "$branch" init
+            fi
 
             if [ "$old_repo_hash" != "$new_repo_hash" ] || [ "$old_load_hash" != "$new_load_hash" ]; then
                 echo -e "\n"
                 echo "Found new load_repos.sh or repo list..."
                 bash "$src"/git/geo-hpc/tools/load_repos.sh "$branch"
                 exit 0
+
             else
                 if [ "$old_update_hash" != "$new_update_hash" ]; then
                     echo -e "\n"
