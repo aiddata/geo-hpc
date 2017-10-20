@@ -57,7 +57,7 @@ check_repo() {
 
     echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
-    valid_update=$(echo "$update_status" | grep -q 'Update complete')
+    valid_update=$(echo "$update_status" | grep 'Update complete')
     if [[ "$valid_update" || "$repo" = 'geo-hpc' && "$force_update" ]]; then
 
         echo 'Completing update for repo: '"$repo"
