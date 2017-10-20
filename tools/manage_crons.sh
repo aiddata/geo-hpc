@@ -86,7 +86,7 @@ init() {
         job_class=$(get_job_class $i)
         cron_schedule=$(get_cron_schedule $job_class)
 
-        cron_string="$cron_scheudle"' bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
+        cron_string="$cron_schedule"' bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
         crontab -l | grep -v 'run_crons.*'"$branch"'.*'"$job_class" | { cat; echo "$cron_string"; } | crontab -
 
     done

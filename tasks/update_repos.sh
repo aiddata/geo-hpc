@@ -127,6 +127,11 @@ check_repo() {
 }
 
 
+if [ "$force_update" ];then
+    echo "Running forced update"
+fi
+
+
 repo_list=($(cat "$src"/geo-hpc/repo_list.txt))
 
 for orgrepo in ${repo_list[*]}; do
