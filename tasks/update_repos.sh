@@ -58,7 +58,7 @@ check_repo() {
     echo 'Status for repo ( '"$repo"' ): '"$update_status"
 
     valid_update=$(echo "$update_status" | grep -q 'Update complete')
-    if [ "$valid_update" ] || [[ "$repo" = 'geo-hpc' && "$force_update" ]]; then
+    if [[ "$valid_update" || "$repo" = 'geo-hpc' && "$force_update" ]]; then
 
         echo 'Completing update for repo: '"$repo"
 
@@ -93,11 +93,11 @@ check_repo() {
                 exit 0
 
             elif [ "$old_update_hash" != "$new_update_hash" ]; then
-                    echo -e "\n"
-                    echo "Found new update_repos.sh ..."
-                    bash "$src"/git/geo-hpc/tasks/update_repos.sh "$branch" force
-                    exit 0
-                fi
+                echo -e "\n"
+                echo "Found new update_repos.sh ..."
+                bash "$src"/git/geo-hpc/tasks/update_repos.sh "$branch" force
+                exit 0
+
             fi
 
         fi
