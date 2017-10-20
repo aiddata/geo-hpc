@@ -10,8 +10,10 @@
 #   branch
 
 
-# server=$1
 branch=$1
+
+# optional
+force_update=$2
 
 # timestamp=$(date +%s)
 timestamp=$(date +%Y%m%d.%s)
@@ -87,7 +89,7 @@ check_repo() {
             new_update_hash=$(md5sum "$src"/git/geo-hpc/tasks/update_repos.sh | awk '{ print $1 }')
             new_config_hash=$(md5sum "$src"/git/geo-hpc/config.json | awk '{ print $1 }')
 
-            if [ "$old_config_hash" != "$new_config_hash" ]; then
+            if [ "$force_update" != "" ] || [ "$old_config_hash" != "$new_config_hash" ]; then
                 echo -e "\n"
                 echo "Updating config db ..."
                 python "$src"/git/geo-hpc/tools/add_config_to_mongo.py "$branch"
@@ -95,7 +97,7 @@ check_repo() {
                 python "$src"/git/geo-hpc/tools/update_featured_datasets.py "$branch"
             fi
 
-            if [ "$old_config_hash" != "$new_config_hash" ] || [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
+            if [ "$force_update" != "" ] || [ "$old_config_hash" != "$new_config_hash" ] || [ "$old_manage_cron_hash" != "$new_manage_cron_hash" ]; then
                 echo -e "\n"
                 echo "Updating crons ..."
                 bash "$src"/git/geo-hpc/tools/manage_crons.sh "$branch" init
@@ -111,7 +113,7 @@ check_repo() {
                 if [ "$old_update_hash" != "$new_update_hash" ]; then
                     echo -e "\n"
                     echo "Found new update_repos.sh ..."
-                    bash "$src"/git/geo-hpc/tasks/update_repos.sh "$branch"
+                    bash "$src"/git/geo-hpc/tasks/update_repos.sh "$branch" force
                     exit 0
                 fi
             fi
