@@ -128,12 +128,14 @@ rs_dst="${src}/geo-hpc/utils/geo_rasterstats"
 rm -r ${rs_dst}
 ln -s ${rs_src} ${rs_dst}
 
+echo -e "\n"
 echo "Setting permissions..."
 
 # make sure permissions are set
 find "${src}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
 find "${src}" -type f -exec chmod u=rw,g=rw,o=r {} +
 
+echo -e "\n"
 echo 'Done'
 echo -e "\n"
 printf "%0.s-" {1..40}
