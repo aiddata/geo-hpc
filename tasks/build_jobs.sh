@@ -216,7 +216,6 @@ for ((i=0;i<$x;i+=1)); do
         $cmd
     else
         build_job
-        sleep 10
     fi
 
     echo -e "\n"
