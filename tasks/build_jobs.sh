@@ -186,7 +186,7 @@ get_val() {
     jobnumber=$1
     field=$2
     val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class']['tasks'][$jobnumber]['$field']")
-    echo $val
+    echo "$val"
 }
 
 x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class']['tasks'])")
@@ -211,7 +211,6 @@ for ((i=0;i<$x;i+=1)); do
     fi
 
     if [ $nodespec = "local" ]; then
-        cmd=$(echo "$cmd")
         "$cmd"
     else
         build_job
