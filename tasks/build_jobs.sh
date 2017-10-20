@@ -9,10 +9,6 @@
 #   timestamp
 #   job_class - which job to build
 #
-# only allows 1 job of each job_class type to run at a time
-# utilizes qstat grep to search for standardized job name to
-# determine if job is already running
-#
 # job name format: geo-<jobname>-<branch>
 
 
@@ -34,64 +30,7 @@ torque_path=/usr/local/torque-6.1.1.1/bin
 qstat=$($torque_path/qstat -nu $USER)
 
 
-# -----------------------------------------------------------------------------
-
-
-case "$job_class" in
-
-    error_check)
-        jobname=ec
-        nodespec=c18x
-        max_jobs=1
-        nodes=1
-        ppn=1
-        walltime=48:00:00
-        cmd='python ${src}/geo-hpc/tasks/check_errors.py ${branch}'
-        ;;
-
-    update_trackers)
-        jobname=upt
-        nodespec=c18c
-        max_jobs=1
-        nodes=1
-        ppn=16
-        walltime=48:00:00
-        cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}'
-        ;;
-
-    update_extracts)
-        jobname=upe
-        nodespec=c18c
-        max_jobs=1
-        nodes=1
-        ppn=16
-        walltime=48:00:00
-        cmd='mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}'
-        ;;
-
-    update_msr)
-        jobname=upm
-        nodespec=c18x
-        max_jobs=1
-        nodes=1
-        ppn=1
-        walltime=48:00:00
-        cmd='mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}'
-        ;;
-
-    det)
-        jobname=det
-        nodespec=c18x
-        max_jobs=1
-        nodes=1
-        ppn=1
-        walltime=48:00:00
-        cmd='mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}'
-        ;;
-
-    *)  echo "Invalid job_class";
-        exit 1 ;;
-esac
+config_path=$src/geo-hpc/config.json
 
 
 # -----------------------------------------------------------------------------
@@ -99,7 +38,7 @@ esac
 
 clean_jobs() {
 
-    job_dir="$branch_dir"/log/"$job_class"/jobs
+    job_dir="$branch_dir"/log/$job_class/jobs
     mkdir -p $job_dir
 
     shopt -s nullglob
@@ -118,7 +57,7 @@ clean_jobs() {
 
 build_job() {
 
-    echo "Preparing $job_class job..."
+    echo "Preparing $jobname job..."
 
     active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
 
@@ -131,7 +70,53 @@ build_job() {
 
         echo "Job opening found"
 
-        echo "Building <"$jobname"> job #"$active_jobs"..."
+        # ----------------------------------------
+         job_type=default
+
+        if [[ $job_class = "extracts" ]]; then
+            echo "Checking for items in queue..."
+            queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
+
+        elif [[ $job_class = "msr" ]]; then
+            echo "Checking for items in queue..."
+            queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
+
+        else
+            queue_status="none"
+
+        fi
+
+
+        if [ $queue_status = "none" ]; then
+            :
+
+        elif [ $queue_status = "ready" ]; then
+            if [[ $job_class = "extracts" && $jobname = "ex1" ]]; then
+                echo '... no priority tasks found'
+                return 0
+            fi
+            echo '... items found in queue'
+
+        elif [[ $job_class = "extracts" && $queue_status = "det" ]]; then
+            echo 'items found in queue'
+            job_type=det
+
+        elif [ $queue_status = "empty" ]; then
+            echo '... queue empty'
+            return 0
+
+        elif [ $queue_status = "error" ]; then
+            echo '... error connecting to queue'
+            return 1
+
+        else
+            echo '... unknown error'
+            return 2
+
+        fi
+        # ----------------------------------------
+
+        echo "Building <"$jobname"> job #"$active_jobs" ("$job_type" job)..."
 
         job_path=$(mktemp)
 
@@ -144,7 +129,6 @@ build_job() {
 #   sublime text is set to indent with spaces
 #   heredocs can only be indented with true tabs
 #   (can use `cat <<- EOF` to strip leading tabs )
-
 
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
@@ -175,7 +159,9 @@ EOF
 
 }
 
+
 # -----------------------------------------------------------------------------
+
 
 # always clean up old job outputs first
 clean_jobs
@@ -193,11 +179,41 @@ if [ $db_conn_status != "success" ]; then
 fi
 
 
-echo -e "\n"
-echo [$(date) \("$timestamp"."$jobtime"\)]
-echo -e "\n"
+# load job settings from config json and
+# build jobs using those settings
 
-build_job
+get_val() {
+    jobnumber=$1
+    field=$2
+    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'][$jobnumber]['$field']")
+    echo $val
+}
 
-echo -e "\n"
-printf "%0.s-" {1..40}
+x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
+
+for ((i=0;i<$x;i+=1)); do
+
+    echo -e "\n"
+    echo [$(date) \("$timestamp"."$jobtime"\)]
+    echo -e "\n"
+
+    jobname=$(get_val $i jobname)
+    nodespec=$(get_val $i nodespec)
+    max_jobs=$(get_val $i max_jobs)
+    nodes=$(get_val $i nodes)
+    ppn=$(get_val $i ppn)
+    walltime=$(get_val $i walltime)
+    cmd=$(get_val $i cmd)
+
+    if [ $job_class = "extracts" ]; then
+        extract_limit=$(get_val $i extract_limit)
+        pixel_limit=$(get_val $i pixel_limit)
+    fi
+
+    build_job
+
+    echo -e "\n"
+    printf "%0.s-" {1..40}
+
+done
+
