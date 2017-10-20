@@ -19,8 +19,6 @@ force_update=$2
 # timestamp=$(date +%s)
 timestamp=$(date +%Y%m%d.%s)
 
-echo '=================================================='
-# echo Building on server: "$server"
 echo Updating repos for branch: "$branch"
 echo Timestamp: $(date) '('"$timestamp"')'
 echo -e "\n"
@@ -29,10 +27,8 @@ echo -e "\n"
 branch_dir="/sciclone/aiddata10/geo/${branch}"
 src="${branch_dir}/source"
 
-# rm -rf "$src"/git
-# mkdir "$src"/git
-cd "$src"/git
 
+# -----------------------------------------------------------------------------
 
 
 check_repo() {
@@ -66,7 +62,7 @@ check_repo() {
 
         echo 'Completing update for repo: '"$repo"
 
-        cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
+        cp -r "$src"/git/"$repo" "$src"/latest/"$timestamp"."$repo"
         ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
 
         if [ "$repo" = 'geo-hpc' ]; then
@@ -109,6 +105,9 @@ check_repo() {
     fi
 
 }
+
+
+# -----------------------------------------------------------------------------
 
 
 if [ "$force_update" ];then
