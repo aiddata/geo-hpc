@@ -210,7 +210,7 @@ for ((i=0;i<$x;i+=1)); do
     fi
 
     cmd=$(eval "echo $cmd")
-    total=$(($nodes * $ppn))
+    total=`expr $nodes \* $ppn`
 
     if [ $nodespec = "local" ]; then
         $cmd
