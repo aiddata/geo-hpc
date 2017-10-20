@@ -37,6 +37,7 @@ cd "$src"/git
 
 check_repo() {
 
+    echo -e "\n"
     echo 'Checking repo: '"$repo"
 
     # make sure repo exists
@@ -68,21 +69,6 @@ check_repo() {
         cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
         ln -sfn "$src"/latest/"$timestamp"."$repo" "$src"/"$repo"
 
-
-        # for i in "$src"/latest/*; do
-        #     echo "$i"
-
-        #     if echo "$i" | grep -q "$repo"; then
-        #         if echo "$i" | grep -q -v "$timestamp"; then
-
-        #             echo 'Cleaning up old '"$repo"' repo...'
-        #             find "$i" -type f -exec rm -rf "{}" \;
-        #             find "$i" -type d -exec rm -rf "{}" \;
-
-        #         fi
-        #     fi
-        # done
-
         if [ "$repo" = 'geo-hpc' ]; then
             new_manage_cron_hash=$(md5sum "$src"/git/geo-hpc/tools/manage_crons.sh | awk '{ print $1 }')
             new_repo_hash=$(md5sum "$src"/git/geo-hpc/repo_list.txt | awk '{ print $1 }')
@@ -110,8 +96,7 @@ check_repo() {
                 bash "$src"/git/geo-hpc/tools/load_repos.sh "$branch"
                 exit 0
 
-            else
-                if [ "$old_update_hash" != "$new_update_hash" ]; then
+            elif [ "$old_update_hash" != "$new_update_hash" ]; then
                     echo -e "\n"
                     echo "Found new update_repos.sh ..."
                     bash "$src"/git/geo-hpc/tasks/update_repos.sh "$branch" force
@@ -122,8 +107,6 @@ check_repo() {
         fi
 
     fi
-
-    echo -e "\n"
 
 }
 
@@ -139,8 +122,6 @@ for orgrepo in ${repo_list[*]}; do
     repo=$(basename ${orgrepo})
     check_repo
 done
-
-echo "Cleaning up files..."
 
 # create symlink from geo-hpc/utils/geo_rasterstats to source code dir of rasterstats repo
 rs_src="${src}/python-rasterstats/src/rasterstats"
