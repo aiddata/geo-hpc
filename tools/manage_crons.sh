@@ -41,6 +41,10 @@ src="${branch_dir}/source"
 
 cron_tag='#geo-hpc'
 
+
+config_path=$src/geo-hpc/config.json
+
+
 # --------------------------------------------------
 
 # backup crontab
@@ -64,44 +68,66 @@ backup_cron() {
 
 init() {
 
-    # update_repos
-    update_repos_cron='*/10 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' update_repos #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*update_repos' | { cat; echo "$update_repos_cron"; } | crontab -
 
-    # cleanup_repos
-    cleanup_repos_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' cleanup_repos #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
+    get_job_class() {
+        val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs'].keys()[$1]")
+        echo $val
+    }
+
+    get_cron_schedule() {
+        val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class']['cron_schedule']")
+        echo $val
+    }
+
+    x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs'])")
+
+    for ((i=0;i<$x;i+=1)); do
+
+        job_class=$(get_job_class $i)
+        cron_schedule=$(get_cron_schedule $job_class)
+
+        cron_string="$cron_scheudle"' bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
+        crontab -l | grep -v 'run_crons.*'"$branch"'.*'"$job_class" | { cat; echo "$cron_string"; } | crontab -
+
+    done
 
 
-    # db_updates
 
-    # build_error_check_job - manage errors from jobs
-    build_error_check_job_cron='*/5 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_error_check_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_error_check_job' | { cat; echo "$build_error_check_job_cron"; } | crontab -
+    # # update_repos
+    # update_repos_cron='*/10 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' update_repos #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*update_repos' | { cat; echo "$update_repos_cron"; } | crontab -
 
-    # build_update_trackers_job - index tracker update
-    build_update_trackers_job_cron='0 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_trackers_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_trackers_job' | { cat; echo "$build_update_trackers_job_cron"; } | crontab -
+    # # cleanup_repos
+    # cleanup_repos_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' cleanup_repos #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*cleanup_repos' | { cat; echo "$cleanup_repos_cron"; } | crontab -
 
-    # build_update_extracts_job - extract queue update
-    build_update_extracts_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_extracts_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_extracts_job' | { cat; echo "$build_update_extracts_job_cron"; } | crontab -
+    # # build_error_check_job - manage errors from jobs
+    # build_error_check_job_cron='*/5 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_error_check_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_error_check_job' | { cat; echo "$build_error_check_job_cron"; } | crontab -
 
-    # build_update_msr_job - msr queue update
-    build_update_msr_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_msr_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_msr_job' | { cat; echo "$build_update_msr_job_cron"; } | crontab -
+    # # build_update_trackers_job - index tracker update
+    # build_update_trackers_job_cron='0 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_trackers_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_trackers_job' | { cat; echo "$build_update_trackers_job_cron"; } | crontab -
 
-    # build_det_job
-    build_det_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_det_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_det_job' | { cat; echo "$build_det_job_cron"; } | crontab -
+    # # build_update_extracts_job - extract queue update
+    # build_update_extracts_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_extracts_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_extracts_job' | { cat; echo "$build_update_extracts_job_cron"; } | crontab -
 
-    # build_msr_job
-    build_msr_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_msr_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
+    # # build_update_msr_job - msr queue update
+    # build_update_msr_job_cron='0 23 * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_update_msr_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_update_msr_job' | { cat; echo "$build_update_msr_job_cron"; } | crontab -
 
-    # build_extract_job
-    build_extracts_job_cron='*/2 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_extracts_job #geo-hpc'
-    crontab -l | grep -v 'run_crons.*'"$branch"'.*build_extracts_job' | { cat; echo "$build_extracts_job_cron"; } | crontab -
+    # # build_det_job
+    # build_det_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_det_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_det_job' | { cat; echo "$build_det_job_cron"; } | crontab -
+
+    # # build_msr_job
+    # build_msr_job_cron='*/1 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_msr_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_msr_job' | { cat; echo "$build_msr_job_cron"; } | crontab -
+
+    # # build_extract_job
+    # build_extracts_job_cron='*/2 * * * * bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' build_extracts_job #geo-hpc'
+    # crontab -l | grep -v 'run_crons.*'"$branch"'.*build_extracts_job' | { cat; echo "$build_extracts_job_cron"; } | crontab -
 
 
 }

@@ -185,11 +185,11 @@ fi
 get_val() {
     jobnumber=$1
     field=$2
-    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'][$jobnumber]['$field']")
+    val=$(python -c "import json; print json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class']['tasks'][$jobnumber]['$field']")
     echo $val
 }
 
-x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class'])")
+x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs']['$job_class']['tasks'])")
 
 for ((i=0;i<$x;i+=1)); do
 

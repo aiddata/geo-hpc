@@ -31,126 +31,167 @@
             "msr": "0.11.1"
         },
         "jobs": {
-            "extracts": [
-                {
-                    "description": "generic vortex-alpha job",
-                    "jobname": "ex",
-                    "nodespec": "c18c",
-                    "max_jobs": 6,
-                    "nodes": 1,
-                    "ppn": 16,
-                    "walltime": "180:00:00",
-                    "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
-                    "extract_limit": 200,
-                    "pixel_limit": 250000
-                },
-                {
-                    "description": "priority only vortex-alpha job",
-                    "jobname": "ex1",
-                    "nodespec": "c18c",
-                    "max_jobs": 1,
-                    "nodes": 1,
-                    "ppn": 16,
-                    "walltime": "180:00:00",
-                    "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
-                    "extract_limit": 200,
-                    "pixel_limit": 250000
-                },
-                {
-                    "description": "generic vortex (c18a) job",
-                    "jobname": "ex2",
-                    "nodespec": "c18a",
-                    "max_jobs": 0,
-                    "nodes": 1,
-                    "ppn": 12,
-                    "walltime": "180:00:00",
-                    "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
-                    "extract_limit": 200,
-                    "pixel_limit": 100000
-                }
-            ],
-            "msr": [
-                {
-                    "description": "generic vortex-alpha job",
-                    "jobname": "msr",
-                    "nodespec": "c18c",
-                    "max_jobs": 1,
-                    "nodes": 1,
-                    "ppn": 16,
-                    "walltime": "24:00:00",
-                    "command": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp"
-                }
-            ],
-            "update_repos": [{
-                "description": "",
-                "jobname": "ur",
-                "nodespec": "c18x",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 1,
-                "walltime": "24:00:00",
-                "cmd": "bash ${src}/geo-hpc/tasks/update_repos.sh ${branch}"
-            }],
-            "cleanup_repos": [{
-                "description": "",
-                "jobname": "cr",
-                "nodespec": "c18x",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 1,
-                "walltime": "24:00:00",
-                "cmd": "bash ${src}/geo-hpc/tasks/cleanup_repos.sh ${branch}"
-            }],
-            "error_check": [{
-                "description": "",
-                "jobname": "ec",
-                "nodespec": "c18x",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 1,
-                "walltime": "48:00:00",
-                "cmd": "python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
-            }],
-            "update_trackers": [{
-                "description": "",
-                "jobname": "upt",
-                "nodespec": "c18c",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 16,
-                "walltime": "48:00:00",
-                "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
-            }],
-            "update_extracts": [{
-                "description": "",
-                "jobname": "upe",
-                "nodespec": "c18c",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 16,
-                "walltime": "48:00:00",
-                "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}"
-            }],
-            "update_msr": [{
-                "description": "",
-                "jobname": "upm",
-                "nodespec": "c18x",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 1,
-                "walltime": "48:00:00",
-                "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}"
-            }],
-            "det": [{
-                "description": "",
-                "jobname": "det",
-                "nodespec": "c18x",
-                "max_jobs": 1,
-                "nodes": 1,
-                "ppn": 1,
-                "walltime": "48:00:00",
-                "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
-            }]
+            "extracts": {
+                "cron_schedule": "*/2 * * * *",
+                "tasks": [
+                    {
+                        "description": "generic vortex-alpha job",
+                        "jobname": "ex",
+                        "nodespec": "c18c",
+                        "max_jobs": 6,
+                        "nodes": 1,
+                        "ppn": 16,
+                        "walltime": "180:00:00",
+                        "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
+                        "extract_limit": 200,
+                        "pixel_limit": 250000
+                    },
+                    {
+                        "description": "priority only vortex-alpha job",
+                        "jobname": "ex1",
+                        "nodespec": "c18c",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 16,
+                        "walltime": "180:00:00",
+                        "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
+                        "extract_limit": 200,
+                        "pixel_limit": 250000
+                    },
+                    {
+                        "description": "generic vortex (c18a) job",
+                        "jobname": "ex2",
+                        "nodespec": "c18a",
+                        "max_jobs": 0,
+                        "nodes": 1,
+                        "ppn": 12,
+                        "walltime": "180:00:00",
+                        "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
+                        "extract_limit": 200,
+                        "pixel_limit": 100000
+                    }
+                ]
+            },
+            "msr": {
+                "cron_schedule": "*/1 * * * *",
+                "tasks": [
+                    {
+                        "description": "generic vortex-alpha job",
+                        "jobname": "msr",
+                        "nodespec": "c18c",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 16,
+                        "walltime": "24:00:00",
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp"
+                    }
+                ]
+            },
+            "update_repos": {
+                "cron_schedule": "*/10 * * * *",
+                "tasks": [
+                    {
+                        "description": "",
+                        "jobname": "ur",
+                        "nodespec": "c18x",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 1,
+                        "walltime": "24:00:00",
+                        "cmd": "bash ${src}/geo-hpc/tasks/update_repos.sh ${branch}"
+                    }
+                ]
+            },
+            "cleanup_repos": {
+                "cron_schedule": "0 23 * * *",
+                "tasks": [
+                    {
+                        "description": "",
+                        "jobname": "cr",
+                        "nodespec": "c18x",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 1,
+                        "walltime": "24:00:00",
+                        "cmd": "bash ${src}/geo-hpc/tasks/cleanup_repos.sh ${branch}"
+                    }
+                ]
+            },
+            "error_check": {
+                "cron_schedule": "*/5 * * * *",
+                "tasks": [
+                    {
+                        "description": "manage errors from jobs",
+                        "jobname": "ec",
+                        "nodespec": "c18x",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 1,
+                        "walltime": "48:00:00",
+                        "cmd": "python ${src}/geo-hpc/tasks/check_errors.py ${branch}"
+                    }
+                ]
+            },
+            "update_trackers": {
+                "cron_schedule": "0 * * * *",
+                "tasks": [
+                    {
+                        "description": "index tracker update",
+                        "jobname": "upt",
+                        "nodespec": "c18c",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 16,
+                        "walltime": "48:00:00",
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_trackers.py ${branch}"
+                    }
+                ]
+            },
+            "update_extracts": {
+                "cron_schedule": "0 23 * * *",
+                "tasks": [
+                    {
+                        "description": "extracts queue update",
+                        "jobname": "upe",
+                        "nodespec": "c18c",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 16,
+                        "walltime": "48:00:00",
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi ${src}/geo-hpc/tasks/update_extract_queue.py ${branch}"
+                    }
+                ]
+            },
+            "update_msr": {
+                "cron_schedule": "0 23 * * *",
+                "tasks": [
+                    {
+                        "description": "msr queue update",
+                        "jobname": "upm",
+                        "nodespec": "c18x",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 1,
+                        "walltime": "48:00:00",
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/update_msr_queue.py ${branch}"
+                    }
+                ]
+            },
+            "det": {
+                "cron_schedule": "*/1 * * * *",
+                "tasks": [
+                    {
+                        "description": "",
+                        "jobname": "det",
+                        "nodespec": "c18x",
+                        "max_jobs": 1,
+                        "nodes": 1,
+                        "ppn": 1,
+                        "walltime": "48:00:00",
+                        "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi ${src}/geo-hpc/tasks/geoquery_request_processing.py ${branch}"
+                    }
+                ]
+            }
         },
         "det": {
             "download_server": "geo.aiddata.org",
