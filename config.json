@@ -81,6 +81,26 @@
                     "command": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp"
                 }
             ],
+            "update_repos": [{
+                "description": "",
+                "jobname": "ur",
+                "nodespec": "c18x",
+                "max_jobs": 1,
+                "nodes": 1,
+                "ppn": 1,
+                "walltime": "24:00:00",
+                "cmd": "bash ${src}/geo-hpc/tasks/update_repos.sh ${branch}"
+            }],
+            "cleanup_repos": [{
+                "description": "",
+                "jobname": "cr",
+                "nodespec": "c18x",
+                "max_jobs": 1,
+                "nodes": 1,
+                "ppn": 1,
+                "walltime": "24:00:00",
+                "cmd": "bash ${src}/geo-hpc/tasks/cleanup_repos.sh ${branch}"
+            }],
             "error_check": [{
                 "description": "",
                 "jobname": "ec",

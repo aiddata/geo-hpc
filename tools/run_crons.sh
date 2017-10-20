@@ -26,11 +26,11 @@ export PYTHONPATH="${PYTHONPATH}:/usr/local/amd64/seoul/gcc/python-2.7.8/lib/pyt
 
 case $cron in
     "update_repos")         mkdir -p "$branch_dir"/log/update_repos
-                            bash "$src"/geo-hpc/tasks/update_repos.sh "$branch" 2>&1 | tee 1>>"$branch_dir"/log/update_repos/"$timestamp".update_repos.log
+                            bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" update_repos  2>&1 | tee 1>>"$branch_dir"/log/update_repos/"$timestamp".update_repos.log
                             exit 0;;
 
     "cleanup_repos")        mkdir -p "$branch_dir"/log/cleanup_repos
-                            bash "$src"/geo-hpc/tasks/cleanup_repos.sh "$branch" 2>&1 | tee 1>>"$branch_dir"/log/cleanup_repos/"$timestamp".cleanup_repos.log
+                            bash "$src"/geo-hpc/tasks/build_jobs.sh "$branch" "$timestamp" cleanup_repos  2>&1 | tee 1>>"$branch_dir"/log/cleanup_repos/"$timestamp".cleanup_repos.log
                             exit 0;;
 
     "build_error_check_job")    mkdir -p "$branch_dir"/log/error_check
@@ -54,11 +54,11 @@ case $cron in
                             exit 0;;
 
     "build_msr_job")        mkdir -p "$branch_dir"/log/msr
-                            bash "$src"/geo-hpc/tasks/build_msr_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/msr/"$timestamp".msr.log
+                            bash "$src"/geo-hpc/tasks/build_msr_job.sh "$branch" "$timestamp" msr 2>&1 | tee 1>>"$branch_dir"/log/msr/"$timestamp".msr.log
                             exit 0;;
 
     "build_extracts_job")   mkdir -p "$branch_dir"/log/extracts
-                            bash "$src"/geo-hpc/tasks/build_extract_job.sh "$branch" "$timestamp" 2>&1 | tee 1>>"$branch_dir"/log/extracts/"$timestamp".extracts.log
+                            bash "$src"/geo-hpc/tasks/build_extract_job.sh "$branch" "$timestamp" extracts 2>&1 | tee 1>>"$branch_dir"/log/extracts/"$timestamp".extracts.log
                             exit 0;;
 
 
