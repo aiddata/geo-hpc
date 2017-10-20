@@ -81,12 +81,15 @@ init() {
 
     x=$(python -c "import json; print len(json.load(open('$config_path', 'r'))['$branch']['jobs'])")
 
+    echo "Adding crons..."
     for ((i=0;i<$x;i+=1)); do
 
         job_class=$(get_job_class $i)
         cron_schedule=$(get_cron_schedule $job_class)
 
         cron_string="$cron_schedule"' bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
+
+        echo "$cron_string"
         crontab -l | grep -v 'run_crons.*'"$branch"'.*'"$job_class" | { cat; echo "$cron_string"; } | crontab -
 
     done
