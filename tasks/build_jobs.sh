@@ -209,8 +209,8 @@ for ((i=0;i<$x;i+=1)); do
         pixel_limit=$(get_val $i pixel_limit)
     fi
 
-    cmd=$(eval "echo $cmd")
     total=`expr $nodes \* $ppn`
+    cmd=$(eval "echo $cmd")
 
     if [ $nodespec = "local" ]; then
         $cmd
