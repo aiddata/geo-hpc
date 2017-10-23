@@ -917,7 +917,7 @@ class ExtractObject():
 # -----------------------------------------------------------------------------
 
 
-def merge_file_list(file_list, merge_output):
+def merge_file_list(file_list, merge_output, include_asdf_id=True):
     """merge extracts for given file list
 
     outputs to given csv path
@@ -930,7 +930,10 @@ def merge_file_list(file_list, merge_output):
     merge_output (str): absolute path for merged output file
     """
 
-    field_list = ['asdf_id']
+    if include_asdf_id:
+        field_list = ['asdf_id']
+    else:
+        field_list = []
 
     merged_df = 0
     for file_info in file_list:
@@ -1209,7 +1212,7 @@ class MergeObject():
         self.merge_list = tmp_merge_list
 
 
-    def run_merge(self):
+    def run_merge(self, include_asdf_id=False):
         """Run merge
 
         """
@@ -1247,7 +1250,7 @@ class MergeObject():
                                          "exist.\n")
 
 
-            merge_status = merge_file_list(file_list, merge_output)
+            merge_status = merge_file_list(file_list, merge_output, include_asdf_id=include_asdf_id)
 
             if not merge_status:
                 print ('\tWarning: no extracts merged for '
