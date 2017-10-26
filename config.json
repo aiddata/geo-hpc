@@ -38,7 +38,7 @@
                         "description": "generic vortex-alpha job",
                         "jobname": "ex",
                         "nodespec": "c18c",
-                        "max_jobs": 7,
+                        "max_jobs": 6,
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "180:00:00",
