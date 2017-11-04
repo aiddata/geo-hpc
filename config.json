@@ -3,7 +3,7 @@
         "active": 1,
         "name": "master",
         "data_root": "/sciclone/aiddata10/REU",
-        "database": "128.239.20.76",
+        "database": "128.239.108.200",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
             "AfghanistanAIMS": "AFG",
