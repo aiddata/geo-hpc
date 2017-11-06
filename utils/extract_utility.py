@@ -988,7 +988,14 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
                     c[len("exfield_"):])
 
             else:
-                tmp_field = result_field
+                tmp_split = result_field.split('.')
+
+                tmp_field = "{0}.{1}.{2}".format(
+                    tmp_split[0],
+                    tmp_split[1],
+                    c[len("exfield_"):])
+
+                # tmp_field = result_field
 
 
             merged_df[tmp_field] = result_df[c]
