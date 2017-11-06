@@ -79,3 +79,59 @@ class GeoEmail():
 
         except Exception as e:
             return 0, "Error sending email", e
+
+
+    def send_backup_email(self, receiver, subject, message, sender=None, reply_to=None, passwd=None):
+        """send an email using alternative method
+
+        Args:
+            receiver (str): email address to send to
+            subject (str): subject of email
+            message (str): body of email
+
+        Returns:
+            (tuple): status, error message, exception
+            status is bool
+            error message and exception are None on success
+        """
+
+        if sender is None:
+            sender = self.defaults['sender']
+        if reply_to is None:
+            reply_to = self.defaults['reply_to']
+
+        try:
+
+            # source:
+            # http://effbot.org/pyfaq/how-do-i-send-mail-from-a-python-script.htm
+            FROM = reply_to
+
+            MAIN = [receiver]
+            CC = []
+            BCC = []
+            # who it is going to, main, cc, bcc
+            # must be a list
+            TO = MAIN + CC +  BCC
+
+            # Prepare actual message
+            message = """\
+            From: %s
+            To: %s
+            CC: %s
+            Subject: %s
+
+            %s
+            """ % (FROM, ', '.join(MAIN), ', '.join(CC), subject, message)
+
+            # Send the mail
+            SERVER = "localhost"
+            server = smtplib.SMTP(SERVER)
+            server.sendmail(FROM, TO, message)
+            server.quit()
+
+            return 1, None, None
+
+        except Exception as e:
+            return 0, "Error sending backup email", e
+
+

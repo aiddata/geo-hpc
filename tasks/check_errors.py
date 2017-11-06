@@ -20,9 +20,6 @@ config.test_connection()
 
 # -----------------------------------------------------------------------------
 
-if config.connection_status != 0:
-    raise Exception('Could not connect to mongodb')
-
 
 import time
 from datetime import datetime
@@ -31,7 +28,33 @@ from bson.objectid import ObjectId
 
 from email_utility import GeoEmail
 
+
 email = GeoEmail(config)
+
+dev_email = "geodev@aiddata.wm.edu"
+reply_to = "Geo Dev <{0}>".format(dev_email)
+
+
+if config.connection_status != 0:
+
+    print "Could not connect to mongodb (branch: {0})".format(branch)
+
+    subject = "Geo ({0}) - Error : mongodb connection"
+
+    message = (
+        """
+        Could not connect to mongodb (branch: {0})
+
+        """).format(branch)
+
+    mail_status = email.send_backup_email(dev_email, subject, message, reply_to=reply_to)
+
+    if not mail_status[0]:
+        print mail_status[1]
+        raise mail_status[2]
+
+    raise Exception("Could not connect to mongodb (branch: {0})".format(branch))
+
 
 
 client = config.client
