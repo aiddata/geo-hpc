@@ -395,9 +395,9 @@ def tmp_get_task_data(self, task_index, source):
                 potential_request_list = list(c_extracts.find({
                     'status': 0,
                     'generator': {'$in': self.generator_list},
-                    'classification': ctype,
-                    'priority': -1
-                }, sort=[("submit_time", 1)]).limit(10))
+                    'classification': ctype#,
+                    # 'priority': -1
+                }, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
                 if len(potential_request_list) > 0:
                     break
 
