@@ -190,7 +190,8 @@ if job.rank == 0:
                             'data': r['name'],
                             'extract_type': e,
                             'version': version,
-                            'classification': 'raster'
+                            'classification': 'raster',
+                            'priority': -1
                         }
                         for r in raster['resources']
                         for b in group_bnds
@@ -225,7 +226,8 @@ if job.rank == 0:
                         'data': '{0}_{1}'.format(r["dataset"], r["hash"]),
                         'extract_type': tmp_extract_type,
                         'version': version,
-                        'classification': 'msr'
+                        'classification': 'msr',
+                        'priority': -2
                     }
                     for r in release_filters
                     for b in group_bnds
@@ -300,7 +302,7 @@ def tmp_worker_job(self, task_index, task_data):
     i_full = deepcopy(task_data)
     i_full["status"] = 0
     i_full["generator"] = "auto"
-    i_full["priority"] = -1
+    # i_full["priority"] = -1
 
     i_full["submit_time"] = ctime
     i_full["update_time"] = ctime
