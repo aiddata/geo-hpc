@@ -56,7 +56,7 @@ elif job_type == "msr":
     request_count = c_extracts.find({'status': 0, 'classification': 'msr'}).count()
 
 else:
-    request_count "invalid"
+    request_count = "invalid"
 
 
 
