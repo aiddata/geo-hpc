@@ -427,7 +427,8 @@ def tmp_get_task_data(self, task_index, source):
                     'status': 2,
                     'update_time': int(time.time()),
                     'start_time': int(time.time()),
-                    'complete_time': 0
+                    'complete_time': 0,
+                    'processor_name': job.processor_name
                 }
             })
 

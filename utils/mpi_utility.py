@@ -75,6 +75,8 @@ class NewParallel():
 
         if self.parallel:
 
+            self.processor_name = MPI.Get_processor_name()
+
             self.comm = MPI.COMM_WORLD
             self.size = self.comm.Get_size()
             self.rank = self.comm.Get_rank()
@@ -521,8 +523,7 @@ class NewParallel():
 
         else:
             # Worker processes execute code below
-            name = MPI.Get_processor_name()
-            print "Worker {0} - rank {0} on {1}.".format(self.rank, name)
+            print "Worker {0} - rank {0} on {1}.".format(self.rank, self.processor_name)
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
                 master_data = self.comm.recv(source=0,
