@@ -60,7 +60,7 @@ else:
 
 
 
-if request_count == "invalid"
+if request_count == "invalid":
     print "invalid"
 
 elif request_count > 0:
