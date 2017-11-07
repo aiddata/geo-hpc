@@ -34,6 +34,7 @@ if config.connection_status != 0:
 
 # ----------------------------------------------------------------------------
 
+job_type = sys.argv[2]
 
 import pymongo
 
@@ -41,12 +42,26 @@ client = pymongo.MongoClient(config.database)
 
 c_extracts = client.asdf.extracts
 
-det_requests = c_extracts.find({'status': 0, 'priority': {'$gt': -1}}).count()
-request_count = c_extracts.find({'status': 0}).count()
 
-# make sure request was found
-if det_requests > 0:
-    print "det"
+if job_type == "det":
+    request_count = c_extracts.find({'status': 0, 'priority': {'$gt': -1}}).count()
+
+elif job_type == "default":
+    request_count = c_extracts.find({'status': 0}).count()
+
+elif job_type == "raster":
+    request_count = c_extracts.find({'status': 0, 'classification': 'raster'}).count()
+
+elif job_type == "msr":
+    request_count = c_extracts.find({'status': 0, 'classification': 'msr'}).count()
+
+else:
+    request_count "invalid"
+
+
+
+if request_count == "invalid"
+    print "invalid"
 
 elif request_count > 0:
     print "ready"

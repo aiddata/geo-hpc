@@ -116,6 +116,15 @@ elif job.job_type == 'det':
     job.generator_list = ['det']
     job.classification_list = ['raster', 'msr']
 
+elif job.job_type == 'raster':
+    job.generator_list = ['auto', 'det']
+    job.classification_list = ['raster']
+
+elif job.job_type == 'msr':
+    job.generator_list = ['auto', 'det']
+    job.classification_list = ['msr']
+
+
 
 if job.rank == 0:
     print "running job type: {0}".format(job.job_type)
@@ -125,7 +134,7 @@ if job.rank == 0:
 # -------------------------------------
 # number of extracts requests to process per job
 
-extract_limit = 150
+extract_limit = 200
 
 if len(sys.argv) == 4:
     extract_limit= int(sys.argv[3])

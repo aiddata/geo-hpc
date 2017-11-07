@@ -71,11 +71,10 @@ build_job() {
         echo "Job opening found"
 
         # ----------------------------------------
-         job_type=default
 
         if [[ $job_class = "extracts" ]]; then
             echo "Checking for items in queue..."
-            queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch")
+            queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch" $job_type)
 
         elif [[ $job_class = "msr" ]]; then
             echo "Checking for items in queue..."
@@ -91,15 +90,7 @@ build_job() {
             :
 
         elif [ $queue_status = "ready" ]; then
-            if [[ $job_class = "extracts" && $jobname = "ex1" ]]; then
-                echo '... no priority tasks found'
-                return 0
-            fi
             echo '... items found in queue'
-
-        elif [[ $job_class = "extracts" && $queue_status = "det" ]]; then
-            echo 'items found in queue'
-            job_type=det
 
         elif [ $queue_status = "empty" ]; then
             echo '... queue empty'
@@ -109,9 +100,13 @@ build_job() {
             echo '... error connecting to queue'
             return 1
 
+        elif [ $queue_status = "invalid" ]; then
+            echo '... error due to invalid input'
+            return 2
+
         else
             echo '... unknown error'
-            return 2
+            return 3
 
         fi
         # ----------------------------------------
@@ -196,6 +191,9 @@ for ((i=0;i<$x;i+=1)); do
     echo [$(date) \("$timestamp"."$jobtime"\)]
     echo -e "\n"
 
+    # only modified for relevant jobs
+    job_type=default
+
     jobname=$(get_val $i jobname)
     nodespec=$(get_val $i nodespec)
     max_jobs=$(get_val $i max_jobs)
@@ -205,6 +203,7 @@ for ((i=0;i<$x;i+=1)); do
     cmd=$(get_val $i cmd)
 
     if [ $job_class = "extracts" ]; then
+        job_type=$(get_val $i job_type)
         extract_limit=$(get_val $i extract_limit)
         pixel_limit=$(get_val $i pixel_limit)
     fi
