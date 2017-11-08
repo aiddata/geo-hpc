@@ -299,10 +299,15 @@ def tmp_worker_job(self, task_index, task_data):
     # build full doc
     ctime = int(time.time())
 
+    tmp_priority = task_data['priority']
+    del task_data['priority']
+
     i_full = deepcopy(task_data)
+
+    i_full["priority"] = tmp_priority
+
     i_full["status"] = 0
     i_full["generator"] = "auto"
-    # i_full["priority"] = -1
 
     i_full["submit_time"] = ctime
     i_full["update_time"] = ctime
