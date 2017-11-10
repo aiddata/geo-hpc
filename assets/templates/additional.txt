@@ -1,6 +1,6 @@
 <b><font size=14>Terms of Use</font></b>
 
-The database and derived products produced by this tool are governed by the license available at http://geo.aiddata.org/license ('the geo license'). By clicking submit you agree to the terms of the geo license, which are summarized as:
+The database and derived products produced by this tool are governed by the licenses described at http://http://geoquery.org/toolsguides. By clicking submit you agree to the terms, which are summarized as:
 
 As long as you:
     Attribute: You must attribute any public use of the database, or works produced from the database, in the manner specified in the license. For any use or redistribution of the database, or works produced from it, you must make clear to others the license of the database and keep intact any notices on the original database.
