@@ -764,8 +764,7 @@ class ExtractObject():
                                 try:
                                     r_intersects = rgeom.intersects(feat_geom)
 
-                                # except TopologicalError as e:
-                                except:
+                                except TopologicalError as e:
 
                                     simpledec = re.compile(r"\d*\.\d+")
                                     def mround(match):
@@ -788,7 +787,6 @@ class ExtractObject():
                                     #             idx, self.bnd_name)
 
 
-
                                 if r_intersects:
                                     tmp_aid = r['properties']['unique_dollars']
                                     max_dollars += tmp_aid
@@ -809,10 +807,11 @@ class ExtractObject():
 
 
                     except:
-                        print feat['properties']['exfield_sum']
-                        print type(feat['properties']['exfield_sum'])
+                        # print feat['properties']['exfield_sum']
+                        # print type(feat['properties']['exfield_sum'])
                         feat['properties']['exfield_sum'] = 'NA'
-                        raise
+                        feat['properties']['exfield_potential'] = 'NA'
+                        feat['properties']['exfield_reliability'] = 'NA'
 
                 else:
                     warnings.warn('Reliability field (sum) missing from ' +
