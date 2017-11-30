@@ -3,6 +3,7 @@ import os
 import json
 import re
 
+import extract_utility
 
 class ValidationResults():
     """Hold validation results
@@ -71,9 +72,12 @@ class ValidationTools():
                 "vector": ['geojson', 'shp'],
                 "raster": ['tif', 'asc']
             },
-            "extracts": ['mean', 'max', 'sum', 'min', 'count', "categorical"],
+            "extracts": None,
             "group_class": ['actual', 'sub']
         }
+
+        exo = extract_utility.ExtractObject()
+        self.types['extracts'] = exo._extract_options
 
         # init mongo
         self.client = client
