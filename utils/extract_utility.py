@@ -177,9 +177,7 @@ class ExtractObject():
 
     Attributes (static):
 
-        _extract_options (dict): dictionary where keys are available extract
-                                 options and values are their associated
-                                 letter indicators
+        _extract_options (List[str]): list of available extract options
         _vector_extensions (List[str]): valid file extensions for vector files
         _raster_extensions (List[str]): valid file extensions for raster files
 
@@ -212,33 +210,30 @@ class ExtractObject():
 
     """
     # available extract types and associated identifiers
-    _extract_options = {
-        "categorical": "c",
-        "weighted_mean": "E",
-        "weighted_count": "N",
-        "weighted_sum": "S",
-        "mean": "e",
-        "count": "n",
-        "sum": "s",
-        "min": "m",
-        "max": "x",
-        # "std": "d",
+    _extract_options = [
+        "categorical",
+        "mean",
+        "count",
+        "sum",
+        "min",
+        "max",
+        # "std",
 
-        "reliability": "r",
-        "encoded": "C",
+        "reliability",
+        "encoded",
 
-        "median": "i"
-        # "majority": "?"
-        # "minority": "?"
-        # "unique": "u"
-        # "range": "?"
+        "median"
+        # "majority"
+        # "minority"
+        # "unique"
+        # "range"
 
-        # "percentile_?": "?"
-        # "custom_?": "?"
+        # "percentile_?"
+        # "custom_?"
 
-        # "var": "v"
-        # "mode": "?"
-    }
+        # "var"
+        # "mode"
+    ]
 
     # accepted vector file extensions
     _vector_extensions = [".geojson", ".shp"]
@@ -405,7 +400,7 @@ class ExtractObject():
             value (str): extract type
         """
         # validate input extract type
-        if value not in self._extract_options.keys():
+        if value not in self._extract_options:
             raise Exception("invalid extract type (" + value + ")")
 
         if value == "categorical":
