@@ -754,7 +754,7 @@ class ExtractObject():
                             feat_out[option_id] = 0
                         feat_out[option_id] += total_count
                         feat_out['exfield_count'] += total_count
-
+                yield feat_out
 
         elif self._extract_type == "categorical":
             for feat in stats:
