@@ -225,6 +225,7 @@ class ExtractObject():
         # "std": "d",
 
         "reliability": "r",
+        "encoded": "C",
 
         "median": "i"
         # "majority": "?"
@@ -686,7 +687,16 @@ class ExtractObject():
         if vector == None:
             vector = self._vector_path
 
-        if self._extract_type == "categorical":
+
+        if self._extract_type == "encoded":
+            raw_stats = rs.gen_zonal_stats(vector, raster,
+                            geojson_out=True,
+                            prefix="exfield_",
+                            categorical=True, category_map=None,
+                            limit=pixel_limit,
+                            all_touched=False)
+
+        elif self._extract_type == "categorical":
             raw_stats = rs.gen_zonal_stats(vector, raster,
                             geojson_out=True,
                             prefix="exfield_",
@@ -731,7 +741,27 @@ class ExtractObject():
         Reliability: format NA vals and run reliability calc
         General: format NA vals
         """
-        if self._extract_type == "categorical":
+        if self._extract_type == "encoded":
+            encode_base = 100
+            for feat in stats:
+                feat_out = {'exfield_count': 0}
+                for k,v in feat.iteritems():
+                    if not k.startswith("exfield_"):
+                        feat_out[k] = v
+                    else:
+                        encode = k.split('_')[1]
+                        option_id_num = int(encode[:3]) - encode_base
+                        option_id = "exfield_op_{0}".format(option_id_num)
+                        option_count = int(float(encode[3:]))
+                        pixel_count = v
+                        total_count = option_count * pixel_count
+                        if option_id not in feat_out:
+                            feat_out[option_id] = 0
+                        feat_out[option_id] += total_count
+                        feat_out['exfield_count'] += total_count
+
+
+        elif self._extract_type == "categorical":
             for feat in stats:
                 for i in self._cmap.values():
                     colname = 'exfield_' + i
@@ -975,7 +1005,12 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
 
         for c in exfields:
 
-            if result_field.endswith('categorical'):
+            if result_field.endswith('encoded'):
+                tmp_field = "{0}_{1}".format(
+                    result_field,
+                    c[len("exfield_"):])
+
+            elif result_field.endswith('categorical'):
                 tmp_field = "{0}_{1}".format(
                     result_field,
                     c[len("exfield_"):])
@@ -1386,7 +1421,13 @@ class FeatureTool():
                 'reliability': feat['properties']['exfield_reliability'],
                 'potential': feat['properties']['exfield_potential']
             }
-        elif  self.ex_method == 'categorical':
+        elif self.ex_method == 'encoded':
+            ex_value = {
+                k[len('exfield_'):]: v
+                for (k,v) in feat['properties'].iteritems()
+                if k.startswith('exfield_')
+            }
+        elif self.ex_method == 'categorical':
             ex_value = {
                 k[len('exfield_'):]: v
                 for (k,v) in feat['properties'].iteritems()
