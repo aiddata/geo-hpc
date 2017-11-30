@@ -759,33 +759,28 @@ class ExtractObject():
                             max_dollars = 0
                             for r in self._rgeo:
                                 # does unique geom intersect feature geom
+
                                 rgeom = shape(r['geometry'])
 
-                                try:
-                                    r_intersects = rgeom.intersects(feat_geom)
+                                simpledec = re.compile(r"\d*\.\d+")
+                                def mround(match):
+                                    return "{:.6f}".format(float(match.group()))
 
-                                except TopologicalError as e:
+                                feat_geom = re.sub(simpledec, mround,
+                                                   json.dumps(feat_geom.__geo_interface__))
 
-                                    simpledec = re.compile(r"\d*\.\d+")
-                                    def mround(match):
-                                        return "{:.6f}".format(float(match.group()))
+                                feat_geom = shape(json.loads(feat_geom)).buffer(0)
 
-                                    feat_geom = re.sub(simpledec, mround,
-                                                       json.dumps(feat_geom.__geo_interface__))
+                                rgeom = re.sub(simpledec, mround,
+                                               json.dumps(rgeom.__geo_interface__))
 
-                                    feat_geom = shape(json.loads(feat_geom)).buffer(0)
+                                rgeom = shape(json.loads(rgeom)).buffer(0)
 
-                                    rgeom = re.sub(simpledec, mround,
-                                                       json.dumps(rgeom.__geo_interface__))
+                                r_intersects = rgeom.intersects(feat_geom)
 
-                                    rgeom = shape(json.loads(rgeom)).buffer(0)
-
-                                    r_intersects = rgeom.intersects(feat_geom)
-
-                                    # print ("Warning - Geom precision reduced"
-                                    #        " (feature {0} in {1})").format(
-                                    #             idx, self.bnd_name)
-
+                                # print ("Warning - Geom precision reduced"
+                                #        " (feature {0} in {1})").format(
+                                #             idx, self.bnd_name)
 
                                 if r_intersects:
                                     tmp_aid = r['properties']['unique_dollars']
@@ -794,22 +789,22 @@ class ExtractObject():
 
                             # calculate reliability statistic
                             feat['properties']['exfield_potential'] = max_dollars
-                            try:
-                                rval = (feat['properties']['exfield_sum'] /
-                                        feat['properties']['exfield_potential'])
-                                feat['properties']['exfield_reliability'] = rval
 
-                            except ZeroDivisionError:
+                            if feat['properties']['exfield_potential'] == 0:
                                 if feat['properties']['exfield_sum'] == 0:
                                     feat['properties']['exfield_reliability'] = 1
                                 else:
                                     feat['properties']['exfield_reliability'] = 0
+                            else:
+                                rval = (feat['properties']['exfield_sum'] /
+                                        feat['properties']['exfield_potential'])
+                                feat['properties']['exfield_reliability'] = rval
 
 
                     except:
                         # print feat['properties']['exfield_sum']
                         # print type(feat['properties']['exfield_sum'])
-                        feat['properties']['exfield_sum'] = 'NA'
+                        # feat['properties']['exfield_sum'] = 'NA'
                         feat['properties']['exfield_potential'] = 'NA'
                         feat['properties']['exfield_reliability'] = 'NA'
 
