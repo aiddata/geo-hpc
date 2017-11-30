@@ -759,12 +759,13 @@ class ExtractObject():
                             max_dollars = 0
                             for r in self._rgeo:
                                 # does unique geom intersect feature geom
+                                rgeom = shape(r['geometry'])
 
                                 try:
-                                    r_intersects = shape(
-                                        r['geometry']).intersects(feat_geom)
+                                    r_intersects = rgeom.intersects(feat_geom)
 
-                                except TopologicalError as e:
+                                # except TopologicalError as e:
+                                except:
 
                                     simpledec = re.compile(r"\d*\.\d+")
                                     def mround(match):
@@ -773,11 +774,14 @@ class ExtractObject():
                                     feat_geom = re.sub(simpledec, mround,
                                                        json.dumps(feat_geom.__geo_interface__))
 
-                                    feat_geom = shape(
-                                        json.loads(feat_geom)).buffer(0)
+                                    feat_geom = shape(json.loads(feat_geom)).buffer(0)
 
-                                    r_intersects = shape(
-                                        r['geometry']).buffer(0).intersects(feat_geom)
+                                    rgeom = re.sub(simpledec, mround,
+                                                       json.dumps(rgeom.__geo_interface__))
+
+                                    rgeom = shape(json.loads(rgeom)).buffer(0)
+
+                                    r_intersects = rgeom.intersects(feat_geom)
 
                                     # print ("Warning - Geom precision reduced"
                                     #        " (feature {0} in {1})").format(
