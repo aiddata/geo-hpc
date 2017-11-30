@@ -744,16 +744,18 @@ class ExtractObject():
         elif self._extract_type == "reliability":
             for feat in stats:
                 if 'exfield_sum' in feat['properties'].keys():
-                    try:
-                        tmp_sum = feat['properties']['exfield_sum']
-                        is_na = (tmp_sum in [None, 'nan', 'NaN'] or
-                                 isnan(tmp_sum))
-                        if is_na:
-                            feat['properties']['exfield_sum'] = 'NA'
-                            feat['properties']['exfield_potential'] = 'NA'
-                            feat['properties']['exfield_reliability'] = 'NA'
 
-                        else:
+                    tmp_sum = feat['properties']['exfield_sum']
+                    is_na = (tmp_sum in [None, 'nan', 'NaN'] or
+                             isnan(tmp_sum))
+                    if is_na:
+                        feat['properties']['exfield_sum'] = 'NA'
+                        feat['properties']['exfield_potential'] = 'NA'
+                        feat['properties']['exfield_reliability'] = 'NA'
+
+                    else:
+
+                        try:
                             feat_geom = shape(feat['geometry'])
 
                             max_dollars = 0
@@ -800,13 +802,11 @@ class ExtractObject():
                                         feat['properties']['exfield_potential'])
                                 feat['properties']['exfield_reliability'] = rval
 
+                        except:
+                            # feat['properties']['exfield_sum'] = 'NA'
+                            feat['properties']['exfield_potential'] = 'NA'
+                            feat['properties']['exfield_reliability'] = 'NA'
 
-                    except:
-                        # print feat['properties']['exfield_sum']
-                        # print type(feat['properties']['exfield_sum'])
-                        # feat['properties']['exfield_sum'] = 'NA'
-                        feat['properties']['exfield_potential'] = 'NA'
-                        feat['properties']['exfield_reliability'] = 'NA'
 
                 else:
                     warnings.warn('Reliability field (sum) missing from ' +
