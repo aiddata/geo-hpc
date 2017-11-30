@@ -302,15 +302,15 @@ def tmp_worker_job(self, task_index, task_data):
     run_data = exo.export_to_csv(run_data, output)
 
 
-    run_data = exo.export_to_db(
-        stats = run_data,
-        client = client,
-        bnd_name = bnd_name,
-        data_name = data_name,
-        ex_method = extract_type,
-        classification = task_data['classification'],
-        ex_version = version
-    )
+    # run_data = exo.export_to_db(
+    #     stats = run_data,
+    #     client = client,
+    #     bnd_name = bnd_name,
+    #     data_name = data_name,
+    #     ex_method = extract_type,
+    #     classification = task_data['classification'],
+    #     ex_version = version
+    # )
 
 
     try:
