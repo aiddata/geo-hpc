@@ -777,7 +777,7 @@ class ExtractObject():
                                         json.loads(feat_geom)).buffer(0)
 
                                     r_intersects = shape(
-                                        r['geometry']).intersects(feat_geom)
+                                        r['geometry']).buffer(0).intersects(feat_geom)
 
                                     # print ("Warning - Geom precision reduced"
                                     #        " (feature {0} in {1})").format(
