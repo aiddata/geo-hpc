@@ -754,41 +754,42 @@ class ExtractObject():
                         feat['properties']['exfield_reliability'] = 'NA'
 
                     else:
+                        feat_geom = shape(feat['geometry'])
+                        max_dollars = 0
 
-                        try:
-                            feat_geom = shape(feat['geometry'])
+                        # does unique geom intersect feature geom
+                        for r in self._rgeo:
 
-                            max_dollars = 0
-                            for r in self._rgeo:
-                                # does unique geom intersect feature geom
+                            rgeom = shape(r['geometry'])
 
-                                rgeom = shape(r['geometry'])
+                            simpledec = re.compile(r"\d*\.\d+")
+                            def mround(match):
+                                return "{:.6f}".format(float(match.group()))
 
-                                simpledec = re.compile(r"\d*\.\d+")
-                                def mround(match):
-                                    return "{:.6f}".format(float(match.group()))
+                            feat_geom = re.sub(simpledec, mround,
+                                               json.dumps(feat_geom.__geo_interface__))
+                            feat_geom = shape(json.loads(feat_geom)).buffer(0)
 
-                                feat_geom = re.sub(simpledec, mround,
-                                                   json.dumps(feat_geom.__geo_interface__))
+                            rgeom = re.sub(simpledec, mround,
+                                           json.dumps(rgeom.__geo_interface__))
+                            rgeom = shape(json.loads(rgeom)).buffer(0)
 
-                                feat_geom = shape(json.loads(feat_geom)).buffer(0)
-
-                                rgeom = re.sub(simpledec, mround,
-                                               json.dumps(rgeom.__geo_interface__))
-
-                                rgeom = shape(json.loads(rgeom)).buffer(0)
-
+                            try:
                                 r_intersects = rgeom.intersects(feat_geom)
+                            else:
+                                r_intersects = -1
+                                break
 
-                                # print ("Warning - Geom precision reduced"
-                                #        " (feature {0} in {1})").format(
-                                #             idx, self.bnd_name)
+                            if r_intersects:
+                                tmp_aid = r['properties']['unique_dollars']
+                                max_dollars += tmp_aid
 
-                                if r_intersects:
-                                    tmp_aid = r['properties']['unique_dollars']
-                                    max_dollars += tmp_aid
+                        if r_intersects == -1:
+                            # feat['properties']['exfield_sum'] = 'NA'
+                            feat['properties']['exfield_potential'] = 'NA'
+                            feat['properties']['exfield_reliability'] = 'NA'
 
-
+                        else:
                             # calculate reliability statistic
                             feat['properties']['exfield_potential'] = max_dollars
 
@@ -801,12 +802,6 @@ class ExtractObject():
                                 rval = (feat['properties']['exfield_sum'] /
                                         feat['properties']['exfield_potential'])
                                 feat['properties']['exfield_reliability'] = rval
-
-                        except:
-                            # feat['properties']['exfield_sum'] = 'NA'
-                            feat['properties']['exfield_potential'] = 'NA'
-                            feat['properties']['exfield_reliability'] = 'NA'
-
 
                 else:
                     warnings.warn('Reliability field (sum) missing from ' +
