@@ -776,7 +776,7 @@ class ExtractObject():
 
                             try:
                                 r_intersects = rgeom.intersects(feat_geom)
-                            else:
+                            except:
                                 r_intersects = -1
                                 break
 
