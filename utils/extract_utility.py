@@ -22,6 +22,7 @@ import pandas as pd
 # import geopandas as gpd
 import fiona
 from shapely.geometry import shape
+from shapely.prepared import prep
 from shapely.geos import TopologicalError
 import pymongo
 
