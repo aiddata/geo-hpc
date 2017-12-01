@@ -742,40 +742,45 @@ class ExtractObject():
                 yield feat
 
         elif self._extract_type == "reliability":
+
+            simpledec = re.compile(r"\d*\.\d+")
+            def mround(match):
+                return "{:.6f}".format(float(match.group()))
+
             for feat in stats:
-                if 'exfield_sum' in feat['properties'].keys():
+                feat['properties']['exfield_potential'] = 'NA'
+                feat['properties']['exfield_reliability'] = 'NA'
 
+                if 'exfield_sum' not in feat['properties'].keys():
+                    warnings.warn('Reliability field (sum) missing from ' +
+                                  'feature properties')
+                    feat['properties']['exfield_sum'] = 'NA'
+
+                else:
                     tmp_sum = feat['properties']['exfield_sum']
-                    is_na = (tmp_sum in [None, 'nan', 'NaN'] or
-                             isnan(tmp_sum))
-                    if is_na:
-                        feat['properties']['exfield_sum'] = 'NA'
-                        feat['properties']['exfield_potential'] = 'NA'
-                        feat['properties']['exfield_reliability'] = 'NA'
+                    is_na = (tmp_sum in [None, 'nan', 'NaN'] or isnan(tmp_sum))
 
-                    else:
+                    if not is_na:
                         feat_geom = shape(feat['geometry'])
+
+                        feat_geom = re.sub(simpledec, mround,
+                                           json.dumps(feat_geom.__geo_interface__))
+                        feat_geom = shape(json.loads(feat_geom)).buffer(0)
+
+                        feat_geom = prep(feat_geom)
+
                         max_dollars = 0
 
                         # does unique geom intersect feature geom
                         for r in self._rgeo:
-
                             rgeom = shape(r['geometry'])
-
-                            simpledec = re.compile(r"\d*\.\d+")
-                            def mround(match):
-                                return "{:.6f}".format(float(match.group()))
-
-                            feat_geom = re.sub(simpledec, mround,
-                                               json.dumps(feat_geom.__geo_interface__))
-                            feat_geom = shape(json.loads(feat_geom)).buffer(0)
 
                             rgeom = re.sub(simpledec, mround,
                                            json.dumps(rgeom.__geo_interface__))
                             rgeom = shape(json.loads(rgeom)).buffer(0)
 
                             try:
-                                r_intersects = rgeom.intersects(feat_geom)
+                                r_intersects = feat_geom.intersects(rgeom)
                             except:
                                 r_intersects = -1
                                 break
@@ -784,12 +789,7 @@ class ExtractObject():
                                 tmp_aid = r['properties']['unique_dollars']
                                 max_dollars += tmp_aid
 
-                        if r_intersects == -1:
-                            # feat['properties']['exfield_sum'] = 'NA'
-                            feat['properties']['exfield_potential'] = 'NA'
-                            feat['properties']['exfield_reliability'] = 'NA'
-
-                        else:
+                        if r_intersects != -1:
                             # calculate reliability statistic
                             feat['properties']['exfield_potential'] = max_dollars
 
@@ -802,13 +802,6 @@ class ExtractObject():
                                 rval = (feat['properties']['exfield_sum'] /
                                         feat['properties']['exfield_potential'])
                                 feat['properties']['exfield_reliability'] = rval
-
-                else:
-                    warnings.warn('Reliability field (sum) missing from ' +
-                                  'feature properties')
-                    feat['properties']['exfield_sum'] = 'NA'
-                    feat['properties']['exfield_potential'] = 'NA'
-                    feat['properties']['exfield_reliability'] = 'NA'
 
                 yield feat
 
