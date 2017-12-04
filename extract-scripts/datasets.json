@@ -300,6 +300,73 @@
           "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/o3",
           "data_name": "air_pollution_o3",
           "file_mask": "o3_YYYY.tif"
+     },
+     "gemdata_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_binary.tif",
+         "data_name": "gemdata_201708",
+         "file_mask": "None"
+     },
+     "distance_to_gemdata_201708":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_distance.tif",
+         "data_name": "distance_to_gemdata_201708",
+         "file_mask": "None"
+     },
+     "ucdp_deaths_171":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ucdp/ged_global_171",
+         "data_name": "ucdp_deaths_171",
+         "file_mask": "ucdp_deaths_YYYY.tif"
+     },
+     "esa_landcover_v207":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/esa_landcover_v207",
+         "data_name": "esa_landcover_v207",
+         "file_mask": "esa_lc_YYYY.tif",
+         "categories": {
+            "no_data": 0,
+            "rainfed_cropland": 10,
+            "irrigated_cropland": 20,
+            "mosaic_cropland": 30,
+            "forest": 50,
+            "grassland": 110,
+            "shrubland": 120,
+            "sparse_vegetation": 140,
+            "wetland": 180,
+            "urban": 190,
+            "bare_areas": 200,
+            "water_bodies": 210,
+            "snow_ice": 220
+        }
+     },
+     "distance_to_gold_v12":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_distance.tif",
+         "data_name": "distance_to_gold_v12",
+         "file_mask": "None"
+     },
+     "categorical_gold_v12": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_categorical.tif",
+         "data_name": "categorical_gold_v12",
+         "file_mask": "None",
+         "categories": {
+            "none": 0,
+            "lootable": 1,
+            "surface": 2,
+            "nonlootable": 3,
+            "mix": 4
+        }
+     },
+     "ambient_air_pollution_2013_fus_calibrated": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/fus_calibrated",
+         "data_name": "ambient_air_pollution_2013_fus_calibrated",
+         "file_mask": "fus_calibrated_YYYY.tif"
+     },
+     "ambient_air_pollution_2013_o3": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/o3",
+         "data_name": "ambient_air_pollution_2013_o3",
+         "file_mask": "o3_YYYY.tif"
+     },
+     "acled_v3_count": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count/acled_v3_count.tif",
+         "data_name": "acled_v3_count",
+         "file_mask": "None"
      }
 
 }
