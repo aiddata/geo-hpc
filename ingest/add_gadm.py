@@ -157,14 +157,6 @@ def run(path=None, client=None, version=None, config=None,
     gadm_iso3 = gadm_name[:3]
     gadm_adm = gadm_name[4:]
 
-    # active_iso3_list = config.release_iso3.values() + config.other_iso3
-    # is_active = gadm_iso3.upper() in active_iso3_list
-
-    inactive_iso3_list = config.inactive_iso3
-    is_active = gadm_iso3.upper() not in inactive_iso3_list
-
-
-    doc["active"] = int(is_active)
 
     parent = os.path.dirname(os.path.abspath(__file__))
     gadm_lookup_path = parent + '/gadm_iso3.json'
@@ -174,6 +166,13 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["name"] = (gadm_iso3.lower() + "_" + gadm_adm.lower() + "_gadm" +
                    gadm_version.replace('.', ''))
+
+
+    inactive_bnds_list = config.inactive_bnds
+    is_active = doc["name"] not in inactive_bnds_list
+
+
+    doc["active"] = int(is_active)
 
 
     name_original = client.asdf.data.find_one({'name': doc["name"]})
@@ -220,7 +219,9 @@ def run(path=None, client=None, version=None, config=None,
 
 
             doc["asdf"]["date_added"] = existing_original["asdf"]["date_added"]
-            # doc["active"] = existing_original["active"]
+
+            if existing_original["active"] == -1:
+                doc["active"] = -1
 
 
     doc["title"] = " ".join([gadm_country, gadm_adm.upper(), "Boundary - GADM", gadm_version])
@@ -253,7 +254,7 @@ def run(path=None, client=None, version=None, config=None,
     # boundary group
     if "adm0" in gadm_name.lower():
          doc["options"]["group_class"] = "actual"
-         doc["active"] = 0
+         doc["active"] = -1
     else:
          doc["options"]["group_class"] = "sub"
 

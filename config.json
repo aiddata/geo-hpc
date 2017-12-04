@@ -19,7 +19,8 @@
             "UgandaAIMS": "UGA",
             "WorldBank": "global"
         },
-        "inactive_iso3": [
+        "inactive_bnds": [
+            "uga_adm4_gadm28"
         ],
         "versions": {
             "geo": "0.4.1",

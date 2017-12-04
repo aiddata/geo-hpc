@@ -97,17 +97,9 @@ if job.rank == 0:
         "active": {'$gte': 1}
     })
 
-    # active_iso3_list = config.release_iso3.values() + config.other_iso3
-    inactive_iso3_list = config.inactive_iso3
-
     # get boundary names
     bnds_info = {
         b['resources'][0]['name']:b for b in boundaries
-        if not 'gadm_iso3' in b['extras']
-        or ('gadm_iso3' in b['extras']
-            # and b['extras']['gadm_iso3'].upper() in active_iso3_list)
-            and b['extras']['gadm_iso3'].upper() not in inactive_iso3_list)
-
     }
 
     bnd_groups = {}

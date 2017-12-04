@@ -98,9 +98,9 @@ else:
 # if job.rank == 0:
 #     print "Active iso3 list: {0}".format(active_iso3_list)
 
-inactive_iso3_list = config.inactive_iso3
+inactive_bnds_list = config.inactive_bnds
 if job.rank == 0:
-    print "Inactive iso3 list: {0}".format(inactive_iso3_list)
+    print "Inactive boundaries list: {0}".format(inactive_bnds_list)
 
 
 
@@ -144,34 +144,28 @@ def tmp_worker_job(self, task_index, task_data):
     print "\n\tTracker for: {0}".format(bnd['options']['group'])
     print "\t\tdataset active status: {0}".format(bnd["active"])
 
-    is_active = 0
 
-    # manage active state for gadm boundaries based on config settings
-    # do not process inactive boundaries
-    if "extras" in bnd and "gadm_iso3" in bnd["extras"]:
+    is_active = bnd["name"] not in inactive_bnds_list
 
-        print "\t\tGADM iso3: {0}".format(bnd["extras"]["gadm_iso3"])
-        # is_active_gadm = bnd["extras"]["gadm_iso3"].upper() in active_iso3_list
-        is_active_gadm = bnd["extras"]["gadm_iso3"].upper() not in inactive_iso3_list
+    print "\t\tBoundary: {0}".format(bnd["name"])
+    print "\t\tActive: {0}".format(is_active)
 
 
-        print "\t\tGADM boundary is active: {0}".format(is_active_gadm)
+    if bnd["active"] == -1:
+        print "\t\tdataset is forced inactive"
+        is_active = 0
 
-        if is_active_gadm:
-            print "\t\t\tsetting group active"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "extras.gadm_adm": {'$ne': 0}, "active": 0},
-                               {"$set":{"active": 1}})
-            is_active = 1
+    elif not is_active:
+        print "\t\t\tsetting inactive"
+        c_asdf.update_one({"name": bnd["name"]}, {"$set":{"active": 0}})
 
-        elif not is_active_gadm:
-            print "\t\t\tsetting group inactive"
-            c_asdf.update_many({"options.group": bnd["options"]["group"], "active": 1},
-                               {"$set":{"active": 0}})
-            return
+    else:
+        print "\t\t\tsetting active"
+        c_asdf.update_one({"name": bnd["name"]}, {"$set":{"active": 1}})
+        is_active = 1
 
 
-    if not is_active and bnd["active"] == 0:
-        print "\t\tdataset inactive"
+    if not is_active:
         return
 
 
