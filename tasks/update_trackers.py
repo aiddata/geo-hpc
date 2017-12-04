@@ -2,6 +2,16 @@
 search and index datasets based on boundary
 according to whether the datasets were found to be
 relevant for that particular boundary
+
+boundary dataset status types:
+ 2  forced active (cannot be set inactive by automated processes)
+ 1  active (normal)
+ 0  inactive (normal)
+-1  forced inactive (cannot be set active by automated processes)
+-2  group forced inactive (no datasets in respective boundary group can be set
+        active by automated processes, currently only applies to "actual"
+        boundaries which define their group)
+
 """
 
 # -----------------------------------------------------------------------------
@@ -75,10 +85,23 @@ db_releases = client.releases
 
 
 if job.rank == 0:
+
+    # update active status for all boundaries based on config
+    inactive_bnds_list = config.inactive_bnds
+    print "Inactive boundaries list: {0}".format(inactive_bnds_list)
+
+    c_asdf.update_many({"name": {"$in": inactive_bnds_list}, "active": 1},
+                       {"$set":{"active": 0}})
+
+    c_asdf.update_many({"name": {"$nin": inactive_bnds_list}, "active": 0},
+                       {"$set":{"active": 1}})
+
+
     # lookup all boundary datasets that are the "actual" for their group
     bnds = list(c_asdf.find({
         "type": "boundary",
-        "options.group_class": "actual"
+        "options.group_class": "actual",
+        'active': {'$gte': -1}
     }))
 
 else:
@@ -93,14 +116,6 @@ else:
         'scale': 1
     }))
 
-
-# active_iso3_list = config.release_iso3.values() + config.other_iso3
-# if job.rank == 0:
-#     print "Active iso3 list: {0}".format(active_iso3_list)
-
-inactive_bnds_list = config.inactive_bnds
-if job.rank == 0:
-    print "Inactive boundaries list: {0}".format(inactive_bnds_list)
 
 
 
@@ -141,32 +156,9 @@ def tmp_worker_job(self, task_index, task_data):
     # for each boundary dataset get boundary tracker
     bnd = task_data
 
-    print "\n\tTracker for: {0}".format(bnd['options']['group'])
-    print "\t\tdataset active status: {0}".format(bnd["active"])
-
-
-    is_active = bnd["name"] not in inactive_bnds_list
-
-    print "\t\tBoundary: {0}".format(bnd["name"])
-    print "\t\tActive: {0}".format(is_active)
-
-
-    if bnd["active"] == -1:
-        print "\t\tdataset is forced inactive"
-        is_active = 0
-
-    elif not is_active:
-        print "\t\t\tsetting inactive"
-        c_asdf.update_one({"name": bnd["name"]}, {"$set":{"active": 0}})
-
-    else:
-        print "\t\t\tsetting active"
-        c_asdf.update_one({"name": bnd["name"]}, {"$set":{"active": 1}})
-        is_active = 1
-
-
-    if not is_active:
-        return
+    print "\tTracker for: {0}".format(bnd['options']['group'])
+    print "\t\tName: {0}".format(bnd["name"])
+    print "\t\tActive: {0}".format(bnd["active"])
 
 
     # ---------------------------------
