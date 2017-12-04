@@ -23,8 +23,7 @@ job = mpi_utility.NewParallel()
 # =============================================================================
 # load job and datasets json
 
-#input_json_path = sys.argv[1]
-input_json_path = r"/Users/miranda/Documents/AidData/github/geo-hpc/config_test.json"
+input_json_path = sys.argv[1]
 
 if not os.path.isfile(input_json_path):
     sys.exit("runscript.py has terminated : invalid input json path")
