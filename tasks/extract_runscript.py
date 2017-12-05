@@ -517,7 +517,7 @@ def tmp_get_task_data(self, task_index, source):
 
 
         tmp['extract_type'] = request['extract_type']
-        if request['extract_type'] == 'categorical':
+        if request['extract_type'] in ['categorical', 'encoded']:
             tmp['category_map'] = data_info['extras']['category_map']
 
         tmp['output_base'] = general_output_base
