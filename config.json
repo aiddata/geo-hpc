@@ -65,7 +65,7 @@
                         "description": "generic vortex-alpha msr job",
                         "jobname": "ex2",
                         "nodespec": "c18c",
-                        "max_jobs": 5,
+                        "max_jobs": 3,
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "180:00:00",
