@@ -327,9 +327,9 @@ def run(path=None, client=None, version=None, config=None,
         doc["extras"]["tags"].append("raster")
 
 
-    if "categorical" in doc["options"]["extract_types"]:
+    if "categorical" in doc["options"]["extract_types"] or "encoded" in doc["options"]["extract_types"]:
         if not "category_map" in doc["extras"]:
-            quit("'categorical' included as extract type but no 'category_map' dict provided in 'extras'.")
+            quit("'categorical' or 'encoded' included as extract type but no 'category_map' dict provided in 'extras'.")
         elif not isinstance(doc["extras"]["category_map"], dict):
             quit("The 'category_map' field must be provided as a dict. Invalid type ({0}) given.".format(
                 type(doc["extras"]["category_map"])))
