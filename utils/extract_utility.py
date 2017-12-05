@@ -740,10 +740,10 @@ class ExtractObject():
         if self._extract_type == "encoded":
             encode_base = 100
             for feat in stats:
-                feat_out = {'exfield_count': 0}
+                props = {'exfield_count': 0}
                 for k,v in feat.iteritems():
                     if not k.startswith("exfield_"):
-                        feat_out[k] = v
+                        props[k] = v
                     else:
                         encode = k.split('_')[1]
                         option_id_num = int(encode[:3]) - encode_base
@@ -751,11 +751,12 @@ class ExtractObject():
                         option_count = int(float(encode[3:]))
                         pixel_count = v
                         total_count = option_count * pixel_count
-                        if option_id not in feat_out:
-                            feat_out[option_id] = 0
-                        feat_out[option_id] += total_count
-                        feat_out['exfield_count'] += total_count
-                yield feat_out
+                        if option_id not in props:
+                            props[option_id] = 0
+                        props[option_id] += total_count
+                        props['exfield_count'] += total_count
+                feat['properties'] = props
+                yield feat
 
         elif self._extract_type == "categorical":
             for feat in stats:
