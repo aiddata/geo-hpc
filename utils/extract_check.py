@@ -3,6 +3,9 @@
 import os
 import time
 
+import extract_utility
+
+
 
 class ExtractItem():
     """check status of item in extract queue
@@ -28,33 +31,11 @@ class ExtractItem():
         self.temporal_type = temporal_type
         self.version = version
 
-        self.extract_options = {
-            "categorical": "c",
-            "mean": "e",
-            "count": "n",
-            "sum": "s",
-            "min": "m",
-            "max": "x",
 
-            "reliability": "r"
+        exo = extract_utility.ExtractObject()
+        self.extract_options = exo._extract_options
 
-            # "std": "d",
-            # "median": "?"
-            # "majority": "?"
-            # "minority": "?"
-            # "unique": "u"
-            # "range": "?"
-
-            # "percentile_?": "?"
-            # "custom_?": "?"
-
-            # "var": "v"
-            # "mode": "?"
-        }
-
-        if self.extract_type in self.extract_options:
-            self.extract_abbr = self.extract_options[self.extract_type ]
-        else:
+        if self.extract_type not in self.extract_options:
             raise Exception('invalid extract type')
 
         self.extract_path = None
