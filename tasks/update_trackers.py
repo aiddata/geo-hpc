@@ -90,10 +90,10 @@ if job.rank == 0:
     inactive_bnds_list = config.inactive_bnds
     print "Inactive boundaries list: {0}".format(inactive_bnds_list)
 
-    c_asdf.update_many({"name": {"$in": inactive_bnds_list}, "active": 1},
+    c_asdf.update_many({"type": "boundary", "name": {"$in": inactive_bnds_list}, "active": 1},
                        {"$set":{"active": 0}})
 
-    c_asdf.update_many({"name": {"$nin": inactive_bnds_list}, "active": 0},
+    c_asdf.update_many({"type": "boundary", "name": {"$nin": inactive_bnds_list}, "active": 0},
                        {"$set":{"active": 1}})
 
 
