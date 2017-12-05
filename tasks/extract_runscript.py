@@ -104,7 +104,7 @@ update_interval = 60*1
 # job type definitions for request queries
 
 job.job_type = 'default'
-if len(sys.argv) == 3:
+if len(sys.argv) >= 3:
     job.job_type = sys.argv[2]
 
 
@@ -136,7 +136,7 @@ if job.rank == 0:
 
 extract_limit = 200
 
-if len(sys.argv) == 4:
+if len(sys.argv) >= 4:
     extract_limit= int(sys.argv[3])
 
 
@@ -151,7 +151,7 @@ if extract_limit == -1:
 
 job.pixel_limit = 250000
 
-if len(sys.argv) == 5:
+if len(sys.argv) >= 5:
     job.pixel_limit = int(sys.argv[4])
 
 
