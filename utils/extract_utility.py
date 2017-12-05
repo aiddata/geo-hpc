@@ -808,17 +808,22 @@ class ExtractObject():
 
                         # does unique geom intersect feature geom
                         for r in self._rgeo:
-                            rgeom = shape(r['geometry'])
 
-                            rgeom = re.sub(simpledec, mround,
-                                           json.dumps(rgeom.__geo_interface__))
-                            rgeom = shape(json.loads(rgeom)).buffer(0)
+                            rgeom = shape(r['geometry'])
 
                             try:
                                 r_intersects = feat_geom.intersects(rgeom)
                             except:
-                                r_intersects = -1
-                                break
+                                rgeom = re.sub(simpledec, mround,
+                                               json.dumps(rgeom.__geo_interface__))
+                                rgeom = shape(json.loads(rgeom)).buffer(0)
+                                r_intersects = feat_geom.intersects(rgeom)
+
+                            # try:
+                            #     r_intersects = feat_geom.intersects(rgeom)
+                            # except:
+                            #     r_intersects = -1
+                            #     break
 
                             if r_intersects:
                                 tmp_aid = r['properties']['unique_dollars']
