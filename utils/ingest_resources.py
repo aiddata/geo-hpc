@@ -246,6 +246,13 @@ def add_asdf_id(path):
     also sets permissions for files
     """
     geo_df = gpd.GeoDataFrame.from_file(path)
+
+    is_invalid = ~geo_df.is_valid
+    geo_df.loc[is_invalid, 'geometry'] = geo_df.loc[is_invalid].buffer(0)
+
+    if sum(~geo_df.is_valid) != 0:
+        raise Exception('Invalid geometry could not be corrected')
+
     geo_df["asdf_id"] = range(len(geo_df))
 
     geo_json = geo_df.to_json()
