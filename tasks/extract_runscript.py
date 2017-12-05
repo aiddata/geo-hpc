@@ -257,7 +257,7 @@ def tmp_worker_job(self, task_index, task_data):
     exo.set_base_path(data_path)
 
     category_map = None
-    if extract_type == "categorical":
+    if extract_type in ["categorical", "encoded"]:
         category_map = task_data['category_map']
 
     exo.set_extract_type(extract_type, category_map=category_map)

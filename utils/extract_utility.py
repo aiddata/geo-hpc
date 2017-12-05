@@ -739,6 +739,7 @@ class ExtractObject():
         """
         if self._extract_type == "encoded":
             encode_base = 100
+            field_list = []
             for feat in stats:
                 props = {'exfield_count': 0}
                 for k,v in feat['properties'].iteritems():
@@ -748,6 +749,8 @@ class ExtractObject():
                         encode = k.split('_')[1]
                         option_id_num = int(encode[:3]) - encode_base
                         option_id = "exfield_op_{0}".format(option_id_num)
+                        if option_id not in field_list:
+                            field_list.append(option_id)
                         option_count = int(float(encode[3:]))
                         pixel_count = v
                         total_count = option_count * pixel_count
@@ -755,6 +758,11 @@ class ExtractObject():
                             props[option_id] = 0
                         props[option_id] += total_count
                         props['exfield_count'] += total_count
+                for i in self._cmap.values():
+                    option_id_num = i - encode_base
+                    option_id = "exfield_op_{0}".format(option_id_num)
+                    if option_id not in props:
+                        props[option_id] = 0
                 feat['properties'] = props
                 yield feat
 
