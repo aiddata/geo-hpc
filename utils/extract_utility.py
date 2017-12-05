@@ -740,8 +740,8 @@ class ExtractObject():
         if self._extract_type == "encoded":
             encode_base = 100
             for feat in stats:
-                props = {'exfield_count': 0}
-                for k,v in feat.iteritems():
+                props_out = {'exfield_count': 0}
+                for k,v in feat['properties'].iteritems():
                     if not k.startswith("exfield_"):
                         props[k] = v
                     else:
