@@ -394,7 +394,7 @@ class DocBuilder():
             # if dset['dataset'] not in meta_log:
             meta_log.append(dset['dataset'])
 
-            ptext = '<font size=10><b>Dataset {0} - {1}</b></font>'.format(
+            ptext = '<font size=10><b>Selection {0} - {1}</b></font>'.format(
                 len(meta_log), dset['custom_name'])
 
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
@@ -416,26 +416,26 @@ class DocBuilder():
 
         for dset in self.request['raster_data']:
 
-            if dset['name'] not in meta_log:
-                meta_log.append(dset['name'])
+            # if dset['name'] not in meta_log:
+            meta_log.append(dset['name'])
 
-                ptext = '<font size=10><b>Dataset {0} - {1}</b></font>'.format(
-                    len(meta_log), dset['custom_name'])
-                self.Story.append(Paragraph(ptext, self.styles['Normal']))
-                self.Story.append(Spacer(1, 0.05*inch))
+            ptext = '<font size=10><b>Selection {0} - {1}</b></font>'.format(
+                len(meta_log), dset['custom_name'])
+            self.Story.append(Paragraph(ptext, self.styles['Normal']))
+            self.Story.append(Spacer(1, 0.05*inch))
 
-                # build dataset meta table array
-                data = self.build_meta(dset['name'], dset['type'], dset)
+            # build dataset meta table array
+            data = self.build_meta(dset['name'], dset['type'], dset)
 
-                data = [[i[0], pg(i[1], 2)] for i in data]
-                t = Table(data)
-                t.setStyle(TableStyle([
-                    ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-                ]))
+            data = [[i[0], pg(i[1], 2)] for i in data]
+            t = Table(data)
+            t.setStyle(TableStyle([
+                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+            ]))
 
-                self.Story.append(t)
-                self.Story.append(Spacer(1, 0.25*inch))
+            self.Story.append(t)
+            self.Story.append(Spacer(1, 0.25*inch))
 
 
 
