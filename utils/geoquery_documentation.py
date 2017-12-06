@@ -391,27 +391,27 @@ class DocBuilder():
         meta_log = []
         for dset in self.request['release_data']:
 
-            if dset['dataset'] not in meta_log:
-                meta_log.append(dset['dataset'])
+            # if dset['dataset'] not in meta_log:
+            meta_log.append(dset['dataset'])
 
-                ptext = '<font size=10><b>Dataset {0} - {1}</b></font>'.format(
-                    len(meta_log), dset['custom_name'])
+            ptext = '<font size=10><b>Dataset {0} - {1}</b></font>'.format(
+                len(meta_log), dset['custom_name'])
 
-                self.Story.append(Paragraph(ptext, self.styles['Normal']))
-                self.Story.append(Spacer(1, 0.05*inch))
+            self.Story.append(Paragraph(ptext, self.styles['Normal']))
+            self.Story.append(Spacer(1, 0.05*inch))
 
-                # build dataset meta table array
-                data = self.build_meta(dset['dataset'], 'release', dset)
+            # build dataset meta table array
+            data = self.build_meta(dset['dataset'], 'release', dset)
 
-                data = [[i[0], pg(i[1], 2)] for i in data]
-                t = Table(data)
-                t.setStyle(TableStyle([
-                    ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
-                    ('BOX', (0,0), (-1,-1), 0.25, colors.black)
-                ]))
+            data = [[i[0], pg(i[1], 2)] for i in data]
+            t = Table(data)
+            t.setStyle(TableStyle([
+                ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
+                ('BOX', (0,0), (-1,-1), 0.25, colors.black)
+            ]))
 
-                self.Story.append(t)
-                self.Story.append(Spacer(1, 0.25*inch))
+            self.Story.append(t)
+            self.Story.append(Spacer(1, 0.25*inch))
 
 
         for dset in self.request['raster_data']:
