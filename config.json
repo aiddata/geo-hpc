@@ -20,7 +20,6 @@
             "WorldBank": "global"
         },
         "inactive_bnds": [
-            "uga_adm4_gadm28"
         ],
         "versions": {
             "geo": "0.4.1",
