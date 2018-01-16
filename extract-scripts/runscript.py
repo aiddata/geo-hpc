@@ -54,6 +54,7 @@ def tmp_master_init(self):
     self.Ts = int(time.time())
     self.T_start = time.localtime()
     print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
+    print '\tTasks: {0}'.format(len(qlist))
 
 
 def tmp_master_process(self, worker_data):
