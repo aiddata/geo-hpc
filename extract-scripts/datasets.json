@@ -353,20 +353,56 @@
             "mix": 4
         }
      },
-     "ambient_air_pollution_2013_fus_calibrated": {
-         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/fus_calibrated",
-         "data_name": "ambient_air_pollution_2013_fus_calibrated",
-         "file_mask": "fus_calibrated_YYYY.tif"
-     },
-     "ambient_air_pollution_2013_o3": {
-         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/o3",
-         "data_name": "ambient_air_pollution_2013_o3",
-         "file_mask": "o3_YYYY.tif"
-     },
      "acled_v3_count": {
          "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count/acled_v3_count.tif",
          "data_name": "acled_v3_count",
          "file_mask": "None"
+     },
+     "distance_to_drugdata_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_distance.tif",
+         "data_name": "distance_to_drugdata_201708",
+         "file_mask": "None"
+     },
+     "distance_to_coast": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/coast_236/coast_distance.tif",
+         "data_name": "distance_to_coast_236",
+         "file_mask": "None"
+     },
+     "dist_to_onshore_petroleum_v12": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_distance.tif",
+         "data_name": "distance_to_coast_236",
+         "file_mask": "None"
+     },
+     "diamond_binary_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_binary.tif",
+         "data_name": "diamond_binary_201708",
+         "file_mask": "None"
+     },
+     "diamond_distance_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_distance.tif",
+         "data_name": "diamond_distance_201708",
+         "file_mask": "None"
+     },
+     "acled_conflict_count": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count",
+         "data_name": "acled_conflict_count",
+         "file_mask": "None"
+     },
+     "drugdata_categorical_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_categorical.tif",
+         "data_name": "drugdata_categorical_201708",
+         "file_mask": "None",
+         "categories": {
+            "none": 0,
+            "cannabis": 1,
+            "coca_bush": 2,
+            "opium": 3,
+            "mix": 4
+        }
+     },
+     "onshore_petroleum_v12": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_binary.tif",
+         "data_name": "onshore_petroleum_v12",
+         "file_mask": "None"
      }
-
 }
