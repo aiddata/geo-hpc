@@ -59,6 +59,48 @@ build_job() {
 
     echo "Preparing $jobname job..."
 
+    # ----------------------------------------
+
+    if [[ $job_class = "extracts" ]]; then
+        echo "Checking for items in queue..."
+        queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch" $job_type)
+
+    elif [[ $job_class = "msr" ]]; then
+        echo "Checking for items in queue..."
+        queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
+
+    else
+        queue_status="none"
+
+    fi
+
+
+    if [ $queue_status = "none" ]; then
+        :
+
+    elif [ $queue_status = "ready" ]; then
+        echo '... items found in queue'
+
+    elif [ $queue_status = "empty" ]; then
+        echo '... queue empty'
+        return 0
+
+    elif [ $queue_status = "error" ]; then
+        echo '... error connecting to queue'
+        return 1
+
+    elif [ $queue_status = "invalid" ]; then
+        echo '... error due to invalid input'
+        return 2
+
+    else
+        echo '... unknown error'
+        return 3
+
+    fi
+
+    # ----------------------------------------
+
     active_jobs=$(echo "$qstat" | grep 'geo-'"$jobname"'-'"$branch" | wc -l)
 
     if [[ $active_jobs -ge $max_jobs ]]; then
@@ -69,48 +111,6 @@ build_job() {
     else
 
         echo "Job opening found"
-
-        # ----------------------------------------
-
-        if [[ $job_class = "extracts" ]]; then
-            echo "Checking for items in queue..."
-            queue_status=$(python "$src"/geo-hpc/tools/check_extract_queue.py "$branch" $job_type)
-
-        elif [[ $job_class = "msr" ]]; then
-            echo "Checking for items in queue..."
-            queue_status=$(python "$src"/geo-hpc/tools/check_msr_queue.py "$branch")
-
-        else
-            queue_status="none"
-
-        fi
-
-
-        if [ $queue_status = "none" ]; then
-            :
-
-        elif [ $queue_status = "ready" ]; then
-            echo '... items found in queue'
-
-        elif [ $queue_status = "empty" ]; then
-            echo '... queue empty'
-            return 0
-
-        elif [ $queue_status = "error" ]; then
-            echo '... error connecting to queue'
-            return 1
-
-        elif [ $queue_status = "invalid" ]; then
-            echo '... error due to invalid input'
-            return 2
-
-        else
-            echo '... unknown error'
-            return 3
-
-        fi
-        # ----------------------------------------
-
         echo "Building <"$jobname"> job #"$active_jobs" ("$job_type" job)..."
 
         job_path=$(mktemp)
