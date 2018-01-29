@@ -342,7 +342,7 @@ class QueueToolBox():
 
                 ###
                 tmp_extract_type = 'reliability'
-                if data["dataset"].startswith('worldbank'):
+                if data["dataset"].startswith(('worldbank', 'globalenvironmentfacility')):
                     tmp_extract_type = 'sum'
                 ###
 

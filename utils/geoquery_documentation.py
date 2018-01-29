@@ -273,7 +273,7 @@ class DocBuilder():
             ])
 
             ###
-            if dset['dataset'].startswith('worldbank'):
+            if dset['dataset'].startswith(('worldbank', 'globalenvironmentfacility')):
                 colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
             ###
 

@@ -17,7 +17,8 @@
             "SierraLeoneAIMS": "SLE",
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA",
-            "WorldBank": "global"
+            "WorldBank": "global",
+            "GlobalEnvironmentFacility": "global"
         },
         "inactive_bnds": [
         ],

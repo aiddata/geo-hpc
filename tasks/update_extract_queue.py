@@ -206,7 +206,7 @@ if job.rank == 0:
 
                 ###
                 tmp_extract_type = 'reliability'
-                if data["name"].startswith('worldbank'):
+                if data["name"].startswith(('worldbank', 'globalenvironmentfacility')):
                     tmp_extract_type = 'sum'
                 ###
 
