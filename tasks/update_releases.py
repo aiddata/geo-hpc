@@ -37,7 +37,10 @@ import re
 
 from check_releases import ReleaseTools
 
-sys.path.insert(0, os.path.join(os.path.dirname(config_dir), 'ingest'))
+ingest_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ingest')
+sys.path.insert(0, ingest_dir)
+
 import add_release
 
 
