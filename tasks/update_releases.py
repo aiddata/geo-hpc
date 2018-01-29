@@ -86,6 +86,9 @@ for i in new_repo_dirnames:
     zobj.extractall(data_dir)
 
 
+for r,d,f in os.walk(data_dir):
+    os.chmod(r, 2755)
+
 # -----------------------------------------------------------------------------
 
 rtool_repo = ReleaseTools()
