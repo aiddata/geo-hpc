@@ -96,7 +96,7 @@ for dataset_options in job_json['data']:
 
     if 'type' in dataset_options and dataset_options['type'] == 'msr':
 
-        msr_fields = ['branch', 'release', 'hash']
+        msr_fields = ['release', 'hash']
         if any([i not in dataset_options for i in msr_fields]):
             if user_prompt_bool("MSR dataset required options not found. " +
                                 "Ignore dataset and continue? [y/n]"):
