@@ -237,6 +237,18 @@
             ],
             "help": [
                 {
+                    "question": "How can I contact you for help or with questions I have?",
+                    "answer": "Please email us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>"
+                },
+                {
+                    "question": "Can I request data extracts using my own boundary files?",
+                    "answer": "You can request an extract with your own boundary file using the form found <u><a href='http://geoquery.org/customdata/'>HERE</a></u>"
+                },
+                {
+                    "question": "Where can I go to provide feedback or request new datasets?",
+                    "answer": "We have an online form you can access <u><a href='https://goo.gl/4WZ46M'>HERE</a></u>"
+                },
+                {
                     "question": "Can I select data for multiple boundaries?",
                     "answer": "Right now, you can only download data for one boundary at a time, but can put in multiple requests to get data on additional regions. We hope to improve this functionality in later releases."
                 },
@@ -255,14 +267,6 @@
                 {
                     "question": "How long will it take to receive my data?",
                     "answer": "This is highly dependent on the data requested. Many requests will be nearly instantaneous due to preprocessing and data caching, however requests which require processing may take up to several hours per aid permutation request (if selection has large number of project locations)."
-                },
-                {
-                    "question": "Where can I go to provide feedback or request new datasets?",
-                    "answer": "We have an online form you can access <u><a href='https://goo.gl/4WZ46M'>HERE</a></u>"
-                },
-                {
-                    "question": "How can I contact you directly?",
-                    "answer": "Please email us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>"
                 },
                 {
                     "question": "Do you have examples of the types of analyses that can be conducted using this data?",
