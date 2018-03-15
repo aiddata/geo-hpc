@@ -37,7 +37,12 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
-    git clone -b "$branch" https://github.com/"$orgrepo" "$repo"
+    # git clone -b "$branch" https://github.com/"$orgrepo" "$repo"
+
+    wget https://github.com/"$orgrepo"/"$repo"/archive/"$branch".zip
+    unzip -o "$repo"-"$branch".zip
+    mv "$repo"-"$branch" "$repo"
+
 
     cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
