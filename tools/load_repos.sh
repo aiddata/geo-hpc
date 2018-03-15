@@ -39,7 +39,7 @@ get_repo() {
 
     # git clone -b "$branch" https://github.com/"$orgrepo" "$repo"
 
-    wget https://github.com/"$orgrepo"/"$repo"/archive/"$branch".zip
+    wget https://github.com/"$orgrepo"/archive/"$branch".zip
     unzip -o "$repo"-"$branch".zip
     mv "$repo"-"$branch" "$repo"
 
