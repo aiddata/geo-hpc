@@ -47,7 +47,13 @@ mkdir -p "$src"/{git,latest}
 
 # create temp dir, clone geo-hpc for init scripts
 tmp=$(mktemp -d)
-git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
+
+# git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
+
+wget -O "$tmp" https://github.com/itpir/geo-hpc/archive/"$branch".zip
+unzip "$tmp"/"$branch".zip -d "$tmp"
+mv "$tmp"/geo-hpc-"$branch" "$tmp"/geo-hpc
+
 
 # need this so load_repo.sh can find repos_list.txt
 ln -sfn $tmp/geo-hpc "$src"/geo-hpc

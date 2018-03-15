@@ -449,7 +449,7 @@
         "active": 0,
         "name": "develop",
         "data_root": "/sciclone/aiddata10/REU",
-        "database": "128.239.20.???",
+        "database": "128.239.108.200",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
             "AfghanistanAIMS": "AFG",
