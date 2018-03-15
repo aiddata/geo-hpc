@@ -48,6 +48,8 @@ get_repo() {
     unzip -o tmp_"$repo".zip -d tmp_"$repo"
     mv tmp_"$repo"/* "$repo"
 
+    rm -r tmp_"$repo"
+    rm tmp_"$repo".zip
 
     cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 
