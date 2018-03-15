@@ -50,7 +50,7 @@ tmp=$(mktemp -d)
 
 # git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
 
-wget -O "$tmp" https://github.com/itpir/geo-hpc/archive/"$branch".zip
+wget -O "$tmp"/"$branch".zip https://github.com/itpir/geo-hpc/archive/"$branch".zip
 unzip "$tmp"/"$branch".zip -d "$tmp"
 mv "$tmp"/geo-hpc-"$branch" "$tmp"/geo-hpc
 
