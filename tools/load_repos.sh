@@ -37,19 +37,21 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
-    # git clone -b "$branch" https://github.com/"$orgrepo" "$repo"
+    git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
 
-    wget https://github.com/"$orgrepo"/archive/"$branch".zip -O tmp_"$repo".zip
+    # ---
+    # wget https://github.com/"$orgrepo"/archive/"$branch".zip -O tmp_"$repo".zip
 
-    if [[ "$repo" == "public_datasets" && "$branch" != "master" ]]; then
-        wget https://github.com/"$orgrepo"/archive/master.zip -O tmp_"$repo".zip
-    fi
+    # if [[ "$repo" == "public_datasets" && "$branch" != "master" ]]; then
+    #     wget https://github.com/"$orgrepo"/archive/master.zip -O tmp_"$repo".zip
+    # fi
 
-    unzip -o tmp_"$repo".zip -d tmp_"$repo"
-    mv tmp_"$repo"/* "$repo"
+    # unzip -o tmp_"$repo".zip -d tmp_"$repo"
+    # mv tmp_"$repo"/* "$repo"
 
-    rm -r tmp_"$repo"
-    rm tmp_"$repo".zip
+    # rm -r tmp_"$repo"
+    # rm tmp_"$repo".zip
+    # ---
 
     cp -r "$repo" "$src"/latest/"$timestamp"."$repo"
 

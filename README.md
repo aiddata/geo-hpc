@@ -10,7 +10,7 @@ http://geo.aiddata.wm.edu
 - install python package if needed (unlikely these will ever get wiped, but list is in sciclone/pip_list.txt) see sciclone/scipip for pip install
 - make sure HPC account being used is set as priority user on for vortex-alpha nodes (HPC staff can do this)
 - make sure HPC servers have necessary ports open for mongodb, gmail
-
+- add ssh key from sciclone to aiddatageo github (approve rsa key first time manually)
 
 ### prepare database server
 - have IT open mongodb ports for geo.aiddata.wm.edu and all HPC servers (prod and dev servers, where applicable)
