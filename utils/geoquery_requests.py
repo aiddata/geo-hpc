@@ -540,7 +540,7 @@ class QueueToolBox():
         # shutil.rmtree(msr_jsons_dir)
 
         # set permissions
-        os.chmod(request_dir, 775)
+        os.chmod(request_dir, 0775)
         for ro, di, fi in os.walk(request_dir):
             for d in di:
                 os.chmod(os.path.join(ro, d), 0775)
