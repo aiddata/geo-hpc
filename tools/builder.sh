@@ -86,6 +86,7 @@ mkdir -p "${backup_dir}"/{mongodb_backups,mongodb_logs,mongodb_cron_logs}
 
 output_dir="${branch_dir}"/outputs
 mkdir -p "${output_dir}"/{det,extracts,msr}
+mkdir -p "${output_dir}"/det/results
 
 
 echo "Updating permissions..."

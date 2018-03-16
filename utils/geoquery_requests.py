@@ -539,4 +539,10 @@ class QueueToolBox():
         os.remove(geo_pdf_dst)
         # shutil.rmtree(msr_jsons_dir)
 
-
+        # set permissions
+        os.chmod(request_dir, 775)
+        for ro, di, fi in os.walk(request_dir):
+            for d in di:
+                os.chmod(os.path.join(ro, d, 775)
+            for f in fi:
+                os.chmod(os.path.join(ro, f, 664)
