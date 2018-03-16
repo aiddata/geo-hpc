@@ -124,7 +124,7 @@ build_job() {
 cat <<EOF >> "$job_path"
 #!/bin/tcsh
 #PBS -N geo-$jobname-$branch
-#PBS -l nodes=$nodespec:ppn=$ppn
+#PBS -l nodes=$nodes:$nodespec:ppn=$ppn
 #PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/$job_class/jobs/$timestamp.$jobtime.$job_class.job
