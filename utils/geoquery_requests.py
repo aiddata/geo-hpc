@@ -543,6 +543,6 @@ class QueueToolBox():
         os.chmod(request_dir, 775)
         for ro, di, fi in os.walk(request_dir):
             for d in di:
-                os.chmod(os.path.join(ro, d, 775)
+                os.chmod(os.path.join(ro, d), 775)
             for f in fi:
-                os.chmod(os.path.join(ro, f, 664)
+                os.chmod(os.path.join(ro, f), 664)
