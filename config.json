@@ -446,7 +446,7 @@
         }
     },
     "develop": {
-        "active": 0,
+        "active": 1,
         "name": "develop",
         "data_root": "/sciclone/aiddata10/REU",
         "database": "128.239.108.200",
@@ -484,11 +484,11 @@
                     {
                         "description": "priority only vortex-alpha job",
                         "jobname": "ex0",
-                        "nodespec": "c18c",
-                        "max_jobs": 0,
+                        "nodespec": "vx11",
+                        "max_jobs": 1,
                         "nodes": 1,
-                        "ppn": 16,
-                        "walltime": "180:00:00",
+                        "ppn": 12,
+                        "walltime": "48:00:00",
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "det",
                         "extract_limit": 200,
@@ -497,11 +497,11 @@
                     {
                         "description": "generic vortex-alpha raster job",
                         "jobname": "ex1",
-                        "nodespec": "c18c",
-                        "max_jobs": 1,
+                        "nodespec": "vx11",
+                        "max_jobs": 0,
                         "nodes": 1,
-                        "ppn": 16,
-                        "walltime": "180:00:00",
+                        "ppn": 12,
+                        "walltime": "48:00:00",
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "raster",
                         "extract_limit": 200,
@@ -510,11 +510,11 @@
                     {
                         "description": "generic vortex-alpha msr job",
                         "jobname": "ex2",
-                        "nodespec": "c18c",
-                        "max_jobs": 1,
+                        "nodespec": "vx11",
+                        "max_jobs": 0,
                         "nodes": 1,
-                        "ppn": 16,
-                        "walltime": "180:00:00",
+                        "ppn": 12,
+                        "walltime": "48:00:00",
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "msr",
                         "extract_limit": 200,
@@ -527,7 +527,7 @@
                         "max_jobs": 0,
                         "nodes": 1,
                         "ppn": 12,
-                        "walltime": "180:00:00",
+                        "walltime": "48:00:00",
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "raster",
                         "extract_limit": 200,
@@ -540,7 +540,7 @@
                         "max_jobs": 0,
                         "nodes": 1,
                         "ppn": 12,
-                        "walltime": "180:00:00",
+                        "walltime": "48:00:00",
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "msr",
                         "extract_limit": 200,
@@ -554,10 +554,10 @@
                     {
                         "description": "generic vortex-alpha job",
                         "jobname": "msr",
-                        "nodespec": "c18c",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
-                        "ppn": 16,
+                        "ppn": 12,
                         "walltime": "24:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/msr_runscript.py $branch $timestamp"
                     }
@@ -584,7 +584,7 @@
                     {
                         "description": "",
                         "jobname": "cr",
-                        "nodespec": "c18x",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
@@ -599,7 +599,7 @@
                     {
                         "description": "manage errors from jobs",
                         "jobname": "ec",
-                        "nodespec": "c18x",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
@@ -614,10 +614,10 @@
                     {
                         "description": "index tracker update",
                         "jobname": "upt",
-                        "nodespec": "c18c",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
-                        "ppn": 16,
+                        "ppn": 12,
                         "walltime": "48:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/geo-hpc/tasks/update_trackers.py $branch"
                     }
@@ -629,10 +629,10 @@
                     {
                         "description": "extracts queue update",
                         "jobname": "upe",
-                        "nodespec": "c18c",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
-                        "ppn": 16,
+                        "ppn": 12,
                         "walltime": "48:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/geo-hpc/tasks/update_extract_queue.py $branch"
                     }
@@ -644,7 +644,7 @@
                     {
                         "description": "msr queue update",
                         "jobname": "upm",
-                        "nodespec": "c18x",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
@@ -659,7 +659,7 @@
                     {
                         "description": "",
                         "jobname": "det",
-                        "nodespec": "c18x",
+                        "nodespec": "vx11",
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
