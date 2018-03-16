@@ -39,6 +39,10 @@ get_repo() {
 
     git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
 
+    if [[ "$repo" == "public_datasets" && "$branch" != "master" ]]; then
+        git clone -b "master" git@github.com:"$orgrepo" "$repo"
+    fi
+
     # ---
     # wget https://github.com/"$orgrepo"/archive/"$branch".zip -O tmp_"$repo".zip
 
