@@ -125,6 +125,8 @@ alias q "qstat -nu $user"            # show nodes of my jobs
 alias qva "qstat -na | grep va -B 1" # show nodes for jobs on vortex-alpha"
 alias p "pbstop -u all"
 alias c "bash ~/check_oe.sh"
+alias rcm "bash /sciclone/aiddata10/geo/master/source/geo-hpc/tools/run_crons.sh master "
+alias rcd "bash /sciclone/aiddata10/geo/master/source/geo-hpc/tools/run_crons.sh develop "
 
 setenv PYTHONPATH ${PYTHONPATH}:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages
 #setenv PYTHONPATH ${PYTHONPATH}:${HOME}/py_libs/lib/python2.7/site-packages
