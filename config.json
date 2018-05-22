@@ -132,21 +132,6 @@
                     }
                 ]
             },
-            "set_permissions": {
-                "cron_schedule": "3 2 * * *",
-                "tasks": [
-                    {
-                        "description": "",
-                        "jobname": "",
-                        "nodespec": "local",
-                        "max_jobs": 0,
-                        "nodes": 0,
-                        "ppn": 0,
-                        "walltime": "0",
-                        "cmd": "bash $src/geo-hpc/tasks/set_permissions.sh $branch"
-                    }
-                ]
-            },
             "cleanup_repos": {
                 "cron_schedule": "0 23 * * *",
                 "tasks": [
@@ -620,6 +605,21 @@
                         "ppn": 1,
                         "walltime": "48:00:00",
                         "cmd": "python $src/geo-hpc/tasks/check_errors.py $branch"
+                    }
+                ]
+            },
+            "set_permissions": {
+                "cron_schedule": "3 2 * * *",
+                "tasks": [
+                    {
+                        "description": "",
+                        "jobname": "",
+                        "nodespec": "local",
+                        "max_jobs": 0,
+                        "nodes": 0,
+                        "ppn": 0,
+                        "walltime": "0",
+                        "cmd": "bash $src/geo-hpc/tasks/set_permissions.sh $branch"
                     }
                 ]
             },
