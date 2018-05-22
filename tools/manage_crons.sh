@@ -74,7 +74,7 @@ init() {
 
         cron_string="$cron_schedule"' bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
 
-        existing=$(crontab -l | grep 'run_crons.*'"$branch"'.*'"$job_class")
+        existing=$(crontab -l | grep 'run_crons.sh '$branch' '$job_class)
 
         comment=""
         if [[ ${existing:0:1} == "#" ]]; then
@@ -84,7 +84,7 @@ init() {
         cron_string="${comment}""${cron_string}"
 
         echo "$cron_string"
-        crontab -l | grep -v 'run_crons.*'"$branch"'.*'"$job_class" | { cat; echo "$cron_string"; } | crontab -
+        crontab -l | grep -v 'run_crons.sh '$branch' '$job_class | { cat; echo "$cron_string"; } | crontab -
 
     done
 
