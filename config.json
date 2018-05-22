@@ -193,7 +193,7 @@
                 ]
             },
             "update_extracts": {
-                "cron_schedule": "0 23 * * *",
+                "cron_schedule": "1 23 * * *",
                 "tasks": [
                     {
                         "description": "extracts queue update",
