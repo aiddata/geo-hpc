@@ -4,8 +4,12 @@ db.data.find({}).forEach(function(doc){
 
     base = doc['base']
 
-    old_root = '/sciclone/aiddata10/REU/data'
-    new_root = '/sciclone/aiddata10/REU/geo/data'
+    // old_root = '/sciclone/aiddata10/REU/data'
+    // new_root = '/sciclone/aiddata10/REU/geo/data'
+
+    old_root = '/sciclone/aiddata10/REU/geo/data'
+    new_root = '/sciclone/aiddata10/geo/master/data'
+
 
     new_base = base.replace(old_root, new_root)
 

@@ -88,6 +88,13 @@ output_dir="${branch_dir}"/outputs
 mkdir -p "${output_dir}"/{det,extracts,msr}
 mkdir -p "${output_dir}"/det/results
 
+data_dir="${branch_dir}"/data
+mkdir -p "${data_dir}"/{rasters,releases,boundaries}
+
+
+usr_dir="${HOME}"/usr
+mkdir -p "${HOME}"
+
 
 echo "Updating permissions..."
 echo "(this may take a few minutes if there are existing files)"

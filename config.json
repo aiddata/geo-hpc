@@ -132,6 +132,21 @@
                     }
                 ]
             },
+            "set_permissions": {
+                "cron_schedule": "0 2 * * *",
+                "tasks": [
+                    {
+                        "description": "",
+                        "jobname": "",
+                        "nodespec": "local",
+                        "max_jobs": 0,
+                        "nodes": 0,
+                        "ppn": 0,
+                        "walltime": "0",
+                        "cmd": "bash $src/geo-hpc/tasks/set_permissions.sh $branch"
+                    }
+                ]
+            },
             "cleanup_repos": {
                 "cron_schedule": "0 23 * * *",
                 "tasks": [
@@ -448,7 +463,7 @@
     "develop": {
         "active": 1,
         "name": "develop",
-        "data_root": "/sciclone/aiddata10/REU",
+        "data_root": "/sciclone/aiddata10/geo/develop",
         "database": "128.239.108.200",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
