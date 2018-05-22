@@ -133,7 +133,7 @@
                 ]
             },
             "set_permissions": {
-                "cron_schedule": "0 2 * * *",
+                "cron_schedule": "1 2 * * *",
                 "tasks": [
                     {
                         "description": "",
