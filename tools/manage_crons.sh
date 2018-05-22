@@ -81,7 +81,7 @@ init() {
             comment="#"
         fi
 
-        cron_string="${comment}${cron_string}"
+        cron_string="${comment}""${cron_string}"
 
         echo "$cron_string"
         crontab -l | grep -v 'run_crons.*'"$branch"'.*'"$job_class" | { cat; echo "$cron_string"; } | crontab -
