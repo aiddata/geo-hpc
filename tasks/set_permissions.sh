@@ -2,8 +2,8 @@
 
 branch=$1
 
-# find "${HOME}" -type d -exec chmod u=rwx,g=rxs,o= {} +
-# find "${HOME}" -type f -exec chmod u=rw,g=r,o= {} +
+find "${HOME}" -type d -exec chmod u=rwx,g=rxs,o= {} +
+find "${HOME}" -type f -exec chmod u=rw,g=,o= {} +
 
 find "${HOME}/privatemodules" -type d -exec chmod u=rwx,g=rxs,o=rx {} +
 find "${HOME}/privatemodules" -type f -exec chmod u=rw,g=r,o=r {} +
