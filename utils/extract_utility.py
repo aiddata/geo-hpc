@@ -806,6 +806,9 @@ class ExtractObject():
 
                         max_dollars = 0
 
+                        # temp fix for when there are no geoms due to bad msr lookups
+                        r_intersects = -1
+
                         # does unique geom intersect feature geom
                         for r in self._rgeo:
 
