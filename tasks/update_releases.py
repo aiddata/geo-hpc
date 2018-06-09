@@ -87,7 +87,7 @@ for i in new_repo_dirnames:
 
 
 for r,d,f in os.walk(data_dir):
-    os.chmod(r, 2755)
+    os.chmod(r, 0755)
 
 # -----------------------------------------------------------------------------
 
