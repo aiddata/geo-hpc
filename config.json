@@ -226,6 +226,7 @@
         "det": {
             "download_server": "geo.aiddata.org",
             "featured_datasets": [
+                "grid_0p5_degree",
                 "afg_adm1_gadm28",
                 "npl_adm1_gadm28",
                 "uga_adm1_gadm28",
