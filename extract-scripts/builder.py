@@ -155,11 +155,11 @@ for dataset_options in job_json['data']:
             dataset_fields = ['data_base', 'data_name', 'file_mask']
             if all([i in dataset_options for i in dataset_fields]):
 
-                for j in dataset_fields:
+                for j in dataset_options:
                     tmp_config[j] = dataset_options[j]
 
             elif user_prompt_bool("Dataset ("+str(dataset_name) +
-                                ") not found in dataset json. Ignore " +
+                                ") missing fields or not found in dataset json. Ignore " +
                                 " dataset and continue? [y/n]"):
                 continue
             else:
