@@ -5,18 +5,21 @@ http://geo.aiddata.wm.edu
 
 ## Setup
 
-### prepare sciclone environment
-- update config scripts for sciclone that define environment variables (e.g., PYTHONPATH) and load necessary modules (see src/sciclone dir). reload files (`source <file>` or logout to load changes
-- install python package if needed (unlikely these will ever get wiped, but list is in sciclone/pip_list.txt) see sciclone/scipip for pip install
+### core hpc config
 - make sure HPC account being used is set as priority user on for vortex-alpha nodes (HPC staff can do this)
 - make sure HPC servers have necessary ports open for mongodb, gmail
-- add ssh key from sciclone to aiddatageo github (approve rsa key first time manually)
 
 ### prepare database server
 - have IT open mongodb ports for geo.aiddata.wm.edu and all HPC servers (prod and dev servers, where applicable)
 - update mongod.conf
 - copy db_backup_script.sh and add cron (see comments in script for details)
 
+
+### prepare sciclone environment
+- install home directory environment scripts (copy from `sciclone` in this repo to your sciclone account home directory, or extract from the `home_backups` dir in `/sciclone/aiddata10/geo`)
+- load necessary modules by logging out and back in to sciclone or using `. ~/.cshrc` and `. ~/.cshrc.rhel6-opteron`
+- install python packages: `pip install --user -r pip_list.txt`
+- add ssh key from your sciclone account to `aiddatageo` github (approve rsa key first time manually)
 
 ### initialize framework
 - run `bash setup.sh <branch>`
