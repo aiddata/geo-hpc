@@ -186,7 +186,13 @@ def tmp_worker_job(self, task_index, task_data):
            '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
            (bnd_name, bnd_absolute, raster_name, raster, extract_type))
 
-    run_data = exo.run_extract(raster)
+
+
+    if 'percent_cover_weighting' in input_json['job']['datasets'][dataset_index]['settings']:
+        percent_cover_weighting = input_json['job']['datasets'][dataset_index]['settings']['percent_cover_weighting']
+        run_data = exo.run_extract(raster, percent_cover_weighting=percent_cover_weighting)
+    else:
+        run_data = exo.run_extract(raster)
 
 
     # generate output path

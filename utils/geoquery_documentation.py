@@ -2,6 +2,7 @@
 
 import os
 import time
+import math
 import pymongo
 
 from reportlab.lib.pagesizes import letter
@@ -282,9 +283,21 @@ class DocBuilder():
 
             for f in dset['filters']:
                 try:
-                    data.append([f, ', '.join([str(i) for i in dset['filters'][f]])])
+                    val = ', '.join([str(i) for i in dset['filters'][f]])
                 except:
-                    data.append([f, ', '.join([i.encode('ascii', 'ignore') for i in dset['filters'][f]])])
+                    val = ', '.join([i.encode('ascii', 'ignore') for i in dset['filters'][f]])
+
+                vlimit = 500
+                if len(val) > vlimit:
+                    vbreaks = int(math.ceil(len(val) / float(vlimit)))
+                    for i in range(vbreaks):
+                        vstart = i * vlimit
+                        vend = (i+1) * vlimit
+                        tmp_val = val[vstart:vend]
+                        tmp_f = f + " ({0}/{1})".format(i+1, vbreaks)
+                        data.append([tmp_f, tmp_val])
+                else:
+                    data.append([f, val])
 
 
 
