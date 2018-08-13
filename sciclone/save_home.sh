@@ -14,7 +14,7 @@ timestamp=$(date +%Y%m%d%H%M%S)
 
 output_path=${base_path}/${USER}_${timestamp}_home_copy.tar.gz
 
-tar czvf ${output_path} check_oe.sh  save_home.sh  privatemodules  pip_list.txt .cshrc .cshrc.rhel6-opteron
+tar czvf ${output_path} check_oe.sh  save_home.sh  privatemodules  pip_list.txt .cshrc .cshrc.rhel6-opteron usr
 
 chmod 644 ${output_path}
 

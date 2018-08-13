@@ -17,7 +17,7 @@ http://geo.aiddata.wm.edu
 
 ### prepare sciclone environment
 - install home directory environment scripts (copy from `sciclone` in this repo to your sciclone account home directory, or extract from the `home_backups` dir in `/sciclone/aiddata10/geo`)
-- load necessary modules by logging out and back in to sciclone or using `. ~/.cshrc` and `. ~/.cshrc.rhel6-opteron`
+- load necessary modules by logging out and back in to sciclone or using `source ~/.cshrc` and `source ~/.cshrc.rhel6-opteron`
 - install python packages: `pip install --user -r pip_list.txt`
 - add ssh key from your sciclone account to `aiddatageo` github (approve rsa key first time manually)
 
