@@ -49,6 +49,6 @@ else:
     # c_config.remove({'name': branch_info['name']})
     c_config.delete_many({})
 
-    c_config.inset_one(branch_info)
+    c_config.insert_one(branch_info)
 
     print "success"
