@@ -791,60 +791,60 @@ class ExtractObject():
                                   'feature properties')
                     feat['properties']['exfield_sum'] = 'NA'
 
-                else:
-                    tmp_sum = feat['properties']['exfield_sum']
-                    is_na = (tmp_sum in [None, 'nan', 'NaN'] or isnan(tmp_sum))
+                # else:
+                #     tmp_sum = feat['properties']['exfield_sum']
+                #     is_na = (tmp_sum in [None, 'nan', 'NaN'] or isnan(tmp_sum))
 
-                    if not is_na:
-                        feat_geom = shape(feat['geometry'])
+                #     if not is_na:
+                #         feat_geom = shape(feat['geometry'])
 
-                        feat_geom = re.sub(simpledec, mround,
-                                           json.dumps(feat_geom.__geo_interface__))
-                        feat_geom = shape(json.loads(feat_geom)).buffer(0)
+                #         feat_geom = re.sub(simpledec, mround,
+                #                            json.dumps(feat_geom.__geo_interface__))
+                #         feat_geom = shape(json.loads(feat_geom)).buffer(0)
 
-                        feat_geom = prep(feat_geom)
+                #         feat_geom = prep(feat_geom)
 
-                        max_dollars = 0
+                #         max_dollars = 0
 
-                        # temp fix for when there are no geoms due to bad msr lookups
-                        r_intersects = -1
+                #         # temp fix for when there are no geoms due to bad msr lookups
+                #         r_intersects = -1
 
-                        # does unique geom intersect feature geom
-                        for r in self._rgeo:
+                #         # does unique geom intersect feature geom
+                #         for r in self._rgeo:
 
-                            rgeom = shape(r['geometry'])
+                #             rgeom = shape(r['geometry'])
 
-                            try:
-                                r_intersects = feat_geom.intersects(rgeom)
-                            except:
-                                rgeom = re.sub(simpledec, mround,
-                                               json.dumps(rgeom.__geo_interface__))
-                                rgeom = shape(json.loads(rgeom)).buffer(0)
-                                r_intersects = feat_geom.intersects(rgeom)
+                #             try:
+                #                 r_intersects = feat_geom.intersects(rgeom)
+                #             except:
+                #                 rgeom = re.sub(simpledec, mround,
+                #                                json.dumps(rgeom.__geo_interface__))
+                #                 rgeom = shape(json.loads(rgeom)).buffer(0)
+                #                 r_intersects = feat_geom.intersects(rgeom)
 
-                            # try:
-                            #     r_intersects = feat_geom.intersects(rgeom)
-                            # except:
-                            #     r_intersects = -1
-                            #     break
+                #             # try:
+                #             #     r_intersects = feat_geom.intersects(rgeom)
+                #             # except:
+                #             #     r_intersects = -1
+                #             #     break
 
-                            if r_intersects:
-                                tmp_aid = r['properties']['unique_dollars']
-                                max_dollars += tmp_aid
+                #             if r_intersects:
+                #                 tmp_aid = r['properties']['unique_dollars']
+                #                 max_dollars += tmp_aid
 
-                        if r_intersects != -1:
-                            # calculate reliability statistic
-                            feat['properties']['exfield_potential'] = max_dollars
+                #         if r_intersects != -1:
+                #             # calculate reliability statistic
+                #             feat['properties']['exfield_potential'] = max_dollars
 
-                            if feat['properties']['exfield_potential'] == 0:
-                                if feat['properties']['exfield_sum'] == 0:
-                                    feat['properties']['exfield_reliability'] = 1
-                                else:
-                                    feat['properties']['exfield_reliability'] = 0
-                            else:
-                                rval = (feat['properties']['exfield_sum'] /
-                                        feat['properties']['exfield_potential'])
-                                feat['properties']['exfield_reliability'] = rval
+                #             if feat['properties']['exfield_potential'] == 0:
+                #                 if feat['properties']['exfield_sum'] == 0:
+                #                     feat['properties']['exfield_reliability'] = 1
+                #                 else:
+                #                     feat['properties']['exfield_reliability'] = 0
+                #             else:
+                #                 rval = (feat['properties']['exfield_sum'] /
+                #                         feat['properties']['exfield_potential'])
+                #                 feat['properties']['exfield_reliability'] = rval
 
                 yield feat
 
