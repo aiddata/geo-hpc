@@ -3,7 +3,7 @@
 #  Don't change this stuff unless you know what you're doing.
 #
 #  Revision history:
-#     10/31/2007 tom    - Completely new approach for mixed Linux/Solaris
+#     10/31/2007 tom	- Completely new approach for mixed Linux/Solaris
 #                         environment.
 #     12/03/2007 tom    - Distinguish between solaris-sparc and solaris-opteron
 #                         in platform-specific files.
@@ -61,9 +61,9 @@ setenv PRINTER "unspecified"
 #  useful variables
 #
 setenv x ~/scr                    # symlink to user's primary scratch dir
-setenv x0 /sciclone/scr00/$user   # global scratch dir
-setenv x1 /sciclone/scr01/$user   # global scratch dir
-setenv x2 /sciclone/scr02/$user   # global scratch dir
+setenv x0 /sciclone/scr00/$user	  # global scratch dir
+setenv x1 /sciclone/scr01/$user	  # global scratch dir
+setenv x2 /sciclone/scr02/$user	  # global scratch dir
 setenv x10 /sciclone/scr10/$user  # global scratch dir
 setenv x20 /sciclone/scr20/$user  # global scratch dir
 setenv lx /local/scr/$user        # local scratch dirs on all nodes
@@ -78,12 +78,12 @@ alias l 'ls -laF'
 alias la 'ls -aF'
 alias lc 'ls -CaFq'
 alias lt 'ls -ltF'
-alias qsa "qstat -a"                    # show all jobs
+alias qsa "qstat -a"			# show all jobs
 alias qsn "qstat -n \!*"                # show the nodes assigned to a job
-alias qsq "qstat -a | grep ' Q '"       # show queued jobs
+alias qsq "qstat -a | grep ' Q '"	# show queued jobs
 alias qsr "qstat -r"                    # show running jobs
-alias qss "qstat -s -u $user"           # show status of my jobs
-alias qsu "qstat -u $user"              # show my jobs
+alias qss "qstat -s -u $user"		# show status of my jobs
+alias qsu "qstat -u $user"		# show my jobs
 
 #
 # Load OS-specific personal settings, if any
@@ -128,6 +128,7 @@ alias qva "qstat -na | grep va -B 1" # show nodes for jobs on vortex-alpha"
 alias p "pbstop -u all"
 alias c "bash ~/check_oe.sh"
 
+
 alias rcm "bash /sciclone/aiddata10/geo/master/source/geo-hpc/tools/run_crons.sh master "
 alias rcd "bash /sciclone/aiddata10/geo/develop/source/geo-hpc/tools/run_crons.sh develop "
 
@@ -143,3 +144,4 @@ setenv PYTHONPATH ${PYTHONPATH}:${HOME}/usr/lib/python2.7/site-packages
 
 setenv VISUAL /usr/bin/nano
 setenv EDITOR /usr/bin/nano
+

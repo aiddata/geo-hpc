@@ -1,3 +1,4 @@
+#
 #  Environment configuration for RHEL 6.x / Opteron environment.
 #
 #  Revised:
@@ -6,7 +7,7 @@
 #                           default.
 #    03/13/1012 tom       - Fix up the comments.
 #    02/28/2013 tom       - Add mvapich2-ib as the default MPI module.
-#    05/22/2014 tom       - Only available Xeon at the moment is
+#    05/22/2014 tom       - Only available Xeon at the moment is 
 #                           sandy-bridge-ep.
 #                         - Use MVAPICH2 1.9 as the default MPI.
 #
@@ -27,10 +28,10 @@ module load isa/seoul
 # Select ONE of the following compiler modules, depending on your needs.
 #
 #  For a high-performance x86/x64 compiler, use:
-#module load pgi mvapich2-ib/1.9/pgi
+#module load pgi/17.7 mvapich2-ib/2.2/pgi-17.7
 #
 #  For applications which require a GCC compiler, we recommend:
-# module load gcc/4.7.3
+#module load gcc/4.7.3
 
 
 # =====================================
@@ -43,5 +44,11 @@ module load numpy/1.9.2
 module load gdal-nograss/1.11.2
 module load proj/4.7.0
 module load geos/3.5.0
+module load hdf/4.2.10/gcc
 
 module load git/2.10.2
+
+
+setenv CFLAGS -I$HDF/include/hdf
+setenv LDFLAGS -L$HDF/lib
+
