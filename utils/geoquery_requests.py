@@ -500,6 +500,11 @@ class QueueToolBox():
         shutil.copyfile(geo_pdf_src, geo_pdf_dst)
 
 
+        bnd_src = request['boundary']['path']
+        bnd_dst = os.path.join(request_dir, os.path.basename(request['boundary']['path']))
+        shutil.copyfile(bnd_src, bnd_dst)
+
+
         # # make msr json folder in request_dir
         # msr_jsons_dir = os.path.join(request_dir, 'msr_jsons')
         # make_dir(msr_jsons_dir)
