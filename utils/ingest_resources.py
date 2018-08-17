@@ -254,6 +254,7 @@ def add_asdf_id(path):
         raise Exception('Invalid geometry could not be corrected')
 
     geo_df["asdf_id"] = range(len(geo_df))
+    geo_df["gqid"] = range(len(geo_df))
 
     geo_json = geo_df.to_json()
     geo_path = os.path.splitext(path)[0] + ".geojson.tmp"
