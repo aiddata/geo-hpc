@@ -402,6 +402,8 @@ if __name__ == '__main__':
 
     path = sys.argv[2]
 
+    version = os.path.basename(os.path.dirname(path))
+
     generator = sys.argv[3]
 
     if len(sys.argv) >= 5:
@@ -414,5 +416,5 @@ if __name__ == '__main__':
     else:
         dry_run = False
 
-    run(path=path, config=config, generator=generator,
+    run(path=path, version=version, config=config, generator=generator,
         update=update, dry_run=dry_run)
