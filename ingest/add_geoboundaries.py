@@ -8,14 +8,13 @@ add geoboundaries dataset to geo:
 
 import sys
 import os
-from pprint import pprint
 import datetime
 import json
-from unidecode import unidecode
-import pymongo
 from warnings import warn
+from pprint import pprint
 
-import fiona
+from unidecode import unidecode
+
 
 utils_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
@@ -155,7 +154,7 @@ def run(path=None, client=None, version=None, config=None,
     adm = name[4:]
 
     metadata_path = os.path.join(path, 'metadata.json')
-    metadata =  json.load(open(metadata_path, 'r'))
+    metadata = json.load(open(metadata_path, 'r'))
     country = unidecode(metadata["country"])
 
 
@@ -248,10 +247,10 @@ def run(path=None, client=None, version=None, config=None,
 
     # boundary group
     if "adm0" in name.lower():
-         doc["options"]["group_class"] = "actual"
-         doc["active"] = -1
+        doc["options"]["group_class"] = "actual"
+        doc["active"] = -1
     else:
-         doc["options"]["group_class"] = "sub"
+        doc["options"]["group_class"] = "sub"
 
     # -------------------------------------
     # resource scan
@@ -417,4 +416,3 @@ if __name__ == '__main__':
 
     run(path=path, config=config, generator=generator,
         update=update, dry_run=dry_run)
-
