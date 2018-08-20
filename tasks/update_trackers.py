@@ -200,16 +200,18 @@ def tmp_worker_job(self, task_index, task_data):
     # lookup unprocessed data in boundary tracker that
     # intersect boundary (first stage search)
 
+    search_status_list = [-1]
+
     if bnd["scale"] == "global":
         # NOTE: intersect/within at global (ie, >hemispehere)
         # may not work properly. using this as temp workaround
         # could potentially be impacting smaller datasets as well, not sure
         matches = list(c_bnd.find({
-            "status": -1
+            "status": {"$in": search_status_list}
         }))
     else:
         matches = list(c_bnd.find({
-            "status": -1,
+            "status": {"$in": search_status_list},
             "$or": [
                 {
                     "spatial": {
