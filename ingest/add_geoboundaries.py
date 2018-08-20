@@ -216,7 +216,7 @@ def run(path=None, client=None, version=None, config=None,
                 doc["active"] = -1
 
 
-    doc["title"] = "{} {} - GeoBoundaries v{}".format(country, adm.upper() version.replace("_", "."))
+    doc["title"] = "{} {} - GeoBoundaries v{}".format(country, adm.upper(), version.replace("_", "."))
 
     doc["description"] = "PLACEHOLDER"
 
