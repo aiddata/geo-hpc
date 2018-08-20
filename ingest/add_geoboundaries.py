@@ -232,7 +232,7 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["extras"]["citation"] = ('Seitz, L., Lv, Z., Goodman, S., Runfola, D. '
                                  '"Chapter 3: GeoBoundaries - A Global, Redistributable Map of Administrative Zones." '
-                                 'GeoQuert User\'s Guide. Ed. Dan Runfola Ariel BenYishay, Seth Goodman. '
+                                 'GeoQuery User\'s Guide. Ed. Dan Runfola Ariel BenYishay, Seth Goodman. '
                                  'Williamsburg, Va: AidData, 2018.')
 
 
