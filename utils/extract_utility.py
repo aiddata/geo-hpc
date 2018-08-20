@@ -326,7 +326,7 @@ class ExtractObject():
             else:
                 self._reliability_geojson = base_path_dir + "/unique.geojson"
                 # reliability geojson (mean surface features with aid info)
-                self._rgeo = fiona.open(self._reliability_geojson)
+                # self._rgeo = fiona.open(self._reliability_geojson)
 
 
 
@@ -1014,7 +1014,8 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
                     result_field,
                     c[len("exfield_"):])
 
-            elif result_field.endswith('reliability') or result_field.startswith(('worldbank_', 'globalenvironmentfacility_')):
+            # elif result_field.endswith('reliability') or result_field.startswith(('worldbank_', 'globalenvironmentfacility_')):
+            elif result_field.endswith('reliability'):
                 tmp_split = result_field.split('.')
                 tmp_field = "{0}.{1}.{2}".format(
                     tmp_split[0],

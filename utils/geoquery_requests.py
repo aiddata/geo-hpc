@@ -342,11 +342,9 @@ class QueueToolBox():
 
             if msr_completed == True:
 
-                ###
                 tmp_extract_type = 'reliability'
-                if data["dataset"].startswith(('worldbank', 'globalenvironmentfacility')):
-                    tmp_extract_type = 'sum'
-                ###
+                # if data["dataset"].startswith(('worldbank', 'globalenvironmentfacility')):
+                #     tmp_extract_type = 'sum'
 
                 msr_ex_item = ExtractItem(self.config,
                                           request["boundary"]["name"],

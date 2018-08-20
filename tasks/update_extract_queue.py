@@ -204,11 +204,10 @@ if job.rank == 0:
                     "status": 1
                 })
 
-                ###
+
                 tmp_extract_type = 'reliability'
-                if data["name"].startswith(('worldbank', 'globalenvironmentfacility')):
-                    tmp_extract_type = 'sum'
-                ###
+                # if data["name"].startswith(('worldbank', 'globalenvironmentfacility')):
+                #     tmp_extract_type = 'sum'
 
                 base_count = len(release_extract_items)
 
