@@ -230,10 +230,11 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["extras"] = {}
 
-    doc["extras"]["citation"] = ('Seitz, L., Lv, Z, Goodman, S., Runfola, D. '
-                                 '"Chapter 3: GeoBoundaries - A Global, Redistributable Map of Administrative Zones.” '
-                                 'GeoQuery User’s Guide. Ed. Dan Runfola, Ariel BenYishay, Seth Goodman. '
-                                 'Williamsburg, VA: AidData, 2018.')
+    doc["extras"]["citation"] = ('Seitz, L., Lv, Z., Goodman, S., Runfola, D. '
+                                 '"Chapter 3: GeoBoundaries - A Global, Redistributable Map of Administrative Zones." '
+                                 'GeoQuert User\'s Guide. Ed. Dan Runfola Ariel BenYishay, Seth Goodman. '
+                                 'Williamsburg, Va: AidData, 2018.')
+
 
     doc["extras"]["sources_web"] = "http://www.geoboundaries.org"
     doc["extras"]["sources_name"] = "AidData GeoBoundaries"
