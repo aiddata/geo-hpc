@@ -216,7 +216,7 @@ def run(path=None, client=None, version=None, config=None,
                 doc["active"] = -1
 
 
-    doc["title"] = " ".join([country, adm.upper(), " - GeoBoundaries v", version.replace("_", ".")])
+    doc["title"] = "{} {} - GeoBoundaries v{}".format(country, adm.upper() version.replace("_", "."))
 
     doc["description"] = "PLACEHOLDER"
 
@@ -225,7 +225,7 @@ def run(path=None, client=None, version=None, config=None,
 
     doc["options"] = {}
     doc["options"]["group"] = iso3.lower() + "_gb_" + version
-    doc["options"]["group_title"] = "{} GeoBoundaries {}".format(country, version)
+    doc["options"]["group_title"] = "{} - GeoBoundaries v{}".format(country, version.replace("_", "."))
 
 
     doc["extras"] = {}
