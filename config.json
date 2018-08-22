@@ -696,7 +696,8 @@
                 "viirs_vcmcfg_dnb_composites_v10_yearly_max",
                 "ltdr_avhrr_ndvi_v4_yearly",
                 "esa_landcover_v207",
-                "cru_pre_yearly_mean"
+                "cru_pre_yearly_mean",
+                "modis_lst_day_yearly_mean"
             ],
             "help": [
                 {
