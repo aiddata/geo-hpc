@@ -466,7 +466,7 @@
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA",
             "WorldBank": "global",
-            "GlobalEnvironmentFacility": "global",
+            "GlobalEnvironmentFacilitySectors": "global",
             "China": "global"
         },
         "inactive_bnds": [
