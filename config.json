@@ -692,7 +692,10 @@
             "featured_datasets": [
                 "afg_adm2_gb_1_3_3",
                 "chn_adm2_gb_1_3_3",
-                "civ_adm2_gb_1_3_3"
+                "civ_adm2_gb_1_3_3",
+                "viirs_vcmcfg_dnb_composites_v10_yearly_max",
+                "ltdr_avhrr_ndvi_v4_yearly",
+                "esa_landcover_v207"
             ],
             "help": [
                 {
