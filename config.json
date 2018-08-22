@@ -690,7 +690,8 @@
         "det": {
             "download_server": "devgeo.aiddata.org",
             "featured_datasets": [
-                "afg_adm2_gb_1_3_3"
+                "afg_adm2_gb_1_3_3",
+                "chn_adm2_gb_1_3_3"
             ],
             "help": [
                 {
