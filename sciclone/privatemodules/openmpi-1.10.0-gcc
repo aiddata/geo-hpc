@@ -1,0 +1,36 @@
+#%Module1.0
+#
+# openmpi 1.10.0 for GCC 4.7.3
+#
+#
+proc ModulesHelp { } {
+        global version
+        puts stderr "[module-info name]  - openmpi 1.10.0 MPI for InfiniBand (GCC 4.7.3)"
+}
+
+prereq isa
+conflict openmpi openmpi-ib mvapich2-tcp mvapich2-ib mvapich2-smp mvapich2-ib-gpu
+
+set version "1.10.0"
+module-whatis   "openmpi MPI for InfiniBand, rel. $version (GCC 4.7.3)"
+
+set xarch $env(XARCH)
+set xchip $env(XCHIP)
+set path /usr/local/$xarch/$xchip/gcc/openmpi-$version-ib
+
+if {[module-info mode load] && ![file exists $path]} {
+    puts stderr "\t[module-info name]: $path is not available"
+    break
+    exit 1
+}
+
+prepend-path    PATH            $path/bin
+prepend-path    MANPATH         $path/share/man
+#prepend-path    LD_LIBRARY_PATH $path/lib:/usr/lib64
+#I removed /usr/lib64 since it GCC 4.7.3 can find the 4.4.6 libgfortran here and cause problems after linking
+prepend-path    LD_LIBRARY_PATH $path/lib
+setenv          OPENMPI_HOME   $path
+setenv          MPICC           $path/bin/mpicc
+setenv          MPICXX          $path/bin/mpicxx
+setenv          MPIF77          $path/bin/mpif77
+setenv          MPIF90          $path/bin/mpif90

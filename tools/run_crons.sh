@@ -20,7 +20,7 @@ src="${branch_dir}/source"
 
 # cron tasks do not inherit pythonpath from user,
 # so it needs to be specified here
-export PYTHONPATH="${PYTHONPATH}:/usr/local/amd64/seoul/gcc/python-2.7.8/lib/python2.7/site-packages/:/sciclone/aiddata10/REU/py_libs/lib/python2.7/site-packages"
+export PYTHONPATH="${PYTHONPATH}:/usr/local/amd64/seoul/gcc/python-2.7.8/lib/python2.7/site-packages/:${HOME}/usr/lib/python2.7/site-packages"
 
 
 config_path=$src/geo-hpc/config.json

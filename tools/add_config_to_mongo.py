@@ -47,8 +47,8 @@ else:
     c_config = client.asdf.config
 
     # c_config.remove({'name': branch_info['name']})
-    c_config.remove({})
+    c_config.delete_many({})
 
-    c_config.insert(branch_info)
+    c_config.insert_one(branch_info)
 
     print "success"

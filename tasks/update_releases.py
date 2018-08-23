@@ -46,7 +46,7 @@ import add_release
 
 repo_dir = config.source_dir + "/public_datasets/geocoded"
 
-data_dir = os.path.join(config.data_root, "geo/data/releases")
+data_dir = os.path.join(config.data_root, "data/releases")
 
 
 try:
