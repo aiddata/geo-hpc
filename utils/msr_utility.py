@@ -816,8 +816,10 @@ class CoreMSR():
                 }
             }
 
+        # force use master prod db even for dev (temporary)
+        f_client = pymongo.MongoClient("128.239.20.76")
 
-        results = list(self.client.asdf.features.find(query))
+        results = list(f_client.asdf.features.find(query))
 
         if len(results) == 1:
 

@@ -62,6 +62,8 @@ class QueueToolBox():
 
         self.msr_resolution = 0.05
 
+        self.dev = " (dev) " if self.branch == "develop" else " "
+
 
     # def quit(self, rid, status, message):
     #     """exit function used for errors
@@ -194,8 +196,8 @@ class QueueToolBox():
         """
         mail_to = email
 
-        mail_subject = ("AidData geo(query) - "
-                        "Request {0}.. Received").format(request_id[:7])
+        mail_subject = ("AidData GeoQuery{0}- "
+                        "Request {1}.. Received").format(self.dev, request_id[:7])
 
         mail_message = ("Your request has been received. \n"
                         "You will receive an additional email when the"
@@ -221,8 +223,8 @@ class QueueToolBox():
         """
         mail_to = email
 
-        mail_subject = ("AidData geo(query) - "
-                        "Request {0}.. Completed").format(request_id[:7])
+        mail_subject = ("AidData GeoQuery{0}- "
+                        "Request {1}.. Completed").format(self.dev, request_id[:7])
 
         mail_message = (
             """
@@ -340,11 +342,9 @@ class QueueToolBox():
 
             if msr_completed == True:
 
-                ###
                 tmp_extract_type = 'reliability'
-                if data["dataset"].startswith(('worldbank', 'globalenvironmentfacility')):
-                    tmp_extract_type = 'sum'
-                ###
+                # if data["dataset"].startswith(('worldbank', 'globalenvironmentfacility')):
+                #     tmp_extract_type = 'sum'
 
                 msr_ex_item = ExtractItem(self.config,
                                           request["boundary"]["name"],
@@ -359,7 +359,10 @@ class QueueToolBox():
                 print '\tmsr extract exists: {0}'.format(msr_ex_exists)
                 print '\tmsr extract completed: {0}'.format(msr_ex_completed)
 
-                if not msr_ex_completed:
+                if msr_ex_completed == "Error":
+                    extract_count += 1
+
+                elif not msr_ex_completed:
                     extract_count += 1
                     if not dry_run:
                         # add to extract queue
@@ -414,7 +417,10 @@ class QueueToolBox():
 
                     # incremenet count if extract is not completed
                     # (whether it exists in queue or not)
-                    if not extract_completed:
+                    if extract_completed == "Error":
+                        extract_count += 1
+
+                    elif not extract_completed:
                         extract_count += 1
 
                         # add to extract queue if it does not already
@@ -492,6 +498,11 @@ class QueueToolBox():
         shutil.copyfile(geo_pdf_src, geo_pdf_dst)
 
 
+        bnd_src = request['boundary']['path']
+        bnd_dst = os.path.join(request_dir, os.path.basename(request['boundary']['path']))
+        shutil.copyfile(bnd_src, bnd_dst)
+
+
         # # make msr json folder in request_dir
         # msr_jsons_dir = os.path.join(request_dir, 'msr_jsons')
         # make_dir(msr_jsons_dir)
@@ -539,4 +550,10 @@ class QueueToolBox():
         os.remove(geo_pdf_dst)
         # shutil.rmtree(msr_jsons_dir)
 
-
+        # set permissions
+        os.chmod(request_dir, 0775)
+        for ro, di, fi in os.walk(request_dir):
+            for d in di:
+                os.chmod(os.path.join(ro, d), 0775)
+            for f in fi:
+                os.chmod(os.path.join(ro, f), 0664)

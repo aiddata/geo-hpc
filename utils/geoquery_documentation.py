@@ -268,15 +268,16 @@ class DocBuilder():
 
         elif item_type == 'release':
 
-            colnames = ', '.join([
-                '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], i)
-                for i in ['sum', 'potential', 'reliability']
-            ])
+            # colnames = ', '.join([
+            #     '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], i)
+            #     for i in ['sum', 'potential', 'reliability']
+            # ])
 
-            ###
-            if dset['dataset'].startswith(('worldbank', 'globalenvironmentfacility')):
-                colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
-            ###
+            # ###
+            # if dset['dataset'].startswith(('worldbank', 'globalenvironmentfacility')):
+            #     colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
+            # ###
+            colnames = '{0}.<br />    {1}.<br />    {2}'.format(dset['dataset'], dset['hash'][0:7], 'sum')
 
             data.append(['Column Names ', colnames])
             data.append([pg('<b>Filters</b>', 1), 'hash: {0}'.format(dset['hash'])])

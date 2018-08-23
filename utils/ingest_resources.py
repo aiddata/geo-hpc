@@ -227,11 +227,8 @@ def gen_nested_release(path=None):
             # }
             project["locations"].append(tmp_loc)
 
-        # if len(location_match) > 0:
-        #     project["locations"] = [dict(x[1])
-        #                             for x in location_match.iterrows()]
 
-        else:
+        if len(project["locations"]) == 0:
             print "No locations found for project id: " + str(project_id)
             # missing_locations += 1
 
@@ -254,6 +251,7 @@ def add_asdf_id(path):
         raise Exception('Invalid geometry could not be corrected')
 
     geo_df["asdf_id"] = range(len(geo_df))
+    geo_df["gqid"] = range(len(geo_df))
 
     geo_json = geo_df.to_json()
     geo_path = os.path.splitext(path)[0] + ".geojson.tmp"

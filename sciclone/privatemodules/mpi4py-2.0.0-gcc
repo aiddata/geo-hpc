@@ -1,0 +1,35 @@
+#%Module1.0
+#
+# mpi4py 2.0.0 module for python 2.7.8/gcc 4.7.3
+#
+#
+#
+proc ModulesHelp { } {
+     global version
+     puts stderr "[module-info name] - mpi4py 2.0.0 for python 2.7.8"
+}
+
+prereq isa
+#conflict 
+
+if { [module-info mode load] && ![is-loaded gcc/4.7.0] } { module load gcc/4.7.3 }
+if { [module-info mode load] && ![is-loaded python/2.7.8/gcc] } { module load python/2.7.8/gcc }
+if { [module-info mode load] && ![is-loaded openmpi-1.10.0-gcc] } { module load openmpi-1.10.0-gcc}
+
+
+set version "2.7.8"
+module-whatis "Python $version"
+
+set xarch $env(XARCH)
+set xchip $env(XCHIP)
+
+
+set path /usr/local/amd64/seoul/gcc/python-2.7.8/lib/python2.7/site-packages/mpi4py
+
+if {[module-info mode load] && ![file exists $path]} {
+    puts stderr "\t[module-info name]: $path is not available"
+    break
+    exit 1
+}
+
+prepend-path	PATH		$path/bin

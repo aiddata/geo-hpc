@@ -326,7 +326,7 @@ class ExtractObject():
             else:
                 self._reliability_geojson = base_path_dir + "/unique.geojson"
                 # reliability geojson (mean surface features with aid info)
-                self._rgeo = fiona.open(self._reliability_geojson)
+                # self._rgeo = fiona.open(self._reliability_geojson)
 
 
 
@@ -791,57 +791,60 @@ class ExtractObject():
                                   'feature properties')
                     feat['properties']['exfield_sum'] = 'NA'
 
-                else:
-                    tmp_sum = feat['properties']['exfield_sum']
-                    is_na = (tmp_sum in [None, 'nan', 'NaN'] or isnan(tmp_sum))
+                # else:
+                #     tmp_sum = feat['properties']['exfield_sum']
+                #     is_na = (tmp_sum in [None, 'nan', 'NaN'] or isnan(tmp_sum))
 
-                    if not is_na:
-                        feat_geom = shape(feat['geometry'])
+                #     if not is_na:
+                #         feat_geom = shape(feat['geometry'])
 
-                        feat_geom = re.sub(simpledec, mround,
-                                           json.dumps(feat_geom.__geo_interface__))
-                        feat_geom = shape(json.loads(feat_geom)).buffer(0)
+                #         feat_geom = re.sub(simpledec, mround,
+                #                            json.dumps(feat_geom.__geo_interface__))
+                #         feat_geom = shape(json.loads(feat_geom)).buffer(0)
 
-                        feat_geom = prep(feat_geom)
+                #         feat_geom = prep(feat_geom)
 
-                        max_dollars = 0
+                #         max_dollars = 0
 
-                        # does unique geom intersect feature geom
-                        for r in self._rgeo:
+                #         # temp fix for when there are no geoms due to bad msr lookups
+                #         r_intersects = -1
 
-                            rgeom = shape(r['geometry'])
+                #         # does unique geom intersect feature geom
+                #         for r in self._rgeo:
 
-                            try:
-                                r_intersects = feat_geom.intersects(rgeom)
-                            except:
-                                rgeom = re.sub(simpledec, mround,
-                                               json.dumps(rgeom.__geo_interface__))
-                                rgeom = shape(json.loads(rgeom)).buffer(0)
-                                r_intersects = feat_geom.intersects(rgeom)
+                #             rgeom = shape(r['geometry'])
 
-                            # try:
-                            #     r_intersects = feat_geom.intersects(rgeom)
-                            # except:
-                            #     r_intersects = -1
-                            #     break
+                #             try:
+                #                 r_intersects = feat_geom.intersects(rgeom)
+                #             except:
+                #                 rgeom = re.sub(simpledec, mround,
+                #                                json.dumps(rgeom.__geo_interface__))
+                #                 rgeom = shape(json.loads(rgeom)).buffer(0)
+                #                 r_intersects = feat_geom.intersects(rgeom)
 
-                            if r_intersects:
-                                tmp_aid = r['properties']['unique_dollars']
-                                max_dollars += tmp_aid
+                #             # try:
+                #             #     r_intersects = feat_geom.intersects(rgeom)
+                #             # except:
+                #             #     r_intersects = -1
+                #             #     break
 
-                        if r_intersects != -1:
-                            # calculate reliability statistic
-                            feat['properties']['exfield_potential'] = max_dollars
+                #             if r_intersects:
+                #                 tmp_aid = r['properties']['unique_dollars']
+                #                 max_dollars += tmp_aid
 
-                            if feat['properties']['exfield_potential'] == 0:
-                                if feat['properties']['exfield_sum'] == 0:
-                                    feat['properties']['exfield_reliability'] = 1
-                                else:
-                                    feat['properties']['exfield_reliability'] = 0
-                            else:
-                                rval = (feat['properties']['exfield_sum'] /
-                                        feat['properties']['exfield_potential'])
-                                feat['properties']['exfield_reliability'] = rval
+                #         if r_intersects != -1:
+                #             # calculate reliability statistic
+                #             feat['properties']['exfield_potential'] = max_dollars
+
+                #             if feat['properties']['exfield_potential'] == 0:
+                #                 if feat['properties']['exfield_sum'] == 0:
+                #                     feat['properties']['exfield_reliability'] = 1
+                #                 else:
+                #                     feat['properties']['exfield_reliability'] = 0
+                #             else:
+                #                 rval = (feat['properties']['exfield_sum'] /
+                #                         feat['properties']['exfield_potential'])
+                #                 feat['properties']['exfield_reliability'] = rval
 
                 yield feat
 
@@ -1011,7 +1014,8 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
                     result_field,
                     c[len("exfield_"):])
 
-            elif result_field.endswith('reliability') or result_field.startswith(('worldbank_', 'globalenvironmentfacility_')):
+            # elif result_field.endswith('reliability') or result_field.startswith(('worldbank_', 'globalenvironmentfacility_')):
+            elif result_field.endswith('reliability'):
                 tmp_split = result_field.split('.')
                 tmp_field = "{0}.{1}.{2}".format(
                     tmp_split[0],

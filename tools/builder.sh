@@ -50,7 +50,7 @@ tmp=$(mktemp -d)
 
 # git clone -b "$branch" https://github.com/itpir/geo-hpc "$tmp"/geo-hpc
 
-wget -O "$tmp" https://github.com/itpir/geo-hpc/archive/"$branch".zip
+wget -O "$tmp"/"$branch".zip https://github.com/itpir/geo-hpc/archive/"$branch".zip
 unzip "$tmp"/"$branch".zip -d "$tmp"
 mv "$tmp"/geo-hpc-"$branch" "$tmp"/geo-hpc
 
@@ -86,6 +86,14 @@ mkdir -p "${backup_dir}"/{mongodb_backups,mongodb_logs,mongodb_cron_logs}
 
 output_dir="${branch_dir}"/outputs
 mkdir -p "${output_dir}"/{det,extracts,msr}
+mkdir -p "${output_dir}"/det/results
+
+data_dir="${branch_dir}"/data
+mkdir -p "${data_dir}"/{rasters,releases,boundaries}
+
+
+usr_dir="${HOME}"/usr
+mkdir -p "${usr_dir}"
 
 
 echo "Updating permissions..."
