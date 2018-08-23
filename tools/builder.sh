@@ -61,6 +61,7 @@ ln -sfn $tmp/geo-hpc "$src"/geo-hpc
 
 # run load_repos.sh
 bash "$tmp"/geo-hpc/tools/load_repos.sh "$branch" #2>&1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
+bash "$tmp"/geo-hpc/tasks/update_repos.sh "$branch" #2>&1 | tee "$src"/log/load_repos/$(date +%s).load_repos.log
 
 # setup crons using manage_crons.sh script
 bash "$tmp"/geo-hpc/tools/manage_crons.sh "$branch" init
