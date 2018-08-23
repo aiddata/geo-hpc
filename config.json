@@ -2,7 +2,7 @@
     "master":{
         "active": 1,
         "name": "master",
-        "data_root": "/sciclone/aiddata10/REU",
+        "data_root": "/sciclone/aiddata10/REU/geo",
         "database": "128.239.20.76",
         "active_adm_suffix": "gadm28",
         "release_iso3": {
@@ -18,8 +18,8 @@
             "TimorLesteAIMS": "TLS",
             "UgandaAIMS": "UGA",
             "WorldBank": "global",
-            "GlobalEnvironmentFacility": "global",
-            "GlobalEnvironmentFacilitySectors": "global"
+            "GlobalEnvironmentFacilitySectors": "global",
+            "China": "global"
         },
         "inactive_bnds": [
         ],
@@ -163,6 +163,21 @@
                     }
                 ]
             },
+            "set_permissions": {
+                "cron_schedule": "0 2 * * *",
+                "tasks": [
+                    {
+                        "description": "",
+                        "jobname": "",
+                        "nodespec": "local",
+                        "max_jobs": 0,
+                        "nodes": 0,
+                        "ppn": 0,
+                        "walltime": "0",
+                        "cmd": "bash $src/geo-hpc/tasks/set_permissions.sh $branch"
+                    }
+                ]
+            },
             "update_trackers": {
                 "cron_schedule": "0 * * * *",
                 "tasks": [
@@ -179,7 +194,7 @@
                 ]
             },
             "update_extracts": {
-                "cron_schedule": "1 23 * * *",
+                "cron_schedule": "0 23 * * *",
                 "tasks": [
                     {
                         "description": "extracts queue update",
@@ -227,15 +242,14 @@
         "det": {
             "download_server": "geo.aiddata.org",
             "featured_datasets": [
-                "grid_0p5_degree",
-                "afg_adm1_gadm28",
-                "npl_adm1_gadm28",
-                "uga_adm1_gadm28",
+                "afg_adm2_gb_1_3_3",
+                "chn_adm2_gb_1_3_3",
+                "civ_adm2_gb_1_3_3",
                 "viirs_vcmcfg_dnb_composites_v10_yearly_max",
                 "ltdr_avhrr_ndvi_v4_yearly",
                 "esa_landcover_v207",
-                "wdpa_iucn_cat_201704",
-                "distance_to_gold_v12"
+                "cru_pre_yearly_mean",
+                "modis_lst_day_yearly_mean"
             ],
             "help": [
                 {
