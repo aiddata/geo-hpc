@@ -93,7 +93,7 @@ mkdir -p "${data_dir}"/{rasters,releases,boundaries}
 
 
 usr_dir="${HOME}"/usr
-mkdir -p "${HOME}"
+mkdir -p "${usr_dir}"
 
 
 echo "Updating permissions..."
