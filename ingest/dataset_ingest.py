@@ -56,16 +56,23 @@ path = sys.argv[3]
 
 
 # get inputs
-if not os.path.isfile(path):
-    raise Exception("invalid ingest json file path")
+if dataset_type in ["raster", "boundary"]:
 
-data = json.load(open(path, 'r'))
+    if not os.path.isfile(path):
+        raise Exception("invalid ingest json file path")
 
-if not 'base' in data:
-    raise Exception("base path missing from ingest json")
+    data = json.load(open(path, 'r'))
 
-if not os.path.exists(data['base']):
-    raise Exception('specified base path does not exist')
+    if not 'base' in data:
+        raise Exception("base path missing from ingest json")
+
+    if not os.path.exists(data['base']):
+        raise Exception('specified base path does not exist')
+
+
+elif dataset_type in ["release", "gadm"] and not os.path.isdir(path):
+    raise Exception("invalid ingest directory path")
+
 
 # if not os.path.isdir(data['base']):
     # raise Exception('base path is not a directory')
