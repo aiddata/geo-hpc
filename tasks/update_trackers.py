@@ -100,6 +100,7 @@ if job.rank == 0:
     # lookup all boundary datasets that are the "actual" for their group
     bnds = list(c_asdf.find({
         "type": "boundary",
+        "options.group": "can_gb_1_3_3",
         "options.group_class": "actual",
         'active': {'$gte': -1}
     }))
