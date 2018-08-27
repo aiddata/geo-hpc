@@ -273,7 +273,7 @@ def tmp_worker_job(self, task_index, task_data):
             bnd_geo = cascaded_union([shape(shp['geometry'])
                                       for shp in fiona.open(bnd_base, 'r')])
 
-            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max", limit=10000000)
+            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max", limit=250000)
             # print extract
 
             for i in extract:
