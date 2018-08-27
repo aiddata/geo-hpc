@@ -45,7 +45,7 @@ class Capturing(list):
         sys.stdout = self._stdout
 
 
-class NewParallel():
+class NewParallel(object):
     """Contains basic structure for managing parallel processing tasks.
 
     Attributes:

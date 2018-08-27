@@ -9,7 +9,7 @@ from extract_utility import FeatureTool
 from ingest_resources import gen_nested_release
 
 
-class MongoUpdate():
+class MongoUpdate(object):
     """Update MongoDB collection(s)
 
     # existing core database indexes:
