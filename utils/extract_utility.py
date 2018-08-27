@@ -1016,6 +1016,8 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
 
             # elif result_field.endswith('reliability') or result_field.startswith(('worldbank_', 'globalenvironmentfacility_')):
             elif result_field.endswith('reliability'):
+                if c in ["exfield_potential", "exfield_reliability"]:
+                    continue
                 tmp_split = result_field.split('.')
                 tmp_field = "{0}.{1}.{2}".format(
                     tmp_split[0],
