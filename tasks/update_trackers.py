@@ -273,48 +273,42 @@ def tmp_worker_job(self, task_index, task_data):
 
         elif dset_type == "raster":
 
-            max_bnd_file_size = 50000000
-            bnd_file_size = os.path.getsize(bnd_path)
-
-            if bnd_file_size > max_bnd_file_size:
-
-                bnd_src = fiona.open(bnd_path, 'r')
+            with fiona.open(bnd_path, 'r') as bnd_src:
                 minx, miny, maxx, maxy = bnd_src.bounds
 
-                raster_src = rasterio.open(dset_path)
-                resolution = raster_src.meta['transform'][1]
+            with rasterio.open(dset_base) as raster_src:
+                pixel_size = raster_src.meta['transform'][1]
 
-                step_size = resolution * 100
+            xsize = (maxx - minx) / pixel_size
+            ysize = (maxy - miny) / pixel_size
+
+            pixel_count = xsize * ysize
+
+            pixel_limit = 1000000
+
+
+            if pixel_count > pixel_limit:
+
+                step_size = 0.25
                 xvals = np.arange(minx, maxx, step_size)
                 yvals = np.arange(miny, maxy, step_size)
-                samples = itertools.product(xvals, yvals)
+                samples = list(itertools.product(xvals, yvals))
 
-                # nsamples = 10000
-                # xvals = np.random.uniform(minx, maxx, nsamples)
-                # yvals = np.random.uniform(miny, maxy, nsamples)
-                # samples = zip(xvals, yvals)
+                buffered_samples = [Point(i).buffer(0.05) for i in samples]
 
-                values = [val[0] for val in raster_src.sample(samples)]
-
-                clean_values = [i for i in values
-                                if i != raster_src.meta['nodata'] and i is not None]
-
-                distinct_values = set(clean_values)
-
-                # percent of samples resulting in clean value
-                thresh = 0.05
-
-                if len(clean_values) > len(values)*thresh and len(distinct_values) > 1:
-                    result = True
+                geom_ref = buffered_samples
 
             else:
-                # python raster stats extract
-                extract = rs.zonal_stats(bnd_geo, dset_path, stats="min max", limit=200000)
+                geom_ref = bnd_path
 
-                for i in extract:
-                    if i['min'] != None or i['max'] != None:
-                        result = True
-                        break
+
+            # python raster stats extract
+            extract = rs.zonal_stats(geom_ref, dset_path, stats="min max", limit=200000)
+
+            for i in extract:
+                if i['min'] != None or i['max'] != None:
+                    result = True
+                    break
 
         elif dset_type == "release":
 
