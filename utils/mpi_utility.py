@@ -488,7 +488,8 @@ class NewParallel(object):
                                     task = (task_index, task_data)
 
                                     self.worker_log[source]['current_task_index'] = task_index
-                                    self.worker_log[source]['current_task_data'] = task_data
+                                    self.worker_log[source]['current_task_data'] = JSONEncoder().encode(task_data),
+
 
                                     self.comm.send(task, dest=source, tag=self.tags.START)
 
@@ -531,7 +532,7 @@ class NewParallel(object):
             if self.print_worker_log:
                 print "Worker Log:"
                 print json.dumps(
-                    JSONEncoder().encode(self.worker_log),
+                    self.worker_log,
                     indent=4, separators=(",", ":"))
 
         else:
