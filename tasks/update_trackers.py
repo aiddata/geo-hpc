@@ -246,6 +246,7 @@ def tmp_worker_job(self, task_index, task_data):
 
         with fiona.open(bnd_path, 'r') as bnd_src:
             minx, miny, maxx, maxy = bnd_src.bounds
+            total_area = sum([shape(i['geometry']).area for i in bnd_src])
 
 
     # for each unprocessed dataset in boundary tracker matched in
@@ -279,6 +280,7 @@ def tmp_worker_job(self, task_index, task_data):
 
             with rasterio.open(dset_path) as raster_src:
                 pixel_size = raster_src.meta['transform'][1]
+                nodata = raster_src.meta['nodata']
 
             xsize = (maxx - minx) / pixel_size
             ysize = (maxy - miny) / pixel_size
@@ -288,29 +290,33 @@ def tmp_worker_job(self, task_index, task_data):
             pixel_limit = 500000
             step_size = 0.5
             buffer_size = 0.05
+            max_area = 1500
+            valid_sample_thresh = 0.05
 
-            if pixel_count > pixel_limit:
+            if total_area > max_area and pixel_count > pixel_limit:
 
-                break
                 xvals = np.arange(minx, maxx, step_size)
                 yvals = np.arange(miny, maxy, step_size)
                 samples = list(itertools.product(xvals, yvals))
 
-                buffered_samples = [Point(i).buffer(buffer_size) for i in samples]
+                values = [val[0] for val in raster_src.sample(samples)]
 
-                geom_ref = buffered_samples
+                clean_values = [i for i in values if i != nodata and i is not None]
+
+                distinct_values = set(clean_values)
+
+                # percent of samples resulting in clean value
+                if len(clean_values) > len(samples)*valid_sample_thresh and len(distinct_values) > 1:
+                    result = True
 
             else:
-                geom_ref = os.path.join(os.path.dirname(bnd_path), "simplified.geojson")
+                # python raster stats extract
+                extract = rs.gen_zonal_stats(bnd_path, dset_path, stats="min max", limit=200000)
 
-
-            # python raster stats extract
-            extract = rs.gen_zonal_stats(geom_ref, dset_path, stats="min max", limit=200000)
-
-            for i in extract:
-                if i['min'] != None or i['max'] != None:
-                    result = True
-                    break
+                for i in extract:
+                    if i['min'] != None or i['max'] != None:
+                        result = True
+                        break
 
         elif dset_type == "release":
 
