@@ -291,6 +291,7 @@ def tmp_worker_job(self, task_index, task_data):
 
             if pixel_count > pixel_limit:
 
+                break
                 xvals = np.arange(minx, maxx, step_size)
                 yvals = np.arange(miny, maxy, step_size)
                 samples = list(itertools.product(xvals, yvals))
@@ -300,12 +301,8 @@ def tmp_worker_job(self, task_index, task_data):
                 geom_ref = buffered_samples
 
             else:
-                geom_ref = bnd_path
+                geom_ref = os.path.join(os.path.dirname(bnd_path), "simplified.geojson")
 
-            print pixel_count
-            print type(geom_ref)
-            print len(geom_ref)
-            continue
 
             # python raster stats extract
             extract = rs.gen_zonal_stats(geom_ref, dset_path, stats="min max", limit=200000)
