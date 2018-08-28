@@ -284,7 +284,7 @@ def tmp_worker_job(self, task_index, task_data):
 
             pixel_count = xsize * ysize
 
-            pixel_limit = 1000000
+            pixel_limit = 500000
 
 
             if pixel_count > pixel_limit:
