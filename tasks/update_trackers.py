@@ -281,7 +281,7 @@ def tmp_worker_job(self, task_index, task_data):
                 bnd_src = fiona.open(bnd_path, 'r')
                 minx, miny, maxx, maxy = bnd_src.bounds
 
-                raster_src = rasterio.open(dset_base)
+                raster_src = rasterio.open(dset_path)
                 resolution = raster_src.meta['transform'][1]
 
                 step_size = resolution * 100
