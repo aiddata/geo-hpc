@@ -276,7 +276,7 @@ def tmp_worker_job(self, task_index, task_data):
             with fiona.open(bnd_path, 'r') as bnd_src:
                 minx, miny, maxx, maxy = bnd_src.bounds
 
-            with rasterio.open(dset_base) as raster_src:
+            with rasterio.open(dset_path) as raster_src:
                 pixel_size = raster_src.meta['transform'][1]
 
             xsize = (maxx - minx) / pixel_size
