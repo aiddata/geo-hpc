@@ -289,7 +289,7 @@ def tmp_worker_job(self, task_index, task_data):
 
             if pixel_count > pixel_limit:
 
-                step_size = 0.25
+                step_size = 0.5
                 xvals = np.arange(minx, maxx, step_size)
                 yvals = np.arange(miny, maxy, step_size)
                 samples = list(itertools.product(xvals, yvals))
