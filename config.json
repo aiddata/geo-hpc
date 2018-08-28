@@ -19,7 +19,8 @@
             "UgandaAIMS": "UGA",
             "WorldBank": "global",
             "GlobalEnvironmentFacilitySectors": "global",
-            "China": "global"
+            "China": "global",
+            "UgandaBudgetHealth": "UGA"
         },
         "inactive_bnds": [
         ],
