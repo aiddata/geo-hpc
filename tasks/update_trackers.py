@@ -67,11 +67,13 @@ job.comm.Barrier()
 # load libraries now that job is initialized
 
 import time
+import itertools
 import pymongo
 import fiona
+import rasterio
+import numpy as np
 from shapely.geometry import Point, shape, box
 from shapely.ops import cascaded_union
-
 
 # -------------------------------------
 # prepare mongo connections
@@ -235,15 +237,18 @@ def tmp_worker_job(self, task_index, task_data):
 
     print '\t\t{0} matches found'.format(len(matches))
 
+    if len(matches) > 0:
+        # boundary base and type
+        bnd_path = os.path.join(bnd['base'], bnd["resources"][0]["path"])
+        bnd_type = bnd['type']
+
+        # bnd_geo = cascaded_union([shape(shp['geometry']) for shp in fiona.open(bnd_base, 'r')])
+
     # for each unprocessed dataset in boundary tracker matched in
     # first stage search (second stage search)
     # search boundary actual vs dataset actual
     for match in matches:
         print "\t\tChecking dataset: {0}".format(match['name'])
-
-        # boundary base and type
-        bnd_base = bnd['base'] +"/"+ bnd["resources"][0]["path"]
-        bnd_type = bnd['type']
 
         meta = c_asdf.find({'name':match['name']})[0]
 
@@ -255,9 +260,9 @@ def tmp_worker_job(self, task_index, task_data):
         # dataset base and type
         test_resource = meta["resources"][0]["path"]
         if test_resource != "":
-            dset_base = meta['base'] +"/"+ meta["resources"][0]["path"]
+            dset_path = meta['base'] +"/"+ meta["resources"][0]["path"]
         else:
-            dset_base = meta['base']
+            dset_path = meta['base']
 
         dset_type = meta['type']
 
@@ -267,19 +272,49 @@ def tmp_worker_job(self, task_index, task_data):
             result = True
 
         elif dset_type == "raster":
-            # python raster stats extract
-            # bnd_geo = cascaded_union(
-            #     [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
-            bnd_geo = cascaded_union([shape(shp['geometry'])
-                                      for shp in fiona.open(bnd_base, 'r')])
 
-            extract = rs.zonal_stats(bnd_geo, dset_base, stats="min max", limit=250000)
-            # print extract
+            max_bnd_file_size = 50000000
+            bnd_file_size = os.path.getsize(bnd_path)
 
-            for i in extract:
-                if i['min'] != None or i['max'] != None:
+            if bnd_file_size > max_bnd_file_size:
+
+                bnd_src = fiona.open(bnd_path, 'r')
+                minx, miny, maxx, maxy = bnd_src.bounds
+
+                raster_src = rasterio.open(dset_base)
+                resolution = raster_src.meta['transform'][1]
+
+                step_size = resolution * 100
+                xvals = np.arange(minx, maxx, step_size)
+                yvals = np.arange(miny, maxy, step_size)
+                samples = itertools.product(xvals, yvals)
+
+                # nsamples = 10000
+                # xvals = np.random.uniform(minx, maxx, nsamples)
+                # yvals = np.random.uniform(miny, maxy, nsamples)
+                # samples = zip(xvals, yvals)
+
+                values = [val[0] for val in raster_src.sample(samples)]
+
+                clean_values = [i for i in values
+                                if i != raster_src.meta['nodata'] and i is not None]
+
+                distinct_values = set(clean_values)
+
+                # percent of samples resulting in clean value
+                thresh = 0.05
+
+                if len(clean_values) > len(samples)*thresh and len(distinct_values) > 1:
                     result = True
-                    break
+
+            else:
+                # python raster stats extract
+                extract = rs.zonal_stats(bnd_geo, dset_path, stats="min max", limit=200000)
+
+                for i in extract:
+                    if i['min'] != None or i['max'] != None:
+                        result = True
+                        break
 
         elif dset_type == "release":
 
@@ -314,9 +349,9 @@ def tmp_worker_job(self, task_index, task_data):
 
         #   # shapely intersect
         #   bnd_geo = cascaded_union(
-        #       [shape(shp) for shp in shapefile.Reader(bnd_base).shapes()])
+        #       [shape(shp) for shp in shapefile.Reader(bnd_path).shapes()])
         #   dset_geo = cascaded_union(
-        #       [shape(shp) for shp in shapefile.Reader(dset_base).shapes()])
+        #       [shape(shp) for shp in shapefile.Reader(dset_path).shapes()])
 
         #   intersect = bnd_geo.intersects(dset_geo)
 
