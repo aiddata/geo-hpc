@@ -20,7 +20,8 @@
             "WorldBank": "global",
             "GlobalEnvironmentFacilitySectors": "global",
             "China": "global",
-            "UgandaBudgetHealth": "UGA"
+            "UgandaBudgetHealth": "UGA",
+            "AsDB": "global"
         },
         "inactive_bnds": [
         ],
