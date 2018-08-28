@@ -278,9 +278,10 @@ def tmp_worker_job(self, task_index, task_data):
 
         elif dset_type == "raster":
 
-            with rasterio.open(dset_path) as raster_src:
-                pixel_size = raster_src.meta['transform'][1]
-                nodata = raster_src.meta['nodata']
+            raster_src = rasterio.open(dset_path)
+
+            pixel_size = raster_src.meta['transform'][1]
+            nodata = raster_src.meta['nodata']
 
             xsize = (maxx - minx) / pixel_size
             ysize = (maxy - miny) / pixel_size
@@ -300,6 +301,8 @@ def tmp_worker_job(self, task_index, task_data):
                 samples = list(itertools.product(xvals, yvals))
 
                 values = [val[0] for val in raster_src.sample(samples)]
+
+                raster_src.close()
 
                 clean_values = [i for i in values if i != nodata and i is not None]
 
