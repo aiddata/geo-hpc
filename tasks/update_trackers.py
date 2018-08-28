@@ -304,7 +304,7 @@ def tmp_worker_job(self, task_index, task_data):
                 # percent of samples resulting in clean value
                 thresh = 0.05
 
-                if len(clean_values) > len(samples)*thresh and len(distinct_values) > 1:
+                if len(clean_values) > len(values)*thresh and len(distinct_values) > 1:
                     result = True
 
             else:
