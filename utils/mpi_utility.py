@@ -29,6 +29,17 @@ def enum(*sequential, **named):
     return type('Enum', (), enums)
 
 
+from bson import ObjectId
+
+# https://stackoverflow.com/a/16586277
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
+
+
+
 # capture function stdout for printing output during
 # parallel jobs in uninterupted blocks
 # source: http://stackoverflow.com/a/16571630
@@ -519,7 +530,9 @@ class NewParallel(object):
 
             if self.print_worker_log:
                 print "Worker Log:"
-                print json.dumps(self.worker_log, indent=4, separators=(",", ":"))
+                print json.dumps(
+                    JSONEncoder().encode(self.worker_log),
+                    indent=4, separators=(",", ":"))
 
         else:
             # Worker processes execute code below
