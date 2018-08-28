@@ -302,6 +302,10 @@ def tmp_worker_job(self, task_index, task_data):
             else:
                 geom_ref = bnd_path
 
+            print pixel_count
+            print type(geom_ref)
+            print len(geom_ref)
+            continue
 
             # python raster stats extract
             extract = rs.gen_zonal_stats(geom_ref, dset_path, stats="min max", limit=200000)
