@@ -244,6 +244,10 @@ def tmp_worker_job(self, task_index, task_data):
 
         # bnd_geo = cascaded_union([shape(shp['geometry']) for shp in fiona.open(bnd_base, 'r')])
 
+        with fiona.open(bnd_path, 'r') as bnd_src:
+            minx, miny, maxx, maxy = bnd_src.bounds
+
+
     # for each unprocessed dataset in boundary tracker matched in
     # first stage search (second stage search)
     # search boundary actual vs dataset actual
@@ -273,9 +277,6 @@ def tmp_worker_job(self, task_index, task_data):
 
         elif dset_type == "raster":
 
-            with fiona.open(bnd_path, 'r') as bnd_src:
-                minx, miny, maxx, maxy = bnd_src.bounds
-
             with rasterio.open(dset_path) as raster_src:
                 pixel_size = raster_src.meta['transform'][1]
 
@@ -285,16 +286,16 @@ def tmp_worker_job(self, task_index, task_data):
             pixel_count = xsize * ysize
 
             pixel_limit = 500000
-
+            step_size = 0.5
+            buffer_size = 0.05
 
             if pixel_count > pixel_limit:
 
-                step_size = 0.5
                 xvals = np.arange(minx, maxx, step_size)
                 yvals = np.arange(miny, maxy, step_size)
                 samples = list(itertools.product(xvals, yvals))
 
-                buffered_samples = [Point(i).buffer(0.05) for i in samples]
+                buffered_samples = [Point(i).buffer(buffer_size) for i in samples]
 
                 geom_ref = buffered_samples
 
@@ -303,7 +304,7 @@ def tmp_worker_job(self, task_index, task_data):
 
 
             # python raster stats extract
-            extract = rs.zonal_stats(geom_ref, dset_path, stats="min max", limit=200000)
+            extract = rs.gen_zonal_stats(geom_ref, dset_path, stats="min max", limit=200000)
 
             for i in extract:
                 if i['min'] != None or i['max'] != None:
