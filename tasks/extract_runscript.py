@@ -9,7 +9,7 @@ import time
 from random import randint
 
 import pymongo
-
+from bson import ObjectId
 
 
 # -----------------------------------------------------------------------------
@@ -183,7 +183,7 @@ def tmp_master_update(self):
         if ctd is not None:
             # update status of item in extract queue
             update_extract = c_extracts.update_one({
-                '_id': ctd['_id']
+                '_id': ObjectId(ctd['_id'])
             }, {
                 '$set': {
                     'update_time': update_time
