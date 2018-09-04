@@ -488,8 +488,11 @@ class NewParallel(object):
                                     task = (task_index, task_data)
 
                                     tmp_ctd = deepcopy(task_data)
-                                    if '_id' in tmp_ctd:
-                                        tmp_ctd['_id'] = str(tmp_ctd['_id'])
+                                    try:
+                                        if '_id' in tmp_ctd:
+                                            tmp_ctd['_id'] = str(tmp_ctd['_id'])
+                                    except:
+                                        pass
 
                                     self.worker_log[source]['current_task_index'] = task_index
                                     self.worker_log[source]['current_task_data'] = tmp_ctd
