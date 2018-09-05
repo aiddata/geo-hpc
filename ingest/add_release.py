@@ -8,12 +8,12 @@ add release dataset to asdf
 
 import sys
 import os
-from pprint import pprint
 import datetime
 import json
-import pymongo
-from warnings import warn
 import re
+from warnings import warn
+from pprint import pprint
+
 
 utils_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
@@ -156,13 +156,13 @@ def run(path=None, client=None, version=None, config=None,
     for f in release_package.keys():
 
         if f in core_fields:
-            rkey = f.replace (" ", "_").lower()
+            rkey = f.replace(" ", "_").lower()
             doc[f] = release_package[f]
 
         elif f == 'extras':
 
             for g in release_package['extras']:
-                rkey = g['key'].replace (" ", "_").lower()
+                rkey = g['key'].replace(" ", "_").lower()
                 doc['extras'][rkey] = g['value']
 
 
@@ -190,7 +190,7 @@ def run(path=None, client=None, version=None, config=None,
 
     clean_preamble = ' '.join(clean_preamble_word_list)
 
-    if doc["title"] == "{} {}".format(doc["extras"]["data_set_preamble"], doc["extras"]["data_type"])
+    if doc["title"] == "{} {}".format(doc["extras"]["data_set_preamble"], doc["extras"]["data_type"]):
         doc["title"] = "{0} Geocoded Aid Data v{1}".format(clean_preamble, doc["version"])
 
     doc["description"] = (
