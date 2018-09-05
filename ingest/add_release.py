@@ -190,8 +190,8 @@ def run(path=None, client=None, version=None, config=None,
 
     clean_preamble = ' '.join(clean_preamble_word_list)
 
-    doc["title"] = "{0} Geocoded Aid Data v{1}".format(
-        clean_preamble, doc["version"])
+    if doc["title"] == "{} {}".format(doc["extras"]["data_set_preamble"], doc["extras"]["data_type"])
+        doc["title"] = "{0} Geocoded Aid Data v{1}".format(clean_preamble, doc["version"])
 
     doc["description"] = (
         "Aid data from {0} {1}, geocoded and published by AidData. "
