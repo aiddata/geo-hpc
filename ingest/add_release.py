@@ -190,10 +190,13 @@ def run(path=None, client=None, version=None, config=None,
 
     clean_preamble = ' '.join(clean_preamble_word_list)
 
+
+
     if doc["title"] == "{} {}".format(doc["extras"]["data_set_preamble"], doc["extras"]["data_type"]):
         doc["title"] = "{0} Geocoded Aid Data v{1}".format(clean_preamble, doc["version"])
 
-    doc["description"] = (
+
+    auto_description = (
         "Aid data from {0} {1}, geocoded and published by AidData. "
         "Covers projects from {2} to {3}. Version {4}.").format(
             clean_preamble,
@@ -201,6 +204,9 @@ def run(path=None, client=None, version=None, config=None,
             doc["extras"]["temporal_start"],
             doc["extras"]["temporal_end"],
             doc["version"])
+
+    if doc["description"] == "This is a sample description":
+        doc["description"] = auto_description
 
 
     doc["extras"]["tags"] = ["aiddata", "geocoded", "release", "aid", "economics", "welfare"]
