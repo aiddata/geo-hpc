@@ -199,7 +199,11 @@ class QueueToolBox():
         mail_subject = ("AidData GeoQuery{0}- "
                         "Request {1}.. Received").format(self.dev, request_id[:7])
 
-        mail_message = ("Your request has been received. \n"
+        mail_message = ("ATTENTION: Due to the predicted severity of the impending hurricane, \n"
+                        "our on-site servers are being shut down and new GeoQuery requests \n"
+                        "will be delayed. Thank you for your patience. \n"
+                        "\n\n"
+                        "Your request has been received. \n"
                         "You will receive an additional email when the"
                         " request has been completed. \n\n"
                         "The status of your request can be viewed using"
