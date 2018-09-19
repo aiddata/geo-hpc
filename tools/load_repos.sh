@@ -39,7 +39,6 @@ get_repo() {
 
     # make sure old repo is obliviated
     if [ ! -z "${repo// }" ] && [ -d "$repo" ]; then
-        rm -rf "$repo"
         find "$repo" -type f -exec rm -rf "{}" \;
         find "$repo" -type d -exec rm -rf "{}" \;
         rm -rf "$repo"
