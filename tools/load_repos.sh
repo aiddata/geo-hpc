@@ -39,9 +39,10 @@ get_repo() {
 
     # make sure old repo is obliviated
     if [ ! -z "${repo// }" ] && [ -d "$repo" ]; then
-        find "$repo" -type f -exec rm -rf "{}" \;
-        find "$repo" -type d -exec rm -rf "{}" \;
-        rm -rf "$repo"
+        tmp_dir=$(mktemp -d)
+        mv "$repo" "$tmp_dir"
+        find "$tmp_dir" -type f -exec rm -rf "{}" \;
+        find "$tmp_dir" -type d -exec rm -rf "{}" \;
     fi
 
     git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
