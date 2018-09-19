@@ -39,6 +39,7 @@ get_repo() {
 
     if [ ! -z "${repo// }" ] && [ -d "$repo" ]; then
         rm -rf "$repo"
+        rm -rf "$repo"
     fi
 
     git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
