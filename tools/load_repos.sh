@@ -37,6 +37,9 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
+    rm -rf "$repo"/.git*
+    rm -r "$repo"
+
     git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
 
     if [[ "$repo" == "public_datasets" && "$branch" != "master" ]]; then
