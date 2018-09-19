@@ -37,13 +37,13 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
-    # make sure old repo is obliviated
-    if [ ! -z "${repo// }" ] && [ -d "$repo" ]; then
-        tmp_dir=$(mktemp -d)
-        mv "$repo" "$tmp_dir"
-        find "$tmp_dir" -type f -exec rm -rf "{}" \;
-        find "$tmp_dir" -type d -exec rm -rf "{}" \;
-    fi
+    # # make sure old repo is obliviated
+    # if [ ! -z "${repo// }" ] && [ -d "$repo" ]; then
+    #     tmp_dir=$(mktemp -d)
+    #     mv "$repo" "$tmp_dir"
+    #     find "$tmp_dir" -type f -exec rm -rf "{}" \;
+    #     find "$tmp_dir" -type d -exec rm -rf "{}" \;
+    # fi
 
     git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
 
