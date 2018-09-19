@@ -37,8 +37,9 @@ get_repo() {
     echo -e "\n"
     echo Loading repo: "$repo"
 
-    rm -rf "$repo"/.git*
-    rm -r "$repo"
+    if [ ! -z "${repo// }" ] && [ -d "$repo" ]; then
+        rm -rf "$repo"
+    fi
 
     git clone -b "$branch" git@github.com:"$orgrepo" "$repo"
 
