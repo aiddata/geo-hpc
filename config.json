@@ -51,7 +51,7 @@
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "det",
                         "extract_limit": 200,
-                        "pixel_limit": 250000
+                        "pixel_limit": 200000
                     },
                     {
                         "description": "generic vortex-alpha raster job",
@@ -64,7 +64,7 @@
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "raster",
                         "extract_limit": 200,
-                        "pixel_limit": 250000
+                        "pixel_limit": 200000
                     },
                     {
                         "description": "generic vortex-alpha msr job",
@@ -77,7 +77,7 @@
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np $total python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "msr",
                         "extract_limit": 200,
-                        "pixel_limit": 250000
+                        "pixel_limit": 200000
                     },
                     {
                         "description": "generic vortex (c18a) raster job",
