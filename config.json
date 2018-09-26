@@ -57,7 +57,7 @@
                         "description": "generic vortex-alpha raster job",
                         "jobname": "ex1",
                         "nodespec": "c18c",
-                        "max_jobs": 2,
+                        "max_jobs": 4,
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "180:00:00",
