@@ -100,5 +100,5 @@ mkdir -p "${usr_dir}"
 echo "Updating permissions..."
 echo "(this may take a few minutes if there are existing files)"
 
-find "${branch_dir}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
-find "${branch_dir}" -type f -exec chmod u=rw,g=rw,o=r {} +
+find "${branch_dir}" -type d ! -perm u=rwx,g=rxs,o=rx -exec chmod u=rwx,g=rxs,o=rx {} +
+find "${branch_dir}" -type f ! -perm u=rw,g=r,o=r -exec chmod u=rw,g=r,o=r {} +

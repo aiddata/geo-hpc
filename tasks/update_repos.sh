@@ -126,8 +126,8 @@ echo -e "\n"
 echo "Setting permissions..."
 
 # make sure permissions are set
-find "${src}" -type d -exec chmod u=rwx,g=rwxs,o=rx {} +
-find "${src}" -type f -exec chmod u=rw,g=rw,o=r {} +
+find "${src}" -type d ! -perm u=rwx,g=rxs,o=rx -exec chmod u=rwx,g=rxs,o=rx {} +
+find "${src}" -type f ! -perm u=rw,g=r,o=r -exec chmod u=rw,g=r,o=r {} +
 
 
 
