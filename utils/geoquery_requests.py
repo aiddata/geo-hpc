@@ -7,6 +7,7 @@ import json
 import warnings
 import shutil
 import hashlib
+import textwrap
 
 import pymongo
 from bson.objectid import ObjectId
@@ -219,6 +220,8 @@ class QueueToolBox():
             \tAidData's GeoQuery Team
             """).format(self.config.det['download_server'], request_id, mail_to)
 
+        mail_message = textwrap.dedent(mail_message)
+
         mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
         if not mail_status[0]:
@@ -237,8 +240,8 @@ class QueueToolBox():
 
         mail_message = (
             """
-            Thanks again for using GeoQuery. This is another automated email
-            to let you know that your data is ready.
+            Thanks again for using GeoQuery. This is another automated email to let you know that
+            your data is ready.
 
             You can review your request, and download the results and documentation here:
             \thttp://{0}/query/#!/status/{1}
@@ -249,12 +252,11 @@ class QueueToolBox():
             You can also view all your current and previous requests using:
             \thttp://{0}/query/#!/requests/{2}
 
-            Also, one quick reminder about citations. Don't forget to cite
-            both AidData's GeoQuery tool as well as each dataset you selected
-            within GeoQuery. All citations can be found in the Documentation
-            PDF at the link above. Here's the correct citation for GeoQuery:
+            Also, one quick reminder about citations. Don't forget to cite both AidData's GeoQuery
+            tool as well as each dataset you selected within GeoQuery. All citations can be found
+            in the Documentation PDF at the link above. Here's the correct citation for GeoQuery:
 
-                \tGoodman, S., BenYishay, A., Lv, Z., & Runfola, D. (2019).
+                Goodman, S., BenYishay, A., Lv, Z., & Runfola, D. (2019).
                 GeoQuery: Integrating HPC systems and public web-based
                 geospatial data tools. Computers & Geosciences, 122, 103-112.
 
@@ -265,6 +267,8 @@ class QueueToolBox():
             Thank you,
             \tAidData's GeoQuery Team
             """).format(self.config.det['download_server'], request_id, mail_to)
+
+        mail_message = textwrap.dedent(mail_message)
 
         mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
@@ -300,6 +304,8 @@ class QueueToolBox():
             Thanks!
             \tAidData's GeoQuery Team
             """)
+
+        mail_message = textwrap.dedent(mail_message)
 
         mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
