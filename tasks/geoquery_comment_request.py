@@ -141,13 +141,12 @@ else:
 
     # filter
 
-    valid_df = user_df.loc[(
-        user_df["count"] > f["request_count"] &
-        user_df["comments_requested"] == 0 &
-        current_timestamp - user_df["earliest_time"] > to_seconds(f["earliest_request"]) &
-        current_timestamp - user_df["latest_time"] > to_seconds(f["latest_request"])
-
-    )]
+    valid_df = user_df.loc[
+        (user_df["count"] > f["request_count"]) &
+        (user_df["comments_requested"] == 0) &
+        (current_timestamp - user_df["earliest_time"] > to_seconds(f["earliest_request"])) &
+        (current_timestamp - user_df["latest_time"] > to_seconds(f["latest_request"]))
+    ]
 
     print "\n{} valid users found:\n".format(len(valid_df))
 
