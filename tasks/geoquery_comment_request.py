@@ -58,7 +58,7 @@ current_timestamp = int(time.time())
 
 # filters for searching requests
 f = {
-    "n_days": 45, # number of days to search for any requests
+    "n_days": 90, # number of days to search for any requests
     "request_count": 5, # minimum number of requests in n_days required for an email
     "earliest_request": 14, # minimum number of days since earliest request
     "latest_request": 7, # minimum number of days since latest request
@@ -154,7 +154,7 @@ else:
     # add "comments_requested" = 1 flag to all of their existing requests
     for ix, user_info in valid_df.iterrows():
 
-        print '\t{})'.format(user_info["email"])
+        print '\t{}'.format(user_info["email"])
 
         if not dry_run:
 
