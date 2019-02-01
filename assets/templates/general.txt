@@ -2,7 +2,7 @@
 
 Please cite the following in any and all applications of the extracted datasets:
 
-<i>Goodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework. AidData. Available online at <a href="http://geo.aiddata.org">geo.aiddata.org</a>. DOI: 10.13140/RG.2.2.28363.59686</i>
+<i>Goodman, S., BenYishay, A., Lv, Z., & Runfola, D. (2019). GeoQuery: Integrating HPC systems and public web-based geospatial data tools. Computers & Geosciences, 122, 103-112.</i>
 
 
 <b><font size=14>Contents of Request Zip</font></b>
@@ -10,7 +10,7 @@ Please cite the following in any and all applications of the extracted datasets:
 - request documentation (this pdf document)
 - a comma separated value (CSV) file containing your data
 - JSON file containing your request parameters
-- "Introducing the AidData Geo Framework" paper (pdf)
+- GeoQuery paper (pdf)
 
 <b>For additional information, usage tips, guides and more please visit <i><a href="http://geo.aiddata.org">geo.aiddata.org</a></i>.</b>
 
