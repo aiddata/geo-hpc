@@ -158,6 +158,8 @@ else:
 
         if not dry_run:
 
+            print "sending emails..."
+
             # send email that request was completed
             queue.notify_comments(user_info['email'])
 
