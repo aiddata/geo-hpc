@@ -34,8 +34,8 @@ def make_dir(path):
 
 def json_sha1_hash(hash_obj):
     hash_json = json.dumps(hash_obj,
-                           sort_keys = True,
-                           ensure_ascii = True,
+                           sort_keys=True,
+                           ensure_ascii=True,
                            separators=(', ', ': '))
     hash_builder = hashlib.sha1()
     hash_builder.update(hash_json)
@@ -173,7 +173,10 @@ class QueueToolBox():
         if is_prep:
             updates['stage.1.time'] = ctime
 
-            column_info_html = ''.join(open(self.assets_dir + '/templates/column_info.txt')).replace('\n', '<br/>')
+            column_info_html = ''.join(
+                open(self.assets_dir + '/templates/column_info.txt')
+            ).replace('\n', '<br/>')
+
             updates['info'] = [column_info_html]
 
             # Example push/prepend for info field if needed for manual updates
@@ -199,16 +202,22 @@ class QueueToolBox():
         mail_subject = ("AidData GeoQuery{0}- "
                         "Request {1}.. Received").format(self.dev, request_id[:7])
 
-        mail_message = ("Your request has been received. \n"
-                        "You will receive an additional email when the"
-                        " request has been completed. \n\n"
-                        "The status of your request can be viewed using"
-                        " the following link: \n"
-                        "http://{0}/query/#!/status/{1}\n\n"
-                        "You can also view all your current and previous "
-                        "requests using: \n"
-                        "http://{0}/query/#!/requests/{2}\n\n").format(
-                            self.config.det['download_server'], request_id, mail_to)
+        mail_message = (
+            """
+            Thanks for using GeoQuery. This is an automated email to let you
+            know that we received your request and will process your data as
+            soon as we can. We will send another email when your data is ready.
+
+            You can view the status of this data request here:
+            http://{0}/query/#!/status/{1}
+
+            You can also keep track of all of the data requests that you've
+            submitted with this email address here:
+            http://{0}/query/#!/requests/{2}
+
+            Thank you,
+            \tAidData's GeoQuery Team
+            """).format(self.config.det['download_server'], request_id, mail_to)
 
         mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
@@ -228,41 +237,74 @@ class QueueToolBox():
 
         mail_message = (
             """
-            Your request has been completed.
+            Thanks again for using GeoQuery. This is another automated email
+            to let you know that your data is ready.
 
-            You can review your request and download the results using the following page:
+            You can review your request, and download the results and documentation here:
             \thttp://{0}/query/#!/status/{1}
 
-            or download the results directly (this link will always be available):
+            Or download the results directly (this link will always be available):
             \thttp://{0}/data/geoquery_results/{1}/{1}.zip
-
 
             You can also view all your current and previous requests using:
             \thttp://{0}/query/#!/requests/{2}
 
+            Also, one quick reminder about citations. Don't forget to cite
+            both AidData's GeoQuery tool as well as each dataset you selected
+            within GeoQuery. All citations can be found in the Documentation
+            PDF at the link above. Here's the correct citation for GeoQuery:
 
-            If you have not done so before or if you would like to provide additional feedback,
-            please fill out this brief survey regarding your experience with geo(query).
-            \thttps://goo.gl/4WZ46M
+                \tGoodman, S., BenYishay, A., Lv, Z., & Runfola, D. (2019).
+                GeoQuery: Integrating HPC systems and public web-based
+                geospatial data tools. Computers & Geosciences, 122, 103-112.
 
-
-            Citations enable continued support and development of this tool.
-            As a part of your use of this tool, you have agreed to cite geo(query)
-            in any derived products (including academic publications, reports, or other works).
-                \tGoodman, S., BenYishay, A., Runfola, D., 2016. Overview of the geo Framework.
-                \tAidData. Available online at http://geo.aiddata.org. DOI: 10.13140/RG.2.2.28363.59686
-
+            Thank you in advance for citing us when you publish your research.
+            This helps us to demonstrate how GeoQuery is making a difference
+            as a freely available public good.
 
             Thank you,
-            \tThe AidData Team
-            """).format(
-                self.config.det['download_server'], request_id, mail_to)
+            \tAidData's GeoQuery Team
+            """).format(self.config.det['download_server'], request_id, mail_to)
 
         mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
 
         if not mail_status[0]:
             print mail_status[1]
             update_status = self.update_status(request_id, -2)
+            raise mail_status[2]
+
+
+    def notify_comments(self, email):
+        """send email asking for information about their work using geoquery
+        """
+        mail_to = email
+
+        mail_subject = ("Was GeoQuery{0} helpful?").format(self.dev)
+
+        mail_message = (
+            """
+            Hello!
+
+            One last note from AidData's GeoQuery Team. Would you please
+            respond to this email with a couple sentences about how GeoQuery
+            has helped you?
+
+            We are able to make GeoQuery freely available thanks to the
+            generosity of donors and open source data providers. These people
+            love to hear about new research enabled by GeoQuery, and what kind
+            of difference this research is making in the world.
+
+            Also, we love feedback of all kinds. If something did not go the
+            way you expected, we want to hear about that too.
+
+            Thanks!
+            \tAidData's GeoQuery Team
+            """)
+
+        mail_status = self.email.send_email(mail_to, mail_subject, mail_message)
+
+        if not mail_status[0]:
+            print mail_status[1]
             raise mail_status[2]
 
 
@@ -478,8 +520,8 @@ class QueueToolBox():
 
 
         # generate documentation
-        doc_output =  os.path.join(request_dir,
-                                   "{0}_documentation.pdf".format(request_id))
+        doc_output = os.path.join(request_dir,
+                                  "{0}_documentation.pdf".format(request_id))
         doc = DocBuilder(self.config, request, doc_output, self.config.det['download_server'])
         bd_status = doc.build_doc()
         # print bd_status
@@ -493,8 +535,8 @@ class QueueToolBox():
         rdoc_file.close()
 
 
-        geo_pdf_src = self.assets_dir + "/other/IntroducingtheAidDataGeoFramework.pdf"
-        geo_pdf_dst = os.path.join(request_dir, "IntroducingtheAidDataGeoFramework.pdf")
+        geo_pdf_src = self.assets_dir + "/other/GeoQuery_Goodman2019.pdf"
+        geo_pdf_dst = os.path.join(request_dir, "GeoQuery_Goodman2019.pdf")
         shutil.copyfile(geo_pdf_src, geo_pdf_dst)
 
         if not 'boundaries/gadm' in request['boundary']['path']:
