@@ -287,19 +287,17 @@ class QueueToolBox():
 
         mail_message = (
             """
-            Hello!
+            Hello there!
 
-            One last note from AidData's GeoQuery Team. Would you please
-            respond to this email with a couple sentences about how GeoQuery
-            has helped you?
+            We would like to hear about your experience using AidData's GeoQuery tool. Would you
+            please respond to this email with a couple sentences about how GeoQuery has helped you?
 
-            We are able to make GeoQuery freely available thanks to the
-            generosity of donors and open source data providers. These people
-            love to hear about new research enabled by GeoQuery, and what kind
-            of difference this research is making in the world.
+            We are able to make GeoQuery freely available thanks to the generosity of donors and
+            open source data providers. These people love to hear about new research enabled by
+            GeoQuery, and what kind of difference this research is making in the world.
 
-            Also, we love feedback of all kinds. If something did not go the
-            way you expected, we want to hear about that too.
+            Also, we love feedback of all kinds. If something did not go the way you expected, we
+            want to hear about that too.
 
             Thanks!
             \tAidData's GeoQuery Team
