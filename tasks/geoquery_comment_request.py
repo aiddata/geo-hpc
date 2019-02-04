@@ -55,6 +55,8 @@ print "`{0}` branch on {1}".format(branch_info.name, branch_info.database)
 
 current_timestamp = int(time.time())
 
+# maximum number of emails to send per batch (should really be per day for gmail limits, but we only run this once a week+ 1 )
+email_limit = 50
 
 # filters for searching requests
 f = {
@@ -154,7 +156,14 @@ else:
     # add "comments_requested" = 1 flag to all of their existing requests
     for ix, user_info in valid_df.iterrows():
 
-        print '\t{}'.format(user_info["email"])
+        if ix + 1 > email_limit:
+            print "\n Warning: maximum emails reached. Exiting."
+            break
+
+        # avoid gmail email per second limits
+        time.sleep(1)
+
+        print '\t{}: {}'.format(ix, user_info["email"])
 
         if not dry_run:
 
