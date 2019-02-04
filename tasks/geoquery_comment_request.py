@@ -154,8 +154,9 @@ else:
 
 
     valid_df["index"] = range(len(valid_df))
-    valid_df.set_index("index")
+    valid_df.reset_index(drop=True, inplace=True)
 
+    print valid_df
 
     # email any users who pass above filtering with request for comments
     # add "comments_requested" = 1 flag to all of their existing requests
