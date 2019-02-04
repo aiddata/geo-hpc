@@ -140,6 +140,8 @@ else:
         "latest_time": "max"
     })
 
+    user_df["index"] = range(len(user_df))
+    user_df.set_index("index")
 
     # filter
 
