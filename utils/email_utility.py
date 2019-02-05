@@ -13,7 +13,7 @@ class GeoEmail():
         self.branch = config.branch
 
         self.defaults = {
-            'reply_to': 'AidData W&M <geo@aiddata.wm.edu>',
+            'reply_to': 'AidData GeoQuery <geo@aiddata.wm.edu>',
             'sender': 'noreply@aiddata.wm.edu'
         }
 

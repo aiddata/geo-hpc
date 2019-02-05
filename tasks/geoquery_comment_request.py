@@ -160,8 +160,7 @@ else:
     # add "comments_requested" = 1 flag to all of their existing requests
     for ix, user_info in valid_df.iterrows():
 
-        # user_email = user_info["email"]
-        user_email = "sgoodman+{}@aiddata.wm.edu".format(ix)
+        user_email = user_info["email"]
 
         if ix >= email_limit:
             print "\n Warning: maximum emails reached. Exiting."
