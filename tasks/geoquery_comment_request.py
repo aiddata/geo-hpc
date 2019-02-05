@@ -28,7 +28,6 @@ if config.connection_status != 0:
     raise Exception('Could not connect to mongodb')
 
 
-
 import time
 import pandas as pd
 
@@ -44,17 +43,12 @@ print '\n======================================='
 print '\nRequest for Comments Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
+
+# -------------------------------------
+# modifiable parameters
+
 # dry_run = True
 dry_run = False
-
-queue = QueueToolBox()
-
-# load config setting for branch script is running on
-branch_info = queue.set_branch_info(config)
-print "`{0}` branch on {1}".format(branch_info.name, branch_info.database)
-
-
-current_timestamp = int(time.time())
 
 # maximum number of emails to send per batch (should really be per day for gmail limits, but we only run this once a week+ 1 )
 email_limit = 50
@@ -66,6 +60,18 @@ f = {
     "earliest_request": 14, # minimum number of days since earliest request
     "latest_request": 7, # minimum number of days since latest request
 }
+
+# -------------------------------------
+
+
+queue = QueueToolBox()
+
+# load config setting for branch script is running on
+branch_info = queue.set_branch_info(config)
+print "`{0}` branch on {1}".format(branch_info.name, branch_info.database)
+
+
+current_timestamp = int(time.time())
 
 
 def to_seconds(days):
