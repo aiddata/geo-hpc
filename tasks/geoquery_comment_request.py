@@ -44,7 +44,8 @@ print '\n======================================='
 print '\nRequest for Comments Script'
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 
-dry_run = True
+# dry_run = True
+dry_run = False
 
 queue = QueueToolBox()
 
@@ -152,34 +153,34 @@ else:
 
     print "\n{} valid users found:\n".format(len(valid_df))
 
-
-    valid_df["index"] = range(len(valid_df))
     valid_df.reset_index(drop=True, inplace=True)
 
-    print valid_df
 
     # email any users who pass above filtering with request for comments
     # add "comments_requested" = 1 flag to all of their existing requests
     for ix, user_info in valid_df.iterrows():
 
-        if ix + 1 > email_limit:
+        # user_email = user_info["email"]
+        user_email = "sgoodman+{}@aiddata.wm.edu".format(ix)
+
+        if ix >= email_limit:
             print "\n Warning: maximum emails reached. Exiting."
             break
 
         # avoid gmail email per second limits
         time.sleep(1)
 
-        print '\t{}: {}'.format(ix, user_info["email"])
+        print '\t{}: {}'.format(ix, user_email)
 
         if not dry_run:
 
             print "sending emails..."
 
             # send email that request was completed
-            queue.notify_comments(user_info['email'])
+            queue.notify_comments(user_email)
 
             queue.c_queue.update_many(
-                {"email": user_info["email"]},
+                {"email": user_email},
                 {"$set": {"comments_requested": 1}}
             )
 
