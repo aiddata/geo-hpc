@@ -159,9 +159,9 @@
         "data_name": "udel_precip_v4_01_yearly_max",
         "file_mask": "precip_YYYY_max.tif"
     },
-    "modis_lst": {
+    "modis_lst_day_yearly_mean": {
         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters//modis_lst/yearly/day/mean",
-        "data_name": "modis_lst",
+        "data_name": "modis_lst_day_yearly_mean",
         "file_mask": "modis_lst_day_cmg_YYYY.tif"
     },
     "treecover2000": {
