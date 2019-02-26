@@ -654,6 +654,9 @@ class ExtractObject():
 
                 else:
                     raise Exception(e)
+            except Exception as e:
+                print e
+                raise Exception(e)
 
 
     def run_extract(self, raster, vector=None, **kwargs):
@@ -669,7 +672,7 @@ class ExtractObject():
         percent_cover_scale = 10
         percent_cover_weighting = True
         latitude_correction = True
-        pixel_limit = 250000
+        pixel_limit = 150000
 
         if 'percent_cover_scale' in kwargs:
             percent_cover_scale = kwargs['percent_cover_scale']
