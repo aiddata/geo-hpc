@@ -301,7 +301,7 @@ class ExtractObject():
         self._base_path = value
 
         self._check_file_mask()
-        self._check_reliability()
+        # self._check_reliability()
 
 
     def _set_reliability(self, value):
@@ -422,7 +422,7 @@ class ExtractObject():
         self._extract_type = str(value)
         self._cmap = category_map
 
-        self._set_reliability(self._extract_type)
+        # self._set_reliability(self._extract_type)
 
 
 
