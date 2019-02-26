@@ -327,7 +327,7 @@ class QueueToolBox():
         # id used for field names in results
         msr_id = 1
 
-        print "\nchecking aid data..."
+        print "\nchecking aid data (dry=run = {}...".format(dry_run)
         for ix, raw_data in enumerate(request['release_data']):
 
             # # mongo was defaulting to 32bit vals for numbers on insert
@@ -430,7 +430,7 @@ class QueueToolBox():
             msr_id += 1
 
 
-        print "\nchecking external data..."
+        print "\nchecking raster data (dry=run = {}...".format(dry_run)
         for data in request["raster_data"]:
             name = data['name']
 
@@ -463,10 +463,7 @@ class QueueToolBox():
 
                     # incremenet count if extract is not completed
                     # (whether it exists in queue or not)
-                    if extract_completed == "Error":
-                        extract_count += 1
-
-                    elif not extract_completed:
+                    if extract_completed == "Error" or not extract_completed:
                         extract_count += 1
 
                         # add to extract queue if it does not already
