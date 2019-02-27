@@ -150,7 +150,7 @@ class ExtractItem():
         # check if exists
         search = self.c_extracts.find_one(query)
 
-        if search is not None:
+        if search is not None and search['generator'] != 'det':
             # if search['status'] == 0 and search['priority'] < 0:
 
             # update priority
