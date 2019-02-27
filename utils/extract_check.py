@@ -150,18 +150,18 @@ class ExtractItem():
         # check if exists
         search = self.c_extracts.find_one(query)
 
-        if search is not None and search['generator'] != 'det':
-            # if search['status'] == 0 and search['priority'] < 0:
-
-            # update priority
-            update = self.c_extracts.update(query,
-                                            {'$set': details})
-        else:
+        if search is None:
             full_insert['status'] = 0
             full_insert['submit_time'] = ctime
 
             # insert full
             insert = self.c_extracts.insert(full_insert)
+
+        # update priority if needed
+        elif search is not None and search['generator'] != 'det':
+                update = self.c_extracts.update(query,
+                                                {'$set': details})
+
 
         return True, ctime
 
