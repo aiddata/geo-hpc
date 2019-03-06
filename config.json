@@ -237,13 +237,13 @@
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
-                        "walltime": "48:00:00",
+                        "walltime": "24:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi $src/geo-hpc/tasks/geoquery_request_processing.py $branch"
                     }
                 ]
             },
             "comments": {
-                "cron_schedule": "5 9 * * 2 [ `date +\\%d` -le 7 ] &&",
+                "cron_schedule": "15 9 * * 2",
                 "tasks": [
                     {
                         "description": "",
@@ -252,7 +252,7 @@
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
-                        "walltime": "48:00:00",
+                        "walltime": "2:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi $src/geo-hpc/tasks/geoquery_comment_request.py $branch"
                     }
                 ]

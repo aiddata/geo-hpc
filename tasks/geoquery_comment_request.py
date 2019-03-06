@@ -55,7 +55,7 @@ email_limit = 50
 
 # filters for searching requests
 f = {
-    "n_days": 60, # number of days to search for any requests
+    "n_days": 365, # number of days to search for any requests
     "request_count": 5, # minimum number of requests in n_days required for an email
     "earliest_request": 14, # minimum number of days since earliest request
     "latest_request": 7, # minimum number of days since latest request
@@ -172,16 +172,15 @@ else:
             print "\n Warning: maximum emails reached. Exiting."
             break
 
-        # avoid gmail email per second limits
-        time.sleep(1)
-
         print '\t{}: {}'.format(ix, user_email)
 
         if not dry_run:
 
             print "sending emails..."
 
-            # send email that request was completed
+            # avoid gmail email per second limits
+            time.sleep(1)
+                        # send email that request was completed
             queue.notify_comments(user_email)
 
             queue.c_queue.update_many(
