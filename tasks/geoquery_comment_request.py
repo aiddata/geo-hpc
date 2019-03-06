@@ -47,8 +47,8 @@ print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 # -------------------------------------
 # modifiable parameters
 
-dry_run = True
-# dry_run = False
+# dry_run = True
+dry_run = False
 
 # maximum number of emails to send per batch (should really be per day for gmail limits, but we only run this once a week+ 1 )
 email_limit = 50
