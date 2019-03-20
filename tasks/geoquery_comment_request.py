@@ -55,7 +55,7 @@ email_limit = 50
 
 # filters for searching requests
 f = {
-    "n_days": 500, # number of days to search for any requests
+    "n_days": 750, # number of days to search for any requests
     "request_count": 3, # minimum number of requests in n_days required for an email
     "earliest_request": 14, # minimum number of days since earliest request
     "latest_request": 7, # minimum number of days since latest request
