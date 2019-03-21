@@ -27,7 +27,7 @@ config.test_connection()
 if config.connection_status != 0:
     raise Exception('Could not connect to mongodb')
 
-
+import textwrap
 import time
 import pandas as pd
 
@@ -35,6 +35,7 @@ import pandas as pd
 # sys.stdout = sys.stderr = open(
 #     os.path.dirname(os.path.abspath(__file__)) + '/processing.log', 'a')
 
+from email_utility import GeoEmail
 from geoquery_requests import QueueToolBox
 
 # =============================================================================
@@ -47,6 +48,10 @@ print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
 # -------------------------------------
 # modifiable parameters
 
+
+# mode = "auto"
+mode = "manual"
+
 # dry_run = True
 dry_run = False
 
@@ -55,7 +60,7 @@ email_limit = 50
 
 # filters for searching requests
 f = {
-    "n_days": 750, # number of days to search for any requests
+    "n_days": 365, # number of days to search for any requests
     "request_count": 3, # minimum number of requests in n_days required for an email
     "earliest_request": 14, # minimum number of days since earliest request
     "latest_request": 7, # minimum number of days since latest request
@@ -106,6 +111,8 @@ except Exception as e:
 if not request_objects:
     print "Request queue is empty"
 
+
+
 else:
 
     # convert to dataframe
@@ -125,6 +132,12 @@ else:
         else:
             request_dict['comments_requested'] = 0
 
+        if 'contact_flag' in r:
+            request_dict['contact_flag'] = r['contact_flag']
+        else:
+            request_dict['contact_flag'] = 0
+
+
         request_df_data.append(request_dict)
 
 
@@ -139,27 +152,80 @@ else:
 
 
     # convert to user aggregated dataframe
-
     user_df = request_df.groupby('email', as_index=False).agg({
         "count": "sum",
         "comments_requested": "sum",
+        "contact_flag": "sum",
         "earliest_time": "min",
         "latest_time": "max"
     })
 
 
     # filter
-
     valid_df = user_df.loc[
-        (user_df["count"] > f["request_count"]) &
         (user_df["comments_requested"] == 0) &
+        (user_df["contact_flag"] == 0) &
+        (user_df["count"] > f["request_count"]) &
         (current_timestamp - user_df["earliest_time"] > to_seconds(f["earliest_request"])) &
         (current_timestamp - user_df["latest_time"] > to_seconds(f["latest_request"]))
     ]
 
-    print "\n{} valid users found:\n".format(len(valid_df))
+    valid_user_count = len(valid_df)
+    print "\n{} valid users found:\n".format(valid_user_count)
+
 
     valid_df.reset_index(drop=True, inplace=True)
+
+    # send list of users to staff emails
+    if not dry_run and mode == "manual" and valid_user_count > 0:
+
+        email_list = valid_df["email"].tolist()
+        email_list_str = "\n".join(email_list)
+
+        mail_to = "geo@aiddata.org, info@aiddata.org, eteare@aiddata.wm.edu"
+
+        dev = " (dev) " if branch == "develop" else " "
+
+        mail_subject = ("Your weekly list of GeoQuery{0} user emails").format(dev)
+
+        mail_message = (
+            """
+            Hello there team!
+
+            Below you will find the list of users who satisfy the criteria for contact. For details
+            on what these criteria actually are, contact your GeoQuery Admin. At the end of this email
+            is some sample language for contacting users.
+
+            --------------------
+            {}
+            --------------------
+
+            Hello there!
+
+            We would like to hear about your experience using AidData's GeoQuery tool. Would you
+            please respond to this email with a couple sentences about how GeoQuery has helped you?
+
+            We are able to make GeoQuery freely available thanks to the generosity of donors and
+            open source data providers. These people love to hear about new research enabled by
+            GeoQuery, and what kind of difference this research is making in the world.
+
+            Also, we love feedback of all kinds. If something did not go the way you expected, we
+            want to hear about that too.
+
+            Thanks!
+            \tAidData's GeoQuery Team
+            """).format(email_list_str)
+
+
+        mail_message = textwrap.dedent(mail_message)
+
+        email = GeoEmail(config)
+
+        mail_status = email.send_email(mail_to, mail_subject, mail_message)
+
+        if not mail_status[0]:
+            print mail_status[1]
+            raise mail_status[2]
 
 
     # email any users who pass above filtering with request for comments
@@ -168,19 +234,20 @@ else:
 
         user_email = user_info["email"]
 
-        if ix >= email_limit:
+        if mode == "auto" and ix >= email_limit:
             print "\n Warning: maximum emails reached. Exiting."
             break
 
         print '\t{}: {}'.format(ix, user_email)
 
-        if not dry_run:
+        # automated request for comments
+        if not dry_run and mode == "auto":
 
             print "sending emails..."
 
             # avoid gmail email per second limits
             time.sleep(1)
-                        # send email that request was completed
+
             queue.notify_comments(user_email)
 
             queue.c_queue.update_many(
@@ -188,6 +255,13 @@ else:
                 {"$set": {"comments_requested": 1}}
             )
 
+        # flag as being included in list for staff to manually email
+        elif not dry_run and mode == "manual":
+
+            queue.c_queue.update_many(
+                {"email": user_email},
+                {"$set": {"contact_flag": 1}}
+            )
 
 
 
