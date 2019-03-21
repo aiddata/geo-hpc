@@ -31,6 +31,8 @@ class GeoEmail():
             status is bool
             error message and exception are None on success
         """
+        receiver_list = [i.strip() for i in receiver.split(",")]
+        receiver_str = ", ".join(receiver_list)
 
         if sender is None:
             sender = self.defaults['sender']
@@ -59,7 +61,7 @@ class GeoEmail():
 
             msg.add_header('reply-to', reply_to)
             msg['From'] = reply_to
-            msg['To'] = receiver
+            msg['To'] = receiver_str
             msg['Subject'] = subject
             msg.attach(MIMEText(message))
 
@@ -72,7 +74,7 @@ class GeoEmail():
             mailserver.ehlo()
 
             mailserver.login(sender, passwd)
-            mailserver.sendmail(sender, receiver, msg.as_string())
+            mailserver.sendmail(sender, receiver_list, msg.as_string())
             mailserver.quit()
 
             return 1, None, None
@@ -133,5 +135,3 @@ class GeoEmail():
 
         except Exception as e:
             return 0, "Error sending backup email", e
-
-
