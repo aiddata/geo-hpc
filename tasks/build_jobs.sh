@@ -36,6 +36,40 @@ config_path=$src/geo-hpc/config.json
 # -----------------------------------------------------------------------------
 
 
+check_scheduler() {
+
+    test1=$(qmgr -c 'p s' | grep scheduling)
+
+    fail1=False
+    if [[ $test1 == "set server scheduling = False" ]];then
+        fail1=True
+    fi
+
+    test2=$(ps -fu maui | wc -l)
+
+    fail2=False
+    if [[ $test2 == 1 ]];then
+        fail2=True
+    fi
+
+    test3a=$(showres 2> >(wc -l))
+    test3b=$(showres 2> >(grep ERROR | wc -l))
+
+    fail3=False
+    if [[ $test3a == 2 && $test3b == 2 ]];then
+        fail3=True
+    fi
+
+    fail=False
+    if [[ $fail1 == True || $fail2 == True || $fail3 == True ]]; then
+        echo "Scheduler is offline."
+        fail=True
+        exit 1
+    fi
+
+}
+
+
 clean_jobs() {
 
     job_dir="$branch_dir"/log/$job_class/jobs
@@ -160,6 +194,8 @@ EOF
 # always clean up old job outputs first
 clean_jobs
 
+# make sure scheduler is online before submitting any jobs
+check_scheduler
 
 # test mongo connection before building job
 db_conn_status=$(python ${src}/geo-hpc/utils/config_utility.py $branch)
@@ -222,4 +258,3 @@ for ((i=0;i<$x;i+=1)); do
     echo -e "\n"
 
 done
-
