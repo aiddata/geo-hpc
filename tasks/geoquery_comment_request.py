@@ -180,7 +180,7 @@ else:
     if not dry_run and mode == "manual" and valid_user_count > 0:
 
         email_list = valid_df["email"].tolist()
-        email_list_str = "\n".join(email_list)
+        email_list_str = "\n\t".join(email_list)
 
         mail_to = "geo@aiddata.org, info@aiddata.org, eteare@aiddata.wm.edu"
 
