@@ -276,11 +276,11 @@
                 },
                 {
                     "question": "Can I request data extracts using my own boundary files?",
-                    "answer": "You can request an extract with your own boundary file using the form found <u><a href='http://geoquery.org/customdata/'>HERE</a></u>"
+                    "answer": "You can request an extract with your own boundary file using the form found <u><a href='https://www.aiddata.org/geoquery/custom-requests'>HERE</a></u>"
                 },
                 {
                     "question": "Where can I go to provide feedback or request new datasets?",
-                    "answer": "We have an online form you can access <u><a href='https://goo.gl/4WZ46M'>HERE</a></u>"
+                    "answer": "To get in touch with our team, please email use at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>"
                 },
                 {
                     "question": "Can I select data for multiple boundaries?",
@@ -304,11 +304,11 @@
                 },
                 {
                     "question": "Do you have examples of the types of analyses that can be conducted using this data?",
-                    "answer": "Yes - we provide a number of examples at <u><a href='http://geo.aiddata.org'>geo.aiddata.org</a></u>."
+                    "answer": "Yes - we provide a number of examples of reports and publications using GeoQuery <u><a href='https://www.aiddata.org/geoquery/research'>HERE</a></u>."
                 },
                 {
                     "question": "Do you conduct research using this information?",
-                    "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at <u><a href='http://geo.aiddata.org'>geo.aiddata.org</a></u>; you can also contact us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>."
+                    "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at <u><<a href='https://www.aiddata.org/geoquery/research'>HERE</a></u>; you can also contact us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>."
                 },
                 {
                     "question": "How do I submit my request?",
@@ -324,7 +324,7 @@
                 },
                 {
                     "question": "Where can I find more details on the extract methods used (e.g., mean, sum, count, as well as aid data extractions)",
-                    "answer": "You can read our paper <u><a href='http://geo.aiddata.wm.edu/docs/IntroducingtheAidDataGeoFramework.pdf'>HERE</a></u> or visit <u><a href='http://geo.aiddata.org'>geo.aiddata.org</a></u> for links to our code and additional resources and documentation."
+                    "answer": "You can read our paper <u><a href='https://www.sciencedirect.com/science/article/pii/S0098300418305326'>HERE</a></u> or visit <u><a href='https://www.aiddata.org/geoquery'>aiddata.org/geoquery</a></u> for links to our code and additional resources and documentation."
                 }
             ],
             "welcome": {
@@ -349,7 +349,7 @@
             },
             "terms_and_conditions": {
                 "content": [
-                    "The database and derived products produced by this tool are governed by the license available at http://geo.aiddata.org/license ('the geo license').  By clicking submit you agree to the terms of the geo license, which are summarized as:",
+                    "The database and derived products produced by this tool are governed by the license available at https://www.aiddata.org/geoquery/licenses.  By clicking submit you agree to the terms of the geo license, which are summarized as:",
                     "As long as you:",
                     "Attribute: You must attribute any public use of the database, or works produced from the database, in the manner specified in the license. For any use or redistribution of the database, or works produced from it, you must make clear to others the license of the database and keep intact any notices on the original database.",
                     "You are free:",
