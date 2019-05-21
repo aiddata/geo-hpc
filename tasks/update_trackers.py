@@ -255,7 +255,14 @@ def tmp_worker_job(self, task_index, task_data):
     for match in matches:
         print "\t\tChecking dataset: {0}".format(match['name'])
 
-        meta = c_asdf.find({'name':match['name']})[0]
+        meta_search = list(c_asdf.find({'name': match['name']}))
+
+        if len(meta_search) == 0:
+            c_bnd.update_one({"name": match['name']},
+                             {"$set": {"status": -3}}, upsert=False)
+            continue
+
+        meta = meta_search[0]
 
         if "active" in meta and meta["active"] == 0:
             c_bnd.update_one({"name": match['name']},
@@ -439,6 +446,3 @@ job.set_worker_job(tmp_worker_job)
 job.set_get_task_data(tmp_get_task_data)
 
 job.run()
-
-
-
