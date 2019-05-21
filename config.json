@@ -83,7 +83,7 @@
                         "description": "generic vortex (c18a) raster job",
                         "jobname": "ex3",
                         "nodespec": "c18a",
-                        "max_jobs": 0,
+                        "max_jobs": 4,
                         "nodes": 1,
                         "ppn": 12,
                         "walltime": "180:00:00",
