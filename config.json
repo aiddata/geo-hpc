@@ -261,6 +261,7 @@
         "det": {
             "download_server": "geo.aiddata.org",
             "featured_datasets": [
+                "atlasofurbanexpansion2016",
                 "afg_adm2_gb_1_3_3",
                 "chn_adm2_gb_1_3_3",
                 "civ_adm2_gb_1_3_3",
