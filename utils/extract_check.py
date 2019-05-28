@@ -116,6 +116,17 @@ class ExtractItem():
                 if file_exists:
                     valid_exists = True
                     valid_completed = True
+                else:
+                    valid_completed = "Error"
+                    self.c_extracts.update(
+                        {
+                            'boundary': self.boundary,
+                            'data': self.data,
+                            'extract_type': self.extract_type,
+                            'version': self.version
+                        }, {
+                            '$set': {"status": -1}
+                        })
 
             else:
                 valid_exists = True
@@ -164,4 +175,3 @@ class ExtractItem():
 
 
         return True, ctime
-
