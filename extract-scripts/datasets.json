@@ -1,15 +1,15 @@
 {
     "gpw_v3_count": {
-        "dataset_name" : "gpw_v3_count",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v3/count",
+        "data_name" : "gpw_v3_count",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v3/count",
         "file_mask" : "glpyyag_YYYY.asc",
         "extract_types" : [
             "sum"
         ]
     },
     "gdp_grid": {
-        "dataset_name" : "gdp_grid",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/GDP_grid",
+        "data_name" : "gdp_grid",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/GDP_grid",
         "file_mask" : "None",
         "extract_types" : [
             "sum",
@@ -19,8 +19,8 @@
         ]
     },
     "udel_precip_mean": {
-        "dataset_name" : "udel_precip_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2014_v4.01/yearly/mean",
+        "data_name" : "udel_precip_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2014_v4.01/yearly/mean",
         "file_mask" : "precip_YYYY_mean.tif",
         "extract_types" : [
             "max",
@@ -29,8 +29,8 @@
         ]
     },
     "srtm_elevation_500m": {
-        "dataset_name" : "srtm_elevation_500m",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/srtm/srtm_elevation_500m",
+        "data_name" : "srtm_elevation_500m",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/srtm/srtm_elevation_500m",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -39,8 +39,8 @@
         ]
     },
     "udel_air_temp_v401_mean": {
-        "dataset_name" : "udel_air_temp_v401_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2014_v4.01/yearly/mean",
+        "data_name" : "udel_air_temp_v401_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2014_v4.01/yearly/mean",
         "file_mask" : "air_temp_YYYY_mean.tif",
         "extract_types" : [
             "max",
@@ -49,8 +49,8 @@
         ]
     },
     "acled_v3_count": {
-        "dataset_name" : "acled_v3_count",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count",
+        "data_name" : "acled_v3_count",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count",
         "file_mask" : "None",
         "extract_types" : [
             "sum",
@@ -59,16 +59,16 @@
         ]
     },
     "gpw_v4_count": {
-        "dataset_name" : "gpw_v4_count",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v4/count",
+        "data_name" : "gpw_v4_count",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v4/count",
         "file_mask" : "gpw-v4-population-count-adjusted-to-2015-unwpp-country-totals_YYYY.tif",
         "extract_types" : [
             "sum"
         ]
     },
     "srtm_slope_500m": {
-        "dataset_name" : "srtm_slope_500m",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/srtm/srtm_slope_500m",
+        "data_name" : "srtm_slope_500m",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/srtm/srtm_slope_500m",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -77,8 +77,8 @@
         ]
     },
     "access_50k": {
-        "dataset_name" : "access_50k",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/accessibility_map",
+        "data_name" : "access_50k",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/accessibility_map",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -87,8 +87,8 @@
         ]
     },
     "v4composites_calibrated": {
-        "dataset_name" : "v4composites_calibrated",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4composites_calibrated",
+        "data_name" : "v4composites_calibrated",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4composites_calibrated",
         "file_mask" : "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif",
         "extract_types" : [
             "max",
@@ -98,8 +98,8 @@
         ]
     },
     "wdpa_binary_201609": {
-        "dataset_name" : "wdpa_binary_201609",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/wdpa/binary_201609",
+        "data_name" : "wdpa_binary_201609",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/wdpa/binary_201609",
         "file_mask" : "None",
         "extract_types" : [
             "sum",
@@ -107,8 +107,8 @@
         ]
     },
     "ltdr_yearly_mean": {
-        "dataset_name" : "ltdr_yearly_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_mean",
+        "data_name" : "ltdr_yearly_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_mean",
         "file_mask" : "YYYY.tif",
         "extract_types" : [
             "max",
@@ -117,8 +117,8 @@
         ]
     },
     "dist_to_groads": {
-        "dataset_name" : "dist_to_groads",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/groads",
+        "data_name" : "dist_to_groads",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/groads",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -127,8 +127,8 @@
         ]
     },
     "dist_to_water": {
-        "dataset_name" : "dist_to_water",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/water",
+        "data_name" : "dist_to_water",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/water",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -137,8 +137,8 @@
         ]
     },
     "dist_to_gadm28_borders": {
-        "dataset_name" : "dist_to_gadm28_borders",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/gadm28_borders",
+        "data_name" : "dist_to_gadm28_borders",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/gadm28_borders",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -147,8 +147,8 @@
         ]
     },
     "modis_landcover_51": {
-        "dataset_name" : "modis_landcover_51",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/glcf/modis_landcover_5.1",
+        "data_name" : "modis_landcover_51",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/glcf/modis_landcover_5.1",
         "file_mask" : "YYYY.xx.xx.tif",
         "categories" : {
             "evergreen_needleleaf_forest" : 1,
@@ -177,8 +177,8 @@
         ]
     },
     "wdpa_iucn_cat_201704": {
-        "dataset_name" : "wdpa_iucn_cat_201704",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/wdpa/iucn_cat_201704",
+        "data_name" : "wdpa_iucn_cat_201704",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/wdpa/iucn_cat_201704",
         "file_mask" : "None",
         "categories" : {
             "not_applicable" : 8,
@@ -199,32 +199,32 @@
         ]
     },
     "africa_child_mortality": {
-        "dataset_name" : "africa_child_mortality",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/africa_child_mortality",
+        "data_name" : "africa_child_mortality",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/africa_child_mortality",
         "file_mask" : "africa_child_mortality_YYYY.tif",
         "extract_types" : [
             "mean"
         ]
     },
     "ambient_air_pollution_2013_fus_calibrated": {
-        "dataset_name" : "ambient_air_pollution_2013_fus_calibrated",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/fus_calibrated",
+        "data_name" : "ambient_air_pollution_2013_fus_calibrated",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/fus_calibrated",
         "file_mask" : "fus_calibrated_YYYY.tif",
         "extract_types" : [
             "mean"
         ]
     },
     "ambient_air_pollution_2013_o3": {
-        "dataset_name" : "ambient_air_pollution_2013_o3",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/o3",
+        "data_name" : "ambient_air_pollution_2013_o3",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/o3",
         "file_mask" : "o3_YYYY.tif",
         "extract_types" : [
             "mean"
         ]
     },
     "ltdr_yearly": {
-        "dataset_name" : "ltdr_yearly",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_max",
+        "data_name" : "ltdr_yearly",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_max",
         "file_mask" : "YYYY.tif",
         "extract_types" : [
             "max",
@@ -233,8 +233,8 @@
         ]
     },
     "viirs_vcmcfg_dnb_composites_v10_yearly_max": {
-        "dataset_name" : "viirs_vcmcfg_dnb_composites_v10_yearly_max",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/yearly/max",
+        "data_name" : "viirs_vcmcfg_dnb_composites_v10_yearly_max",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/yearly/max",
         "file_mask" : "YYYY_max.tif",
         "extract_types" : [
             "max",
@@ -245,8 +245,8 @@
         ]
     },
     "ltdr_avhrr_ndvi_v4_yearly": {
-        "dataset_name" : "ltdr_avhrr_ndvi_v4_yearly",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v4/yearly",
+        "data_name" : "ltdr_avhrr_ndvi_v4_yearly",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v4/yearly",
         "file_mask" : "avhrr_ndvi_YYYY.tif",
         "extract_types" : [
             "max",
@@ -255,16 +255,16 @@
         ]
     },
     "ucdp_deaths_171": {
-        "dataset_name" : "ucdp_deaths_171",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ucdp/ged_global_171",
+        "data_name" : "ucdp_deaths_171",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ucdp/ged_global_171",
         "file_mask" : "ucdp_deaths_YYYY.tif",
         "extract_types" : [
             "sum"
         ]
     },
     "gpw_v4_density": {
-        "dataset_name" : "gpw_v4_density",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v4/density",
+        "data_name" : "gpw_v4_density",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v4/density",
         "file_mask" : "gpw-v4-population-density-adjusted-to-2015-unwpp-country-totals_YYYY.tif",
         "extract_types" : [
             "count",
@@ -274,8 +274,8 @@
         ]
     },
     "gpw_v3_density": {
-        "dataset_name" : "gpw_v3_density",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v3/density",
+        "data_name" : "gpw_v3_density",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v3/density",
         "file_mask" : "gldsyyag_YYYY.asc",
         "extract_types" : [
             "count",
@@ -285,16 +285,16 @@
         ]
     },
     "diamond_binary_201708": {
-        "dataset_name" : "diamond_binary_201708",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_binary.tif",
+        "data_name" : "diamond_binary_201708",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_binary.tif",
         "file_mask" : "None",
         "extract_types" : [
             "sum"
         ]
     },
     "diamond_distance_201708": {
-        "dataset_name" : "diamond_distance_201708",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_distance.tif",
+        "data_name" : "diamond_distance_201708",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_distance.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -303,8 +303,8 @@
         ]
     },
     "drugdata_categorical_201708": {
-        "dataset_name" : "drugdata_categorical_201708",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_categorical.tif",
+        "data_name" : "drugdata_categorical_201708",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_categorical.tif",
         "file_mask" : "None",
         "categories" : {
             "cannabis" : 1,
@@ -318,8 +318,8 @@
         ]
     },
     "distance_to_gemdata_201708": {
-        "dataset_name" : "distance_to_gemdata_201708",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_distance.tif",
+        "data_name" : "distance_to_gemdata_201708",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_distance.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -328,8 +328,8 @@
         ]
     },
     "distance_to_drugdata_201708": {
-        "dataset_name" : "distance_to_drugdata_201708",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_distance.tif",
+        "data_name" : "distance_to_drugdata_201708",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_distance.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -338,16 +338,16 @@
         ]
     },
     "gemdata_201708": {
-        "dataset_name" : "gemdata_201708",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_binary.tif",
+        "data_name" : "gemdata_201708",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_binary.tif",
         "file_mask" : "None",
         "extract_types" : [
             "sum"
         ]
     },
     "distance_to_gold_v12": {
-        "dataset_name" : "distance_to_gold_v12",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_distance.tif",
+        "data_name" : "distance_to_gold_v12",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_distance.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -356,8 +356,8 @@
         ]
     },
     "categorical_gold_v12": {
-        "dataset_name" : "categorical_gold_v12",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_categorical.tif",
+        "data_name" : "categorical_gold_v12",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_categorical.tif",
         "file_mask" : "None",
         "categories" : {
             "mix" : 4,
@@ -371,8 +371,8 @@
         ]
     },
     "dist_to_onshore_petroleum_v12": {
-        "dataset_name" : "dist_to_onshore_petroleum_v12",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_distance.tif",
+        "data_name" : "dist_to_onshore_petroleum_v12",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_distance.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -381,16 +381,16 @@
         ]
     },
     "onshore_petroleum_v12": {
-        "dataset_name" : "onshore_petroleum_v12",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_binary.tif",
+        "data_name" : "onshore_petroleum_v12",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_binary.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean"
         ]
     },
     "esa_landcover_v207": {
-        "dataset_name" : "esa_landcover_v207",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/esa_landcover_v207",
+        "data_name" : "esa_landcover_v207",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/esa_landcover_v207",
         "file_mask" : "esa_lc_YYYY.tif",
         "categories" : {
             "urban" : 190,
@@ -412,8 +412,8 @@
         ]
     },
     "distance_to_coast_236": {
-        "dataset_name" : "distance_to_coast_236",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/coast_236",
+        "data_name" : "distance_to_coast_236",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/coast_236",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -422,8 +422,8 @@
         ]
     },
     "v4composites_calibrated_201709": {
-        "dataset_name" : "v4composites_calibrated_201709",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4composites_calibrated_201709",
+        "data_name" : "v4composites_calibrated_201709",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4composites_calibrated_201709",
         "file_mask" : "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif",
         "extract_types" : [
             "max",
@@ -433,8 +433,8 @@
         ]
     },
     "afb_r6_q52a": {
-        "dataset_name" : "afb_r6_q52a",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/afrobarometer/afb_r6_q52a.tif",
+        "data_name" : "afb_r6_q52a",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/afrobarometer/afb_r6_q52a.tif",
         "file_mask" : "None",
         "categories" : {
             "(9) Don’t know/Haven’t heard enough" : 104,
@@ -450,8 +450,8 @@
         ]
     },
     "modis_lst_day_yearly_mean": {
-        "dataset_name" : "modis_lst_day_yearly_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/modis_lst/yearly/day/mean",
+        "data_name" : "modis_lst_day_yearly_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/modis_lst/yearly/day/mean",
         "file_mask" : "modis_lst_day_cmg_YYYY.tif",
         "extract_types" : [
             "max",
@@ -460,8 +460,8 @@
         ]
     },
     "cru_tmp_yearly_mean": {
-        "dataset_name" : "cru_tmp_yearly_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/cru_ts4.01/yearly/tmp/mean",
+        "data_name" : "cru_tmp_yearly_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/cru_ts4.01/yearly/tmp/mean",
         "file_mask" : "cru.tmp.YYYY.tif",
         "extract_types" : [
             "max",
@@ -470,8 +470,8 @@
         ]
     },
     "cru_pre_yearly_mean": {
-        "dataset_name" : "cru_pre_yearly_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/cru_ts4.01/yearly/pre/mean",
+        "data_name" : "cru_pre_yearly_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/cru_ts4.01/yearly/pre/mean",
         "file_mask" : "cru.pre.YYYY.tif",
         "extract_types" : [
             "max",
@@ -480,8 +480,8 @@
         ]
     },
     "ltdr_avhrr_ndvi_v5_yearly": {
-        "dataset_name" : "ltdr_avhrr_ndvi_v5_yearly",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v5/yearly",
+        "data_name" : "ltdr_avhrr_ndvi_v5_yearly",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v5/yearly",
         "file_mask" : "avhrr_ndvi_v5_YYYY.tif",
         "extract_types" : [
             "max",
@@ -491,8 +491,8 @@
         ]
     },
     "udel_precip_v501_mean": {
-        "dataset_name" : "udel_precip_v501_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2017/yearly/mean",
+        "data_name" : "udel_precip_v501_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2017/yearly/mean",
         "file_mask" : "precip_YYYY_mean.tif",
         "extract_types" : [
             "max",
@@ -501,8 +501,8 @@
         ]
     },
     "udel_precip_v501_sum": {
-        "dataset_name" : "udel_precip_v501_sum",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2017/yearly/sum",
+        "data_name" : "udel_precip_v501_sum",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2017/yearly/sum",
         "file_mask" : "precip_YYYY_sum.tif",
         "extract_types" : [
             "max",
@@ -512,8 +512,8 @@
         ]
     },
     "udel_air_temp_v501_mean": {
-        "dataset_name" : "udel_air_temp_v501_mean",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2017/yearly/mean",
+        "data_name" : "udel_air_temp_v501_mean",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2017/yearly/mean",
         "file_mask" : "air_temp_YYYY_mean.tif",
         "extract_types" : [
             "max",
@@ -522,8 +522,8 @@
         ]
     },
     "accessibility_to_cities_2015_v1.0": {
-        "dataset_name" : "accessibility_to_cities_2015_v1.0",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/accessibility_to_cities_2015_v1.0/accessibility_to_cities_2015_v1.0.tif",
+        "data_name" : "accessibility_to_cities_2015_v1.0",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/accessibility_to_cities_2015_v1.0/accessibility_to_cities_2015_v1.0.tif",
         "file_mask" : "None",
         "extract_types" : [
             "mean",
@@ -532,8 +532,8 @@
         ]
     },
     "oco2_xco2_yearly": {
-        "dataset_name" : "oco2_xco2_yearly",
-        "dataset_base" : "/sciclone/aiddata10/REU/geo/data/rasters/jpl/oco2/xco2/year_interp",
+        "data_name" : "oco2_xco2_yearly",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/jpl/oco2/xco2/year_interp",
         "file_mask" : "xco2_YYYY.tif",
         "extract_types" : [
             "mean",
