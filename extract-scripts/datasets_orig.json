@@ -1,0 +1,413 @@
+{
+    "africa_child_mortality": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/africa_child_mortality",
+        "data_name": "child_mortality",
+        "file_mask": "africa_child_mortality_YYYY.tif"
+    },
+    "gdp_grid": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/GDP_grid/GDP_grid_flt.tif",
+        "data_name": "gdp_grid",
+        "file_mask": "None"
+    },
+    "dist_to_gadm28_borders": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/gadm28_borders/gadm28_borders_distance.tif",
+        "data_name": "dist_to_gadm28_borders",
+        "file_mask": "None"
+    },
+    "dist_to_water": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/water/water_distance.tif",
+        "data_name": "dist_to_water",
+        "file_mask": "None"
+    },
+    "dist_to_groads": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/groads/groads_distance.tif",
+        "data_name": "dist_to_groads",
+        "file_mask": "None"
+    },
+    "srtm_elevation_500m": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/srtm/srtm_elevation_500m/SRTM_500m.tif",
+        "data_name": "srtm_elevation_500m",
+        "file_mask": "None"
+    },
+    "srtm_slope_500m": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/srtm/srtm_slope_500m/SRTM_500m_slope.tif",
+        "data_name": "srtm_slope_500m",
+        "file_mask": "None"
+    },
+    "accessibility_map": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/accessibility_map/access_50k.tif",
+        "data_name": "accessibility_map",
+        "file_mask": "None"
+    },
+    "gpw_v3_density": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v3/density",
+        "data_name": "gpw_v3_density",
+        "file_mask": "gldsxxag_YYYY.asc"
+    },
+    "gpw_v3_count": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v3/count",
+        "data_name": "gpw_v3_count",
+        "file_mask": "glpxxag_YYYY.asc"
+    },
+    "gpw_v4_density": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v4/density",
+        "data_name": "gpw_v4_density",
+        "file_mask": "gpw-v4-population-density-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
+    },
+    "gpw_v4_count": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gpw/gpw_v4/count",
+        "data_name": "gpw_v4_count",
+        "file_mask": "gpw-v4-population-count-adjusted-to-2015-unwpp-country-totals_YYYY.tif"
+    },
+    "ndvi_max_mask_lt6k": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_max_mask_lt6k",
+        "data_name": "ndvi_max_mask_lt6k",
+        "file_mask": "YYYY.tif"
+    },
+    "ltdr_yearly_ndvi_mean": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_mean",
+        "data_name": "ltdr_yearly_ndvi_mean",
+        "file_mask": "YYYY.tif"
+    },
+    "ltdr_yearly_ndvi_max": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ltdr_yearly/ndvi_max",
+        "data_name": "ltdr_yearly_ndvi_max",
+        "file_mask": "YYYY.tif"
+    },
+    "v4avg_lights_x_pct": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4avg_lights_x_pct",
+        "data_name": "v4avg_lights_x_pct",
+        "file_mask": "FxxYYYY.v4x.avg_lights_x_pct.tif"
+    },
+    "v4composites": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4composites",
+        "data_name": "v4composites",
+        "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis.tif"
+    },
+    "v4composites_calibrated_201709": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/dmsp_ntl/v4composites_calibrated_201709",
+        "data_name": "v4composites_calibrated_201709",
+        "file_mask": "FxxYYYY.v4x_web.stable_lights.avg_vis_calibrated.tif"
+    },
+    "viirs_ntl_yearly": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/yearly/max",
+        "data_name": "viirs_ntl_yearly",
+        "file_mask": "YYYY.tif"
+    },
+    "viirs_ntl_monthly": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/viirs/vcmcfg_dnb_composites_v10/monthly",
+        "data_name": "viirs_ntl_monthly",
+        "file_mask": "YYYYMM.tif"
+    },
+    "ltdr_avhrr_yearly_ndvi": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v4/yearly",
+        "data_name": "ltdr_avhrr_yearly_ndvi",
+        "file_mask": "avhrr_ndvi_YYYY.tif"
+    },
+    "ltdr_avhrr_monthly_ndvi": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ltdr/avhrr_ndvi_v4/monthly",
+        "data_name": "ltdr_avhrr_monthly_ndvi",
+        "file_mask": "yyyy/avhrr_ndvi_YYYY_MM.tif"
+    },
+    "terrestrial_air_temperature_v4_01": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/interpolated/terrestrial_air_temperature_v4.01",
+        "data_name": "terrestrial_air_temperature_v4.01",
+        "file_mask": "yyyy/air_temp_YYYY_MM.tif"
+    },
+    "terrestrial_precipitation_v4_01": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/interpolated/terrestrial_precipitation_v4.01",
+        "data_name": "terrestrial_precipitation_v4.01",
+        "file_mask": "yyyy/precip_YYYY_MM.tif"
+    },
+    "udel_air_temp_v4_01_monthly": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2014_v4.01/monthly",
+        "data_name": "udel_air_temp_v4_01_monthly",
+        "file_mask": "yyyy/air_temp_YYYY_MM.tif"
+    },
+    "udel_precip_v4_01_monthly": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2014_v4.01/monthly",
+        "data_name": "udel_precip_v4_01_monthly",
+        "file_mask": "yyyy/precip_YYYY_MM.tif"
+    },
+    "udel_air_temp_v4_01_yearly_mean": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2014_v4.01/yearly/mean",
+        "data_name": "udel_air_temp_v4_01_yearly_mean",
+        "file_mask": "air_temp_YYYY_mean.tif"
+    },
+    "udel_precip_v4_01_yearly_mean": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2014_v4.01/yearly/mean",
+        "data_name": "udel_precip_v4_01_yearly_mean",
+        "file_mask": "precip_YYYY_mean.tif"
+    },
+    "udel_air_temp_v4_01_yearly_min": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2014_v4.01/yearly/min",
+        "data_name": "udel_air_temp_v4_01_yearly_min",
+        "file_mask": "air_temp_YYYY_min.tif"
+    },
+    "udel_precip_v4_01_yearly_min": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2014_v4.01/yearly/min",
+        "data_name": "udel_precip_v4_01_yearly_min",
+        "file_mask": "precip_YYYY_min.tif"
+    },
+    "udel_air_temp_v4_01_yearly_max": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/air_temp_2014_v4.01/yearly/max",
+        "data_name": "udel_air_temp_v4_01_yearly_max",
+        "file_mask": "air_temp_YYYY_max.tif"
+    },
+    "udel_precip_v4_01_yearly_max": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2014_v4.01/yearly/max",
+        "data_name": "udel_precip_v4_01_yearly_max",
+        "file_mask": "precip_YYYY_max.tif"
+    },
+    "modis_lst_day_yearly_mean": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters//modis_lst/yearly/day/mean",
+        "data_name": "modis_lst_day_yearly_mean",
+        "file_mask": "modis_lst_day_cmg_YYYY.tif"
+    },
+    "treecover2000": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/treecover2000/treecover2000.tif",
+        "data_name": "treecover2000",
+        "file_mask": "None"
+    },
+    "loss": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/loss/loss.tif",
+        "data_name": "loss",
+        "file_mask": "None"
+    },
+    "gain": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/gain/gain.tif",
+        "data_name": "gain",
+        "file_mask": "None"
+    },
+    "lossyear": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/lossyear/lossyear.tif",
+        "data_name": "lossyear",
+        "file_mask": "None",
+        "categories": {
+            "noloss": 0,
+            "2001": 1,
+            "2002": 2,
+            "2003": 3,
+            "2004": 4,
+            "2005": 5,
+            "2006": 6,
+            "2007": 7,
+            "2008": 8,
+            "2009": 9,
+            "2010": 10,
+            "2011": 11,
+            "2012": 12,
+            "2013": 13,
+            "2014": 14
+        }
+    },
+    "datamask": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/datamask/datamask.tif",
+        "data_name": "datamask",
+        "file_mask": "None",
+        "categories": {
+            "nodata": 0,
+            "land": 1,
+            "water": 2
+        }
+    },
+    "00forest25": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/00forest25/00forest25.tif",
+        "data_name": "00forest25",
+        "file_mask": "None"
+    },
+    "loss25": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/loss25/loss25.tif",
+        "data_name": "loss25",
+        "file_mask": "None"
+    },
+    "lossyr25": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/lossyr25/lossyr25.tif",
+        "data_name": "lossyr25",
+        "file_mask": "None",
+        "categories": {
+            "noloss": 0,
+            "2001": 1,
+            "2002": 2,
+            "2003": 3,
+            "2004": 4,
+            "2005": 5,
+            "2006": 6,
+            "2007": 7,
+            "2008": 8,
+            "2009": 9,
+            "2010": 10,
+            "2011": 11,
+            "2012": 12,
+            "2013": 13,
+            "2014": 14
+        }
+    },
+    "lossgain": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC2015/lossgain/lossgain.tif",
+        "data_name": "lossgain",
+        "file_mask": "None",
+        "categories": {
+            "nolossgain": 0,
+            "lossorgain": 1,
+            "lossandgain": 2
+        }
+    },
+    "wdpa_iucn": {
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/wdpa/iucn_cat_201704/wdpa_iucn_cat_201704.tif",
+        "data_name": "wdpa_iucn",
+        "file_mask": "None",
+        "categories": {
+            "unprotected": 0,
+            "ia": 1,
+            "ib": 2,
+            "ii": 3,
+            "iii": 4,
+            "iv": 5,
+            "v": 6,
+            "vi": 7,
+            "not_applicable": 8,
+            "not_assigned": 9,
+            "not_reported": 10,
+            "mix": 11}
+    },
+    "modis_landcover":{
+        "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/glcf/modis_landcover_5.1",
+        "data_name": "modis_landcover",
+        "file_mask": "YYYY.xx.xx.tif",
+        "categories": {
+            "water": 0,
+            "evergreen_needleleaf_forest": 1,
+            "evergreen_broadleaf_forest": 2,
+            "deciduous_needleleaf_forest": 3,
+            "deciduous_broadleaf_forest": 4,
+            "mixed_forest": 5,
+            "closed_shrublands": 6,
+            "open_shrublands": 7,
+            "woody_savannas": 8,
+            "savannas": 9,
+            "grasslands": 10,
+            "permanent_wetlands": 11,
+            "croplands": 12,
+            "urban_and_builtup": 13,
+            "cropland_natural_vegetation_mosaic": 14,
+            "snow_and_ice": 15,
+            "barren_or_sparsely_vegetated": 16,
+            "unclassified": 254,
+            "fill_value": 255
+     }},
+     "air_pollution_pm2.5":{
+          "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/fus_calibrated",
+          "data_name": "air_pollution_pm2.5",
+          "file_mask": "fus_calibrated_YYYY.tif"
+     },
+     "air_pollution_o3": {
+          "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ambient_air_pollution_2013/o3",
+          "data_name": "air_pollution_o3",
+          "file_mask": "o3_YYYY.tif"
+     },
+     "gemdata_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_binary.tif",
+         "data_name": "gemdata_201708",
+         "file_mask": "None"
+     },
+     "distance_to_gemdata_201708":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/gemdata_201708/gemstone_distance.tif",
+         "data_name": "distance_to_gemdata_201708",
+         "file_mask": "None"
+     },
+     "ucdp_deaths_171":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/ucdp/ged_global_171",
+         "data_name": "ucdp_deaths_171",
+         "file_mask": "ucdp_deaths_YYYY.tif"
+     },
+     "esa_landcover_v207":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/esa_landcover_v207",
+         "data_name": "esa_landcover_v207",
+         "file_mask": "esa_lc_YYYY.tif",
+         "categories": {
+            "no_data": 0,
+            "rainfed_cropland": 10,
+            "irrigated_cropland": 20,
+            "mosaic_cropland": 30,
+            "forest": 50,
+            "grassland": 110,
+            "shrubland": 120,
+            "sparse_vegetation": 140,
+            "wetland": 180,
+            "urban": 190,
+            "bare_areas": 200,
+            "water_bodies": 210,
+            "snow_ice": 220
+        }
+     },
+     "distance_to_gold_v12":{
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_distance.tif",
+         "data_name": "distance_to_gold_v12",
+         "file_mask": "None"
+     },
+     "categorical_gold_v12": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/goldata_v12/gold_categorical.tif",
+         "data_name": "categorical_gold_v12",
+         "file_mask": "None",
+         "categories": {
+            "none": 0,
+            "lootable": 1,
+            "surface": 2,
+            "nonlootable": 3,
+            "mix": 4
+        }
+     },
+     "acled_v3_count": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count/acled_v3_count.tif",
+         "data_name": "acled_v3_count",
+         "file_mask": "None"
+     },
+     "distance_to_drugdata_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_distance.tif",
+         "data_name": "distance_to_drugdata_201708",
+         "file_mask": "None"
+     },
+     "distance_to_coast": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/distance_to/coast_236/coast_distance.tif",
+         "data_name": "distance_to_coast_236",
+         "file_mask": "None"
+     },
+     "dist_to_onshore_petroleum_v12": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_distance.tif",
+         "data_name": "distance_to_coast_236",
+         "file_mask": "None"
+     },
+     "diamond_binary_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_binary.tif",
+         "data_name": "diamond_binary_201708",
+         "file_mask": "None"
+     },
+     "diamond_distance_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/diamond_201708/diamond_distance.tif",
+         "data_name": "diamond_distance_201708",
+         "file_mask": "None"
+     },
+     "acled_conflict_count": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/acled/v3/count",
+         "data_name": "acled_conflict_count",
+         "file_mask": "None"
+     },
+     "drugdata_categorical_201708": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/drugdata_201708/drug_categorical.tif",
+         "data_name": "drugdata_categorical_201708",
+         "file_mask": "None",
+         "categories": {
+            "none": 0,
+            "cannabis": 1,
+            "coca_bush": 2,
+            "opium": 3,
+            "mix": 4
+        }
+     },
+     "onshore_petroleum_v12": {
+         "data_base": "/sciclone/aiddata10/REU/geo/data/rasters/petroleum_v12/onshore/petroleum_binary.tif",
+         "data_name": "onshore_petroleum_v12",
+         "file_mask": "None"
+     }
+}
