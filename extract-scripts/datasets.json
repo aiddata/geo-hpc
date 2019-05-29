@@ -171,7 +171,6 @@
             "grasslands" : 10,
             "croplands" : 12
         },
-
         "extract_types" : [
             "categorical"
         ]
