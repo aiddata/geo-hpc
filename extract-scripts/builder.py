@@ -187,7 +187,16 @@ for dataset_options in job_json['data']:
 
     exo.set_vector_path(tmp_config['bnd_absolute'])
 
-    exo.set_base_path(tmp_config['data_base'])
+    raster_base = tmp_config['data_base']
+
+    if tmp_config['file_mask'] == "None" and not os.path.isfile(raster_base):
+        for root, dirs, files in os.walk(raster_base):
+            for file in files:
+                raster_base = os.path.join(root, file)
+                break
+            break
+
+    exo.set_base_path(raster_base)
 
     exo.set_years(tmp_config['years'])
 
@@ -504,5 +513,3 @@ os.chdir(output_dir)
 
 # submit job via qsub
 qsub(output_jobscript_path)
-
-
