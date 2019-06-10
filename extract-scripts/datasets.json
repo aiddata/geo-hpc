@@ -539,5 +539,53 @@
             "max",
             "min"
         ]
+    },
+    "hansen2018_v16_lossyear": {
+        "data_name" : "hansen2018_v16_lossyear",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC-2018-v1.6/lossyear/lossyear.tif",
+        "file_mask" : "None",
+        "extract_types" : [
+            "categorical"
+        ]
+    },
+    "hansen2018_v16_treecover2000": {
+        "data_name" : "hansen2018_v16_treecover2000",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/hansen/GFC-2018-v1.6/treecover2000/treecover2000.tif",
+        "file_mask" : "None",
+        "extract_types" : [
+            "mean",
+            "max",
+            "min"
+        ]
+    },
+    "globalsolaratlas_pvout": {
+        "data_name" : "globalsolaratlas_pvout",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/globalsolaratlas/pvout/PVOUT.tif",
+        "file_mask" : "None",
+        "extract_types" : [
+            "mean",
+            "max",
+            "min"
+        ]
+    },
+    "globalwindatlas_powerdensity": {
+        "data_name" : "globalwindatlas_powerdensity",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/globalwindatlas/GWA2.1/power_density/gwa2_250_pd_NONE_50m.tif",
+        "file_mask" : "None",
+        "extract_types" : [
+            "mean",
+            "max",
+            "min"
+        ]
+    },
+    "globalwindatlas_windspeed": {
+        "data_name" : "globalwindatlas_windspeed",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/globalwindatlas/GWA2.1/wind_speed/gwa2_250_ws_NONE_50m.tif",
+        "file_mask" : "None",
+        "extract_types" : [
+            "mean",
+            "max",
+            "min"
+        ]
     }
 }
