@@ -599,7 +599,7 @@ def tmp_master_final(self):
 
     # run final output gen functions
     complete_final_raster()
-    complete_unique_geoms()
+    # complete_unique_geoms()
 
 
     # calc section runtime and total runtime

@@ -46,11 +46,12 @@ class MSRItem():
             self.base, self.dataset_name, self.data_hash)
 
         raster_path = msr_base + '/raster.tif'
-        geojson_path = msr_base + '/unique.geojson'
+        # geojson_path = msr_base + '/unique.geojson'
         summary_path = msr_base + '/summary.json'
 
         raster_exists = os.path.isfile(raster_path) and os.stat(raster_path).st_size > 0
-        geojson_exists = os.path.isfile(geojson_path) and os.stat(geojson_path).st_size > 0
+        # geojson_exists = os.path.isfile(geojson_path) and os.stat(geojson_path).st_size > 0
+        geojson_exists = True
         summary_exists = os.path.isfile(summary_path) and os.stat(summary_path).st_size > 0
 
         msr_exists = raster_exists and geojson_exists and summary_exists
@@ -136,4 +137,3 @@ class MSRItem():
             insert = self.c_msr.insert(full_insert)
 
         return True, ctime
-
