@@ -152,6 +152,8 @@ def tmp_master_final(self):
 
 def tmp_worker_job(self, task_index, task_data):
 
+    worker_start_time = int(time.time())
+
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
     print worker_tagline
 
@@ -196,6 +198,8 @@ def tmp_worker_job(self, task_index, task_data):
 
     # ---------------------------------
 
+    worker_tmp_runtime = int(time.time() - worker_start_time)
+    print '\t\t\t...worker running for {}m {}s [#1]'.format(worker_tmp_runtime//60, int(worker_tmp_runtime%60))
 
     print '\t\tRunning relevance checks...'
 
@@ -236,6 +240,9 @@ def tmp_worker_job(self, task_index, task_data):
         }))
 
     print '\t\t{0} matches found'.format(len(matches))
+
+    worker_tmp_runtime = int(time.time() - worker_start_time)
+    print '\t\t\t...worker running for {}m {}s [#2]'.format(worker_tmp_runtime//60, int(worker_tmp_runtime%60))
 
     if len(matches) > 0:
         # boundary base and type
@@ -399,7 +406,8 @@ def tmp_worker_job(self, task_index, task_data):
         # update tracker for third stage search
         #
 
-
+    worker_tmp_runtime = int(time.time() - worker_start_time)
+    print '\t\t\t...worker running for {}m {}s [#3]'.format(worker_tmp_runtime//60, int(worker_tmp_runtime%60))
 
     # update tracker for all unprocessed dataset not matching first
     # stage search
@@ -417,6 +425,9 @@ def tmp_worker_job(self, task_index, task_data):
     #       it being properly indexed, so it is continually left out until
     #       it is removed from data collection or set to active and indexed.
     c_bnd.update_many({"status": -3}, {"$set": {"status": -1}}, upsert=False)
+
+    worker_tmp_runtime = int(time.time() - worker_start_time)
+    print '\t\t\t...worker running for {}m {}s [#4]'.format(worker_tmp_runtime//60, int(worker_tmp_runtime%60))
 
     return
 
@@ -437,6 +448,7 @@ def tmp_get_task_data(self, task_index, source):
 # init / run job
 if job.rank == 0:
     job.set_task_count(len(bnds))
+    print("########## Running {} Tasks (Boundaries) ##########".format(len(bnds)))
 
 job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)
