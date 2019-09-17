@@ -109,6 +109,10 @@ if job.rank == 0:
 
     random.shuffle(bnds)
 
+    boundary_remaining = [i["name"] for i in bnds]
+    boundary_running = []
+    boundary_completed = []
+
 else:
     # lookup all active non boundary dataset
     dsets = list(c_asdf.find({
@@ -138,6 +142,10 @@ def tmp_master_init(self):
 
 
 def tmp_master_process(self, worker_result):
+    boundary_running.remove(worker_result)
+    boundary_completed.append(worker_result)
+    print "Boundaries running: {}".format(boundary_running)
+    print "Boundaries remaining: {}".format(boundary_remaining)
     mT_run = int(time.time() - self.Ts)
     print 'Current Master Runtime: ' + str(mT_run//60) +'m '+ str(int(mT_run%60)) +'s'
 
@@ -433,7 +441,7 @@ def tmp_worker_job(self, task_index, task_data):
     worker_tmp_runtime = int(time.time() - worker_start_time)
     print '\t\t\t...worker running for {}m {}s [#4]'.format(worker_tmp_runtime//60, int(worker_tmp_runtime%60))
 
-    return
+    return bnd["name"]
 
 
 def tmp_get_task_data(self, task_index, source):
@@ -444,6 +452,9 @@ def tmp_get_task_data(self, task_index, source):
     print ("Master - starting request search for Worker {0} "
            "(Task Index: {1})").format(
                 source, task_index)
+
+    boundary_remaining.remove(bnds[task_index]["name"])
+    boundary_running.append(bnds[task_index]["name"])
 
     return bnds[task_index]
 
