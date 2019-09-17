@@ -144,8 +144,8 @@ def tmp_master_init(self):
 def tmp_master_process(self, worker_result):
     boundary_running.remove(worker_result)
     boundary_completed.append(worker_result)
-    print "Boundaries running: {}".format(boundary_running)
-    print "Boundaries remaining: {}".format(boundary_remaining)
+    print "Boundaries running ({}): {}".format(len(boundary_running), boundary_running)
+    print "Boundaries remaining ({}): {}".format(len(boundary_remaining), boundary_remaining)
     mT_run = int(time.time() - self.Ts)
     print 'Current Master Runtime: ' + str(mT_run//60) +'m '+ str(int(mT_run%60)) +'s'
 
