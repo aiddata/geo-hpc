@@ -67,6 +67,7 @@ job.comm.Barrier()
 # load libraries now that job is initialized
 
 import time
+import random
 import itertools
 import pymongo
 import fiona
@@ -106,6 +107,8 @@ if job.rank == 0:
         'active': {'$gte': -1}
     }))
 
+    random.shuffle(bnds)
+
 else:
     # lookup all active non boundary dataset
     dsets = list(c_asdf.find({
@@ -135,7 +138,8 @@ def tmp_master_init(self):
 
 
 def tmp_master_process(self, worker_result):
-    pass
+    mT_run = int(time.time() - self.Ts)
+    print 'Current Master Runtime: ' + str(mT_run//60) +'m '+ str(int(mT_run%60)) +'s'
 
 
 def tmp_master_final(self):
