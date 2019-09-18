@@ -328,6 +328,9 @@ def tmp_worker_job(self, task_index, task_data):
             result = True
 
         elif dset_type == "raster":
+            # true extract takes too long and is too costly to run
+            # use a simple test of sample points over boundary bounding box
+            # to do a good enough check of whether the data is relevant to boundary
 
             raster_src = rasterio.open(dset_path)
 
