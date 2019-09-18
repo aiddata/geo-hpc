@@ -102,15 +102,10 @@ if job.rank == 0:
 
 
     # lookup all boundary datasets that are the "actual" for their group
-    # bnds = list(c_asdf.find({
-    #     "type": "boundary",
-    #     "options.group_class": "actual",
-    #     'active': {'$gte': -1}
-    # }))
-
-    tmp_list = [u'chl_adm0_gadm28', u'gbr_adm0_gb_1_3_3', u'idn_adm0_gadm28', u'chl_adm0_gb_1_3_3', u'bra_adm0_gb_1_3_3', u'chn_adm0_gb_1_3_3', u'aus_adm0_gadm28', u'usa_adm0_gadm28', u'bra_adm0_gadm28', u'mex_adm0_gadm28', u'nor_adm0_gb_1_3_3', u'aus_adm0_gb_1_3_3', u'nzl_adm0_gb_1_3_3', u'ind_adm0_gadm28']
     bnds = list(c_asdf.find({
-        "name": {'$in': tmp_list}
+        "type": "boundary",
+        "options.group_class": "actual",
+        'active': {'$gte': -1}
     }))
 
     random.shuffle(bnds)
