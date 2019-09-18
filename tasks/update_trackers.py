@@ -75,6 +75,7 @@ import rasterio
 import numpy as np
 from shapely.geometry import Point, shape, box
 from shapely.ops import cascaded_union
+from pprint import pprint
 
 # -------------------------------------
 # prepare mongo connections
@@ -109,6 +110,16 @@ if job.rank == 0:
 
     random.shuffle(bnds)
 
+    def bnd_item(name):
+        return {
+            "name": name,
+            "status": "waiting",
+            "start": -1,
+            "runtime": -1,
+        }
+
+    boundary_tracker = {i["name"]: bnd_item(i["name"]) for i in bnds}
+
     boundary_remaining = [i["name"] for i in bnds]
     boundary_running = []
     boundary_completed = []
@@ -142,12 +153,24 @@ def tmp_master_init(self):
 
 
 def tmp_master_process(self, worker_result):
+    boundary_tracker[worker_result]["status"] = "complete"
+    boundary_tracker[worker_result]["runtime"] = int(time.time()) - boundary_tracker[worker_result]["start"]
     boundary_running.remove(worker_result)
     boundary_completed.append(worker_result)
     print "Boundaries running ({}): {}".format(len(boundary_running), boundary_running)
     print "Boundaries remaining ({}): {}".format(len(boundary_remaining), boundary_remaining)
     mT_run = int(time.time() - self.Ts)
+    self.last_update = time.time()
     print 'Current Master Runtime: ' + str(mT_run//60) +'m '+ str(int(mT_run%60)) +'s'
+
+
+def tmp_master_update(self):
+    print "Boundaries running ({}): {}".format(len(boundary_running), boundary_running)
+    print "Boundaries remaining ({}): {}".format(len(boundary_remaining), boundary_remaining)
+    runtime = int(time.time() - self.Ts)
+    print 'Current Master Runtime: ' + str(runtime//60) +'m '+ str(int(runtime%60)) +'s'
+    since_update = int(time.time() - self.last_update)
+    print 'Time since last update: ' + str(since_update//60) +'m '+ str(int(since_update%60)) +'s'
 
 
 def tmp_master_final(self):
@@ -160,6 +183,7 @@ def tmp_master_final(self):
     print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
     print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
     print '\n\n'
+    pprint(boundary_tracker)
 
 
 def tmp_worker_job(self, task_index, task_data):
@@ -453,10 +477,17 @@ def tmp_get_task_data(self, task_index, source):
            "(Task Index: {1})").format(
                 source, task_index)
 
-    boundary_remaining.remove(bnds[task_index]["name"])
-    boundary_running.append(bnds[task_index]["name"])
+    task_name = bnds[task_index]["name"]
+
+    boundary_tracker[task_name]["status"] = "running"
+    boundary_tracker[task_name]["start"] = int(time.time())
+
+    boundary_remaining.remove(task_name)
+    boundary_running.append(task_name)
 
     return bnds[task_index]
+
+
 
 
 
@@ -468,6 +499,11 @@ if job.rank == 0:
 job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)
 job.set_master_process(tmp_master_process)
+
+update_interval = 60*5
+job.set_master_update(tmp_master_update)
+job.set_update_interval(update_interval)
+
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 job.set_get_task_data(tmp_get_task_data)
