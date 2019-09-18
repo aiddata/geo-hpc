@@ -157,20 +157,20 @@ def tmp_master_process(self, worker_result):
     boundary_tracker[worker_result]["runtime"] = int(time.time()) - boundary_tracker[worker_result]["start"]
     boundary_running.remove(worker_result)
     boundary_completed.append(worker_result)
-    print "Boundaries running ({}): {}".format(len(boundary_running), boundary_running)
-    print "Boundaries remaining ({}): {}".format(len(boundary_remaining), boundary_remaining)
+    print "\nBoundaries running ({}): \n{}".format(len(boundary_running), boundary_running)
+    print "\nBoundaries remaining ({}): \n{}".format(len(boundary_remaining), boundary_remaining)
     mT_run = int(time.time() - self.Ts)
     self.last_update = time.time()
-    print 'Current Master Runtime: ' + str(mT_run//60) +'m '+ str(int(mT_run%60)) +'s'
+    print '\nCurrent Master Runtime: ' + str(mT_run//60) +'m '+ str(int(mT_run%60)) +'s'
 
 
 def tmp_master_update(self):
-    print "Boundaries running ({}): {}".format(len(boundary_running), boundary_running)
-    print "Boundaries remaining ({}): {}".format(len(boundary_remaining), boundary_remaining)
+    print "\nBoundaries running ({}): \n{}".format(len(boundary_running), boundary_running)
+    print "\nBoundaries remaining ({}): \n{}".format(len(boundary_remaining), boundary_remaining)
     runtime = int(time.time() - self.Ts)
-    print 'Current Master Runtime: ' + str(runtime//60) +'m '+ str(int(runtime%60)) +'s'
+    print '\nCurrent Master Runtime: ' + str(runtime//60) +'m '+ str(int(runtime%60)) +'s'
     since_update = int(time.time() - self.last_update)
-    print 'Time since last update: ' + str(since_update//60) +'m '+ str(int(since_update%60)) +'s'
+    print '\nTime since last update: ' + str(since_update//60) +'m '+ str(int(since_update%60)) +'s'
 
 
 def tmp_master_final(self):
