@@ -102,10 +102,15 @@ if job.rank == 0:
 
 
     # lookup all boundary datasets that are the "actual" for their group
+    # bnds = list(c_asdf.find({
+    #     "type": "boundary",
+    #     "options.group_class": "actual",
+    #     'active': {'$gte': -1}
+    # }))
+
+    tmp_list = [u'chl_adm0_gadm28', u'gbr_adm0_gb_1_3_3', u'idn_adm0_gadm28', u'chl_adm0_gb_1_3_3', u'bra_adm0_gb_1_3_3', u'chn_adm0_gb_1_3_3', u'aus_adm0_gadm28', u'usa_adm0_gadm28', u'bra_adm0_gadm28', u'mex_adm0_gadm28', u'nor_adm0_gb_1_3_3', u'aus_adm0_gb_1_3_3', u'nzl_adm0_gb_1_3_3', u'ind_adm0_gadm28']
     bnds = list(c_asdf.find({
-        "type": "boundary",
-        "options.group_class": "actual",
-        'active': {'$gte': -1}
+        "name": {'$in': tmp_list}
     }))
 
     random.shuffle(bnds)
@@ -147,6 +152,7 @@ def tmp_master_init(self):
     # start job timer
     self.Ts = int(time.time())
     self.T_start = time.localtime()
+    self.last_update = time.time()
     print '\n\n'
     print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
     print '\n\n'
@@ -344,32 +350,32 @@ def tmp_worker_job(self, task_index, task_data):
             max_area = 1500
             valid_sample_thresh = 0.05
 
-            if total_area > max_area and pixel_count > pixel_limit:
+            # if total_area > max_area and pixel_count > pixel_limit:
 
-                xvals = np.arange(minx, maxx, step_size)
-                yvals = np.arange(miny, maxy, step_size)
-                samples = list(itertools.product(xvals, yvals))
+            xvals = np.arange(minx, maxx, step_size)
+            yvals = np.arange(miny, maxy, step_size)
+            samples = list(itertools.product(xvals, yvals))
 
-                values = [val[0] for val in raster_src.sample(samples)]
+            values = [val[0] for val in raster_src.sample(samples)]
 
-                raster_src.close()
+            raster_src.close()
 
-                clean_values = [i for i in values if i != nodata and i is not None]
+            clean_values = [i for i in values if i != nodata and i is not None]
 
-                distinct_values = set(clean_values)
+            distinct_values = set(clean_values)
 
-                # percent of samples resulting in clean value
-                if len(clean_values) > len(samples)*valid_sample_thresh and len(distinct_values) > 1:
-                    result = True
+            # percent of samples resulting in clean value
+            if len(clean_values) > len(samples)*valid_sample_thresh and len(distinct_values) > 1:
+                result = True
 
-            else:
-                # python raster stats extract
-                extract = rs.gen_zonal_stats(bnd_path, dset_path, stats="min max", limit=200000)
+            # else:
+            #     # python raster stats extract
+            #     extract = rs.gen_zonal_stats(bnd_path, dset_path, stats="min max", limit=200000)
 
-                for i in extract:
-                    if i['min'] != None or i['max'] != None:
-                        result = True
-                        break
+            #     for i in extract:
+            #         if i['min'] != None or i['max'] != None:
+            #             result = True
+            #             break
 
         elif dset_type == "release":
 
