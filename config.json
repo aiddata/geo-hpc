@@ -70,13 +70,13 @@
                         "description": "generic vortex-alpha msr job",
                         "jobname": "ex2",
                         "nodespec": "c18c",
-                        "max_jobs": 1,
+                        "max_jobs": 4,
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "180:00:00",
                         "cmd": "mpirun -mca orte_base_help_aggregate 0 --mca mpi_warn_on_fork 0 --map-by node -np 8 python-mpi $src/geo-hpc/tasks/extract_runscript.py $branch $job_type $extract_limit $pixel_limit",
                         "job_type": "msr",
-                        "extract_limit": 200,
+                        "extract_limit": 500,
                         "pixel_limit": 100100
                     },
                     {
