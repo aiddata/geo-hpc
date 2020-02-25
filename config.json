@@ -261,8 +261,8 @@
         "det": {
             "download_server": "geo.aiddata.org",
             "featured_datasets": [
+                "nyc",
                 "atlasofurbanexpansion2016_urban_edge_t1",
-                "grid_0p5_degree",
                 "tza_adm2_gb_1_3_3",
                 "civ_adm2_gb_1_3_3",
                 "viirs_vcmcfg_dnb_composites_v10_yearly_max",
