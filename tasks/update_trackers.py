@@ -302,6 +302,7 @@ def tmp_worker_job(self, task_index, task_data):
         meta_search = list(c_asdf.find({'name': match['name']}))
 
         if len(meta_search) == 0:
+            print '\t\t\tCould not find dataset'
             c_bnd.update_one({"name": match['name']},
                              {"$set": {"status": -3}}, upsert=False)
             continue
@@ -309,6 +310,7 @@ def tmp_worker_job(self, task_index, task_data):
         meta = meta_search[0]
 
         if "active" in meta and meta["active"] == 0:
+            print '\t\t\tDataset inactive'
             c_bnd.update_one({"name": match['name']},
                              {"$set": {"status": -3}}, upsert=False)
             continue
@@ -325,6 +327,7 @@ def tmp_worker_job(self, task_index, task_data):
         result = False
 
         if bnd["scale"] == "global":
+            print '\t\t\tGlobal boundary'
             result = True
 
         elif dset_type == "raster":
@@ -365,6 +368,9 @@ def tmp_worker_job(self, task_index, task_data):
             # percent of samples resulting in clean value
             if len(clean_values) > len(samples)*valid_sample_thresh and len(distinct_values) > 1:
                 result = True
+            else:
+                print '\t\t\tPixel check did not pass'
+
 
             # else:
             #     # python raster stats extract
