@@ -343,19 +343,32 @@ def tmp_worker_job(self, task_index, task_data):
             xsize = (maxx - minx) / pixel_size
             ysize = (maxy - miny) / pixel_size
 
-            pixel_count = xsize * ysize
 
-            pixel_limit = 500000
-            step_size = 0.5
-            buffer_size = 0.05
-            max_area = 1500
+            # -----
+            # this section creates the sample of pixels within extents of boundary data
+            # *** potential flaw here is that samples are only within the extet, but
+            #     not necessarily within the actual boundary. For data such as islands
+            #     which have small areas but cover large extents, and which are surrounded
+            #     by nodata vals, this could be an issue
+
+            # minimum ratio of valid pixels required
             valid_sample_thresh = 0.05
+            # maximum number of pixels to test
+            pixel_limit = 500000
 
-            # if total_area > max_area and pixel_count > pixel_limit:
+            # init as > than limit to force one run of loop
+            sampled_pixel_count = pixel_limit + 1
 
-            xvals = np.arange(minx, maxx, step_size)
-            yvals = np.arange(miny, maxy, step_size)
-            samples = list(itertools.product(xvals, yvals))
+            while sampled_pixel_count > pixel_limit:
+                xvals = np.arange(minx, maxx, step_size)
+                yvals = np.arange(miny, maxy, step_size)
+                samples = list(itertools.product(xvals, yvals))
+                sampled_pixel_count = len(samples)
+                # increase step size until sample pixel count is small enough
+                step_size = pixel_size * 2
+
+            # -----
+
 
             values = [val[0] for val in raster_src.sample(samples)]
 
