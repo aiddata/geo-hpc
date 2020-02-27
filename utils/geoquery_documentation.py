@@ -405,6 +405,9 @@ class DocBuilder():
         meta_log = []
         for dset in self.request['release_data']:
 
+            if not dset:
+                continue
+
             # if dset['dataset'] not in meta_log:
             meta_log.append(dset['dataset'])
 
@@ -429,6 +432,9 @@ class DocBuilder():
 
 
         for dset in self.request['raster_data']:
+
+            if not dset:
+                continue
 
             # if dset['name'] not in meta_log:
             meta_log.append(dset['name'])
@@ -469,4 +475,3 @@ class DocBuilder():
     # write the document to disk
     def output_doc(self):
         self.doc.build(self.Story)
-
