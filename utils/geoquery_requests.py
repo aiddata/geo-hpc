@@ -330,6 +330,9 @@ class QueueToolBox():
         print "\nchecking aid data (dry=run = {})...".format(dry_run)
         for ix, raw_data in enumerate(request['release_data']):
 
+            if not raw_data:
+                continue
+
             # # mongo was defaulting to 32bit vals for numbers on insert
             # # making float should prevent that
             # if 'total_commitments' in raw_data['filters']:
@@ -432,6 +435,10 @@ class QueueToolBox():
 
         print "\nchecking raster data (dry=run = {})...".format(dry_run)
         for data in request["raster_data"]:
+
+            if not data:
+                continue
+
             name = data['name']
 
             for i in data["files"]:
