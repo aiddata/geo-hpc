@@ -489,6 +489,17 @@
             "count"
         ]
     },
+    "udel_precip_v501_mean_monthly": {
+        "data_name" : "udel_precip_v501_mean_monthly",
+        "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2017/monthly",
+        "file_mask" : "yyyy/precip_YYYY_MM.tif",
+        "extract_types" : [
+            "max",
+            "mean",
+            "min",
+            "sum"
+        ]
+    },
     "udel_precip_v501_mean": {
         "data_name" : "udel_precip_v501_mean",
         "data_base" : "/sciclone/aiddata10/REU/geo/data/rasters/udel_climate/precip_2017/yearly/mean",
