@@ -358,15 +358,16 @@ def tmp_worker_job(self, task_index, task_data):
 
             # init as > than limit to force one run of loop
             sampled_pixel_count = pixel_limit + 1
-            step_size = pixel_size * 1
 
+            # increase step size until sample pixel count is small enough
+            s = 1
             while sampled_pixel_count > pixel_limit:
+                step_size = pixel_size * s
                 xvals = np.arange(minx, maxx, step_size)
                 yvals = np.arange(miny, maxy, step_size)
                 samples = list(itertools.product(xvals, yvals))
                 sampled_pixel_count = len(samples)
-                # increase step size until sample pixel count is small enough
-                step_size = pixel_size * 2
+                s += 1
 
             # -----
 
