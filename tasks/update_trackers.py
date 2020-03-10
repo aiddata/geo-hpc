@@ -370,7 +370,7 @@ def tmp_worker_job(self, task_index, task_data):
                 s += 1
 
             # -----
-
+            
 
             values = [val[0] for val in raster_src.sample(samples)]
 
