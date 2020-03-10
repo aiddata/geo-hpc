@@ -354,7 +354,7 @@ def tmp_worker_job(self, task_index, task_data):
             # minimum ratio of valid pixels required
             valid_sample_thresh = 0.05
             # maximum number of pixels to test
-            pixel_limit = 10000
+            pixel_limit = 50000
 
             # init as > than limit to force one run of loop
             sampled_pixel_count = pixel_limit + 1
@@ -363,14 +363,16 @@ def tmp_worker_job(self, task_index, task_data):
             s = 1
             while sampled_pixel_count > pixel_limit:
                 step_size = pixel_size * s
-                xvals = np.arange(minx, maxx, step_size)
-                yvals = np.arange(miny, maxy, step_size)
-                samples = list(itertools.product(xvals, yvals))
-                sampled_pixel_count = len(samples)
+                predicted_xsize = (maxx - minx) / step_size
+                predicted_ysize = (maxy - miny) / step_size
+                sampled_pixel_count = predicted_xsize * predicted_ysize
                 s += 1
 
             # -----
-            
+
+            xvals = np.arange(minx, maxx, step_size)
+            yvals = np.arange(miny, maxy, step_size)
+            samples = list(itertools.product(xvals, yvals))
 
             values = [val[0] for val in raster_src.sample(samples)]
 
