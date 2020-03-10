@@ -190,7 +190,7 @@
                         "jobname": "upt",
                         "nodespec": "c18c",
                         "max_jobs": 1,
-                        "nodes": 2,
+                        "nodes": 1,
                         "ppn": 16,
                         "walltime": "48:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 --map-by node -np 16 python-mpi $src/geo-hpc/tasks/update_trackers.py $branch"
