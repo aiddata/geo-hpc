@@ -354,7 +354,7 @@ def tmp_worker_job(self, task_index, task_data):
             # minimum ratio of valid pixels required
             valid_sample_thresh = 0.05
             # maximum number of pixels to test
-            pixel_limit = 50000
+            pixel_limit = 10000
 
             # init as > than limit to force one run of loop
             sampled_pixel_count = pixel_limit + 1
