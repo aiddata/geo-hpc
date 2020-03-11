@@ -26,7 +26,7 @@ config.test_connection()
 # initialize mpi
 
 import mpi_utility
-job = mpi_utility.NewParallel(capture=True, print_worker_log=False)
+job = mpi_utility.NewParallel(capture=True, print_worker_log=False, quiet=True)
 
 
 # -------------------------------------
@@ -282,7 +282,7 @@ def tmp_master_final(self):
 def tmp_worker_job(self, task_index, task_data):
 
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
-    print worker_tagline
+    # print worker_tagline
 
     # check if unique extract combinations exist in tracker
     # and add if they do not
@@ -427,4 +427,3 @@ if job.rank == 0:
 #     "submit_time" : 1449897663,
 #     "update_time" : 1450383510,
 # }
-

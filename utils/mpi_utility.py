@@ -72,7 +72,7 @@ class NewParallel(object):
 
     """
 
-    def __init__(self, parallel=True, capture=False, print_worker_log=True):
+    def __init__(self, parallel=True, capture=False, print_worker_log=True, quiet=False):
 
         if run_mpi == False:
             print "NewParallel warning: mpi4py could not be loaded"
@@ -482,8 +482,9 @@ class NewParallel(object):
                                     self.comm.send(None, dest=source, tag=self.tags.EXIT)
 
                                 else:
-                                    print "Master - sending task {0} to worker {1}".format(
-                                        task_index, source)
+                                    if not self.quiet:
+                                        print "Master - sending task {0} to worker {1}".format(
+                                            task_index, source)
 
                                     task = (task_index, task_data)
 
@@ -510,7 +511,8 @@ class NewParallel(object):
                             self.worker_log[source]['current_task_index'] = None
                             self.worker_log[source]['current_task_data'] = None
                             self.worker_log[source]['task_index_history'].append(worker_task_index)
-                            print "Master - received Task {0} data from Worker {1}".format(worker_task_index, source)
+                            if not self.quiet:
+                                print "Master - received Task {0} data from Worker {1}".format(worker_task_index, source)
                             self.master_process(worker_data)
 
                         elif tag == self.tags.EXIT:
@@ -581,5 +583,3 @@ class NewParallel(object):
                     # confirm error message received and exit
                     self.comm.send(None, dest=0, tag=self.tags.EXIT)
                     break
-
-
