@@ -73,6 +73,7 @@ class NewParallel(object):
     """
 
     def __init__(self, parallel=True, capture=False, print_worker_log=True, quiet=False):
+        self.quiet = quiet
 
         if run_mpi == False:
             print "NewParallel warning: mpi4py could not be loaded"
