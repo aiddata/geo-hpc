@@ -155,7 +155,7 @@ def tmp_worker_job(self, task_index, task_data):
 
     exo.set_file_mask(file_mask)
 
-    if extract_type == "categorical":
+    if extract_type in ["categorical", "encoded"]:
         exo.set_extract_type(extract_type, settings['categories'])
     else:
         exo.set_extract_type(extract_type)
