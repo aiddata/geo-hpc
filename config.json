@@ -273,7 +273,7 @@
             "help": [
                 {
                     "question": "Do you have tutorials, videos, or additional resources where I can learn more?",
-                    "answer": "Yes, check out <a href='https://www.aiddata.org/geo'>aiddata.org/geo</a> for a range of tutorial videos, research applications, and more. "
+                    "answer": "Yes, check out <a href='https://www.aiddata.org/geoquery'>aiddata.org/geo</a> for a range of tutorial videos, research applications, and more. "
                 },
                 {
                     "question": "How can I contact you for help or with questions I have?",
