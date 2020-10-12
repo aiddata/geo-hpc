@@ -27,7 +27,7 @@ dst_dir=/sciclone/aiddata10/geo/"${branch}"/backups/mongodb_backups/
 
 
 # compresses individual items then archives
-# example mongorestor:
+# example mongorestore:
 #   mongorestore --gzip --archive=backup.archive
 # for details see:
 #   https://www.mongodb.com/blog/post/archiving-and-compression-in-mongodb-tools

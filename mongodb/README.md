@@ -27,7 +27,30 @@ Setup
 - `sudo chmod 755 /etc/init.d/disable-transparent-hugepages`
 - `sudo update-rc.d disable-transparent-hugepages defaults`
 
-Backup Cron (run as aiddata user)
+
+
+Populate DB from Backup
+
+Note:
+When restoring DB from a backup, anything that has happened since backup would be lost. So you should pause all jobs, temporarily take down frontend, and doing fresh backup (i.e., just running `backup_mongo_db.sh`) to make sure nothing is lost.
+
+- pause crons
+crontab -l > my_cron_backup.txt
+crontab -r
+crontab my_cron_backup.txt
+
+- turn off website
+- backup db
+
+- `mongorestore --gzip --archive=backup_xyz.archive`
+- for details see: https://www.mongodb.com/blog/post/archiving-and-compression-in-mongodb-tools
+
+Adjust IP in geo-hpc config, POST script, other places?
+Turn on website
+turn on hpc crons
+
+
+Setup Backup Cron (run as aiddata user)
 - `crontab mongodb/mongo.crontab`
 - `crontab -e` to edit crontab and set branch to master/develop as needed
 
@@ -42,11 +65,8 @@ Backup Cron (run as aiddata user)
 - `nano ~/.ssh/authorized_keys` and paste private key to new line at the end of the file
 
 
-
-
-
-
 Stats (run as personal user)
 - copy `active` dir from geoquery-stats repo to `~/stats`
 - append to ~/.bashrc: `alias s='bash ~/stats/stats.sh'`
+
 
