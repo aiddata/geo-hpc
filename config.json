@@ -272,6 +272,10 @@
             ],
             "help": [
                 {
+                    "question": "Do you have tutorials, videos, or additional resources where I can learn more?",
+                    "answer": "Yes, check out <a href='aiddata.org/geo'>aiddata.org/geo</a> for a range of tutorial videos, research applications, and more. "
+                },
+                {
                     "question": "How can I contact you for help or with questions I have?",
                     "answer": "Please email us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>"
                 },
@@ -309,7 +313,7 @@
                 },
                 {
                     "question": "Do you conduct research using this information?",
-                    "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at <u><<a href='https://www.aiddata.org/geoquery/research'>HERE</a></u>; you can also contact us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a>."
+                    "answer": "Yes, we work with a wide range of organizations to analyze spatial information.  Many examples can be seen at <u><a href='https://www.aiddata.org/geoquery/research'>HERE</a></u>. You can also contact us at <a href='mailto:geo@aiddata.wm.edu'>geo@aiddata.wm.edu</a> to learn more."
                 },
                 {
                     "question": "How do I submit my request?",
