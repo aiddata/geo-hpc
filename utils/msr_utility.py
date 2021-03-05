@@ -456,7 +456,7 @@ class CoreMSR():
                                 range_max >= z[filter_field] and
                                 range_min <= z[filter_field]
                             ),
-                            axis=1)
+                            axis=1).index
                     ].copy(deep=True)
 
                 else:
