@@ -45,12 +45,12 @@ check_scheduler() {
         fail1=True
     fi
 
-    test2=$(ps -fu maui | wc -l)
+    # test2=$(ps -fu maui | wc -l)
 
-    fail2=False
-    if [[ $test2 == 1 ]];then
-        fail2=True
-    fi
+    # fail2=False
+    # if [[ $test2 == 1 ]];then
+    #     fail2=True
+    # fi
 
     test3a=$(showres 2> >(wc -l))
     test3b=$(showres 2> >(grep ERROR | wc -l))
@@ -61,7 +61,8 @@ check_scheduler() {
     fi
 
     fail=False
-    if [[ $fail1 == True || $fail2 == True || $fail3 == True ]]; then
+    # if [[ $fail1 == True || $fail2 == True || $fail3 == True ]]; then
+    if [[ $fail1 == True || $fail3 == True ]]; then
         echo "Scheduler is offline."
         fail=True
         exit 1
