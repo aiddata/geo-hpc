@@ -45,6 +45,7 @@ check_scheduler() {
         fail1=True
     fi
 
+    # NOTE: maui only runs on vortex
     # test2=$(ps -fu maui | wc -l)
 
     # fail2=False
