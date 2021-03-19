@@ -164,7 +164,7 @@ cat <<EOF >> "$job_path"
 #PBS -l walltime=$walltime
 #PBS -j oe
 #PBS -o $branch_dir/log/$job_class/jobs/$timestamp.$jobtime.$job_class.job
-#PBS -V
+##PBS -V
 
 date
 
