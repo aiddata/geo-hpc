@@ -38,7 +38,7 @@ config_path=$src/geo-hpc/config.json
 
 check_scheduler() {
 
-    test1=$(qmgr -c 'p s' | grep scheduling)
+    test1=$(${torque_path}/qmgr -c 'p s' | grep scheduling)
 
     fail1=False
     if [[ $test1 == "set server scheduling = False" ]];then
@@ -111,21 +111,21 @@ build_job() {
     fi
 
 
-    if [ $queue_status = "none" ]; then
+    if [[ $queue_status = "none" ]]; then
         :
 
-    elif [ $queue_status = "ready" ]; then
+    elif [[ $queue_status = "ready" ]]; then
         echo '... items found in queue'
 
-    elif [ $queue_status = "empty" ]; then
+    elif [[ $queue_status = "empty" ]]; then
         echo '... queue empty'
         return 0
 
-    elif [ $queue_status = "error" ]; then
+    elif [[ $queue_status = "error" ]]; then
         echo '... error connecting to queue'
         return 1
 
-    elif [ $queue_status = "invalid" ]; then
+    elif [[ $queue_status = "invalid" ]]; then
         echo '... error due to invalid input'
         return 2
 
@@ -201,7 +201,7 @@ check_scheduler
 
 # test mongo connection before building job
 db_conn_status=$(python ${src}/geo-hpc/utils/config_utility.py $branch)
-if [ $db_conn_status != "success" ]; then
+if [[ $db_conn_status != "success" ]]; then
     echo -e "\n"
     echo [$(date) \("$timestamp"."$jobtime"\)]
     echo -e "\n"
@@ -240,7 +240,7 @@ for ((i=0;i<$x;i+=1)); do
     walltime=$(get_val $i walltime)
     cmd=$(get_val $i cmd)
 
-    if [ $job_class = "extracts" ]; then
+    if [[ $job_class = "extracts" ]]; then
         job_type=$(get_val $i job_type)
         extract_limit=$(get_val $i extract_limit)
         pixel_limit=$(get_val $i pixel_limit)
@@ -249,7 +249,7 @@ for ((i=0;i<$x;i+=1)); do
     total=`expr $nodes \* $ppn`
     cmd=$(eval "echo $cmd")
 
-    if [ $nodespec = "local" ]; then
+    if [[ $nodespec = "local" ]]; then
         $cmd
     else
         build_job
