@@ -32,6 +32,7 @@ qstat=$($torque_path/qstat -nu $USER)
 
 config_path=$src/geo-hpc/config.json
 
+source $HOME/.bashrc
 
 # -----------------------------------------------------------------------------
 
