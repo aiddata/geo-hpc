@@ -283,6 +283,10 @@ node_spec = job_json["config"]["node_spec"]
 max_node_count = job_json["config"]["max_node_count"]
 ppn_override = job_json["config"]["ppn_override"]
 
+np = None
+if "np" in job_json["config"]:
+    np = job_json["config"]["np"]
+
 if node_spec in node_spec_reference.keys():
     node_spec = node_spec + ':compute'
 
