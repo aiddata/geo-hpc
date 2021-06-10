@@ -334,10 +334,11 @@ node_count = max_node_count
 # - estimated run times may be very rough or not even offer enough
 #   differentiation to make meaningful optimizations
 
-
-np = node_count * ppn
+if np is None:
+    np = node_count * ppn
 
 if total_count < np:
+    print("Warning: Adjusting np to: {}".format(total_count))
     np = total_count
 
 
