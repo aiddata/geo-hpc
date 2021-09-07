@@ -64,7 +64,7 @@ class MongoUpdate(object):
 
         if update != "partial":
             try:
-                print "Updating trackers..."
+                print("Updating trackers...")
                 self.update_trackers(doc, search_name, existing)
             except Exception as e:
                 print("Error updating trackers. Removing core entry...")

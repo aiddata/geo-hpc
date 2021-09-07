@@ -43,7 +43,11 @@ class JSONEncoder(json.JSONEncoder):
 # capture function stdout for printing output during
 # parallel jobs in uninterupted blocks
 # source: http://stackoverflow.com/a/16571630
-from cStringIO import StringIO
+try:
+    from StringIO import StringIO ## for Python 2
+except ImportError:
+    from io import StringIO ## for Python 3
+
 import sys
 
 class Capturing(list):
