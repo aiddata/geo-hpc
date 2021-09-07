@@ -210,7 +210,7 @@ def gen_nested_release(path=None):
                                        for x in transaction_match.iterrows()]
 
         else:
-            print "No transactions found for project id: " + str(project_id)
+            print("No transactions found for project id: " + str(project_id))
             # missing_transactions += 1
 
 
@@ -229,7 +229,7 @@ def gen_nested_release(path=None):
 
 
         if len(project["locations"]) == 0:
-            print "No locations found for project id: " + str(project_id)
+            print("No locations found for project id: " + str(project_id))
             # missing_locations += 1
 
 

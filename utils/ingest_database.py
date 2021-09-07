@@ -52,14 +52,14 @@ class MongoUpdate(object):
             search_name = doc['name']
 
         if doc["type"] == "release" and update != "partial":
-            print "Updating release..."
+            print("Updating release...")
             if existing != None:
                 db_releases = self.client.releases
                 db_releases.drop_collection(existing['name'])
 
             self.release_to_mongo(doc["name"], doc["base"])
 
-        print "Updating core..."
+        print("Updating core...")
         self.update_core(doc, search_name)
 
         if update != "partial":
@@ -67,7 +67,7 @@ class MongoUpdate(object):
                 print "Updating trackers..."
                 self.update_trackers(doc, search_name, existing)
             except Exception as e:
-                print "Error updating trackers. Removing core entry..."
+                print("Error updating trackers. Removing core entry...")
                 self.c_asdf.delete_one({"name": search_name})
                 raise e
 
@@ -123,7 +123,7 @@ class MongoUpdate(object):
                 update_existing = new_group in existing_groups
 
                 if update_existing:
-                    print "Clearing tracker for existing boundary group"
+                    print("Clearing tracker for existing boundary group")
 
                 # drop existing boundary tracker collection
                 # and create a new one (with proper indexes)
@@ -143,7 +143,7 @@ class MongoUpdate(object):
                 'boundary': doc['name']
             })
             if delete_extracts.deleted_count > 0:
-                print "Clearing extracts for existing boundary"
+                print("Clearing extracts for existing boundary")
 
 
         elif doc["type"] != "boundary":
@@ -224,7 +224,7 @@ class MongoUpdate(object):
 
 
         bulk_result = bulk_insert.execute()
-        print bulk_result
+        print(bulk_result)
 
         return 0
 

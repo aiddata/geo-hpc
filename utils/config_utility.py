@@ -132,7 +132,7 @@ class BranchConfig():
             out = "success"
         else:
             out = "error"
-        print out
+        print(out)
         return out
 
 
