@@ -648,14 +648,14 @@ class ExtractObject():
                         yield err_stats
 
                     except Exception as ce:
-                        print 'Callback Error'
+                        print('Callback Error')
                         warnings.warn(ce)
                         raise Exception(e)
 
                 else:
                     raise Exception(e)
             except Exception as e:
-                print e
+                print(e)
                 raise Exception(e)
 
 
@@ -861,14 +861,14 @@ class ExtractObject():
                         if tmp_val in [None, 'nan', 'NaN'] or isnan(tmp_val):
                             feat['properties'][colname] = 'NA'
                     except:
-                        print feat['properties'][colname]
-                        print type(feat['properties'][colname])
+                        print(feat['properties'][colname])
+                        print(type(feat['properties'][colname]))
                         feat['properties'][colname] = 'NA'
 
                 else:
                     warnings.warn('Extract field missing from feature ' +
                                   'properties')
-                    print str(feat['properties'])
+                    print(str(feat['properties']))
                     feat['properties'][colname] = 'NA'
 
                 yield feat
@@ -1055,11 +1055,11 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
 
         # write merged df to csv
         merged_df.to_csv(merge_output, index=False, encoding='utf-8')
-        print '\tResults output to {0}'.format(merge_output)
+        print('\tResults output to {0}'.format(merge_output))
         return True
 
     else:
-        print '\tWarning: no extracts merged'
+        print('\tWarning: no extracts merged')
         return False
 
 
@@ -1173,7 +1173,7 @@ class MergeObject():
                                 if i not in self.merge_json['defaults'].keys()]
 
             if len(missing_defaults) > 0:
-                print ("MergeObject warning: required option(s) missing " +
+                print("MergeObject warning: required option(s) missing " +
                        "from defaults ("+str(missing_defaults)+")")
 
             merge_data = []
@@ -1181,7 +1181,7 @@ class MergeObject():
             for dataset_options in self.merge_json['data']:
 
                 dataset_name = dataset_options['name']
-                print dataset_name
+                print(dataset_name)
 
                 tmp_config = {}
                 tmp_config['name'] = dataset_name
@@ -1216,7 +1216,7 @@ class MergeObject():
                         extract_dir = (extract_base + "/" + bnd_name +
                                        "/cache/" + dataset_name)
 
-                        print "\tChecking for extracts in: " + extract_dir
+                        print("\tChecking for extracts in: " + extract_dir)
 
                         # validate inputs by checking directories exist
                         if not os.path.isdir(extract_base):
@@ -1267,7 +1267,7 @@ class MergeObject():
             bnd_name = i['bnd_name']
             file_list = i['file_list']
 
-            print "Starting merge process for bnd_name = " + bnd_name
+            print("Starting merge process for bnd_name = " + bnd_name)
 
 
             if not self.interface:
@@ -1300,10 +1300,10 @@ class MergeObject():
             merge_status = merge_file_list(file_list, merge_output, include_asdf_id=include_asdf_id)
 
             if not merge_status:
-                print ('\tWarning: no extracts merged for '
+                print('\tWarning: no extracts merged for '
                        'bnd_name = {0}').format(bnd_name)
             else:
-                print '\tMerge completed for {0}'.format(bnd_name)
+                print('\tMerge completed for {0}'.format(bnd_name))
 
 
 
@@ -1517,10 +1517,10 @@ class FeatureTool():
 
                 if json_sha1_hash(mongo_geom) != geom_hash:
                     original_geom_size = len(json.dumps(geom))
-                    print ("Warning - Big geom ({0} chars for feature {1} in "
+                    print(("Warning - Big geom ({0} chars for feature {1} in "
                            " {2}) simplified ({3})").format(
                             original_geom_size, idx,
-                            self.bnd_name, simplify_tolerance)
+                            self.bnd_name, simplify_tolerance))
 
                 feature_insert = {
                     'geometry': mongo_geom,
@@ -1558,9 +1558,9 @@ class FeatureTool():
                         feature_insert['info']['null_buffer'] = True
                         try:
                             insert = self.c_features.insert(feature_insert)
-                            print ("Warning - Self intersecting geom being "
+                            print(("Warning - Self intersecting geom being "
                                    "buffered (feature {0} in {1})").format(
-                                        idx, self.bnd_name)
+                                        idx, self.bnd_name))
 
                         except pymongo.errors.DuplicateKeyError as e:
                             exists = "recent"
@@ -1573,9 +1573,9 @@ class FeatureTool():
                                 feature_insert['geometry'] = json.loads(tmp_geo_str)
 
                                 insert = self.c_features.insert(feature_insert)
-                                print ("Warning - Self intersecting geom being "
+                                print(("Warning - Self intersecting geom being "
                                        "buffered (feature {0} in {1})").format(
-                                            idx, self.bnd_name)
+                                            idx, self.bnd_name))
 
                             except pymongo.errors.PyMongoError as e:
 
@@ -1592,9 +1592,9 @@ class FeatureTool():
                                 feature_insert['geometry'] = tmp_mongo_geom.__geo_interface__
 
                                 insert = self.c_features.insert(feature_insert)
-                                print ("Warning - Geom precision reduced"
+                                print (("Warning - Geom precision reduced"
                                        " (feature {0} in {1})").format(
-                                            idx, self.bnd_name)
+                                            idx, self.bnd_name))
 
                                 # tmp_mongo_geom = shape(mongo_geom).buffer(0.0000000001)
                                 # tmp_mongo_geom, _ = limit_geom_chars(
