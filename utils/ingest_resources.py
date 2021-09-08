@@ -255,7 +255,7 @@ def add_asdf_id(path):
 
     geo_json = geo_df.to_json()
     geo_path = os.path.splitext(path)[0] + ".geojson.tmp"
-    with open(geo_path, "w", 0) as geo_file:
+    with open(geo_path, "w") as geo_file:
         json.dump(json.loads(geo_json), geo_file)
     os.chmod(geo_path, 0o664)
     os.rename(geo_path, geo_path[:-4])
@@ -263,7 +263,7 @@ def add_asdf_id(path):
     # create simplified geojson for use with leaflet web map
     geo_df['geometry'] = geo_df['geometry'].simplify(0.01)
     simple_geo_path = os.path.dirname(path)+"/simplified.geojson.tmp"
-    with open(simple_geo_path, "w", 0) as simple_geo_file:
+    with open(simple_geo_path, "w") as simple_geo_file:
         json.dump(json.loads(geo_df.to_json()), simple_geo_file)
     os.chmod(geo_path, 0o664)
     os.rename(simple_geo_path, simple_geo_path[:-4])
