@@ -107,13 +107,14 @@ def raster_envelope(path):
 def vector_envelope(path):
     """Get geojson style envelope of vector file
     """
-    with fiona.open(path, 'r') as vector:
+    with fiona.Env(OGR_GEOJSON_MAX_OBJ_SIZE="2000MB"):
+        with fiona.open(path, 'r') as vector:
 
-        # bounds = (xmin, ymin, xmax, ymax)
-        b = vector.bounds
-        env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
+            # bounds = (xmin, ymin, xmax, ymax)
+            b = vector.bounds
+            env = [[b[0], b[3]], [b[0], b[1]], [b[2], b[1]], [b[2], b[3]]]
 
-        return env
+            return env
 
 
 def vector_list(vlist=[]):
@@ -121,7 +122,7 @@ def vector_list(vlist=[]):
     """
     env = []
     for f in vlist:
-        f_env = vectory_envelope(f)
+        f_env = vector_envelope(f)
         env = check_envelope(f_env, env)
 
     return env
@@ -242,7 +243,8 @@ def add_asdf_id(path):
     serves as shp to geojson converter as well
     also sets permissions for files
     """
-    geo_df = gpd.GeoDataFrame.from_file(path)
+    with fiona.Env(OGR_GEOJSON_MAX_OBJ_SIZE="2000MB"):
+        geo_df = gpd.GeoDataFrame.from_file(path)
 
     is_invalid = ~geo_df.is_valid
     geo_df.loc[is_invalid, 'geometry'] = geo_df.loc[is_invalid].buffer(0)
