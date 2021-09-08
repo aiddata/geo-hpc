@@ -265,7 +265,7 @@ def add_asdf_id(path):
     simple_geo_path = os.path.dirname(path)+"/simplified.geojson.tmp"
     with open(simple_geo_path, "w") as simple_geo_file:
         json.dump(json.loads(geo_df.to_json()), simple_geo_file)
-    os.chmod(geo_path, 0o664)
+    os.chmod(simple_geo_path, 0o664)
     os.rename(simple_geo_path, simple_geo_path[:-4])
 
     return 0
