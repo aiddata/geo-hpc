@@ -306,6 +306,8 @@ def run(path=None, client=None, version=None, config=None,
     doc["options"]["variable_description"] = str(
         data["options"]["variable_description"])
 
+    if "pixel_check" in data["options"]:
+        doc["options"]["pixel_checl"] = data["options"]["pixel_check"]
 
     # extras
     if not "extras" in data:
