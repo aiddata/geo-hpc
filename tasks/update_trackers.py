@@ -330,7 +330,10 @@ def tmp_worker_job(self, task_index, task_data):
             print '\t\t\tGlobal boundary'
             result = True
 
-        elif dset_type == "raster" and ('pixel_check' not in meta['options'] or meta['options']['pixel_check'] != False):
+        elif dset_type == "raster" and 'pixel_check' in meta['options'] and meta['options']['pixel_check'] == False:
+            result = True
+
+        elif dset_type == "raster":
             # true extract takes too long and is too costly to run
             # use a simple test of sample points over boundary bounding box
             # to do a good enough check of whether the data is relevant to boundary
@@ -386,7 +389,7 @@ def tmp_worker_job(self, task_index, task_data):
             if len(clean_values) > len(samples)*valid_sample_thresh and len(distinct_values) > 1:
                 result = True
             else:
-                print '\t\t\tPixel check did not pass'
+                print('\t\t\tPixel check did not pass ({})'.format(meta['options']))
 
 
             # else:
