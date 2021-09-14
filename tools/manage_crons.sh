@@ -72,7 +72,7 @@ init() {
         job_class=$(get_job_class $i)
         cron_schedule=$(get_cron_schedule $job_class)
 
-        cron_string="$cron_schedule"' bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
+        cron_string="$cron_schedule"' /usr/bin/flock -o -w 1 /sciclone/aiddata10/geo/'"$branch"'/'"$job_class"'.lock /usr/bin/bash '"$src"'/geo-hpc/tools/run_crons.sh '"$branch"' '"$job_class"' #geo-hpc'
 
         existing=$(crontab -l | grep 'run_crons.sh '$branch' '$job_class)
 
