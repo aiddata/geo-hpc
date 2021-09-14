@@ -51,7 +51,7 @@ class MongoUpdate(object):
         else:
             search_name = doc['name']
 
-        if doc["type"] == "release" and update != "partial":
+        if doc["type"] == "release" and update != "meta":
             print("Updating release...")
             if existing != None:
                 db_releases = self.client.releases
@@ -62,7 +62,7 @@ class MongoUpdate(object):
         print("Updating core...")
         self.update_core(doc, search_name)
 
-        if update != "partial":
+        if update == "full":
             try:
                 print("Updating trackers...")
                 self.update_trackers(doc, search_name, existing)

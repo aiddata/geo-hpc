@@ -79,12 +79,14 @@ def run(path=None, client=None, version=None, config=None,
 
 
     raw_update = update
-    if update in ["partial", "meta"]:
-        update = "partial"
-    elif update in ["update", True, 1, "True", "full", "all"]:
+    if update in ["meta", "data"]:
+        update = update
+    elif update in ["full", "all"]:
         update = "full"
-    else:
+    elif update in [False, "false", "False", None, "none", "no", 0, "0"]:
         update = False
+    else:
+        raise ValueError("Invalid `update` value provided ({})".format(update))
 
     print "running update status `{0}` (input: `{1}`)".format(
         update, raw_update)
@@ -372,7 +374,7 @@ def run(path=None, client=None, version=None, config=None,
 
     # -------------------------------------
 
-    if update == "partial":
+    if update == "meta":
         print "\nProcessed document:"
         pprint(doc)
 
