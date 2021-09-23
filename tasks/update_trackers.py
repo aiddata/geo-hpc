@@ -383,10 +383,10 @@ def tmp_worker_job(self, task_index, task_data):
 
             clean_values = [i for i in values if i != nodata and i is not None]
 
-            distinct_values = set(clean_values)
+            # distinct_values = set(clean_values)
 
             # percent of samples resulting in clean value
-            if len(clean_values) > len(samples)*valid_sample_thresh and len(distinct_values) > 1:
+            if len(clean_values) > len(samples)*valid_sample_thresh:# and len(distinct_values) > 1:
                 result = True
             else:
                 print('\t\t\tPixel check did not pass ({})'.format(meta['options']))
