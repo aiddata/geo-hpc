@@ -27,7 +27,7 @@ from ingest_database import MongoUpdate
 def run(path=None, client=None, version=None, config=None,
         generator="auto", update=False, dry_run=False):
 
-    print '\n---------------------------------------'
+    print('\n---------------------------------------')
 
     script = os.path.basename(__file__)
 
@@ -86,15 +86,15 @@ def run(path=None, client=None, version=None, config=None,
     else:
         update = False
 
-    print "running update status `{0}` (input: `{1}`)".format(
-        update, raw_update)
+    print( "running update status `{0}` (input: `{1}`)".format(
+        update, raw_update) )
 
     if dry_run in ["false", "False", "0", "None", "none", "no"]:
         dry_run = False
 
     dry_run = bool(dry_run)
     if dry_run:
-        print "running dry run"
+        print("running dry run")
 
 
     # init document
@@ -317,23 +317,23 @@ def run(path=None, client=None, version=None, config=None,
 
 
     f = file_list[0]
-    print f
+    print(f)
 
     # -------------------------------------
 
     if update == "partial":
-        print "\nProcessed document:"
+        print("\nProcessed document:")
         pprint(doc)
 
-        print "\nUpdating database (dry run = {0})...".format(dry_run)
+        print( "\nUpdating database (dry run = {0})...".format(dry_run))
         if not dry_run:
             dbu.update(doc, update, existing_original)
 
-        print "\n{0}: Done ({1} update).\n".format(script, update)
+        print( "\n{0}: Done ({1} update).\n".format(script, update))
         return 0
 
     # -------------------------------------
-    print "\nProcessing temporal..."
+    print( "\nProcessing temporal...")
 
     # temporally invariant dataset
     doc["temporal"] = {}
@@ -344,7 +344,7 @@ def run(path=None, client=None, version=None, config=None,
     doc["temporal"]["end"] = 99991231
 
     # -------------------------------------
-    print "\nProcessing spatial..."
+    print( "\nProcessing spatial...")
 
     if not dry_run:
         convert_status = ru.add_asdf_id(f)
@@ -354,7 +354,7 @@ def run(path=None, client=None, version=None, config=None,
 
     env = ru.vector_envelope(f)
     env = ru.trim_envelope(env)
-    print "Dataset bounding box: ", env
+    print( "Dataset bounding box: ", env)
 
     doc["scale"] = ru.envelope_to_scale(env)
 
@@ -362,7 +362,7 @@ def run(path=None, client=None, version=None, config=None,
     doc["spatial"] = ru.envelope_to_geom(env)
 
     # -------------------------------------
-    print '\nProcessing resources...'
+    print( '\nProcessing resources...')
 
     # resources
     # individual resource info
@@ -388,10 +388,10 @@ def run(path=None, client=None, version=None, config=None,
     # -------------------------------------
     # database updates
 
-    print "\nProcessed document..."
+    print( "\nProcessed document...")
     pprint(doc)
 
-    print "\nUpdating database (dry run = {0})...".format(dry_run)
+    print( "\nUpdating database (dry run = {0})...".format(dry_run))
     if not dry_run:
         dbu.update(doc, update, existing_original)
         # try:
@@ -403,11 +403,11 @@ def run(path=None, client=None, version=None, config=None,
         #     raise
 
     if update:
-        print "\n{0}: Done ({1} update).\n".format(script, update)
+        print( "\n{0}: Done ({1} update).\n".format(script, update))
     else:
-        print "\n{0}: Done.\n".format(script)
+        print( "\n{0}: Done.\n".format(script))
 
-    print '\n---------------------------------------\n'
+    print( '\n---------------------------------------\n')
 
     return 0
 
