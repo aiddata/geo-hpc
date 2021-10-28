@@ -385,8 +385,12 @@ def tmp_worker_job(self, task_index, task_data):
 
             distinct_values = set(clean_values)
 
+            clean_threshold = len(values)*valid_sample_thresh
+            if 'pixel_check' in meta['options'] and meta['options']['pixel_check'] == 'any':
+                clean_threshold = 1
+
             # percent of samples resulting in clean value
-            if len(clean_values) > len(values)*valid_sample_thresh:# and len(distinct_values) > 1:
+            if len(clean_values) >= clean_threshold:# and len(distinct_values) > 1:
                 result = True
             else:
                 print('\t\t\tPixel check did not pass ({})'.format(meta['options']))
