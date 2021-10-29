@@ -74,7 +74,7 @@ version = config.versions["extracts"]
 client = config.client
 c_asdf = client.asdf.data
 c_extracts = client.asdf.extracts
-c_features = client.asdf.features
+# c_features = client.asdf.features
 
 
 # -------------------------------------
@@ -124,10 +124,13 @@ elif job.job_type == 'msr':
     job.generator_list = ['auto', 'det']
     job.classification_list = ['msr']
 
+elif 'errors' in job.job_type:
+    job.generator_list = ['auto', 'det']
+    job.classification_list = ['raster', 'msr']
 
 
 if job.rank == 0:
-    print "running job type: {0}".format(job.job_type)
+    print("running job type: {0}".format(job.job_type))
 
 
 
@@ -169,7 +172,7 @@ def tmp_master_init(self):
     # start job timer
     self.Ts = int(time.time())
     self.T_start = time.localtime()
-    print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
+    print('Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start))
 
 
 def tmp_master_process(self, worker_result):
@@ -196,11 +199,11 @@ def tmp_master_final(self):
     # stop job timer
     T_run = int(time.time() - self.Ts)
     T_end = time.localtime()
-    print '\n\n'
-    print 'Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start)
-    print 'End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end)
-    print 'Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s'
-    print '\n\n'
+    print('\n\n')
+    print('Start: ' + time.strftime('%Y-%m-%d  %H:%M:%S', self.T_start))
+    print('End: '+ time.strftime('%Y-%m-%d  %H:%M:%S', T_end))
+    print('Runtime: ' + str(T_run//60) +'m '+ str(int(T_run%60)) +'s')
+    print('\n\n')
 
 
     # Ts2 = int(time.time())
@@ -379,44 +382,70 @@ def tmp_get_task_data(self, task_index, source):
            "(Task Index: {1})").format(
                 source, task_index)
 
+
     search_attempt = 0
     request = 0
     while search_attempt < self.search_limit:
-
         # print 'Master - finding request:'
 
-        # look for request of each type in classification list
-        #   * list is in order of priority
-        #   * separate pulls for priority >= 0 and auto jobs (priority -1)
-        for ctype in self.classification_list:
-            potential_request_list = list(c_extracts.find({
-                'status': 0,
-                'generator': {'$in': self.generator_list},
-                'classification': ctype,
-                'priority': {'$gte': 0}
-            }, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
-            if len(potential_request_list) > 0:
-                break
+        search_query = {
+            'generator': {'$in': self.generator_list},
+            'classification': {'$in': self.classification_list},
+            '$and': [
+                {'$or': [
+                    {'status': 0},
+                    {'status': -1},
+                    {
+                        'status': 2,
+                        'update_time': {'$lt': time.time() - update_interval*5}
+                    }
+                ]}
+            ]
+        }
 
-        # check for auto jobs if there are no priority jobs
+
+        if 'errors' in job.job_type:
+            attempt_max = int(job.job_type.split('_')[1])
+            attempt_min = attempt_max - 5
+            search_query['$and'].append({'attempts': {'$exists': True}})
+            search_query['$and'].append({'attempts': {'$gte': attempt_min}})
+            search_query['$and'].append({'attempts': {'$lt': attempt_max}})
+
+        else:
+            attempt_max = 5
+            search_query['$and'].append(
+                {
+                    '$or': [
+                        {'attempts': {'$exists': False}},
+                        {'attempts': {'$lt': 5}}
+                    ]
+                }
+            )
+
+
+        # results are in order of priority and submit time
+        # check for user requests (priority >= 0) before auto jobs (priority < 0)
+        search_query['priority'] = {'$gte': 0}
+        potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
         if len(potential_request_list) == 0:
-            for ctype in self.classification_list:
-                potential_request_list = list(c_extracts.find({
-                    'status': 0,
-                    'generator': {'$in': self.generator_list},
-                    'classification': ctype#,
-                    # 'priority': -1
-                }, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
-                if len(potential_request_list) > 0:
-                    break
+            search_query['priority'] = {'$lt': 0}
+            potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
+
 
         # if zero, there are no more requests of any classification
         if len(potential_request_list) == 0:
             request = None
             break
 
-        for _ in range(len(potential_request_list)):
-            potential_request = potential_request_list[randint(0, len(potential_request_list)-1)]
+        for ix in range(len(potential_request_list)):
+            # introduce some randomness to avoid conflicts between different extract jobs running same query
+            # this should rarely happen, but beyond slightly ignoring priorties (within top 10) this won't hurt
+            potential_request = potential_request_list.pop(randint(0, len(potential_request_list)-1))
+            # basic alternative:
+            # potential_request = potential_request_list[ix]
+
+            attempts = 0 if 'attempts' not in potential_request else potential_request['attempts']
+
 
             # attempt to "claim" found request by updating status
             request_accept = c_extracts.update_one({
@@ -428,7 +457,8 @@ def tmp_get_task_data(self, task_index, source):
                     'update_time': int(time.time()),
                     'start_time': int(time.time()),
                     'complete_time': 0,
-                    'processor_name': job.processor_name
+                    'processor_name': job.processor_name,
+                    'attempts': attempts + 1
                 }
             })
 

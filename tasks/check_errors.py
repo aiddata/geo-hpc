@@ -37,7 +37,7 @@ reply_to = "Geo Dev <{0}>".format(dev_email)
 
 if config.connection_status != 0:
 
-    print "Could not connect to mongodb (branch: {0})".format(branch)
+    print("Could not connect to mongodb (branch: {0})".format(branch))
 
     subject = "Geo ({0}) - Error : mongodb connection"
 
@@ -50,7 +50,7 @@ if config.connection_status != 0:
     mail_status = email.send_backup_email(dev_email, subject, message, reply_to=reply_to)
 
     if not mail_status[0]:
-        print mail_status[1]
+        print(mail_status[1])
         raise mail_status[2]
 
     raise Exception("Could not connect to mongodb (branch: {0})".format(branch))
@@ -66,7 +66,7 @@ extract_error_interval = 60 * 2
 
 # maximum number of restart attempts allowed for tasks before
 # setting true error flag
-max_extract_errors = 5
+max_extract_errors = 20
 max_msr_errors = 5
 
 
@@ -93,14 +93,14 @@ extract_errors = c_extracts.find({
 
 for i in extract_errors:
 
-    attempts = 0 if 'attempts' not in i else i['attempts']
+    attempts = 1 if 'attempts' not in i else i['attempts']
 
     new_status = 0 if attempts < max_extract_errors else -2
 
     updates = {
         'status': new_status,
         'update_time': int(time.time()),
-        'attempts': attempts + 1
+        'attempts': attempts 
     }
 
     results = c_extracts.update_one(
@@ -108,11 +108,11 @@ for i in extract_errors:
         {'$set': updates}
     )
     if new_status == 0:
-        print "Resetting extract task with {0} attempts ({1})".format(attempts+1, str(i['_id']))
+        print("Resetting extract task with {0} attempts ({1})".format(attempts+1, str(i['_id'])))
 
     if new_status == -2:
 
-        print "Flagging extract task with {0} attempts as error ({1})".format(attempts+1, str(i['_id']))
+        print("Flagging extract task with {0} attempts as error ({1})".format(attempts+1, str(i['_id'])))
 
         subject = "Geo ({0}) - Error : extract task [{1}]".format(config.branch, str(i['_id']))
 
@@ -139,7 +139,7 @@ for i in extract_errors:
         mail_status = email.send_email(dev_email, subject, message, reply_to=reply_to)
 
         if not mail_status[0]:
-            print mail_status[1]
+            print(mail_status[1])
             raise mail_status[2]
 
 
@@ -173,11 +173,11 @@ for i in msr_errors:
     )
 
     if new_status == 0:
-        print "Resetting msr task with {0} attempts ({1})".format(attempts+1, str(i['_id']))
+        print("Resetting msr task with {0} attempts ({1})".format(attempts+1, str(i['_id'])))
 
     if new_status == -2:
 
-        print "Flagging msr task with {0} attempts as error ({1})".format(attempts+1, str(i['_id']))
+        print("Flagging msr task with {0} attempts as error ({1})".format(attempts+1, str(i['_id'])))
 
         subject = "Geo ({0}) - Error : msr task [{1}]".format(config.branch, str(i['_id']))
 
@@ -204,5 +204,5 @@ for i in msr_errors:
         mail_status = email.send_email(dev_email, subject, message, reply_to=reply_to)
 
         if not mail_status[0]:
-            print mail_status[1]
+            print(mail_status[1])
             raise mail_status[2]
