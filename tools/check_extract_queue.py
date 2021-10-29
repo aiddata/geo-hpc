@@ -28,7 +28,7 @@ config.test_connection()
 
 # check mongodb connection
 if config.connection_status != 0:
-    print "error"
+    print("error")
     # sys.exit("connection status error: " + str(config.connection_error))
 
 
@@ -44,16 +44,20 @@ c_extracts = client.asdf.extracts
 
 
 if job_type == "det":
-    request_count = c_extracts.find({'status': 0, 'priority': {'$gt': -1}}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}, 'priority': {'$gt': -1}}).count()
 
 elif job_type == "default":
-    request_count = c_extracts.find({'status': 0}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}}).count()
 
 elif job_type == "raster":
-    request_count = c_extracts.find({'status': 0, 'classification': 'raster'}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}, 'classification': 'raster'}).count()
 
 elif job_type == "msr":
-    request_count = c_extracts.find({'status': 0, 'classification': 'msr'}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}, 'classification': 'msr'}).count()
+
+elif "errors" in job_type:
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$and': [{'attempts': {'$gte': 5}}, {'attempts': {'$lt': 20}}]}).count()
+
 
 else:
     request_count = "invalid"
@@ -61,10 +65,10 @@ else:
 
 
 if request_count == "invalid":
-    print "invalid"
+    print("invalid")
 
 elif request_count > 0:
-    print "ready"
+    print("ready")
 
 else:
-    print "empty"
+    print("empty")
