@@ -89,7 +89,7 @@
                         "description": "priority only vortex-alpha job",
                         "jobname": "ex0",
                         "nodespec": "c18c",
-                        "max_jobs": 2,
+                        "max_jobs": 3,
                         "nodes": 1,
                         "ppn": 16,
                         "walltime": "48:00:00",
