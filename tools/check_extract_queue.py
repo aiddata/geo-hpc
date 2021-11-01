@@ -44,16 +44,16 @@ c_extracts = client.asdf.extracts
 
 
 if job_type == "det":
-    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}, 'priority': {'$gt': -1}}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}], 'priority': {'$gt': -1}}).count()
 
 elif job_type == "default":
-    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}]}).count()
 
 elif job_type == "raster":
-    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}, 'classification': 'raster'}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}], 'classification': 'raster'}).count()
 
 elif job_type == "msr":
-    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, 'attempts': {'$lt': 5}, 'classification': 'msr'}).count()
+    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}], 'classification': 'msr'}).count()
 
 elif "errors" in job_type:
     request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$and': [{'attempts': {'$gte': 5}}, {'attempts': {'$lt': 20}}]}).count()

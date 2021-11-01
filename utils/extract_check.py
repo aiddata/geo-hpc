@@ -152,7 +152,8 @@ class ExtractItem():
             'classification': classification,
             'generator': 'det',
             'priority': 0,
-            'update_time': ctime
+            'update_time': ctime,
+            'attempts': 0
         }
 
         full_insert = query.copy()
