@@ -42,9 +42,9 @@ check_scheduler() {
     test1=$(${torque_path}/qmgr -c 'p s' | grep scheduling)
 
     fail1=False
-    if [[ $test1 == "set server scheduling = False" ]];then
-        fail1=True
-    fi
+    # if [[ $test1 == "set server scheduling = False" ]];then
+    #     fail1=True
+    # fi
 
     # NOTE: maui only runs on vortex
     # test2=$(ps -fu maui | wc -l)
