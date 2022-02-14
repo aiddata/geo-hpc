@@ -421,13 +421,13 @@ class DocBuilder():
             data = self.build_meta(dset['dataset'], 'release', dset)
 
             data = [[i[0], pg(i[1], 2)] for i in data]
-            t = KeepTogether(Table(data))
+            t = Table(data)
             t.setStyle(TableStyle([
                 ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                 ('BOX', (0,0), (-1,-1), 0.25, colors.black)
             ]))
 
-            self.Story.append(t)
+            self.Story.append(KeepTogether(t))
             self.Story.append(Spacer(1, 0.1*inch))
 
 
@@ -448,13 +448,13 @@ class DocBuilder():
             data = self.build_meta(dset['name'], dset['type'], dset)
 
             data = [[i[0], pg(i[1], 2)] for i in data]
-            t = KeepTogether(Table(data))
+            t = Table(data)
             t.setStyle(TableStyle([
                 ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                 ('BOX', (0,0), (-1,-1), 0.25, colors.black)
             ]))
 
-            self.Story.append(t)
+            self.Story.append(KeepTogether(t))
             self.Story.append(Spacer(1, 0.1*inch))
 
 
