@@ -253,7 +253,10 @@ class DocBuilder():
                 temporal_sorted = sorted(temporal_int, reverse=True)
                 temporal_str = [str(ts) for ts in temporal_sorted]
 
-            data.append(['Temporal Selection', ', '.join(temporal_str)])
+            max_temporal_str_len = 25
+            for ix, i in enumerate(range(0, len(temporal_str), max_temporal_str_len)):
+                temporal_str_sub = temporal_str[i:i + max_temporal_str_len]
+                data.append(['Temporal Selection (' + str(ix) + ')', ', '.join(temporal_str_sub)])
 
             # prevent issue due to missing extract_types_info field
             for i in dset['options']['extract_types']:
