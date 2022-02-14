@@ -6,7 +6,7 @@ import math
 import pymongo
 
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -397,7 +397,7 @@ class DocBuilder():
         ]))
 
         self.Story.append(t)
-        self.Story.append(Spacer(1, 0.25*inch))
+        self.Story.append(Spacer(1, 0.1*inch))
 
 
         # full dataset meta
@@ -421,14 +421,14 @@ class DocBuilder():
             data = self.build_meta(dset['dataset'], 'release', dset)
 
             data = [[i[0], pg(i[1], 2)] for i in data]
-            t = Table(data)
+            t = KeepTogether(Table(data))
             t.setStyle(TableStyle([
                 ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                 ('BOX', (0,0), (-1,-1), 0.25, colors.black)
             ]))
 
             self.Story.append(t)
-            self.Story.append(Spacer(1, 0.25*inch))
+            self.Story.append(Spacer(1, 0.1*inch))
 
 
         for dset in self.request['raster_data']:
@@ -448,14 +448,14 @@ class DocBuilder():
             data = self.build_meta(dset['name'], dset['type'], dset)
 
             data = [[i[0], pg(i[1], 2)] for i in data]
-            t = Table(data)
+            t = KeepTogether(Table(data))
             t.setStyle(TableStyle([
                 ('INNERGRID', (0,0), (-1,-1), 0.25, colors.black),
                 ('BOX', (0,0), (-1,-1), 0.25, colors.black)
             ]))
 
             self.Story.append(t)
-            self.Story.append(Spacer(1, 0.25*inch))
+            self.Story.append(Spacer(1, 0.1*inch))
 
 
 
