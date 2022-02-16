@@ -4,7 +4,7 @@
         "name": "master",
         "data_root": "/sciclone/aiddata10/REU/geo",
         "database": "128.239.20.76",
-        "active_adm_suffix": "gadm28",
+        "active_adm_suffix": "gb_v4",
         "release_iso3": {
             "AfghanistanAIMS": "AFG",
             "BurundiAIMS": "BDI",
