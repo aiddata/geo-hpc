@@ -198,7 +198,7 @@ if job.rank == 0:
 
             elif data["type"] == "release":
 
-                pass
+                continue
 
                 release_filters = c_msr.find({
                     "dataset": data["name"],
