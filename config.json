@@ -31,7 +31,8 @@
             "afg_adm1_gb_1_3_3",
             "afg_adm2_gb_1_3_3",
             "afg_adm1_gb_v4",
-            "afg_adm2_gb_v4"
+            "afg_adm2_gb_v4",
+            "ind_adm5_gb_v4"
         ],
         "versions": {
             "geo": "0.4.1",
