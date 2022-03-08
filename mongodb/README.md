@@ -70,3 +70,20 @@ Stats (run as personal user)
 - append to ~/.bashrc: `alias s='bash ~/stats/stats.sh'`
 
 
+# MongoDB Crash Debug Tips
+
+- Activate aiddata user: `sudo su - aiddata`
+- First check logs: `/var/log/mongodb/mongodb.log`
+- Attempt simple restart: `sudo service mongod restart`
+- Confirm all files owned by mongodb user: `ls -l /var/lib/mongodb`
+- Correct ownership if needed: `sudo chown -R mongodb:mongodb /var/lib/mongodb`
+- Restart again and check logs (debug further based on logs before using next steps)
+    - PID file (`/var/run/mongod.pid`) may be missing
+    - `sudo touch /var/run/mongod.pid`
+    - `sudo chown mongodb:mongodb /var/run/mongod.pid`
+    - restart and check logs again
+- If nothing is working delete lock files, restart, and check logs
+- Consider restoring from backup if still not working
+- If absolutely necessary, use mongod repair (mongo_repair.sh script)
+
+
