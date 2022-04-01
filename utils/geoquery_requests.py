@@ -6,6 +6,7 @@ import time
 import json
 import warnings
 import shutil
+import zipfile
 import hashlib
 import textwrap
 
@@ -31,6 +32,28 @@ def make_dir(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
+
+def make_zipfile(base_name, base_dir):
+    """Create a zip file from all the files under 'base_dir'.
+
+    The output zip file will be named 'base_name' + ".zip".
+
+    *** Modified from shutil.make_archive
+    """
+    zip_filename = base_name + ".zip"
+    archive_dir = os.path.dirname(base_name)
+    if not os.path.exists(archive_dir):
+        os.makedirs(archive_dir)
+    with zipfile.ZipFile(zip_filename, "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
+        length = len(base_dir)
+        for dirpath, dirnames, filenames in os.walk(base_dir):
+            folder = dirpath[length:]
+            for name in filenames:
+                actual_path = os.path.normpath(os.path.join(dirpath, name))
+                zip_path = os.path.normpath(os.path.join(folder, name))
+                if os.path.isfile(actual_path):
+                    zf.write(actual_path, zip_path)
+    return zip_filename
 
 
 def json_sha1_hash(hash_obj):
@@ -590,7 +613,8 @@ class QueueToolBox():
 
 
         # make zip of request dir
-        shutil.make_archive(request_dir, "zip", request_dir)
+        # shutil.make_archive(request_dir, "zip", request_dir)
+        make_zipfile(request_dir, request_dir)
 
         # move zip of request dir into request dir
         shutil.move(request_dir + ".zip", request_dir)
