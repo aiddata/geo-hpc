@@ -15,6 +15,7 @@ except:
 
 import types
 import traceback
+from datetime import datetime
 
 import time
 import json
@@ -38,6 +39,11 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
+
+
+def tprint(x):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print("{0} -- {1}".format(timestamp, x))
 
 
 # capture function stdout for printing output during
@@ -323,7 +329,7 @@ class NewParallel(object):
             results: object to be passed back from worker to master
         """
         worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
-        print(worker_tagline)
+        tprint(worker_tagline)
 
         results = task_data
 
@@ -360,11 +366,11 @@ class NewParallel(object):
                 with Capturing() as output:
                     results = self.worker_job(task_index, task_data)
 
-                print('\n'.join(output))
+                tprint('\n'.join(output))
                 return results
 
             except:
-                print('\n'.join(output))
+                tprint('\n'.join(output))
                 raise
 
 
@@ -438,7 +444,7 @@ class NewParallel(object):
                 [deepcopy(worker_info_template) for i in range(1, self.size)]
             ))
 
-            print("Master - starting with {0} workers".format(num_workers))
+            tprint("Master - starting with {0} workers".format(num_workers))
 
             last_update = time.time()
 
@@ -480,7 +486,7 @@ class NewParallel(object):
                                     and len(task_data) == 3
                                     and task_data[0] == "error"):
 
-                                    print(("Master - shutting down worker {1} "
+                                    tprint(("Master - shutting down worker {1} "
                                           "with task {0} ({2})").format(
                                              task_index, source, task_data[2]))
 
@@ -488,7 +494,7 @@ class NewParallel(object):
 
                                 else:
                                     if not self.quiet:
-                                        print("Master - sending task {0} to worker {1}".format(
+                                        tprint("Master - sending task {0} to worker {1}".format(
                                             task_index, source))
 
                                     task = (task_index, task_data)
@@ -517,16 +523,16 @@ class NewParallel(object):
                             self.worker_log[source]['current_task_data'] = None
                             self.worker_log[source]['task_index_history'].append(worker_task_index)
                             if not self.quiet:
-                                print("Master - received Task {0} data from Worker {1}".format(worker_task_index, source))
+                                tprint("Master - received Task {0} data from Worker {1}".format(worker_task_index, source))
                             self.master_process(worker_data)
 
                         elif tag == self.tags.EXIT:
-                            print("Master - worker {0} exited. ({1})".format(
+                            tprint("Master - worker {0} exited. ({1})".format(
                                 source, active_workers - 1))
                             closed_workers += 1
 
                         elif tag == self.tags.ERROR:
-                            print("Master - error reported by worker {0}.".format(source))
+                            tprint("Master - error reported by worker {0}.".format(source))
                             # broadcast error to all workers
                             self.send_error()
                             err_status = 1
@@ -537,21 +543,21 @@ class NewParallel(object):
 
 
             if err_status == 0:
-                print("Master - processing results")
+                tprint("Master - processing results")
                 self.master_final()
 
             else:
-                print("Master - terminating due to worker error.")
+                tprint("Master - terminating due to worker error.")
 
             if self.print_worker_log:
-                print("Worker Log:")
-                print(json.dumps(
+                tprint("Worker Log:")
+                tprint(json.dumps(
                     self.worker_log,
                     indent=4, separators=(",", ":")))
 
         else:
             # Worker processes execute code below
-            print("Worker {0} - rank {0} on {1}.".format(self.rank, self.processor_name))
+            tprint("Worker {0} - rank {0} on {1}.".format(self.rank, self.processor_name))
             while True:
                 self.comm.send(None, dest=0, tag=self.tags.READY)
                 master_data = self.comm.recv(source=0,
@@ -568,7 +574,7 @@ class NewParallel(object):
                         worker_result = self._worker_job(task_index, task_data)
 
                     except Exception as e:
-                        print("Worker ({0}) - encountered error on Task {1}".format(self.rank, task_index))
+                        tprint("Worker ({0}) - encountered error on Task {1}".format(self.rank, task_index))
                         # print e.encode('utf-8')
                         traceback.print_exc()
                         self.send_error()
@@ -583,7 +589,7 @@ class NewParallel(object):
                     break
 
                 elif tag == self.tags.ERROR:
-                    print(("Worker ({0}) - error message from Master. "
+                    tprint(("Worker ({0}) - error message from Master. "
                           "Shutting down.").format(self.rank))
                     # confirm error message received and exit
                     self.comm.send(None, dest=0, tag=self.tags.EXIT)
