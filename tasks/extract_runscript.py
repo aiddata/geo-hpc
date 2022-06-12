@@ -233,7 +233,7 @@ def tmp_worker_job(self, task_index, task_data):
 
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
-    tprint("{0} task received").format(worker_tagline)
+    tprint("{0} task received".format(worker_tagline))
 
     # =================================
 
@@ -292,12 +292,12 @@ def tmp_worker_job(self, task_index, task_data):
 
     # run extract
 
-    tprint ("{0} running extract: "
+    tprint(("{0} running extract: "
            "\n\tvector: ({2}) {3}"
            "\n\traster: ({4}) {5}"
            "\n\tmethod: {6}").format(
                 worker_tagline, None, bnd_name, bnd_absolute,
-                data_name, raster, extract_type)
+                data_name, raster, extract_type))
 
 
     run_data = exo.run_feature_extract(raster, pixel_limit=job.pixel_limit)
@@ -329,34 +329,34 @@ def tmp_worker_job(self, task_index, task_data):
         Te_run = int(time.time() - Te_start)
 
         extract_status = 1
-        tprint ("{0} completed extract in {1} seconds"
+        tprint(("{0} completed extract in {1} seconds"
                "\n\tvector: ({2}) {3}"
                "\n\traster: ({4}) {5}"
                "\n\tmethod: {6}").format(
                     worker_tagline, Te_run, bnd_name, bnd_absolute,
-                    data_name, raster, extract_type)
+                    data_name, raster, extract_type))
 
 
     except MemoryError as e:
         extract_status = -2
 
-        tprint ("{0} memory error ({1})"
+        tprint(("{0} memory error ({1})"
                "\n\tvector: ({2}) {3}"
                "\n\traster: ({4}) {5}"
                "\n\tmethod: {6}").format(
                     worker_tagline, extract_status, bnd_name, bnd_absolute,
-                    data_name, raster, extract_type)
+                    data_name, raster, extract_type))
 
 
     except Exception as e:
         extract_status = -1
 
-        tprint ("{0} unknown error ({1})"
+        tprint(("{0} unknown error ({1})"
                "\n\tvector: ({2}) {3}"
                "\n\traster: ({4}) {5}"
                "\n\tmethod: {6}").format(
                     worker_tagline, extract_status, bnd_name, bnd_absolute,
-                    data_name, raster, extract_type)
+                    data_name, raster, extract_type))
 
 
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -385,9 +385,9 @@ def tmp_get_task_data(self, task_index, source):
     # return task_data
 
 
-    tprint ("Master - starting request search for Worker {0} "
+    tprint(("Master - starting request search for Worker {0} "
            "(Task Index: {1})").format(
-                source, task_index)
+                source, task_index))
 
 
     search_attempt = 0
