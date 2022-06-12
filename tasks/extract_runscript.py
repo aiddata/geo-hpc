@@ -7,6 +7,7 @@ import re
 import errno
 import time
 from random import randint
+from datetime import datetime
 
 import pymongo
 from bson import ObjectId
@@ -158,6 +159,10 @@ if len(sys.argv) >= 5:
     job.pixel_limit = int(sys.argv[4])
 
 
+def tprint(x):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print("{0} -- {1}".format(timestamp, x))
+
 
 # =============================================================================
 # =============================================================================
@@ -228,6 +233,8 @@ def tmp_worker_job(self, task_index, task_data):
 
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
+    tprint("{0} task received").format(worker_tagline)
+
     # =================================
 
     # inputs (see jobscript_template comments for detailed
@@ -285,7 +292,7 @@ def tmp_worker_job(self, task_index, task_data):
 
     # run extract
 
-    print ("{0} running extract: "
+    tprint ("{0} running extract: "
            "\n\tvector: ({2}) {3}"
            "\n\traster: ({4}) {5}"
            "\n\tmethod: {6}").format(
@@ -322,7 +329,7 @@ def tmp_worker_job(self, task_index, task_data):
         Te_run = int(time.time() - Te_start)
 
         extract_status = 1
-        print ("{0} completed extract in {1} seconds"
+        tprint ("{0} completed extract in {1} seconds"
                "\n\tvector: ({2}) {3}"
                "\n\traster: ({4}) {5}"
                "\n\tmethod: {6}").format(
@@ -333,7 +340,7 @@ def tmp_worker_job(self, task_index, task_data):
     except MemoryError as e:
         extract_status = -2
 
-        print ("{0} memory error ({1})"
+        tprint ("{0} memory error ({1})"
                "\n\tvector: ({2}) {3}"
                "\n\traster: ({4}) {5}"
                "\n\tmethod: {6}").format(
@@ -344,7 +351,7 @@ def tmp_worker_job(self, task_index, task_data):
     except Exception as e:
         extract_status = -1
 
-        print ("{0} unknown error ({1})"
+        tprint ("{0} unknown error ({1})"
                "\n\tvector: ({2}) {3}"
                "\n\traster: ({4}) {5}"
                "\n\tmethod: {6}").format(
@@ -378,7 +385,7 @@ def tmp_get_task_data(self, task_index, source):
     # return task_data
 
 
-    print ("Master - starting request search for Worker {0} "
+    tprint ("Master - starting request search for Worker {0} "
            "(Task Index: {1})").format(
                 source, task_index)
 
