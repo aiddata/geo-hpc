@@ -364,6 +364,8 @@ def tmp_worker_job(self, task_index, task_data):
                                   limit=2, file=sys.stdout)
 
 
+    tprint(("{0} updating database for completed task").format(worker_tagline))
+
     # update status of item in extract queue
     update_extract = c_extracts.update_one({
         '_id': task_data['_id']
@@ -375,6 +377,7 @@ def tmp_worker_job(self, task_index, task_data):
         }
     }, upsert=False)
 
+    tprint(("{0} database updated for completed task").format(worker_tagline))
 
     return extract_status
 
