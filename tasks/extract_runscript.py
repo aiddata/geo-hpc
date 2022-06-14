@@ -113,23 +113,18 @@ if len(sys.argv) >= 3:
 
 if job.job_type == 'default':
     # runs anything
-    job.generator_list = None
     job.classification_list = None
 
 elif job.job_type == 'det':
-    job.generator_list = ['det']
     job.classification_list = None
 
 elif job.job_type == 'raster':
-    job.generator_list = None
     job.classification_list = ['raster']
 
 elif job.job_type == 'msr':
-    job.generator_list = None
     job.classification_list = ['msr']
 
 elif 'errors' in job.job_type:
-    job.generator_list = None
     job.classification_list = None
 
 
@@ -408,12 +403,6 @@ def extract_task_query(self):
         search_query = {
             'status': 0
         }
-
-        if self.generator_list:
-            if len(self.generator_list) > 1:
-                search_query['generator'] = {'$in': self.generator_list},
-            else:
-                search_query['generator'] = self.generator_list[0]
 
         if self.classification_list:
             if len(self.classification_list) > 1:
