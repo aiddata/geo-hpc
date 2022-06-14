@@ -8,10 +8,10 @@ import errno
 import time
 from random import randint
 from datetime import datetime
+import types
 
 import pymongo
 from bson import ObjectId
-from pymongo import ReturnDocument
 
 
 # -----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ job.search_limit = 100
 # interval at which to update `update_time` field for active extract tasks
 # time in seconds
 
-update_interval = 60*1
+update_interval = 60*10
 
 
 # -------------------------------------
@@ -142,7 +142,7 @@ if job.rank == 0:
 extract_limit = 200
 
 if len(sys.argv) >= 4:
-    extract_limit= int(sys.argv[3])
+    extract_limit = int(sys.argv[3])
 
 
 # limit of 0 = no limit
@@ -236,6 +236,15 @@ def tmp_worker_job(self, task_index, task_data):
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
     tprint("{0} task received".format(worker_tagline))
+
+
+    request = self.extract_task_query()
+    if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
+        extract_status = -3
+        tprint("{0} task query error ({1})".format(worker_tagline, extract_status))
+        return extract_status
+
+    task_data = prepare_extract_task(request)
 
     # =================================
 
@@ -385,11 +394,7 @@ def tmp_worker_job(self, task_index, task_data):
 
 
 
-def tmp_get_task_data(self, task_index, source):
-    # task_data = self.task_list[task_index]
-    # return task_data
-
-    tprint("Master - starting request search for Worker {0} | Task {1}".format(source, task_index))
+def extract_task_query(self):
 
     search_attempt = 0
     request = 0
@@ -441,8 +446,7 @@ def tmp_get_task_data(self, task_index, source):
         request = c_extracts.find_one_and_update(
             search_query,
             { '$set': update_fields, '$inc': {'attempts': 1} },
-            sort=[("priority", -1), ("submit_time", 1)],
-            return_document = ReturnDocument.AFTER
+            sort=[("priority", -1), ("submit_time", 1)]
         )
 
         if request is not None:
@@ -451,126 +455,102 @@ def tmp_get_task_data(self, task_index, source):
         search_attempt += 1
 
 
-        # # results are in order of priority and submit time
-        # # check for user requests (priority >= 0) before auto jobs (priority < 0)
-        # search_query['priority'] = {'$gte': 0}
-        # potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
-        # if len(potential_request_list) == 0:
-        #     search_query['priority'] = {'$lt': 0}
-        #     potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
-
-        # # if zero, there are no more requests of any classification
-        # if len(self.potential_request_list) == 0:
-        #     request = None
-        #     break
-
-        # for ix in range(len(self.potential_request_list)):
-        #     # introduce some randomness to avoid conflicts between different extract jobs running same query
-        #     # this should rarely happen, but beyond slightly ignoring some priorties (within top x requests found by query) this won't hurt
-        #     potential_request = self.potential_request_list.pop(randint(0, len(self.potential_request_list)-1))
-        #     # basic alternative:
-        #     # potential_request = self.potential_request_list[ix]
-
-        #     # attempt to "claim" found request by updating status
-        #     request_accept = c_extracts.update_one({
-        #         '_id': potential_request['_id'],
-        #         'status': potential_request['status']
-        #     }, {
-        #         '$set': update_fields,
-        #         '$inc': {'attempts': 1}
-        #     })
-
-        #     # print request_accept.raw_result
-
-        #     if (request_accept.acknowledged and request_accept.modified_count == 1):
-        #         request = potential_request
-        #         break
-
-        # if request != 0:
-        #     break
-
-        # # only reaches here if update failed
-        # search_attempt += 1
-        # # print 'looking for another request...'
-
-
-
     if search_attempt == job.search_limit:
         # print "error updating request status in mongodb (attempting to continue)"
-        return ("error", "pass",
-                "error updating request status in mongodb (attempting to continue)")
+        return ("error", "pass", "error updating request status in mongodb (attempting to continue)")
 
     elif request is None:
         # print 'no jobs found in queue'
         return ("error", "empty", "no jobs found in queue")
 
     else:
+        return request
 
-        tmp = {}
 
-        tmp['_id'] = request['_id']
 
-        tmp['bnd_name'] = request['boundary']
+job.extract_task_query = types.MethodType(extract_task_query, job)
 
-        bnd_info = c_asdf.find_one(
-            {'name': tmp['bnd_name']},
-            {'base': 1, 'resources': 1})
 
-        tmp['bnd_absolute'] = (bnd_info['base'] + '/' +
-                               bnd_info['resources'][0]['path'])
+def prepare_extract_task(request):
+    task = {}
 
-        tmp['data_name'] = request['data']
+    task['_id'] = request['_id']
 
-        tmp['classification'] = request['classification']
+    task['bnd_name'] = request['boundary']
 
-        if request['classification'] == 'msr':
+    bnd_info = c_asdf.find_one(
+        {'name': task['bnd_name']},
+        {'base': 1, 'resources': 1})
 
-            rname = request['data']
-            rdataset = rname[:rname.rindex('_')]
-            rhash = rname[rname.rindex('_')+1:]
+    task['bnd_absolute'] = (bnd_info['base'] + '/' +
+                            bnd_info['resources'][0]['path'])
 
-            tmp['dataset_name'] = rdataset
-            tmp['data_path'] = os.path.join(
-                config.branch_dir, "outputs/msr/done",
-                rdataset, rhash, "raster.tif")
-            tmp['file_mask'] = "None"
+    task['data_name'] = request['data']
 
+    task['classification'] = request['classification']
+
+    if request['classification'] == 'msr':
+
+        rname = request['data']
+        rdataset = rname[:rname.rindex('_')]
+        rhash = rname[rname.rindex('_')+1:]
+
+        task['dataset_name'] = rdataset
+        task['data_path'] = os.path.join(
+            config.branch_dir, "outputs/msr/done",
+            rdataset, rhash, "raster.tif")
+        task['file_mask'] = "None"
+
+    else:
+
+        task['dataset_name'] = request['data'][:request['data'].rindex("_")]
+        # print request['data']
+        # print task['dataset_name']
+
+        data_info = c_asdf.find_one({'resources.name': request['data']})
+            # {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
+
+
+        task['dataset_name'] = data_info['name']
+
+
+        tmp_resource_path = [
+            j['path'] for j in data_info['resources']
+            if j['name'] == request['data']
+        ][0]
+
+        if tmp_resource_path == '':
+            task['data_path'] = data_info['base']
         else:
-
-            tmp['dataset_name'] = request['data'][:request['data'].rindex("_")]
-            # print request['data']
-            # print tmp['dataset_name']
-
-            data_info = c_asdf.find_one({'resources.name': request['data']})
-                # {'name': 1, 'base': 1, 'file_mask':1, 'resources': 1})
-
-
-            tmp['dataset_name'] = data_info['name']
-
-
-            tmp_resource_path = [
-                j['path'] for j in data_info['resources']
-                if j['name'] == request['data']
-            ][0]
-
-            if tmp_resource_path == '':
-                tmp['data_path'] = data_info['base']
-            else:
-                tmp['data_path'] = data_info['base'] + '/'+ tmp_resource_path
+            task['data_path'] = data_info['base'] + '/'+ tmp_resource_path
 
 
 
-            tmp['file_mask'] = data_info['file_mask']
+        task['file_mask'] = data_info['file_mask']
 
 
-        tmp['extract_type'] = request['extract_type']
-        if request['extract_type'] in ['categorical', 'encoded']:
-            tmp['category_map'] = data_info['extras']['category_map']
+    task['extract_type'] = request['extract_type']
+    if request['extract_type'] in ['categorical', 'encoded']:
+        task['category_map'] = data_info['extras']['category_map']
 
-        tmp['output_base'] = general_output_base
+    task['output_base'] = general_output_base
 
-        return tmp
+    return task
 
+
+def tmp_get_task_data(self, task_index, source):
+    # task_data = self.task_list[task_index]
+    # return task_data
+
+    tprint("Master - approving search for Worker {0} | Task {1}".format(source, task_index))
+    return task_index
+
+    # tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
+    # request = self.extract_task_query()
+    # if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
+    #     return request
+    # task = prepare_extract_task(request)
+    # return task
 
 
 # init / run job
@@ -579,7 +559,7 @@ job.set_task_count(extract_limit)
 job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)
 job.set_master_process(tmp_master_process)
-job.set_master_update(tmp_master_update)
+# job.set_master_update(tmp_master_update)
 job.set_update_interval(update_interval)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
