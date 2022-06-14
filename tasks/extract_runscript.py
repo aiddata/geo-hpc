@@ -111,24 +111,25 @@ if len(sys.argv) >= 3:
 
 
 if job.job_type == 'default':
-    job.generator_list = ['auto', 'det']
-    job.classification_list = ['raster', 'msr']
+    # runs anything
+    job.generator_list = None
+    job.classification_list = None
 
 elif job.job_type == 'det':
     job.generator_list = ['det']
-    job.classification_list = ['raster', 'msr']
+    job.classification_list = None
 
 elif job.job_type == 'raster':
-    job.generator_list = ['auto', 'det']
+    job.generator_list = None
     job.classification_list = ['raster']
 
 elif job.job_type == 'msr':
-    job.generator_list = ['auto', 'det']
+    job.generator_list = None
     job.classification_list = ['msr']
 
 elif 'errors' in job.job_type:
-    job.generator_list = ['auto', 'det']
-    job.classification_list = ['raster', 'msr']
+    job.generator_list = None
+    job.classification_list = None
 
 
 if job.rank == 0:
@@ -402,10 +403,21 @@ def extract_task_query(self):
         # print 'Master - finding request:'
 
         search_query = {
-            'generator': {'$in': self.generator_list},
-            'classification': {'$in': self.classification_list},
-            'status': {'$in': [0, -1]},
+            'status': 0
         }
+
+        if self.generator_list:
+            if len(self.generator_list) > 1:
+                search_query['generator'] = {'$in': self.generator_list},
+            else:
+                search_query['generator'] = self.generator_list[0]
+
+        if self.classification_list:
+            if len(self.classification_list) > 1:
+                search_query['classification'] = {'$in': self.classification_list},
+            else:
+                search_query['classification'] = self.classification_list[0]
+
 
         if 'errors' in job.job_type:
             attempt_max = int(job.job_type.split('_')[1])
