@@ -244,8 +244,10 @@ def tmp_worker_job(self, task_index, task_data):
         tprint("{0} task query error ({1})".format(worker_tagline, extract_status))
         return extract_status
 
-    task_data = prepare_extract_task(request)
     tprint("{0} task found".format(worker_tagline))
+
+    task_data = prepare_extract_task(request)
+    tprint("{0} task prepared".format(worker_tagline))
 
     # =================================
 
@@ -450,6 +452,7 @@ def extract_task_query(self):
             break
 
         search_attempt += 1
+        print('Failed Search Attempt: {0}'.format(search_attempt))
 
 
     if search_attempt == job.search_limit:
