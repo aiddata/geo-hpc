@@ -11,6 +11,7 @@ from datetime import datetime
 
 import pymongo
 from bson import ObjectId
+from pymongo import ReturnDocument
 
 
 # -----------------------------------------------------------------------------
@@ -174,6 +175,7 @@ def tmp_general_init(self):
 
 
 def tmp_master_init(self):
+    self.potential_request_list = []
     # start job timer
     self.Ts = int(time.time())
     self.T_start = time.localtime()
@@ -387,11 +389,7 @@ def tmp_get_task_data(self, task_index, source):
     # task_data = self.task_list[task_index]
     # return task_data
 
-
-    tprint(("Master - starting request search for Worker {0} "
-           "(Task Index: {1})").format(
-                source, task_index))
-
+    tprint("Master - starting request search for Worker {0} | Task {1}".format(source, task_index))
 
     search_attempt = 0
     request = 0
@@ -413,7 +411,6 @@ def tmp_get_task_data(self, task_index, source):
             ]
         }
 
-
         if 'errors' in job.job_type:
             attempt_max = int(job.job_type.split('_')[1])
             attempt_min = attempt_max - 5
@@ -432,59 +429,69 @@ def tmp_get_task_data(self, task_index, source):
                 }
             )
 
+        update_fields = {
+            'status': 2,
+            'update_time': int(time.time()),
+            'start_time': int(time.time()),
+            'complete_time': 0,
+            'processor_name': job.processor_name,
+        }
 
-        # results are in order of priority and submit time
-        # check for user requests (priority >= 0) before auto jobs (priority < 0)
-        search_query['priority'] = {'$gte': 0}
-        potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
-        if len(potential_request_list) == 0:
-            search_query['priority'] = {'$lt': 0}
-            potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
 
+        request = c_extracts.find_one_and_update(
+            search_query,
+            { '$set': update_fields, '$inc': {'attempts': 1} },
+            sort=[("priority", -1), ("submit_time", 1)],
+            return_document = ReturnDocument.AFTER
+        )
 
-        # if zero, there are no more requests of any classification
-        if len(potential_request_list) == 0:
-            request = None
+        if request is not None:
             break
 
-        for ix in range(len(potential_request_list)):
-            # introduce some randomness to avoid conflicts between different extract jobs running same query
-            # this should rarely happen, but beyond slightly ignoring priorties (within top 10) this won't hurt
-            potential_request = potential_request_list.pop(randint(0, len(potential_request_list)-1))
-            # basic alternative:
-            # potential_request = potential_request_list[ix]
-
-            attempts = 0 if 'attempts' not in potential_request else potential_request['attempts']
-
-
-            # attempt to "claim" found request by updating status
-            request_accept = c_extracts.update_one({
-                '_id': potential_request['_id'],
-                'status': potential_request['status']
-            }, {
-                '$set': {
-                    'status': 2,
-                    'update_time': int(time.time()),
-                    'start_time': int(time.time()),
-                    'complete_time': 0,
-                    'processor_name': job.processor_name,
-                    'attempts': attempts + 1
-                }
-            })
-
-            # print request_accept.raw_result
-
-            if (request_accept.acknowledged and
-                    request_accept.modified_count == 1):
-                request = potential_request
-                break
-
-        if request != 0:
-            break
-
-        # only reaches here if update failed
         search_attempt += 1
-        # print 'looking for another request...'
+
+
+        # # results are in order of priority and submit time
+        # # check for user requests (priority >= 0) before auto jobs (priority < 0)
+        # search_query['priority'] = {'$gte': 0}
+        # potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
+        # if len(potential_request_list) == 0:
+        #     search_query['priority'] = {'$lt': 0}
+        #     potential_request_list = list(c_extracts.find(search_query, sort=[("priority", -1), ("submit_time", 1)]).limit(10))
+
+        # # if zero, there are no more requests of any classification
+        # if len(self.potential_request_list) == 0:
+        #     request = None
+        #     break
+
+        # for ix in range(len(self.potential_request_list)):
+        #     # introduce some randomness to avoid conflicts between different extract jobs running same query
+        #     # this should rarely happen, but beyond slightly ignoring some priorties (within top x requests found by query) this won't hurt
+        #     potential_request = self.potential_request_list.pop(randint(0, len(self.potential_request_list)-1))
+        #     # basic alternative:
+        #     # potential_request = self.potential_request_list[ix]
+
+        #     # attempt to "claim" found request by updating status
+        #     request_accept = c_extracts.update_one({
+        #         '_id': potential_request['_id'],
+        #         'status': potential_request['status']
+        #     }, {
+        #         '$set': update_fields,
+        #         '$inc': {'attempts': 1}
+        #     })
+
+        #     # print request_accept.raw_result
+
+        #     if (request_accept.acknowledged and request_accept.modified_count == 1):
+        #         request = potential_request
+        #         break
+
+        # if request != 0:
+        #     break
+
+        # # only reaches here if update failed
+        # search_attempt += 1
+        # # print 'looking for another request...'
 
 
 
