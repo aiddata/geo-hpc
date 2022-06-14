@@ -9,6 +9,7 @@ import time
 from random import randint
 from datetime import datetime
 import types
+import random
 
 import pymongo
 from bson import ObjectId
@@ -453,6 +454,7 @@ def extract_task_query(self):
 
         search_attempt += 1
         print('Failed Search Attempt: {0}'.format(search_attempt))
+        time.sleep(random.randint(1, 10))
 
 
     if search_attempt == job.search_limit:
