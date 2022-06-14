@@ -236,18 +236,18 @@ def tmp_worker_job(self, task_index, task_data):
 
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
-    tprint("{0} task approval received".format(worker_tagline))
+    # tprint("{0} task approval received".format(worker_tagline))
 
-    request = self.extract_task_query()
-    if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
-        extract_status = -3
-        tprint("{0} task query error ({1})".format(worker_tagline, extract_status))
-        return extract_status
+    # request = self.extract_task_query()
+    # if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
+    #     extract_status = -3
+    #     tprint("{0} task query error ({1})".format(worker_tagline, extract_status))
+    #     return extract_status
 
-    tprint("{0} task found".format(worker_tagline))
+    # tprint("{0} task found".format(worker_tagline))
 
-    task_data = prepare_extract_task(request)
-    tprint("{0} task prepared".format(worker_tagline))
+    # task_data = prepare_extract_task(request)
+    # tprint("{0} task prepared".format(worker_tagline))
 
     # =================================
 
@@ -542,15 +542,15 @@ def tmp_get_task_data(self, task_index, source):
     # task_data = self.task_list[task_index]
     # return task_data
 
-    tprint("Master - approving search for Worker {0} | Task {1}".format(source, task_index))
-    return task_index
+    # tprint("Master - approving search for Worker {0} | Task {1}".format(source, task_index))
+    # return task_index
 
-    # tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
-    # request = self.extract_task_query()
-    # if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
-    #     return request
-    # task = prepare_extract_task(request)
-    # return task
+    tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
+    request = self.extract_task_query()
+    if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
+        return request
+    task = prepare_extract_task(request)
+    return task
 
 
 # init / run job
@@ -559,7 +559,7 @@ job.set_task_count(extract_limit)
 job.set_general_init(tmp_general_init)
 job.set_master_init(tmp_master_init)
 job.set_master_process(tmp_master_process)
-# job.set_master_update(tmp_master_update)
+job.set_master_update(tmp_master_update)
 job.set_update_interval(update_interval)
 job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
