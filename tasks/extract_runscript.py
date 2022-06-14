@@ -235,8 +235,7 @@ def tmp_worker_job(self, task_index, task_data):
 
     worker_tagline = "Worker {0} | Task {1} - ".format(self.rank, task_index)
 
-    tprint("{0} task received".format(worker_tagline))
-
+    tprint("{0} task approval received".format(worker_tagline))
 
     request = self.extract_task_query()
     if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
@@ -245,6 +244,7 @@ def tmp_worker_job(self, task_index, task_data):
         return extract_status
 
     task_data = prepare_extract_task(request)
+    tprint("{0} task found".format(worker_tagline))
 
     # =================================
 
@@ -404,35 +404,20 @@ def extract_task_query(self):
         search_query = {
             'generator': {'$in': self.generator_list},
             'classification': {'$in': self.classification_list},
-            '$and': [
-                {'$or': [
-                    {'status': 0},
-                    {'status': -1},
-                    {
-                        'status': 2,
-                        'update_time': {'$lt': time.time() - update_interval*5}
-                    }
-                ]}
-            ]
+            'status': {'$in': [0, -1]},
         }
 
         if 'errors' in job.job_type:
             attempt_max = int(job.job_type.split('_')[1])
             attempt_min = attempt_max - 5
-            search_query['$and'].append({'attempts': {'$exists': True}})
-            search_query['$and'].append({'attempts': {'$gte': attempt_min}})
-            search_query['$and'].append({'attempts': {'$lt': attempt_max}})
+            search_query['$and'] = [
+                {'attempts': {'$gte': attempt_min}},
+                {'attempts': {'$lt': attempt_max}}
+            ]
 
         else:
             attempt_max = 5
-            search_query['$and'].append(
-                {
-                    '$or': [
-                        {'attempts': {'$exists': False}},
-                        {'attempts': {'$lt': 5}}
-                    ]
-                }
-            )
+            search_query['attempts'] = {'$lt': attempt_max}
 
         update_fields = {
             'status': 2,
