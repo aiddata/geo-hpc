@@ -534,7 +534,7 @@ class NewParallel(object):
                         elif tag == self.tags.ERROR:
                             tprint("Master - error reported by worker {0}.".format(source))
                             # broadcast error to all workers
-                            self.send_error()
+                            # self.send_error()
                             err_status = 1
 
                         # finish handling nonblocking receive and return to
