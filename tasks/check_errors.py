@@ -62,7 +62,7 @@ client = config.client
 
 # time in seconds since last update
 # used to determine if a task is no longer running due to job error
-extract_error_interval = 60 * 2
+extract_error_interval = 60 * 20
 
 # maximum number of restart attempts allowed for tasks before
 # setting true error flag
@@ -100,7 +100,7 @@ for i in extract_errors:
     updates = {
         'status': new_status,
         'update_time': int(time.time()),
-        'attempts': attempts 
+        'attempts': attempts
     }
 
     results = c_extracts.update_one(
