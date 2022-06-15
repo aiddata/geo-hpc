@@ -172,7 +172,7 @@ def tmp_general_init(self):
 
 
 def tmp_master_init(self):
-    self.potential_request_list = []
+    self.request_list = []
     # start job timer
     self.Ts = int(time.time())
     self.T_start = time.localtime()
@@ -244,6 +244,30 @@ def tmp_worker_job(self, task_index, task_data):
 
     # task_data = prepare_extract_task(request)
     # tprint("{0} task prepared".format(worker_tagline))
+
+    task_data = prepare_extract_task(task_data)
+    
+    update_fields = {
+        'status': 2,
+        'update_time': int(time.time()),
+        'start_time': int(time.time()),
+        'complete_time': 0,
+        'processor_name': job.processor_name,
+    }
+
+    update_extract_task = c_extracts.update_one(
+    {
+        '_id': task_data['_id'],
+        'status': 0
+    },
+    {
+        '$set': update_fields
+    },
+    upsert=False)
+
+    if update_extract_task.modified_count == 0:
+        tprint("{0} task already claimed".format(worker_tagline))
+        return "task already claimed"
 
     # =================================
 
@@ -462,6 +486,66 @@ def extract_task_query(self):
 job.extract_task_query = types.MethodType(extract_task_query, job)
 
 
+
+def bulk_extract_task_query(self):
+
+    search_attempt = 0
+    request = 0
+    while search_attempt < self.search_limit:
+        # print 'Master - finding request:'
+
+        search_query = {
+            'status': 0
+        }
+
+        if self.classification_list:
+            if len(self.classification_list) > 1:
+                search_query['classification'] = {'$in': self.classification_list},
+            else:
+                search_query['classification'] = self.classification_list[0]
+
+
+        if 'errors' in job.job_type:
+            attempt_max = int(job.job_type.split('_')[1])
+            attempt_min = attempt_max - 5
+            search_query['$and'] = [
+                {'attempts': {'$gte': attempt_min}},
+                {'attempts': {'$lt': attempt_max}}
+            ]
+
+        else:
+            attempt_max = 5
+            search_query['attempts'] = {'$lt': attempt_max}
+
+
+
+        request_list = c_extracts.find(
+            search_query,
+            sort=[("priority", -1), ("submit_time", 1)]
+        ).limit(500)
+
+        if request_list is not None:
+            break
+
+        search_attempt += 1
+        print('Failed Search Attempt: {0}'.format(search_attempt))
+        time.sleep(random.randint(1, 10))
+
+
+    if search_attempt == job.search_limit:
+        # print "error updating request status in mongodb (attempting to continue)"
+        return ("error", "pass", "error updating request status in mongodb (attempting to continue)")
+
+    elif request_list is None:
+        # print 'no jobs found in queue'
+        return ("error", "empty", "no jobs found in queue")
+
+    else:
+        return list(request_list)
+
+job.bulk_extract_task_query = types.MethodType(bulk_extract_task_query, job)
+
+
 def prepare_extract_task(request):
     task = {}
 
@@ -536,11 +620,19 @@ def tmp_get_task_data(self, task_index, source):
     # tprint("Master - approving search for Worker {0} | Task {1}".format(source, task_index))
     # return task_index
 
+    # tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
+    # request = self.extract_task_query()
+    # if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
+    #     return request
+    # task = prepare_extract_task(request)
+    # return task
+
     tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
-    request = self.extract_task_query()
-    if (isinstance(request, tuple) and len(request) == 3 and request[0] == "error"):
-        return request
-    task = prepare_extract_task(request)
+    if self.request_list is None:
+        self.request_list = self.bulk_extract_task_query()
+    if (isinstance(self.request_list, tuple) and len(self.request_list) == 3 and self.request_list[0] == "error"):
+        return self.request_list
+    task = self.request_list.pop(0)
     return task
 
 
