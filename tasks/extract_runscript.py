@@ -246,7 +246,7 @@ def tmp_worker_job(self, task_index, task_data):
     # tprint("{0} task prepared".format(worker_tagline))
 
     task_data = prepare_extract_task(task_data)
-    
+
     update_fields = {
         'status': 2,
         'update_time': int(time.time()),
@@ -628,7 +628,7 @@ def tmp_get_task_data(self, task_index, source):
     # return task
 
     tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
-    if self.request_list is None:
+    if not self.request_list:
         self.request_list = self.bulk_extract_task_query()
     if (isinstance(self.request_list, tuple) and len(self.request_list) == 3 and self.request_list[0] == "error"):
         return self.request_list
