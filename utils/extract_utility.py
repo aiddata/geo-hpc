@@ -636,7 +636,7 @@ class ExtractObject():
                     raise Exception('multiple extract results for single '
                                     'feature')
 
-                yield stats[0]
+                yield {'properties': stats[0]['properties']}
 
             except MemoryError as e:
                 if callback == 'warning':
