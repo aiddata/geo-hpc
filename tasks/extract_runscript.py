@@ -343,8 +343,8 @@ def tmp_worker_job(self, task_index, task_data):
     file_name = '.'.join([dataset_name, temporal, exo._extract_type]) + ".csv"
     output = os.path.join(output_dir, file_name)
 
-    run_data = exo.export_to_csv(run_data, output)
-
+    # run_data = exo.export_to_csv(run_data, output)
+    test_extract_status = -999
 
     # run_data = exo.export_to_db(
     #     stats = run_data,
@@ -405,7 +405,8 @@ def tmp_worker_job(self, task_index, task_data):
         '_id': task_data['_id']
     }, {
         '$set': {
-            'status': extract_status,
+            # 'status': extract_status,
+            'status': test_extract_status,
             'update_time': int(time.time()),
             'complete_time': int(time.time())
         }
