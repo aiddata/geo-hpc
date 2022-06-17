@@ -15,6 +15,8 @@ import os
 import errno
 import warnings
 import time
+import csv
+
 from numpy import isnan
 
 import pandas as pd
@@ -876,34 +878,30 @@ class ExtractObject():
 
     def export_to_csv(self, stats, output):
 
-        extract_fh = open(output, "w")
+        with open(output, "w") as extract_fh:
 
-        import csv
+            header = True
+            for feat in stats:
+                ex_data = feat['properties']
 
-        header = True
-        for feat in stats:
-            ex_data = feat['properties']
+                if header:
+                    header = False
+                    fieldnames = list(ex_data.keys())
+                    extract_csvwriter = csv.DictWriter(extract_fh,
+                                                    delimiter=str(","),
+                                                    fieldnames=fieldnames)
+                    extract_csvwriter.writeheader()
 
-            if header:
-                header = False
-                fieldnames = list(ex_data.keys())
-                extract_csvwriter = csv.DictWriter(extract_fh,
-                                                   delimiter=str(","),
-                                                   fieldnames=fieldnames)
-                extract_csvwriter.writeheader()
+                try:
+                    extract_csvwriter.writerow(ex_data)
+                except:
+                    for k in ex_data:
+                        if isinstance(ex_data[k], unicode):
+                            ex_data[k] = ex_data[k].encode('utf-8')
 
-            try:
-                extract_csvwriter.writerow(ex_data)
-            except:
-                for k in ex_data:
-                    if isinstance(ex_data[k], unicode):
-                        ex_data[k] = ex_data[k].encode('utf-8')
+                    extract_csvwriter.writerow(ex_data)
 
-                extract_csvwriter.writerow(ex_data)
-
-            yield feat
-
-        extract_fh.close()
+                yield feat
 
 
     def export_to_db(self, stats, **kwargs):
