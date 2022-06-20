@@ -283,7 +283,7 @@
                         "max_jobs": 1,
                         "nodes": 1,
                         "ppn": 1,
-                        "walltime": "24:00:00",
+                        "walltime": "12:00:00",
                         "cmd": "mpirun --mca mpi_warn_on_fork 0 -np 1 python-mpi $src/geo-hpc/tasks/geoquery_request_processing.py $branch"
                     }
                 ]
