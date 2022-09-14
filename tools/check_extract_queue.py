@@ -43,10 +43,10 @@ client = pymongo.MongoClient(config.database)
 c_extracts = client.asdf.extracts
 
 
-if job_type == "det":
-    request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}], 'priority': {'$gt': -1}}).count()
+if job_type == "det" or job_type == "default":
+    # request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}], 'priority': {'$gt': -1}}).count()
 
-elif job_type == "default":
+# elif job_type == "default":
     request_count = c_extracts.find({'status': {'$in': [0, -1, 2]}, '$or': [{'attempts': {'$exists': False}}, {'attempts': {'$lt': 5}}]}).count()
 
 elif job_type == "raster":
