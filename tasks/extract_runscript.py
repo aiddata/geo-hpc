@@ -631,10 +631,14 @@ def tmp_get_task_data(self, task_index, source):
     tprint("Master - starting search for Worker {0} | Task {1}".format(source, task_index))
     if not self.request_list:
         self.request_list = self.bulk_extract_task_query()
+
     if (isinstance(self.request_list, tuple) and len(self.request_list) == 3 and self.request_list[0] == "error"):
         return self.request_list
-    task = self.request_list.pop(0)
-    return task
+    elif len(self.request_list) == 0:
+        return ('error', None, 'no more tasks in request list')
+    else:
+        task = self.request_list.pop(0)
+        return task
 
 
 # init / run job
