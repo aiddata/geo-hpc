@@ -403,7 +403,7 @@
                     "To Share: To copy, distribute and use the database.",
                     "To Create: To produce works from the database.",
                     "To Adapt: To modify, transform and build upon the database.",
-                    "This is not a license. It is simply a handy reference for understanding the ODC-BY 1.0 — it is a human-readable expression of some of its key terms. This summary has no legal value, and its contents do not appear in the actual license. Read the full ODC-BY 1.0 license text at geo.aiddata.org/license for the exact terms that apply."
+                    "This is not a license. It is simply a handy reference for understanding the ODC-BY 1.0 — it is a human-readable expression of some of its key terms. This summary has no legal value, and its contents do not appear in the actual license. Read the full ODC-BY 1.0 license text at https://www.aiddata.org/geoquery/licenses for the exact terms that apply."
                 ]
             },
             "citation": "By clicking submit below, you agree to the terms and conditions listed and agree to cite the following in any and all applications of the extracted datasets: Goodman, S., BenYishay, A., Lv, Z., & Runfola, D. (2019). GeoQuery: Integrating HPC systems and public web-based geospatial data tools. Computers & Geosciences, 122, 103-112.",
