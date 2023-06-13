@@ -125,7 +125,7 @@ class DocBuilder():
         self.Story.append(Spacer(1, 0.1*inch))
 
         data = [
-            ['Request Name', self.request['custom_name']],
+            ['Request Name', self.request['custom_name'].encode('utf8', 'replace')],
             ['Request Id', str(self.request['_id'])],
             ['Email', self.request['email']],
             ['Generated on', self.time_str()],
@@ -415,7 +415,7 @@ class DocBuilder():
             meta_log.append(dset['dataset'])
 
             ptext = '<font size=10><b>Selection {0} - {1}</b></font>'.format(
-                len(meta_log), dset['custom_name'])
+                len(meta_log), dset['custom_name'].encode('utf8', 'replace'))
 
             self.Story.append(Paragraph(ptext, self.styles['Normal']))
             self.Story.append(Spacer(1, 0.05*inch))
