@@ -186,7 +186,7 @@ def tmp_worker_job(self, task_index, task_data):
         return i + 1
 
 
-    with fiona.open("shapefile.shp") as features:
+    with fiona.open(bnd_absolute) as features:
         bnd_feature_count = len(features)
 
     if os.path.isfile(output) and file_len(output) - 1 == bnd_feature_count:
