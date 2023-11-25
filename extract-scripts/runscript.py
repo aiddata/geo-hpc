@@ -191,8 +191,8 @@ def tmp_worker_job(self, task_index, task_data):
 
     if os.path.isfile(output) and file_len(output) - 1 == bnd_feature_count:
         print ((worker_tagline + 'skipping extract (output exists): ' +
-               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
-               (bnd_name, bnd_absolute, raster_name, raster, extract_type))
+               '\n\tvector: (%s) %s\n\tdata: (%s) %s\n\tmethod: %s ') %
+               (bnd_name, bnd_absolute, data_name, extract_type))
         extract_status = 1
         return 1
 
