@@ -180,11 +180,12 @@ def tmp_worker_job(self, task_index, task_data):
     output = os.path.join(output_dir, file_name)
 
     def file_len(filename):
-        x = None
+        x = 0
         with open(filename) as f:
             for i, _ in enumerate(f):
                 x = i
-        return x + 1
+            x += 1
+        return x
 
 
     with fiona.open(bnd_absolute) as features:
