@@ -8,6 +8,7 @@ import errno
 import time
 import json
 
+import fiona
 
 utils_dir = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'utils')
@@ -174,6 +175,26 @@ def tmp_worker_job(self, task_index, task_data):
 
     # ==================================================
 
+    # generate output path
+    file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
+    output = os.path.join(output_dir, file_name)
+
+    def file_len(filename):
+        with open(filename) as f:
+            for i, _ in enumerate(f):
+                pass
+        return i + 1
+
+
+    with fiona.open("shapefile.shp") as features:
+        bnd_feature_count = len(features)
+
+    if os.path.isfile(output) and file_len(output) - 1 == bnd_feature_count:
+        print ((worker_tagline + 'skipping extract (output exists): ' +
+               '\n\tvector: (%s) %s\n\traster: (%s) %s\n\tmethod: %s ') %
+               (bnd_name, bnd_absolute, raster_name, raster, extract_type))
+        extract_status = 1
+        return 1
 
     # generate raster path
     if exo._run_option == "1":
@@ -197,9 +218,6 @@ def tmp_worker_job(self, task_index, task_data):
         run_data = exo.run_extract(raster, pixel_limit=pixel_limit)
 
 
-    # generate output path
-    file_name = '.'.join([data_name, temporal, exo._extract_type]) + ".csv"
-    output = os.path.join(output_dir, file_name)
 
     run_data = exo.export_to_csv(run_data, output)
     # run_data = exo.export_to_db(run_data)
@@ -248,4 +266,3 @@ job.set_master_final(tmp_master_final)
 job.set_worker_job(tmp_worker_job)
 
 job.run()
-
