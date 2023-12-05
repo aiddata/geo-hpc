@@ -461,22 +461,6 @@
                     "parent": false
                 },
                 {
-                    "field": "total_commitments",
-                    "display": "total commitments",
-                    "description": "Total project commitments.",
-                    "is_default": false,
-                    "filter_type": "slider",
-                    "parent": false
-                },
-                {
-                    "field": "total_disbursements",
-                    "display": "total disbursements",
-                    "description": "Total project disbursements.",
-                    "is_default": false,
-                    "filter_type": "slider",
-                    "parent": false
-                },
-                {
                     "field": "transactions_start_year",
                     "display": "start year",
                     "description": "Earliest year associated with project",
