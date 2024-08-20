@@ -78,7 +78,7 @@ Stats (run as personal user)
 - Confirm all files owned by mongodb user: `ls -l /var/lib/mongodb`
 - Correct ownership if needed: `sudo chown -R mongodb:mongodb /var/lib/mongodb`
 - Restart again and check logs (debug further based on logs before using next steps)
-    - PID file (`/var/run/mongod.pid`) may be missing
+    - PID file (`/var/run/mongod.pid`, or `/var/run/mongodb/mongod.pid` for newer version) may be missing
     - `sudo touch /var/run/mongod.pid`
     - `sudo chown mongodb:mongodb /var/run/mongod.pid`
     - restart and check logs again
