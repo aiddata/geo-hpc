@@ -1052,7 +1052,7 @@ def merge_file_list(file_list, merge_output, include_asdf_id=True):
             warnings.warn("Warning: missing asdf_id and gqid columns.")
             adjusted_field_list = [i for i in field_list if i not in ["asdf_id", "gqid"]]
             merged_df = merged_df[adjusted_field_list]
-            merged_df["asdf_id"] range(len(merged_df))
+            merged_df["asdf_id"] = range(len(merged_df))
             merged_df["gqid"] = range(len(merged_df))
 
         # output merged dataframe to csv
