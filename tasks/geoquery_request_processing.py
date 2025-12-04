@@ -115,7 +115,7 @@ for request_obj in request_objects:
     print '\n---------------------------------------'
     print 'Request (id: {0})\n{1}\n'.format(request_id, request_obj)
 
-    if not request_obj['boundary'] or (not request_obj['release_data'] and not request_obj['raster_data']):
+    if not 'boundary' in request_obj or not request_obj['boundary'] or (not request_obj['release_data'] and not request_obj['raster_data']):
         queue.update_status(request_id, -2, False)
         print "Invalid request (missing key fields). Id: {0}".format(request_id)
         continue
@@ -192,4 +192,3 @@ for request_obj in request_objects:
 print '\n---------------------------------------'
 print "\nFinished checking requests"
 print time.strftime('%Y-%m-%d  %H:%M:%S', time.localtime())
-
