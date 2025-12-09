@@ -817,7 +817,7 @@ class CoreMSR():
             }
 
         # force use master prod db even for dev (temporary)
-        f_client = pymongo.MongoClient("128.239.20.76")
+        f_client = pymongo.MongoClient("aiddata-extract-prod.it.wm.edu")
 
         results = list(f_client.asdf.features.find(query))
 
@@ -1045,5 +1045,3 @@ class CoreMSR():
             return rv_array, (minx, miny, maxx, maxy)
         else:
             return rasterized, (minx, miny, maxx, maxy)
-
-
